@@ -9,6 +9,9 @@ Open Cooperative Web Framework
 :Dev group: https://groups.google.com/group/opencoweb-dev
 :IRC: #coweb on irc.freenode.net
 
+What is it?
+===========
+
 The Open Cooperative Web Framework enables the creation of *cooperative web applications* featuring concurrent real-time interactions among remote users and external data sources. The framework handles remote notification of user changes, the resolution of conflicting changes, and convergence of application state with minimal information from the application.
 
 The current implementation of the framework is based on open web technologies such as Dojo, CometD, Bayeux, and WebSocket. The framework includes:
@@ -19,19 +22,19 @@ The current implementation of the framework is based on open web technologies su
 * A Java coweb server built on the `CometD <http://cometd.org>`_ Java Library
 * API documentation, tutorials, and examples
 
-Status
-======
-
-This is an initial code drop. You can grab the framework and start using it, but expect a bumpy ride in the near future. We're working hard on documentation and fixes to get to a stable v1.0.
-
-For more details, please refer to the issue tracker.
-
 Getting Started
 ===============
 
 Start by viewing the framework documentation online at http://opencoweb.org/ocwdocs. It includes tutorials on how to setup a coweb server and write your first cooperative web application. 
 
 Send mail to the coweb users group or join us on IRC if you're having trouble.
+
+Status
+======
+
+This is an initial code drop. You can grab the framework and start using it, but expect a bumpy ride in the near future. We're working hard on documentation and fixes to get to a stable v1.0.
+
+For more details, please refer to the issue tracker.
 
 License
 =======
