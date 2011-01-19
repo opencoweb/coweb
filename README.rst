@@ -29,7 +29,7 @@ For more details, please refer to the issue tracker.
 Getting Started
 ===============
 
-Start by viewing the framework documentation online at http://opencoweb.github.com/. It includes tutorials on how to setup a coweb server and write your first cooperative web application. 
+Start by viewing the framework documentation online at http://opencoweb.org/ocwdocs. It includes tutorials on how to setup a coweb server and write your first cooperative web application. 
 
 Send mail to the coweb users group or join us on IRC if you're having trouble.
 
@@ -50,24 +50,7 @@ Credits
 
 This open source project derives from a broader IBM cooperative web project. The initial IBM contribution includes efforts from the following people:
 
-* Bill Abt
-* Krishna Akella
-* Hisatoshi Adachi
-* David Boloker
-* `Paul Bouchon <http://github.com/bouchon>`_
-* `Brian Burns <http://github.com/bpburns>`_
-* `Bryce Curtis <http://github.com/brycecurtis>`_
-* Andrew Donoho
-* `Dan Gisolfi <http://github.com/vinomaster>`_
-* Wing Lee
-* `Peter Parente <http://github.com/parente>`_
-* Aaron Reed
-* `Roger Que <http://github.com/query>`_
-* Sonal Starr
-* Michael Stewart
-* Wayne Vicknair
-* Royce Walter
-* Peter Westerink
+Bill Abt, Krishna Akella, Hisatoshi Adachi, David Boloker, `Paul Bouchon <http://github.com/bouchon>`_, `Brian Burns <http://github.com/bpburns>`_, `Bryce Curtis <http://github.com/brycecurtis>`_, Andrew Donoho, `Dan Gisolfi <http://github.com/vinomaster>`_, Wing Lee, `Peter Parente <http://github.com/parente>`_, Aaron Reed, `Roger Que <http://github.com/query>`_, Sonal Starr, Michael Stewart, Wayne Vicknair, Royce Walter, Peter Westerink
 
 Subsequent contributors to the project under the Dojo Foundation will be credited here. 
 
