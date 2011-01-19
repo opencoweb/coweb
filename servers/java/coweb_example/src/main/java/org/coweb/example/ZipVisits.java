@@ -15,9 +15,9 @@ import java.util.TimerTask;
 import java.util.Random;
 
 /**
- * @copyright IBM Corp. 2008, 2010 All Rights Reserved.
+ * Bot class for the comap example. When a user adds a marker this bot
+ * will see the sync event and start pushing markers to the session.
  */
-
 public class ZipVisits implements Bot {
 
     private Proxy proxy = null;
@@ -28,47 +28,42 @@ public class ZipVisits implements Bot {
        this.proxy = proxy;
     }
 
-   	@Override
 	public void onSubscribe(String userName) {
-		// TODO Auto-generated method stub
-
+        return;
 	}
 
-	@Override
 	public void onUnsubscribe(String userName) {
-		// TODO Auto-generated method stub
-
+        return;
 	}
 	
-	@Override
 	public void onShutdown() {
         if(this.timer != null)
         	this.timer.cancel();
 	}
 	
-	@Override
 	public void init() {
-		// TODO Auto-generated method stub
-		
+        return;
 	}
 
-	@Override
 	public void onRequest(Map<String, Object> arg0, String arg1, String arg2) {
-		// TODO Auto-generated method stub
-		
+        return;
 	}
 
-    
+   
+    /**
+     * Watch for sync events for marker adds and moves.
+     */ 
     public void onSync(Map<String, Object> data, String username) {
         String topic = (String)data.get("topic");
         if(topic == null)
         	return;
    
         if(topic.startsWith("coweb.sync.marker")) {
-            System.out.println("topic = " + topic);     
-            System.out.println("ZipVisits::onSync");
-            Map<Object, Object> evtData = (Map<Object, Object>)data.get("eventData");
-            System.out.println(evtData);
+            Map<Object, Object> evtData = 
+                (Map<Object, Object>)data.get("eventData");
+
+            //parse the topic field to find the item after 
+            //coweb.sync.marker
         	String[] seqs = topic.split("\\.");
         	String action = seqs[3];
         	String mid = seqs[4];
@@ -113,42 +108,3 @@ public class ZipVisits implements Bot {
 		}
     }
 }
-	
-/*
-	def on_sync(self, data, username):
-        # watch sync events for marker adds and moves
-        if data['topic'].startswith('coweb.sync.marker.'):
-            # explode topic name
-            segs = data['topic'].split('.')
-            # pull out action part of topic name
-            action = segs[3]
-            # pull out the marker id (based on known topic structure)
-            mid = segs[4]
-            # if we were doing real geocodes and visit lookup, we'd also pull
-            # the lat/lng out of the event value and use that; here we just
-            # fake data
-            if action not in ['move', 'add']:
-                return
-
-            # start at some random value
-            self.markers[mid] = random.randint(0, 1000)
-
-            if self.timer is None:
-                # start a timer to publish data every 5 sec
-                self.timer = self.bot.add_timer(5, self.on_timer)
-        
-    def on_timer(self):
-        # update counts for marker; if we weren't faking data, this is where
-        # we'd go off a fetch the info
-        for mid in self.markers:
-            self.markers[mid] += random.randint(0, 10)
-        # publish the updated results back to clients; include all the markers
-        # but we could send just those that updated
-        self.bot.publish(self.markers)
-        # schedule next timer interval
-        self.timer = self.bot.add_timer(5, self.on_timer)
-        
-    def on_shutdown(self):
-        # make sure we're not hanging on a timer
-        self.timer.cancel()
-*/
