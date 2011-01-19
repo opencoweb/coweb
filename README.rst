@@ -11,12 +11,12 @@ Open Cooperative Web Framework
 
 The Open Cooperative Web Framework enables the creation of *cooperative web applications* featuring concurrent real-time interactions among remote users and external data sources. The framework handles remote notification of user changes, the resolution of conflicting changes, and convergence of application state with minimal information from the application.
 
-The current implementation of the framework is based on open web technologies such as Dojo, cometD, Bayeux, and WebSocket. The framework includes:
+The current implementation of the framework is based on open web technologies such as Dojo, CometD, Bayeux, and WebSocket. The framework includes:
 
 * A JavaScript API for sending and receiving coweb events
 * An JavaScript *operation engine* using `operational transformation <http://en.wikipedia.org/wiki/Operational_transformation>`_ to resolve conflicting, simultaneous changes
 * A Python coweb server built on the `Tornado <http://tornadowebserver.org>`_ web server
-* A Java coweb server built on `cometd-java <http://cometd.org>`_
+* A Java coweb server built on the `CometD <http://cometd.org>`_ Java Library
 * API documentation, tutorials, and examples
 
 Status
@@ -53,6 +53,9 @@ This open source project derives from a broader IBM cooperative web project. The
 Bill Abt, Krishna Akella, Hisatoshi Adachi, David Boloker, `Paul Bouchon <http://github.com/bouchon>`_, `Brian Burns <http://github.com/bpburns>`_, `Bryce Curtis <http://github.com/brycecurtis>`_, Andrew Donoho, `Dan Gisolfi <http://github.com/vinomaster>`_, Wing Lee, `Peter Parente <http://github.com/parente>`_, Aaron Reed, `Roger Que <http://github.com/query>`_, Sonal Starr, Michael Stewart, Wayne Vicknair, Royce Walter, Peter Westerink
 
 Subsequent contributors to the project under the Dojo Foundation will be credited here. 
+
+References
+==========
 
 The operational transformation algorithm used in the framework is based on various lines of research, such as: 
 
