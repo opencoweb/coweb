@@ -1,3 +1,8 @@
+//
+// Tests for the session API against a mock server.
+//
+// Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
+//
 dojo.provide('tests.test_session');
 dojo.require('tests.util');
 dojo.require('coweb');

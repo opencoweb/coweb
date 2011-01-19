@@ -1,3 +1,8 @@
+//
+// Mock Bayeux server for testing.
+//
+// Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
+//
 dojo.provide('tests.MockBayeux');
 dojo.require('tests.MockXhr');
 
