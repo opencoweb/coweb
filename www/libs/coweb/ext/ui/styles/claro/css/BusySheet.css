@@ -1,0 +1,36 @@
+/*
+ * Busy dialog styles.
+ *
+ * Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
+ */
+.claro .cowebBusySheet {
+    padding: 0.5em 0em;
+    max-width: 300px;
+}
+
+.claro .cowebBusySheet td {
+    vertical-align: top;
+}
+
+.claro .cowebBusySheet .cowebBusyStatus {
+    margin: 0em;
+    padding: 0em;
+    margin-left: 2em;
+    margin-bottom: 1em;
+    font-weight: bold;
+    color: #000;
+    text-align: left;
+}
+
+.claro .cowebBusySheet .cowebBusyHint {
+    margin: 0em;
+    padding: 0em;
+    padding-left: 2em;
+    text-align: left;
+}
+
+.claro .cowebBusySheet .cowebBusyActions {
+    margin: 1em 0 1px 0;
+    padding-top: 0.5em;
+    text-align: right;
+}

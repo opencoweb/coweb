@@ -1,0 +1,45 @@
+/*
+ * Coweb doc custom styles.
+ *
+ * Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
+ */
+@import "nature.css";
+
+.figure {
+    text-align: center;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+
+.figure img {
+    max-width: 100%;
+}
+
+.figure .caption, p.openg-it {
+    text-align: center;
+    font-size: 0.8em;
+    padding: 0.25em 1em 0em 1em;
+    font-style: italic;
+}
+
+dt {
+    font-style: italic;
+}
+
+h4 {
+    font-size: 100% !important;
+}
+
+table.openg-it {
+    margin: auto;
+}
+
+.highlight pre {
+    max-height: 25em;
+    overflow: auto;
+    margin: 0px;
+}
+
+li .highlight {
+	margin-bottom: 1.5em;
+}

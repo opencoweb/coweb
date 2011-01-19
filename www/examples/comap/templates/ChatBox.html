@@ -1,0 +1,11 @@
+<div class="wChatBox">
+  <div class="wChatBoxHistory" 
+       dojoAttachPoint="historyNode"></div>
+  <div class="wChatBoxEntry" dojoAttachPoint="entryContainerNode">
+    <input type="text" 
+           dojoAttachEvent="onkeydown:_onKeyDown"
+           dojoAttachPoint="entryNode" 
+           placeholder="${_labels.entry_title}" 
+           title="${_labels.entry_title}"/>
+  </div>
+</div>

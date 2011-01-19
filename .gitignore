@@ -1,0 +1,10 @@
+*.py[co]
+*.gz
+*.class
+*.war
+*.jar
+*egg-info*
+.DS_Store
+coweb/docs/_build
+coweb/servers/python/build
+target/

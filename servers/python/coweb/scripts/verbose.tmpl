@@ -1,0 +1,121 @@
+#!/usr/bin/env python
+import coweb
+
+class CoWebApp(coweb.AppContainer):
+    '''
+    Container defining configuration options for a coweb app server and 
+    controlling its startup.
+    '''
+    # root of all web apis and resources; must be set at class level for use
+    #   in the coweb.AppContainer constructor
+    # webRoot = '/'
+    def on_configure(self):
+        '''Override default configuration options shown in comments below.'''
+        # secret key used by auth managers that generate signed cookies
+        self.webSecretKey = '${webSecretKey}'
+
+        # settings passed to tornado.web.Application
+        # self.appSettings = {'container' : self, 'debug' : options.debug}
+        
+        # path where this container impl is running; all other paths are
+        #   relative to this location
+        # self.containerPath = os.path.abspath(os.path.dirname(sys.argv[0]))
+        
+        # path where the imported coweb package resides
+        # self.modulePath = os.path.abspath(os.path.dirname(coweb.__file__))
+        
+        # tcp port the web server will use
+        # self.httpPort = 9000 if options.port is None else options.port
+        
+        # path to static web resources; if None, http server does not make
+        #  static web resources available (e.g., proxy + coweb deployment)
+        # self.httpStaticPath = './www' 
+        
+        # absolute url to the login handler
+        # self.webLoginUrl = self.webRoot + 'login'
+        
+        # absolute url to the logout handler
+        # self.webLogoutUrl = self.webRoot + 'logout'
+        
+        # absolute url to all static web resources
+        # self.webStaticRoot = self.webRoot + 'www/'
+        
+        # absolute url of the coweb admin handler
+        # self.webAdminUrl = self.webRoot + 'admin'
+        
+        # absolute url of all coweb session handlers
+        # self.webSessionRoot = self.webRoot + 'session/'
+        
+        # absolute url of all coweb session service handlers
+        # self.webServiceRoot = self.webRoot + 'service/'
+        
+        # window in seconds before a coweb client is considered disconnected
+        # self.cowebIdleTimeout = 30
+        
+        # paths where bots are located for local bot launchers
+        # self.cowebBotLocalPaths = ['bots']
+        
+        # coweb.auth.AuthBase subclass defining user authentication; default
+        #   allows access by any user and assigns a random username
+        # self.authClass = PublicAuth
+        
+        # coweb.access.AccessBase subclass defining coweb authorization; 
+        #   default allows session and service access by any user
+        # self.accessClass = PublicAccess
+        
+        # coweb.service.ServiceLauncherBase subclass defining how
+        #   bots launch in a session; default launches bots as local processes 
+        #   under user 'nobody'
+        # self.serviceLauncherClass = (ProcessLauncher,
+        #    {'sandbox' : 'nobody', 'botPaths' : self.cowebBotLocalPaths})
+        
+        # coweb.service.ServiceManagerBase subclass defining how
+        #   bots communicate with the service for pub/sub in a session; default
+        #   supports bots that talk Bayeux over WebSocket
+        # self.serviceManagerClass = BayeuxServiceManager
+    
+    def on_build_auth_manager(self):
+        '''
+        Override to customize the instantiation of the coweb.auth.AuthBase
+        subclass specified by self.authClass.
+        '''
+        return super(CoWebApp, self).on_build_auth_manager()
+        
+    def on_build_access_manager(self):
+        '''
+        Override to customize the instantiation of the coweb.access.AccessBase
+        subclass specified by self.accessClass.
+        '''
+        return super(CoWebApp, self).on_build_access_manager()
+
+    def on_build_service_launcher(self, sessionBridge):
+        '''
+        Override to customize the instantiation of the 
+        coweb.service.ServiceLauncherBase subclass specified by 
+        self.serviceLauncherClass.
+        '''
+        return super(CoWebApp, self).on_build_service_launcher(sessionBridge)
+
+    def on_build_service_manager(self, sessionBridge):
+        '''
+        Override to customize the instantiation of the 
+        coweb.service.ServiceManagerBase subclass specified by 
+        self.serviceManagerClass.
+        '''
+        return super(CoWebApp, self).on_build_service_manager(sessionBridge)
+        
+    def on_build_web_handlers(self):
+        '''
+        Override to customize or augment the list of registered web handlers.
+        '''
+        return super(CoWebApp, self).on_build_web_handlers()
+    
+    def on_build_web_app(self, handlers, settings):
+        '''
+        Override to customize the instantiation of the
+        coweb.application.Application class.
+        '''
+        return super(CoWebApp, self).on_build_web_app(handlers, settings)
+
+if __name__ == '__main__':
+    coweb.run_server(CoWebApp)

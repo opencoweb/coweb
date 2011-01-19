@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Simple Service Example</title>
+    <style type="text/css">
+      @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/resources/dojo.css";
+      @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dijit/themes/claro/claro.css";
+      @import "../../libs/coweb/ext/ui/styles/claro/claro.css";
+    </style>
+    <script type="text/javascript">
+      var path = window.location.pathname.split('/');
+      path.pop();
+      path = path.join('/');
+      var djConfig = {
+          isDebug: false,
+          parseOnLoad: true,
+          modulePaths: {
+            'coweb' : 'coweb',
+            'dojox.cometd' : 'dojox/cometd',
+            'org.cometd' : 'org/cometd'
+          },
+          baseUrl : '../../libs/'
+      };
+    </script>
+    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/OpenAjax.js"></script>
+    <script type="text/javascript" src="services.js"></script>
+  </head>
+  <body class="claro">
+    <h1>Simple Service Example</h1>
+    <p>Use the developer console to talk to the echo and utctime bots with <em>echo1(text)</em>, <em>echo2(text)</em>, <em>getTime1()</em>, and <em>geTime2()</em>. The 1 and 2 functions use separate <em>coweb.collab</em> to demonstrate how messages are delivered.</p>
+  </body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Cooperative Web Server Login</title>
+    <style type="text/css">
+      @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/resources/dojo.css";
+      @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dijit/themes/claro/claro.css";
+      html, body {
+        width: 100%;
+        height: 100%;
+        background-color: #f5f5f5;
+        font-size: 1.5em;
+        overflow: hidden;
+        text-align: center; /* for ie */
+      }
+      
+      #container {
+        text-align: left;
+        width: 375px;
+        margin: 2em auto;
+        background-color: white;
+        padding: 1em;
+        border: 1px solid #ddd;
+      }
+
+      #prompt {
+          margin-top: 0em;
+      }
+
+      #form label {
+          text-align: right;
+          width: 6em;
+          padding-right: 1em;
+          display: block;
+          float: left;
+          margin-bottom: 10px;
+      }
+
+      #status {
+          color: #999;
+          vertical-align: middle;
+      }
+
+      .dijitButton {
+          vertical-align: middle;
+      }
+
+      .dijitTextBox {
+          width: 15em;
+          margin-bottom: 10px;
+      }
+
+      #actions {
+          border-top: 1px solid gray;
+          /* IE needs the 1px bottom margin fix, else buttons dance */
+          margin: 0.5em 0 1px 0;
+          padding-top: 0.5em;
+          text-align: right;
+      }
+    </style>
+    <script type="text/javascript">
+      var djConfig = {parseOnLoad : true, isDebug : false};
+    </script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></script>
+    <script type="text/javascript">
+      dojo.require('dijit.form.Form');
+      dojo.require('dijit.form.ValidationTextBox');
+      dojo.require('dijit.form.Button');
+      
+      function success() {
+        window.location.reload();
+      }
+      
+      function failure() {
+        dojo.byId('status').innerHTML = 'Login failed';
+        dijit.byId('submit').attr('disabled', false);
+      }
+      
+      dojo.ready(function() {
+        var f = dijit.byId('form');
+        f.onSubmit = function() {
+          // abort if form is bad
+          if(!f.validate()) { return false; }
+          try {
+            // show busy
+            dojo.byId('status').innerHTML = 'Logging in ...';
+            // disable the submit button
+            dijit.byId('submit').attr('disabled', true);
+            var data = {
+              username : dijit.byId('username').attr('value'),
+              password : dijit.byId('password').attr('value')
+            };
+            // post and listen for response
+            dojo.xhrPost({
+              postData : dojo.toJson(data),
+              url : ''
+            }).then(success, failure);
+          } finally {
+            return false;
+          }
+        };
+      });
+    </script>
+  </head>
+  <body class="claro">
+    <div id="container">
+      <p id="prompt">Enter your coweb credentials</p>
+      <form dojoType="dijit.form.Form" class="fields" id="form">
+        <label for="username">Username</label>
+        <input type="text" 
+               id="username" 
+               name="username"
+               autocorrect="off"
+               autocapitalize="off"
+               dojoType="dijit.form.ValidationTextBox"
+               required="true"
+               invalidMessage="Enter a valid username (e.g., john.doe)" /><br clear="all"/>
+        <label for="password">Password</label>
+        <input type="password"
+               id="password"
+               name="password"
+               autocorrect="off"
+               autocapitalize="off"
+               dojoType="dijit.form.ValidationTextBox" 
+               required="true" 
+               invalidMessage="Enter your account password" /><br clear="all"/>
+        <div id="actions">
+          <span id="status"></span>
+          <button type="submit" dojoType="dijit.form.Button" id="submit">Login</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

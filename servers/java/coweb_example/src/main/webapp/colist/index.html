@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Cooperative Shopping List Example</title>
+    <style type="text/css">
+      @import "../js/libs/dojo/resources/dojo.css";
+      @import "../js/libs/dijit/themes/claro/claro.css";
+      @import "../js/libs/dojox/grid/resources/Grid.css";
+      @import "../js/libs/dojox/grid/resources/claroGrid.css";
+
+      @import "../js/libs/coweb/ext/ui/styles/claro/claro.css";
+      @import "colist.css";
+    </style>
+    <script type="text/javascript">
+      var djConfig = {
+          cowebAdminUrl: '/coweb_example/admin',
+          isDebug: false,
+          parseOnLoad: true,
+          modulePaths: {
+            'coweb' : '../coweb',
+            'colist' : '/coweb_example/colist' 
+          }
+      };
+    </script>
+    <script type="text/javascript" src="../js/libs/dojo/dojo.js"></script>
+    <script type="text/javascript" src="../js/libs/dojo/OpenAjax.js"></script>
+    <script type="text/javascript" src="colist.js"></script>
+  </head>
+  <body class="claro">
+    <div dojoType="dijit.layout.BorderContainer" 
+           design="headline" 
+           gutters="false" 
+           liveSplitters="false"
+           id="container">
+      <div dojoType="dijit.layout.ContentPane"
+           region="top"
+           id="controls">
+        <button id="addRowButton"
+                type="button"
+      	        dojoType="dijit.form.Button">Add Item</button>
+      	<button id="removeRowButton"
+      	        type="button"
+      	        dojoType="dijit.form.Button">Delete Item</button>
+      </div>
+      <table id="grid"
+             dojoType="dojox.grid.DataGrid"
+             autoWidth="true" 
+             rowSelector="20px"
+             disabled="true"
+             columnReordering="true"
+             region="center">
+        <thead>
+          <tr>
+            <th width="400px" field="name" editable="true">Item</th>
+            <th width="200px" field="amount" editable="true">Amount</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </body>
+</html>

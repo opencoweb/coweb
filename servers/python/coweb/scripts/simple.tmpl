@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+import coweb
+
+class CoWebApp(coweb.AppContainer):
+    def on_configure(self):
+        # for signing cookies if auth handler needs it
+        self.webSecretKey = '${webSecretKey}'
+
+if __name__ == '__main__':
+    coweb.run_server(CoWebApp)

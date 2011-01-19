@@ -1,0 +1,8 @@
+{
+    "name" : "Time Test Service",
+    "description" : "Supports requests for the current UTC time",
+    "author" : "Peter Parente",
+    "version" : "1.0",
+    "service" : "utctime",
+    "execute" : "python utctime.py"
+}

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    {% if refresh is not None %}
+    <meta http-equiv="refresh" content="{{ int(refresh) }}">
+    {% end %}
+    <title>CoWeb Server Debug Status</title>
+  </head>
+  <body>
+    <p>Last refreshed: {{ escape(dt) }}</p>
+    <pre>application.sessionIds = 
+{{ escape(sessionIds) }}</pre>
+    <pre>application.sessions = 
+{{ escape(sessions) }}</pre>
+  </body>
+</html>
