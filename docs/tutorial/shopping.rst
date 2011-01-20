@@ -602,7 +602,7 @@ Now define the method to add remotely created items to the local data store.
 
 The second line of code in this method adds the name/value pairs of the item properties packaged in `value.row` to the local data store. But before adding the item, the code is careful to disconnect the listener for local data store changes to avoid a cooperative event storm. If left connected, the :func:`onLocalInsert` method would get invoked, the code in that method would send a duplicate event to remote instances, those instances would do the same, ad infinitum. After invoking :func:`newItem`, the code reconnects the listener for local events.
 
-Note this approach to avoiding echoed events only works because :class:`dojo.data.ItemFileWriteStore` invokes our :meth:`onLocalInsert` method synchronously within :meth:`newItem`. If the addition of the item or the callback was asynchronous (as is the case in other data store implementations), the code would need another method of avoiding event ping-pong (e.g., including a remote flag on the item.)
+Note this approach to avoiding echoed events only works because :class:`dojo.data.ItemFileWriteStore` invokes our :func:`onLocalInsert` method synchronously within :func:`newItem`. If the addition of the item or the callback was asynchronous (as is the case in other data store implementations), the code would need another method of avoiding event ping-pong (e.g., including a remote flag on the item.)
 
 Now define the methods needed to incorporate remote changes to existing items and remove remotely deleted items.
 
@@ -652,7 +652,7 @@ Now define the methods needed to incorporate remote changes to existing items an
         });
     }
 
-The code in these methods is more complex because the :class:`dojo.data.Identity` API supports both synchronous and asynchronous data stores. Again, the disconnect / reconnect approach to avoiding event ping-pong only works properly because the :class:`dojo.data.ItemFileWriteStore` implementations of :meth:`fetchItemByIdentity`, :meth:`setValue`, and :meth:`deleteItem` are synchronous.
+The code in these methods is more complex because the :class:`dojo.data.Identity` API supports both synchronous and asynchronous data stores. Again, the disconnect / reconnect approach to avoiding event ping-pong only works properly because the :class:`dojo.data.ItemFileWriteStore` implementations of :func:`fetchItemByIdentity`, :func:`setValue`, and :func:`deleteItem` are synchronous.
 
 :file:`colist.js`
 #################
