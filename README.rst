@@ -53,7 +53,7 @@ Credits
 
 This open source project derives from a broader IBM cooperative web project. The initial IBM contribution includes efforts from the following people:
 
-Bill Abt, Krishna Akella, Hisatoshi Adachi, David Boloker, `Paul Bouchon <http://github.com/bouchon>`_, `Brian Burns <http://github.com/bpburns>`_, `Bryce Curtis <http://github.com/brycecurtis>`_, Andrew Donoho, `Dan Gisolfi <http://github.com/vinomaster>`_, Wing Lee, `Peter Parente <http://github.com/parente>`_, Aaron Reed, `Roger Que <http://github.com/query>`_, Sonal Starr, Michael Stewart, Wayne Vicknair, Royce Walter, Peter Westerink
+Bill Abt, Krishna Akella, Hisatoshi Adachi, David Boloker, `Paul Bouchon <http://github.com/bouchon>`_, `Brian Burns <http://github.com/bpburns>`_, `Bryce Curtis <http://github.com/brycecurtis>`_, Andrew Donoho, `Dan Gisolfi <http://github.com/vinomaster>`_, Wing Lee, `Peter Parente <http://github.com/parente>`_, Aaron Reed, `Roger Que <http://github.com/query>`_, Sonal Starr, `Michael Stewart <http://github.com/thegreatmichael>`_, Wayne Vicknair, Royce Walter, Peter Westerink
 
 Subsequent contributors to the project under the Dojo Foundation will be credited here. 
 
@@ -62,6 +62,6 @@ References
 
 The operational transformation algorithm used in the framework is based on various lines of research, such as: 
 
-* D. Sun and C. Sun, "Operation context and context-based operational transformation," in CSCW '06: Proceedings of the 2006 20th anniversary conference on Computer supported cooperative work. New York, NY, USA: ACM Press, 2006, pp. 279-288. [Online]. Available: http://dx.doi.org/10.1145/1180875.1180918
-* D. Sun, S. Xia, C. Sun, and D. Chen, "Operational transformation for collaborative word processing," in CSCW '04: Proceedings of the 2004 ACM conference on Computer supported cooperative work.    New York, NY, USA: ACM, 2004, pp. 437-446. [Online]. Available: http://dx.doi.org/10.1145/1031607.1031681
-* S. Xia, D. Sun, C. Sun, D. Chen, and H. Shen, "Leveraging single-user applications for multi-user collaboration: the coword approach," in CSCW '04: Proceedings of the 2004 ACM conference on Computer supported cooperative work.    New York, NY, USA: ACM, 2004, pp. 162-171. [Online]. Available: http://dx.doi.org/10.1145/1031607.1031635
+* \D. Sun and C. Sun, "Operation context and context-based operational transformation," in CSCW '06: Proceedings of the 2006 20th anniversary conference on Computer supported cooperative work. New York, NY, USA: ACM Press, 2006, pp. 279-288. [Online]. Available: http://dx.doi.org/10.1145/1180875.1180918
+* \D. Sun, S. Xia, C. Sun, and D. Chen, "Operational transformation for collaborative word processing," in CSCW '04: Proceedings of the 2004 ACM conference on Computer supported cooperative work. New York, NY, USA: ACM, 2004, pp. 437-446. [Online]. Available: http://dx.doi.org/10.1145/1031607.1031681
+* \S. Xia, D. Sun, C. Sun, D. Chen, and H. Shen, "Leveraging single-user applications for multi-user collaboration: the coword approach," in CSCW '04: Proceedings of the 2004 ACM conference on Computer supported cooperative work.    New York, NY, USA: ACM, 2004, pp. 162-171. [Online]. Available: http://dx.doi.org/10.1145/1031607.1031635

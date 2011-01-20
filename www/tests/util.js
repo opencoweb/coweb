@@ -1,3 +1,8 @@
+//
+// Test and debug utilities.
+//
+// Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
+//
 dojo.provide('tests.util');
 dojo.require('coweb.jsoe.OperationEngine');
 

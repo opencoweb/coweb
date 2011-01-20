@@ -1,3 +1,8 @@
+//
+// Tests for op engine garbage collection.
+//
+// Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
+//
 dojo.provide('tests.test_openg_gc');
 dojo.require('tests.util');
 
