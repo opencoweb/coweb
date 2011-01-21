@@ -29,27 +29,27 @@ Start by building the :file:`coweb_server.jar` and :file:`coweb_bots.jar` files.
 Deploy the coweb demos
 ######################
 
-If you want to try the coweb demos, follow these steps to build and deploy the :file:`coweb_examples.war` under Jetty.
+If you want to try the coweb demos, follow these steps to build and deploy the :file:`coweb_example.war` under Jetty.
 
-#. Run Jetty using Maven in the :file:`servers/java/coweb_examples` directory.
+#. Run Jetty using Maven in the :file:`servers/java/coweb_example` directory.
 
    .. sourcecode:: console
    
-      $ cd servers/java/coweb_examples
+      $ cd servers/java/coweb_example
       $ mvn jetty:run-war
       
-#. Visit http://localhost:8080/coweb_examples/comap/index.html in your browser to view the cooperative map demo.
+#. Visit http://localhost:8080/coweb_example/comap/index.html in your browser to view the cooperative map demo.
 
 Build your own application WAR
 ##############################
 
-One way to build your own application WAR is to start with the :file:`coweb_examples/pom.xml` file and modify it to fit your application. This build script already copies the necessary JavaScript and Java dependencies into place for packaging as a web archive. You can deploy the resulting web archive in the servlet 3.0 container of your choice.
+One way to build your own application WAR is to start with the :file:`coweb_example/pom.xml` file and modify it to fit your application. This build script already copies the necessary JavaScript and Java dependencies into place for packaging as a web archive. You can deploy the resulting web archive in the servlet 3.0 container of your choice.
 
 .. sourcecode:: console
       
    $ cd servers/java
    $ mkdir my_coapp
-   $ cp coweb_examples/pom.xml my_coapp/pom.xml
+   $ cp coweb_example/pom.xml my_coapp/pom.xml
    $ cd my_coapp
    $ vi pom.xml # adjust properties, etc.
    $ mvn package

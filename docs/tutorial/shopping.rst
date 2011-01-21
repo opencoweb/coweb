@@ -27,7 +27,7 @@ The final version of our application will look something like the following.
 Setup a coweb server instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The shopping list application requires a coweb server to operate. If you deployed the Java :file:`coweb_examples.war` file or created a Python demo virtualenv according to the :doc:`install` instructions, your server environment has a copy of the completed application. You should view it now to better understand the features you are implementing. The default URL for the complete app is `http://your.domain:9000/www/examples/colist/index.html` on a Python or `http://your.domain:8080/coweb_examples/colist/index.html` on a Java server.
+The shopping list application requires a coweb server to operate. If you deployed the Java :file:`coweb_example.war` file or created a Python demo virtualenv according to the :doc:`install` instructions, your server environment has a copy of the completed application. You should view it now to better understand the features you are implementing. The default URL for the complete app is `http://your.domain:9000/www/examples/colist/index.html` on a Python or `http://your.domain:8080/coweb_example/colist/index.html` on a Java server.
 
 If you plan to develop your own copy of the shopping list application, you should create and deploy your code in a new Java WAR or a fresh coweb Python virtualenv. Follow the instructions below to setup a workspace for development.
 
