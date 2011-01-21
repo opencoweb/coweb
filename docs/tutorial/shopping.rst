@@ -15,7 +15,7 @@ To get started, first consider the application requirements. Note that these are
 #. Each cell in the list can hold free-form text editable by the user.
 #. Edits to list items take effect when the user hits :kbd:`Enter`, not character-by-character.
 #. Users can sort their views of the list independently of one another.
-#. The list highlights which rows users have focused to assist collaboration.
+#. The list highlights rows that have remote user input focus.
 
 The final version of our application will look something like the following.
 
@@ -253,6 +253,8 @@ Edit the :file:`colist.js` file. Under the existing :func:`dojo.require` call at
    dojo.require('dojox.grid.DataGrid');
    dojo.require('dojo.data.ItemFileWriteStore');
    dojo.require('dijit.form.Button');
+   dojo.require('dijit.layout.BorderContainer');
+   dojo.require('dijit.layout.ContentPane');
 
 Next, replace the :func:`console.log` call in the :func:`dojo.ready` callback with the following code.
 
@@ -337,10 +339,43 @@ You should test your application now to ensure the shopping list widgets work. T
 #. You can drag and drop the column headers to reorder them.
 #. You can use the mouse and keyboard to select one or more rows and then click the :guilabel:`Delete` button to remove them.
 
+Joining a session
+~~~~~~~~~~~~~~~~~
+
+Once satisfied that your shopping list works, you can begin making it cooperative. You should focus first on getting your application into a coweb session. As the application goes through the process of joining the session, it should report its progress to the local user.
+
+:file:`colist.js`
+#################
+
+Open the :file:`colist.js` file again. Under the :func:`dojo.require` calls at the top of the file, add the following to import the optional busy dialog component.
+
+.. sourcecode:: javascript
+
+   dojo.require('coweb.ext.ui.BusyDialog');
+
+Add the following code to the bottom of the :file:`dojo.ready` callback.
+
+.. sourcecode:: javascript
+
+   // get a session instance
+   var sess = coweb.initSession({adminUrl : djConfig.cowebAdminUrl});
+   // use the ext busy dialog to show progress joining/updating
+   coweb.ext.ui.createBusy(sess);
+   // do the prep and autoJoin / autoUpdate
+   var prep = {collab: true, autoJoin : true, autoUpdate: true};
+   sess.prepareConference(prep);
+
+This code initializes the :class:`SessionInterface` and points it at the proper admin REST URL. The URL differs from the default `/admin` on the Java server, so it reads the preferred URL from the :attr:`djConfig` object in the :file:`index.html` file for the application. The next link creates an instance of the optional dialog widget that reports progress as a session attempts to prepare, join, and update itself in a coweb session. After these setup steps, the code uses the :class:`SessionInterface` to initiate the session join process.
+
+Checkpoint: Running the standalone app
+######################################
+
+You should test your application again to see if it joins a session now. You can verify this behavior by watching for the brief appearance of the busy dialog over the application and its disappearance once the application is in the session. If the dialog remains and reports an error, something has gone wrong and you should review your code.
+
 Sharing data store changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once satisfied that your shopping list works, you can begin making it cooperative. Focus first on the primary editing operations of the shopping list first: add, update, and remove. When a user performs one of these operations, all application instances in the session should reflect the change. Further, all instances should converge to the same list of items, even in the face of concurrent conflicting edits.
+Now that the application can join a session, it's time to make the primary editing operations of the shopping list cooperative: add, update, and remove. When a user performs one of these operations, all application instances in the session should reflect the change. Further, all instances should converge to the same list of items, even in the face of concurrent conflicting edits.
 
 Fortunately, the :class:`dojo.data.ItemFileWriteStore` class supports callbacks whenever an item is added to, changed in, or removed from the data store. By registering for these callbacks, the application can send notices of changes in the local data store to remote data store instances whenever they occur. Conversely, the app can listen for changes from remote data stores and apply them to the local store.
 
@@ -693,8 +728,6 @@ Now modify the body of your :func:`dojo.ready` callback to include the following
    var args = {dataStore : dataStore, id : 'colist_store'};
    var coopDataStore = new colist.CoopItemFileWriteStore(args);
 
-.. todo:: code to join the session, busy dialog?
-
 Checkpoint: Checking data store cooperation
 ###########################################
 
@@ -779,9 +812,7 @@ This callback unserializes the rows received from a remote :func:`onGetFullState
 Checkpoint: Testing data store improvements
 ###########################################
 
-You should test your application now to confirm late joining browsers immediately see the up-to-date shopping list. The easiest way to perform this test is to open at least two browser windows on the same machine, make changes to the list, and then refresh one of the browsers. In addition to the features from the previous checkpoint, the following should be possible in your application at this point:
-
-#. When joining the session after edits are made to the list, the joining application immediately reflects the current list contents.
+You should test your application now to confirm late joining browsers immediately see the up-to-date shopping list. The easiest way to perform this test is to open at least two browser windows on the same machine, make changes to the list, and then refresh one of the browsers. The state of the list in the refreshed browser should match that of the list in the other browser.
 
 Providing remote user awareness
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -791,7 +822,7 @@ Now that the shopping list items are properly shared, you can focus on providing
 :file:`CoopGrid.js`
 ###################
 
-Create a new file in the application folder named :file:`CoopGrid.js`. Add the following imports and class definition to the file.
+Create a new file in the application folder named :file:`CoopGrid.js`. Add the following code to the file.
 
 .. highlight:: javascript
 .. literalinclude:: ../../www/examples/colist/CoopGrid.js
@@ -807,11 +838,10 @@ When a remote user leaves the session, the local :class:`colist.CoopGrid` instan
 
 Open the :file:`colist.js` file for the last time. Add the necessary statements at the top of the file to import the new :class:`colist.CoopGrid` class and extend your :func:`dojo.ready` callback to build an instance.
 
-After these edits, your file should look something like the following:
+After these edits, your completed file should look something like the following:
 
 .. highlight:: javascript
 .. literalinclude:: ../../www/examples/colist/colist.js
-
 
 Checkpoint: Checking grid highlights
 ####################################
