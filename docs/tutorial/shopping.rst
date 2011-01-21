@@ -43,8 +43,8 @@ Java
       $ mvn archetype:create \
          -DgroupId=<your groupId> \
          -DartifactId=mycolist \
-         -DcowebVersion=.1 \
-         -DarchetypeVersion=.1 \
+         -DcowebVersion=0.2 \
+         -DarchetypeVersion=0.2 \
          -DarchetypeGroupId=org.coweb \
          -DarchetypeArtifactId=coweb_archetype
 

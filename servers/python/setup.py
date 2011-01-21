@@ -7,7 +7,7 @@ Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 from distutils.core import setup
 
 setup(name='OpenCoweb',
-    version='1.0',
+    version='0.2',
     description='Tornado-based Python server for the Open Cooperative Web Framework',
     url='http://github.com/opencoweb',
     license='New BSD License / Academic Free License',
