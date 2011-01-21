@@ -12,6 +12,8 @@ The |coweb API| includes a Java cooperative web servlet implementation based on 
 
 The Java setup currently relies on `Apache Maven`_ 2.2.1 or higher for builds. Make sure you have it installed before continuing.
 
+.. _maven-install:
+
 Build the coweb JARs
 ####################
 
@@ -37,10 +39,12 @@ If you want to try the coweb demos, follow these steps to build and deploy the :
    
       $ cd servers/java/coweb_example
       $ mvn jetty:run-war
-      
+
 #. Visit http://localhost:8080/coweb_example/comap/index.html in your browser to view the cooperative map demo.
 
 Alternatively, you can use `mvn package` to build the WAR file and then copy it to the servlet container of your choice.
+
+.. _maven-archetype:
 
 Start a new coweb application
 #############################
@@ -49,6 +53,7 @@ Once the coweb modules are installed in your local repository, you can initializ
 
 .. sourcecode:: console
 
+   $ cd /desired/project/path
    $ mvn archetype:create \
       -DgroupId=<your groupId> \
       -DartifactId=<your artifactId> \
