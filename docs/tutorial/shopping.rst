@@ -254,11 +254,7 @@ Next, replace the :func:`console.log` call in the :func:`dojo.ready` callback wi
      * Adds a new row with default values to the local grid.
      */
     function onAddRow() {
-        // make pseudo-unique ids
-        var date = new Date();
-        var id = String(Math.random()).substr(2) + String(date.getTime()); 
         dataStore.newItem({
-            id: id,
             name: 'New item',
             amount: 0
         });
@@ -323,36 +319,385 @@ Open the :file:`colist.css` file. Add the following style rules to center the gr
 Checkpoint: Running the standalone app
 ######################################
 
+You should test your application now to ensure the shopping list widgets work. The following should be possible now in your application:
+
+#. You can click the :guilabel:`Add` button to create a new row in the grid.
+#. You can double-click cells in the :guilabel:`Item` and :guilabel:`Amount` columns and edit their contents.
+#. You can use the :kbd:`Tab` key to put focus in the grid, the arrow keys to move focus among the grid cells, and the :kbd:`Enter` key to start editing the focused cell.
+#. You can click a column header to sort the rows by the values in that column. 
+#. You can use the :kbd:`Tab` key to put focus on a column header, the arrow keys to move focus among the columns, and the :kbd:`Enter` key to sort by the focused column.
+#. You can drag and drop the column headers to reorder them.
+#. You can use the mouse and keyboard to select one or more rows and then click the :guilabel:`Delete` button to remove them.
+
 Sharing data store changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:file:`colist.js`
-#################
+Once satisfied that your shopping list works, you can begin making it cooperative. Focus first on the primary editing operations of the shopping list first: add, update, and remove. When a user performs one of these operations, all application instances in the session should reflect the change. Further, all instances should converge to the same list of items, even in the face of concurrent conflicting edits.
 
-.. todo:: cleanup
+Fortunately, the :class:`dojo.data.ItemFileWriteStore` class supports callbacks whenever an item is added to, changed in, or removed from the data store. By registering for these callbacks, the application can send notices of changes in the local data store to remote data store instances whenever they occur. Conversely, the app can listen for changes from remote data stores and apply them to the local store.
 
-The :func:`onAddRow` function assigns IDs to items based on the current time and a random number instead of using the default, monotonically increasing IDs created by the :class:`dojo.data.ItemFileWriteStore` instance. Though not important yet, these unique IDs 
-
-The use of random IDs is important for their pseudo-uniqueness across the many users editing the shopping list simultaneously in a session. If all instances of our application counted up from zero, the operation engine would be continually resolving conflicts not only in data values but in the assignment of IDs to items in the data store. The generated IDs are unique enough that you need not worry about multiple instances of our application assigning the same ID to two or more newly created rows. In other words, you can assume all distinct rows have unique identifiers, even when their creation is distributed across remote machines.
-
+As for conflict resolution and consistency, the application can rely solely on the operation engine in the coweb framework. If the application passes proper values to :func:`CollabInterface.sendSync`, the engine will deliver results to :func:`CollabInterface.subscribeSync` callbacks transformed to resolve conflicts.
 
 :file:`CoopItemFileWriteStore.js`
 #################################
 
+Create a new file named :file:`CoopItemFileWriteStore.js` in your application folder. In this file, include the following lines indicating what Dojo module the file provides and which modules it must import.
+
+.. sourcecode:: javascript
+
+   dojo.provide('colist.CoopItemFileWriteStore');
+   dojo.require('coweb');
+
+Next, define a class that will hold a reference to a :class:`dojo.data.ItemFileWriteStore` instance like the following.
+
+.. sourcecode:: javascript
+
+   dojo.declare('colist.CoopItemFileWriteStore', null, {
+      // reference to a regular dojo.data.ItemFileWriteStore instance
+      dataStore: null
+   });
+
+The following sections flesh-out the body of this class.
+
 Initialization
 ++++++++++++++
+
+Add a constructor that stores the passed arguments in instance variables. Also, initialize the :class:`CollabInterface` instance the widget will use to send and receive cooperative events.
+
+.. sourcecode:: javascript
+
+   constructor: function(args) {
+      this.dataStore = args.dataStore;
+      this.id = args.id;
+      if(!this.dataStore || !this.id) {
+         throw new Error('missing dataStore or id argument');
+      }
+      // initialize collab interface using the dojo widget id as the
+      // id for the collab instance
+      this.collab = coweb.initCollab({id : this.id});
+      // listen for datastore 'change' messages sent by remote instances of 
+      // this widget; the change messages include item ids to allow coweb to
+      // check consistency on a per-item basis, rather than per-grid, so we
+      // include the * here to listen to all change messages
+      this.collab.subscribeSync('change.*', this, 'onRemoteChange');
+   }
+
+.. note:: 
+   
+   Keep in mind that you must add a comma after each method in your class body except for the last method. This tutorial ommits trailing commas in its blocks of code.
+   
+Look at the :func:`CollabInterface.subscribeSync` call. The first parameter indicates the name of the remote, cooperative event to observe. In this case, the instance wants to observe all remote events that start with `change.` followed by any text up to the next period. As you will see below, our callbacks for local changes send events in the form `change.<item id>` whenever an item is added, updated, or removed in the local data store. In effect, this :func:`CollabInterface.subscribeSync` call is registering for notifications of remote additions, updates, or removals in remote data stores.
+
+Next add a method named :func:`_dsConnect`. You will use this private method repeatedly throughout the code to connect and disconnect callbacks to and from the local data store instance.
+
+.. sourcecode:: javascript
+
+   /**
+    * Connects or disconnects the observer method on this instance to one
+    * of the data store events.
+    *
+    * @param connect True to connect, false to disconnect
+    * @param type 'insert', 'update', or 'delete'
+    */
+   _dsConnect: function(connect, type) {
+      if(connect) {
+         // get info about the data store and local functions
+         var funcs = this.typeToFuncs[type];
+         // do the connect
+         var h = dojo.connect(this.dataStore, funcs.ds, this, funcs.coop);
+         // store the connect handle so we can disconnect later
+         this.dsHandles[type] = h;
+      } else {
+         // disconnect using the previously stored handle
+         dojo.disconnect(this.dsHandles[type]);
+         // delete the handle
+         this.dsHandles[type] = null;
+      }
+   }
+
+The method uses :func:`dojo.connect` and :func:`dojo.disconnect` to enable and disable the callback methods you will define shortly. The `type` parameter identifies which data store notification / callback pair should be enabled or disabled.
+
+Edit the constructor to initialize the :attr:`typeToFuncs` and :attr:`dsHandles` instance variables. Also, connect the widget to insert, update, and delete notifications from the data store immediately.
+
+.. sourcecode:: javascript
+
+   constructor: function(args) {
+      this.dataStore = args.dataStore;
+      this.id = args.id;
+      if(!this.dataStore || !this.id) {
+         throw new Error('missing dataStore or id argument');
+      }
+      // stores dojo.connect handles for observers of the data store
+      this.dsHandles = {};
+      // maps data store events to methods on this instance for ease of
+      // connecting and disconnecting data store listeners
+      this.typeToFuncs = {
+         update: {ds : 'onSet', coop: 'onLocalUpdate'},
+         insert: {ds : 'onNew', coop: 'onLocalInsert'},
+         'delete': {ds : 'onDelete', coop: 'onLocalDelete'}
+      };
+      // subscribe to local datastore events to start
+      this._dsConnect(true, 'insert');
+      this._dsConnect(true, 'update');
+      this._dsConnect(true, 'delete');
+      // initialize collab interface using the dojo widget id as the
+      // id for the collab instance
+      this.collab = coweb.initCollab({id : this.id});
+      // listen for datastore 'change' messages sent by remote instances of 
+      // this widget; the change messages include item ids to allow coweb to
+      // check consistency on a per-item basis, rather than per-grid, so we
+      // include the * here to listen to all change messages
+      this.collab.subscribeSync('change.*', this, 'onRemoteChange');
+   }
 
 Callbacks for local changes
 +++++++++++++++++++++++++++
 
+You should now add the methods responsible for sending information about local changes to remote application instances. To do so, you first need a method that can serialize the an opaque item in the :class:`dojo.data.ItemFileWriteStore` to JSON for transmission. Create this method with the name :func:`_itemToRow` as follows:
+
+.. sourcecode:: javascript
+
+   /**
+    * Serializes a flat item in the data store to a regular JS object with 
+    * name/value properties.
+    *
+    * @param item Item from the data store
+    * @return row Object
+    */
+   _itemToRow: function(item) {
+      var row = {};
+      dojo.forEach(this.dataStore.getAttributes(item), function(attr) {
+         row[attr] = this.dataStore.getValue(item, attr);
+      }, this);
+      return row;
+   }
+
+This method takes any item from the data store as a parameter, loops over all of its attributes, and adds their names and values to a regular JavaScript object. You can JSON-encode the new object to send to remote users whereas we cannot JSON-encode the original item.
+
+Next define the callback methods for changes in the local :class:`dojo.data.ItemFileWriteStore` instance. The three callback names should match those stated in the :attr:`typesToFuncs` object (:func:`onLocalInsert`, :func:`onLocalUpdate`, :func:`onLocalDelete`) and their signatures should match those of the data store methods to which they are connected (:func:`onNew`, :func:`onSet`, :func:`onDelete`).
+
+.. sourcecode:: javascript
+
+    /**
+     * Called when a new item appears in the local data store. Sends the new
+     * item data to remote data stores.
+     *
+     * @param item New item object
+     * @param parentInfo Unused
+     */
+    onLocalInsert: function(item, parentInfo) {
+        // get all attribute values
+        var row = this._itemToRow(item);
+        var value = {};
+        value.row = row;
+        value.action = 'insert';
+        // name includes row id for conflict resolution
+        var id = this.dataStore.getIdentity(item);
+        var name = 'change.'+id;
+        this.collab.sendSync(name, value, 'update');
+    }
+
+When a new item appears in the data store, this :func:`onLocalInsert` method first collects its values using :func:`_itemToRow`. Second, it packages the `row` object and the action name `insert` into another object as the value to transmit. Third, it gets the identity assigned to the new item and builds the event name using it. Finally, it invokes the :func:`CollabInterface.sendSync` method to send the cooperative event to remote instances.
+
+.. note:: 
+
+   For those that read the section about :doc:`/intro/openg`, the third parameter to :func:`CollabInterface.sendSync` may look wrong as `update` in this context. It is in fact correct. See the conflict resolution section below for the reason why.
+
+.. sourcecode:: javascript
+
+    /**
+     * Called when an attribute of an existing item in the local data store 
+     * changes value. Sends the item data and the name of the attribute that
+     * changed to remote data stores.
+     *
+     * @param item Item object that changed
+     * @param attr String attribute that changed
+     * @param oldValue Previous value of the attr
+     * @param newValue New value of the attr
+     */
+    onLocalUpdate: function(item, attr, oldValue, newValue) {
+        // get all attribute values
+        var row = this._itemToRow(item);
+        // store whole row in case remote needs to reconstruct after delete
+        // but indicate which attribute changed for the common update case
+        var value = {};
+        value.row = row;
+        value.attr = attr;
+        value.action = 'update';
+        // name includes row id for conflict resolution
+        var id = this.dataStore.getIdentity(item);
+        var name = 'change.'+id;
+        this.collab.sendSync(name, value, 'update');
+    }
+
+When the attribute of an item in the data store changes value, this :func:`onLocalUpdate` method serializes and sends the item in much same manner as :func:`onLocalInsert`. The only difference is that this method includes the name of the attribute that changed in addition to the `action` and `row` values to assist remote instances in determining what changed.
+
+.. sourcecode:: javascript
+    
+    /**
+     * Called when a item disappears from the local data store. Sends just the
+     * id of the removed item to remote data stores.
+     *
+     * @param item Deleted item
+     */
+    onLocalDelete: function(item) {
+        var value = {};
+        value.action = 'delete';
+        // name includes row id for conflict resolution
+        var id = this.dataStore.getIdentity(item);
+        var name = 'change.'+id;
+        this.collab.sendSync(name, value, 'update');
+    }
+
+When an item disappears from the data store, this :func:`onLocalDelete` method notifies remote instances of the deletion. Unlike the two methods above, it does not include the values of the removed item as they are no longer needed.
+
 Callbacks for remote changes
 ++++++++++++++++++++++++++++
 
-:file:`application.js`
-######################
+Just as the class must inform remote instances of local data store changes, it must also listen for messages about remote changes and integrate them into the local data store. You should now define the methods that will observe and process remote changes.
+
+In the constructor, you subscribed a method named :func:`onRemoteChange` as the callback for `change.*` cooperative events. Define this method as follows:
+
+.. sourcecode:: javascript
+
+    /**
+     * Called when a remote data store changes in some manner. Dispatches to
+     * local methods for insert, update, delete handling.
+     *
+     * @param topic Full sync topic including the id of the item that changed
+     * @param value Item data sent by remote data store
+     */
+    onRemoteChange: function(topic, value) {
+        // retrieve the row id from the full topic
+        var id = this.collab.getSyncNameFromTopic(topic).split('.')[1];
+        if(value.action == 'insert') {
+            this.onRemoteInsert(id, value);
+        } else if(value.action == 'update') {
+            this.onRemoteUpdate(id, value);
+        } else if(value.action == 'delete') {
+            this.onRemoteDelete(id);
+        }
+    }
+
+The code in this method looks at the `action` property of the event value and dispatches to more specific methods shown below. Remember, the `action` value was set by the code in :func:`onLocalInsert`, :func:`onLocalUpdate`, or :func:`onLocalDelete`: whichever sent the cooperative event.
+
+Now define the method to add remotely created items to the local data store.
+
+.. sourcecode:: javascript
+    
+    /**
+     * Called when a new item appears in a remote data store. Creates an item
+     * with the same id and value in the local data store.
+     *
+     * @param id Identity assigned to the item in the creating data store
+     * @param value Item data sent by remote data store
+     */
+    onRemoteInsert: function(id, value) {
+        // stop listening to local inserts
+        this._dsConnect(false, 'insert');
+        this.dataStore.newItem(value.row);
+        // resume listening to local inserts
+        this._dsConnect(true, 'insert');
+    }
+
+The second line of code in this method adds the name/value pairs of the item properties packaged in `value.row` to the local data store. But before adding the item, the code is careful to disconnect the listener for local data store changes to avoid a cooperative event storm. If left connected, the :func:`onLocalInsert` method would get invoked, the code in that method would send a duplicate event to remote instances, those instances would do the same, ad infinitum. After invoking :func:`newItem`, the code reconnects the listener for local events.
+
+Note this approach to avoiding echoed events only works because :class:`dojo.data.ItemFileWriteStore` invokes our :meth:`onLocalInsert` method synchronously within :meth:`newItem`. If the addition of the item or the callback was asynchronous (as is the case in other data store implementations), the code would need another method of avoiding event ping-pong (e.g., including a remote flag on the item.)
+
+Now define the methods needed to incorporate remote changes to existing items and remove remotely deleted items.
+
+.. sourcecode:: javascript
+
+    /**
+     * Called when an item attribute changes value in a remote data store.
+     * Updates the attribute value of the item with the same id in the local
+     * data store.
+     *
+     * @param id Identity of the item that changed
+     * @param value Item data sent by remote data store
+     */
+    onRemoteUpdate: function(id, value) {
+        // fetch the item by its id
+        this.dataStore.fetchItemByIdentity({
+            identity : id, 
+            scope : this,
+            onItem : function(item) {
+                // stop listening to local updates
+                this._dsConnect(false, 'update');
+                var attr = value.attr;
+                this.dataStore.setValue(item, attr, value.row[attr]);
+                // resume listening to local updates
+                this._dsConnect(true, 'update');
+            }
+        });
+    }
+    /**
+     * Called when an item disappears from a remote data store. Removes the
+     * item with the same id from the local data store.
+     *
+     * @param id Identity of the item that was deleted
+     */
+    onRemoteDelete: function(id) {
+        // fetch the item by its id
+        this.dataStore.fetchItemByIdentity({
+            identity : id, 
+            scope : this,
+            onItem : function(item) {
+                // stop listening to local deletes
+                this._dsConnect(false, 'delete');
+                this.dataStore.deleteItem(item);
+                // resume listening to local deletes
+                this._dsConnect(true, 'delete');
+            }
+        });
+    }
+
+The code in these methods is more complex because the :class:`dojo.data.Identity` API supports both synchronous and asynchronous data stores. Again, the disconnect / reconnect approach to avoiding event ping-pong only works properly because the :class:`dojo.data.ItemFileWriteStore` implementations of :meth:`fetchItemByIdentity`, :meth:`setValue`, and :meth:`deleteItem` are synchronous.
+
+:file:`colist.js`
+#################
+
+Open :file:`colist.js` and first add the following line to the top of the file to import your :class:`colist.CoopItemFileWriteStore`.
+
+.. sourcecode:: javascript
+
+   dojo.require('colist.CoopItemFileWriteStore');
+
+Next, replace the :func:`onAddRow` function with the following:
+
+.. sourcecode:: javascript
+
+   function onAddRow() {
+       // make pseudo-unique ids
+       var date = new Date();
+       var id = String(Math.random()).substr(2) + String(date.getTime()); 
+       dataStore.newItem({
+           id: id,
+           name: 'New item',
+           amount: 0
+       });
+   };
+   
+By default, the :class:`dojo.data.ItemFileWriteStore` assigns monotonically increasing IDs to new items. After adding cooperation, remote users can end up creating new items at the same time. The application must take care, therefore, to ensure two unique items do not receive the same ID. The new code generates pseudo-unique random IDs based on a random number and the current date and time.
+
+Now modify the body of your :func:`dojo.ready` callback to include the following additional lines instantiating a :class:`colist.CoopItemFileWriteStore` instance below the existing code.
+
+.. sourcecode:: javascript
+   
+   // instantiate our cooperative datastore extension, giving it a 
+   // reference to the dojo.data.ItemFileWriteStore object
+   var args = {dataStore : dataStore, id : 'colist_store'};
+   var coopDataStore = new colist.CoopItemFileWriteStore(args);
 
 Checkpoint: Checking data store cooperation
 ###########################################
+
+You should test your application now to confirm cooperation between two or more grids. The easiest way to perform this test is to open at least two browser windows on the same machine and then make edits in each. In addition to the features from the previous checkpoint, the following should be possible in your application at this point:
+
+#. When you add a row in one shopping list, it appears in all of the others.
+#. When you change an item name or amount in one list, the change occurs in the others.
+#. When you delete one or more items in a list, the items are removed in other lists.
+#. When an item name or value is updated in two or more lists simultaneously, the same value wins out in all of the lists so that they remain consistent.
 
 Intermission: About conflict resolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
