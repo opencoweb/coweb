@@ -19,6 +19,7 @@ public class CowebExtension implements BayeuxServer.Extension {
 	private PrintWriter incoming = null;
 	
 	public CowebExtension() {
+        /*
 		try {
 			Date d = new Date();
 			
@@ -34,16 +35,13 @@ public class CowebExtension implements BayeuxServer.Extension {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+	    */	
 	}
 
 	@Override
 	public boolean rcv(ServerSession client, Mutable msg) {
-		//System.out.println("CowebExtension::rcv");
-		//System.out.println(msg);
-		
-		this.incoming.println(msg.toString());
-		this.incoming.flush();
+		//this.incoming.println(msg.toString());
+		//this.incoming.flush();
 		return true;
 	}
 
@@ -67,8 +65,8 @@ public class CowebExtension implements BayeuxServer.Extension {
 	public boolean send(ServerSession from, ServerSession to, ServerMessage.Mutable msg) {
 	
 		//System.out.println("CowebExtension::send");
-		this.outgoing.println(msg.toString());
-		this.outgoing.flush();
+		//this.outgoing.println(msg.toString());
+		//this.outgoing.flush();
 		return true;
 	}
 

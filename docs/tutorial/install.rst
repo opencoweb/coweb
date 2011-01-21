@@ -15,7 +15,7 @@ The Java setup currently relies on `Apache Maven`_ 2.2.1 or higher for builds. M
 Build the coweb JARs
 ####################
 
-Start by building the :file:`coweb_server.jar` and :file:`coweb_bots.jar` files. Maven automatically downloads all the necessary dependencies.
+Start by building the and installing the coweb modules in your local Maven repository. Maven automatically downloads all the necessary dependencies.
 
 .. sourcecode:: console
 
@@ -40,20 +40,24 @@ If you want to try the coweb demos, follow these steps to build and deploy the :
       
 #. Visit http://localhost:8080/coweb_example/comap/index.html in your browser to view the cooperative map demo.
 
-Build your own application WAR
-##############################
+Alternatively, you can use `mvn package` to build the WAR file and then copy it to the servlet container of your choice.
 
-One way to build your own application WAR is to start with the :file:`coweb_example/pom.xml` file and modify it to fit your application. This build script already copies the necessary JavaScript and Java dependencies into place for packaging as a web archive. You can deploy the resulting web archive in the servlet 3.0 container of your choice.
+Start a new coweb application
+#############################
+
+Once the coweb modules are installed in your local repository, you can initialize your own coweb application with the following command.
 
 .. sourcecode:: console
-      
-   $ cd servers/java
-   $ mkdir my_coapp
-   $ cp coweb_example/pom.xml my_coapp/pom.xml
-   $ cd my_coapp
-   $ vi pom.xml # adjust properties, etc.
-   $ mvn package
-   $ cp target/my_coapp.war /path/to/container/webapps
+
+   $ mvn archetype:create \
+      -DgroupId=<your groupId> \
+      -DartifactId=<your artifactId> \
+      -DcowebVersion=.1 \
+      -DarchetypeVersion=.1 \
+      -DarchetypeGroupId=org.coweb \
+      -DarchetypeArtifactId=coweb_archetype
+
+After populating the project, you can build, run, and deploy it using the same commands as the coweb demos noted above.
 
 Python setup
 ~~~~~~~~~~~~
