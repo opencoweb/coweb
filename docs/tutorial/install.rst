@@ -29,16 +29,16 @@ Start by building the and installing the coweb modules in your local Maven repos
 Deploy the coweb demos
 ######################
 
-If you want to try the coweb demos, follow these steps to build and deploy the :file:`coweb_examples.war` under Jetty.
+If you want to try the coweb demos, follow these steps to build and deploy the :file:`coweb_example.war` under Jetty.
 
-#. Run Jetty using Maven in the :file:`servers/java/coweb_examples` directory.
+#. Run Jetty using Maven in the :file:`servers/java/coweb_example` directory.
 
    .. sourcecode:: console
    
-      $ cd servers/java/coweb_examples
+      $ cd servers/java/coweb_example
       $ mvn jetty:run-war
       
-#. Visit http://localhost:8080/coweb_examples/comap/index.html in your browser to view the cooperative map demo.
+#. Visit http://localhost:8080/coweb_example/comap/index.html in your browser to view the cooperative map demo.
 
 Alternatively, you can use `mvn package` to build the WAR file and then copy it to the servlet container of your choice.
 
