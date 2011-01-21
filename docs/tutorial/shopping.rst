@@ -494,14 +494,10 @@ Next define the callback methods for changes in the local :class:`dojo.data.Item
         // name includes row id for conflict resolution
         var id = this.dataStore.getIdentity(item);
         var name = 'change.'+id;
-        this.collab.sendSync(name, value, 'update');
+        this.collab.sendSync(name, value, 'insert');
     }
 
 When a new item appears in the data store, this :func:`onLocalInsert` method first collects its values using :func:`_itemToRow`. Second, it packages the `row` object and the action name `insert` into another object as the value to transmit. Third, it gets the identity assigned to the new item and builds the event name using it. Finally, it invokes the :func:`CollabInterface.sendSync` method to send the cooperative event to remote instances.
-
-.. note:: 
-
-   For those that read the section about :doc:`/intro/openg`, the third parameter to :func:`CollabInterface.sendSync` may look wrong as `update` in this context. It is in fact correct. See the conflict resolution section below for the reason why.
 
 .. sourcecode:: javascript
 
@@ -546,7 +542,7 @@ When the attribute of an item in the data store changes value, this :func:`onLoc
         // name includes row id for conflict resolution
         var id = this.dataStore.getIdentity(item);
         var name = 'change.'+id;
-        this.collab.sendSync(name, value, 'update');
+        this.collab.sendSync(name, value, 'delete');
     }
 
 When an item disappears from the data store, this :func:`onLocalDelete` method notifies remote instances of the deletion. Unlike the two methods above, it does not include the values of the removed item as they are no longer needed.
@@ -698,9 +694,6 @@ You should test your application now to confirm cooperation between two or more 
 #. When you change an item name or amount in one list, the change occurs in the others.
 #. When you delete one or more items in a list, the items are removed in other lists.
 #. When an item name or value is updated in two or more lists simultaneously, the same value wins out in all of the lists so that they remain consistent.
-
-Intermission: About conflict resolution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Supporting late-joiners
 ~~~~~~~~~~~~~~~~~~~~~~~

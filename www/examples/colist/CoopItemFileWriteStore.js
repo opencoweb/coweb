@@ -163,7 +163,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
 	    // name includes row id for conflict resolution
 	    var id = this.dataStore.getIdentity(item);
 	    var name = 'change.'+id;
-	    this.collab.sendSync(name, value, 'update');
+	    this.collab.sendSync(name, value, 'insert');
     },
     
     /**
@@ -179,7 +179,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
 	    // name includes row id for conflict resolution
 	    var id = this.dataStore.getIdentity(item);
 	    var name = 'change.'+id;
-	    this.collab.sendSync(name, value, 'update');
+	    this.collab.sendSync(name, value, 'delete');
     },
     
     /**
