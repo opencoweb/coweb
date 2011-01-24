@@ -9,7 +9,7 @@ The use of the collaboration API has the following requirements:
 
 #. The web application must include the OpenAjax Hub v1.0.
 #. The application must include Dojo 1.5 or higher.
-#. The application must include the `coweb` module.
+#. The application must :func:`dojo.require` the `coweb` module.
 #. The application must use the :doc:`session API <session>` to join, prepare, and update in a session before sending events using the collaboration API.
 
 Initializing a collaboration instance
