@@ -3,7 +3,7 @@
 Code organization
 -----------------
 
-.. todo:: write
+The current implementation of the coweb framework has code modules roughly split along language lines. An overview of the source tree follows:
 
 ::
 
@@ -12,7 +12,7 @@ Code organization
       java/       # Java server coweb modules
       python/     # Python server coweb packages
    www/
-      examples/   # coweb demos
+      examples/   # Coweb demos
       libs/
          coweb/   # JavaScript coweb modules
          coweb.js
@@ -21,7 +21,7 @@ Code organization
 JavaScript
 ~~~~~~~~~~
 
-Under :file:`www/libs`
+The JavaScript, client-side portion of the framework appears under :file:`www/libs` in the source tree. All JS files under this folder are currently Dojo modules to be loaded using :func:`dojo.require`.
 
 ::
    
@@ -29,7 +29,7 @@ Under :file:`www/libs`
    coweb/
       collab/     # CollabInterface implementations
       collab.js
-      ext/
+      ext/        # Optional components
       jsoe/       # Operation engine
       layers/     # Dojo build profiles
       listener/   # HubListener implementations
@@ -41,7 +41,7 @@ Under :file:`www/libs`
 Java
 ~~~~
 
-Under :file:`servers/java`
+A Java implementation of a coweb server lives under :file:`servers/java`. The server code is split across a couple Maven modules separating bot interfaces from the messaging server. Convenience modules containing the coweb JavaScript and the Dojo Toolkit, and the coweb demos reside here as well.
 
 ::
 
@@ -54,7 +54,7 @@ Under :file:`servers/java`
 Python
 ~~~~~~
 
-Under :file:`servers/python`
+A Python implementation of a coweb server lives under :file:`servers/python`. The server code exists in a single Python package named :py:mod:`coweb` in this path. The key subpackages of :py:mod:`coweb`, particularly those that allow extension of the server, are depicted below.
 
 ::
 
@@ -67,3 +67,7 @@ Under :file:`servers/python`
       service/
          launcher/      # Interface and impl for bot launchers
          manager/       # Interface and impl for bot transports and managers
+   setup.py             
+   setup_demoenv.py     # Creates a virtualenv containing the coweb demos
+   setup_emptyenv.py    # Creates a virtualenv for a new coweb app
+   setup_devenv.py      # Creates a virtualenv for dev on the coweb framework
