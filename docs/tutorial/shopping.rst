@@ -88,27 +88,27 @@ If you plan to deploy your app on the Java server, seed :file:`index.html` with 
        <meta charset="utf-8" />
        <title>Cooperative Shopping List Example</title>
        <style type="text/css">
-         @import "js/libs/dojo/resources/dojo.css";
-         @import "js/libs/dijit/themes/claro/claro.css";
-         @import "js/libs/dojox/grid/resources/Grid.css";
-         @import "js/libs/dojox/grid/resources/claroGrid.css";
-         @import "js/libs/coweb/ext/ui/styles/claro/claro.css";
+         @import "js/dojo/resources/dojo.css";
+         @import "js/dijit/themes/claro/claro.css";
+         @import "js/dojox/grid/resources/Grid.css";
+         @import "js/dojox/grid/resources/claroGrid.css";
+         @import "js/coweb/ext/ui/styles/claro/claro.css";
          @import "colist.css";
        </style>
-       <script type="text/javascript">
+      <script type="text/javascript">
          var djConfig = {
              cowebAdminUrl: '/mycolist/admin',
              isDebug: false,
-             parseOnLoad: false,
+             parseOnLoad: true,
              modulePaths: {
-               'coweb' : 'js/libs/coweb',
-               'colist' : '/mycolist'
+               'coweb' : '../coweb',
+               'colist' : '/mycolist' 
              }
          };
        </script>
-       <script type="text/javascript" src="js/libs/dojo/dojo.js"></script>
-       <script type="text/javascript" src="js/libs/dojo/OpenAjax.js"></script>
-       <script type="text/javascript" src="comap.js"></script>
+       <script type="text/javascript" src="js/dojo/dojo.js"></script>
+       <script type="text/javascript" src="js/dojo/OpenAjax.js"></script>
+       <script type="text/javascript" src="colist.js"></script>
      </head>
      <body class="claro">
        <h1>Hello World!</h1>
@@ -132,7 +132,7 @@ If you plan to deploy your app on the Python server, seed :file:`index.html` wit
          @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dijit/themes/claro/claro.css";
    		  @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojox/grid/resources/Grid.css";
    		  @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojox/grid/resources/claroGrid.css";
-         @import "../../libs/coweb/ext/ui/styles/claro/claro.css";
+         @import "../libs/coweb/ext/ui/styles/claro/claro.css";
          @import "colist.css";
        </style>
        <script type="text/javascript">
@@ -148,7 +148,7 @@ If you plan to deploy your app on the Python server, seed :file:`index.html` wit
                'org.cometd' : 'org/cometd',
                'colist' : path
              },
-             baseUrl : '../../libs/'
+             baseUrl : '../libs/'
          };
        </script>
        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></script>
@@ -183,7 +183,7 @@ Now create the :file:`colist.css` file in your project folder. You will define s
 Checkpoint: Running the blank application
 #########################################
 
-You should test your application at this point to ensure you can access it in a web browser after deploying it. If you're working with Java, run your build script and deploy your :file:`mycolist.war` file in your servlet container. If you're working with Python, do nothing: your application is already web accessible at :file:`/www/mycolist` by default.
+You should test your application at this point to ensure you can access it in a web browser after deploying it. If you're working with Java, run your build script and deploy your :file:`mycolist.war` file in your servlet container. If you're working with Python, do nothing: your application is already web accessible at :file:`/www/mycolist/index.html` by default.
 
 If everything is working properly, the following should be possible in your application:
 
@@ -263,8 +263,10 @@ Next, replace the :func:`console.log` call in the :func:`dojo.ready` callback wi
     /**
      * Adds a new row with default values to the local grid.
      */
+    var itemId = 0;
     function onAddRow() {
         dataStore.newItem({
+            id : itemId++,
             name: 'New item',
             amount: 0
         });
@@ -397,7 +399,8 @@ Next, define a class that will hold a reference to a :class:`dojo.data.ItemFileW
 
    dojo.declare('colist.CoopItemFileWriteStore', null, {
       // reference to a regular dojo.data.ItemFileWriteStore instance
-      dataStore: null
+      dataStore: null,
+      // methods to go here
    });
 
 The following sections flesh-out the body of this class.
@@ -423,11 +426,11 @@ Add a constructor that stores the passed arguments in instance variables. Also, 
       // check consistency on a per-item basis, rather than per-grid, so we
       // include the * here to listen to all change messages
       this.collab.subscribeSync('change.*', this, 'onRemoteChange');
-   }
+   },
 
 .. note:: 
    
-   Keep in mind that you must add a comma after each method in your class body except for the last method. This tutorial omits trailing commas in its blocks of code.
+   Keep in mind that you must add a comma after each method in your class body except for the last method.
    
 Look at the :func:`CollabInterface.subscribeSync` call. The first parameter indicates the name of the remote, cooperative event to observe. In this case, the instance wants to observe all remote events that start with `change.` followed by any text up to the next period. As you will see below, our callbacks for local changes send events in the form `change.<item id>` whenever an item is added, updated, or removed in the local data store. In effect, this :func:`CollabInterface.subscribeSync` call is registering for notifications of remote additions, updates, or removals in remote data stores.
 
@@ -456,7 +459,7 @@ Next add a method named :func:`_dsConnect`. You will use this private method rep
          // delete the handle
          this.dsHandles[type] = null;
       }
-   }
+   },
 
 The method uses :func:`dojo.connect` and :func:`dojo.disconnect` to enable and disable the callback methods you will define shortly. The `type` parameter identifies which data store notification / callback pair should be enabled or disabled.
 
@@ -491,7 +494,7 @@ Edit the constructor to initialize the :attr:`typeToFuncs` and :attr:`dsHandles`
       // check consistency on a per-item basis, rather than per-grid, so we
       // include the * here to listen to all change messages
       this.collab.subscribeSync('change.*', this, 'onRemoteChange');
-   }
+   },
 
 Callbacks for local changes
 +++++++++++++++++++++++++++
@@ -513,7 +516,7 @@ You should now add the methods responsible for sending information about local c
          row[attr] = this.dataStore.getValue(item, attr);
       }, this);
       return row;
-   }
+   },
 
 This method takes any item from the data store as a parameter, loops over all of its attributes, and adds their names and values to a regular JavaScript object. You can JSON-encode the new object to send to remote users whereas we cannot JSON-encode the original item.
 
@@ -538,7 +541,7 @@ Next define the callback methods for changes in the local :class:`dojo.data.Item
         var id = this.dataStore.getIdentity(item);
         var name = 'change.'+id;
         this.collab.sendSync(name, value, 'insert');
-    }
+    },
 
 When a new item appears in the data store, this :func:`onLocalInsert` method first collects its values using :func:`_itemToRow`. Second, it packages the `row` object and the action name `insert` into another object as the value to transmit. Third, it gets the identity assigned to the new item and builds the event name using it. Finally, it invokes the :func:`CollabInterface.sendSync` method to send the cooperative event to remote instances.
 
@@ -567,7 +570,7 @@ When a new item appears in the data store, this :func:`onLocalInsert` method fir
         var id = this.dataStore.getIdentity(item);
         var name = 'change.'+id;
         this.collab.sendSync(name, value, 'update');
-    }
+    },
 
 When the attribute of an item in the data store changes value, this :func:`onLocalUpdate` method serializes and sends the item in much same manner as :func:`onLocalInsert`. The only difference is that this method includes the name of the attribute that changed in addition to the `action` and `row` values to assist remote instances in determining what changed.
 
@@ -586,7 +589,7 @@ When the attribute of an item in the data store changes value, this :func:`onLoc
         var id = this.dataStore.getIdentity(item);
         var name = 'change.'+id;
         this.collab.sendSync(name, value, 'delete');
-    }
+    },
 
 When an item disappears from the data store, this :func:`onLocalDelete` method notifies remote instances of the deletion. Unlike the two methods above, it does not include the values of the removed item as they are no longer needed.
 
@@ -616,7 +619,7 @@ In the constructor, you subscribed a method named :func:`onRemoteChange` as the 
         } else if(value.action == 'delete') {
             this.onRemoteDelete(id);
         }
-    }
+    },
 
 The code in this method looks at the `action` property of the event value and dispatches to more specific methods shown below. Remember, the `action` value was set by the code in :func:`onLocalInsert`, :func:`onLocalUpdate`, or :func:`onLocalDelete`: whichever sent the cooperative event.
 
@@ -637,7 +640,7 @@ Now define the method to add remotely created items to the local data store.
         this.dataStore.newItem(value.row);
         // resume listening to local inserts
         this._dsConnect(true, 'insert');
-    }
+    },
 
 The second line of code in this method adds the name/value pairs of the item properties packaged in `value.row` to the local data store. But before adding the item, the code is careful to disconnect the listener for local data store changes to avoid a cooperative event storm. If left connected, the :func:`onLocalInsert` method would get invoked, the code in that method would send a duplicate event to remote instances, those instances would do the same, ad infinitum. After invoking :func:`newItem`, the code reconnects the listener for local events.
 
@@ -669,7 +672,8 @@ Now define the methods needed to incorporate remote changes to existing items an
                 this._dsConnect(true, 'update');
             }
         });
-    }
+    },
+
     /**
      * Called when an item disappears from a remote data store. Removes the
      * item with the same id from the local data store.
@@ -717,7 +721,7 @@ Next, replace the :func:`onAddRow` function with the following:
        });
    };
    
-By default, the :class:`dojo.data.ItemFileWriteStore` assigns monotonically increasing IDs to new items. After adding cooperation, remote users can end up creating new items at the same time. The application must take care, therefore, to ensure two unique items do not receive the same ID. The new code generates pseudo-unique random IDs based on a random number and the current date and time.
+The previous code assigned monotonically increasing IDs to new items. But after adding cooperation, remote users can end up creating new items at the same time. You must take care, therefore, to ensure two unique items do not receive the same ID. The new code generates pseudo-unique random IDs based on a random number and the current date and time.
 
 Now modify the body of your :func:`dojo.ready` callback to include the following additional lines instantiating a :class:`colist.CoopItemFileWriteStore` instance.
 
@@ -753,11 +757,11 @@ Open the :file:`CoopItemFileWriteStore.js` file. At the bottom of the constructo
 
    // listen for requests from remote applications joining the session
    // when they ask for the full state of this widget
-   this.collab.subscribeStateRequest(dojo.hitch(this, 'onGetFullState'));
+   this.collab.subscribeStateRequest(this, 'onGetFullState');
    // listen for responses from remote applications when this application
    // instance joins a session so it can bring itself up to the current 
    // state
-   this.collab.subscribeStateResponse(dojo.hitch(this, 'onSetFullState'));
+   this.collab.subscribeStateResponse(this, 'onSetFullState');
 
 Next, define the :func:`onGetFullState` callback function you just registered. The coweb framework invokes this method when a remote instance of this class is joining the session and needs to synchronize its state.
 
@@ -781,7 +785,7 @@ Next, define the :func:`onGetFullState` callback function you just registered. T
             }
         });
         this.collab.sendStateResponse(rows, token);
-    }
+    },
 
 When invoked, this callback uses our :func:`_itemToRow` method to serialize all of the content in the data store. It then invokes the :func:`CollabInterface.sendStateResponse` method to send the state to the joining instance. The token passed to this callback and provided to :func:`sendStateResponse` pairs the request for state with the eventual response.
 
@@ -805,7 +809,7 @@ Now implement the :func:`onSetFullState` callback you registered in the construc
         dojo.forEach(rows, this.dataStore.newItem, this.dataStore);
         // now resume listening for inserts
         this._dsConnect(true, 'insert');
-    }
+    },
 
 This callback unserializes the rows received from a remote :func:`onGetFullState` method. It adds all of the rows to the data store as items after ensuring its local :func:`onLocalInsert` callback is not inadvertently invoked for each item.
 
@@ -829,14 +833,38 @@ Create a new file in the application folder named :file:`CoopGrid.js`. Add the f
 
 The :class:`colist.CoopGrid` class registers callbacks for grid focus and styling events when instantiated. It also registers observers for cooperative events concerning entry into a session, focus events from remote instances, notifications that remote instances of have left a session, and full state requests and responses for late joining. 
 
-At runtime, the instance tracks which row in the grid the local user has given input focus. It sends the data store item ID of the local focused row to remote instances. When the local instance receives notification of a remote focus, it stores the ID of the focused item in a dictionary keyed by the unique site ID of the remote instance. The local instance forces its grid to re-render when it receives a remote change notification, and styles the text of all remotely focused rows in red.
+At runtime, the instance tracks which row in the grid the local user has given input focus. It sends the data store item ID of the local focused row to remote instances. When the local instance receives notification of a remote focus, it stores the ID of the focused item in a dictionary keyed by the unique site ID of the remote instance. The local instance forces its grid to re-render when it receives a remote change notification, and adds the CSS class `focused` to all remotely focused rows.
 
 When a remote user leaves the session, the local :class:`colist.CoopGrid` instance clears any information about that user's site in its dictionary and forces a grid render to remove its focus row highlight. When the local user joins a session late, the local instance receives a copy of the focus dictionary from a remote instance. It then forces a render of the grid to immediately show the current focus state for all remote users. Likewise, when a remote user joins a session late, the local :class:`colist.CoopGrid` instance is able to provide the newcomer with its current focus dictionary.
+
+:file:`colist.css`
+##################
+
+Open :file:`colist.css` and add the following CSS rule.
+
+.. sourcecode:: css
+
+   #grid .focused {
+      color: red;
+   }
 
 :file:`colist.js`
 #################
 
-Open the :file:`colist.js` file for the last time. Add the necessary statements at the top of the file to import the new :class:`colist.CoopGrid` class and extend your :func:`dojo.ready` callback to build an instance.
+Open the :file:`colist.js` file for the last time. Add the necessary statements at the top of the file to import the new :class:`colist.CoopGrid` class.
+
+.. sourcecode:: javascript
+
+   dojo.require('colist.CoopGrid');
+
+Also instantiate an instance of the class in the :func:`dojo.ready` callback. 
+
+.. sourcecode:: javascript
+
+   // instantiate our cooperative grid extension, giving it a reference
+   // to the dojox.grid.DataGrid widget
+   args = {grid : grid, id : 'colist_grid'};
+   var coopGrid = new colist.CoopGrid(args);
 
 After these edits, your completed file should look something like the following:
 
