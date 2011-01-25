@@ -3,11 +3,10 @@
 Python APIs
 -----------
 
-.. todo:: write
+The |coweb api| includes a Python coweb server implementation and Python wrappers for writing coweb service bots.
 
 .. toctree::
    :titlesonly:
-   :hidden:
    
    server
    bots
