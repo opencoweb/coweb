@@ -1,7 +1,7 @@
 .. include:: /replace.rst
 
-Session prepartion and joining
-------------------------------
+Session preparation and joining
+-------------------------------
 
 A web application creates one :class:`SessionInterface` instance per browser document frame to control authentication, session preparation, session joining, and session exiting operations against a coweb server. The application receives callbacks from the :class:`SessionInterface` as these operations progress, succeed, or fail.
 
