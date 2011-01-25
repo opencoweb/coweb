@@ -2,6 +2,7 @@
 // Wraps the use of the session API in a class with declarative options and
 // callback methods to override.
 //
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 dojo.provide('coweb.ext.loaders.SimpleLoader');

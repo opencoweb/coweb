@@ -2,6 +2,7 @@
 // Context vector representation of application state. Currently, just a state
 // vector without undo support.
 //
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 dojo.provide('coweb.jsoe.ContextVector');

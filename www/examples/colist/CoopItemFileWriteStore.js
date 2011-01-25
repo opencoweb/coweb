@@ -3,6 +3,7 @@
 // dojo.data.ItemFileWriteStore object. Sends any local CRUD changes to remote
 // instances and vice-versa while maintaining data store consistency. 
 //
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 dojo.provide('colist.CoopItemFileWriteStore');

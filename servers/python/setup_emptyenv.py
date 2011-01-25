@@ -3,6 +3,7 @@
 Install script for a virtualenv with a coweb server hosting the JS framework
 with room for your own apps.
 
+Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
 import virtualenv

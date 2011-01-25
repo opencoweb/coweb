@@ -2,6 +2,7 @@
 Defines a wrapper for running service bots that communicate with a coweb
 server session using Bayeux over WebSocket.
 
+Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
 # std lib

@@ -3,6 +3,7 @@
 Install script for a virtualenv with all web resources symlinked to this source
 directory for framework development purposes.
 
+Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
 import setup_emptyenv
