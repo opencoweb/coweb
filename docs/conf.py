@@ -142,7 +142,7 @@ html_style = 'coweb.css'
 #html_additional_pages = {}
 
 # If false, no module index is generated.
-#html_domain_indices = True
+html_domain_indices = False
 
 # Primary domain for API markup
 primary_domain = 'js'
