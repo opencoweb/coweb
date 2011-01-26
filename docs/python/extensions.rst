@@ -1,10 +1,10 @@
 .. include:: /replace.rst
 .. default-domain:: py
 
-Server extension points
------------------------
+Manager extension points
+-------------------------
 
-.. todo:: write
+Some of the options defined in the :class:`coweb.AppContainer`
 
 Authenticating users
 ~~~~~~~~~~~~~~~~~~~~
