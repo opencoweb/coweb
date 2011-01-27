@@ -59,6 +59,8 @@ To run a coweb server instance, execute the application container script like so
 
    Enables strict JSON checking on incoming messages from JavaScript where `undefined` is not allowed according to the JSON spec. Defaults to false.
 
+Run :file:`coweb_app.py --help` for additional options provided by Tornado.
+
 Configuring an app container
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -86,7 +88,7 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
       
       Other available implementations of :class:`coweb.auth.AuthBase` include:
       
-         * :class:`coweb.auth.IniAuth` supporting form-based plain-text or MD5-hashed auth
+         * :class:`coweb.auth.IniAuth` supporting form-based plain-text or MD5-hashed auth (Only an example implementation, **not for production!**)
       
       New authentication managers can be created by subclassing :class:`coweb.access.AccessBase`.
       
@@ -209,4 +211,78 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
 Use cases
 ~~~~~~~~~
 
-.. todo:: doc a few common configs
+The following examples demonstrate how modifying the application container options enables alternative server configurations.
+
+No static web resources
+#######################
+
+Assume all web application resources reside on server like Apache or nginx which also acts as a reverse proxy for traffic to the coweb server. In this situation, the coweb server is configured only to handle session traffic and not share any static web resources.
+
+.. sourcecode:: python
+
+   #!/usr/bin/env python
+   import coweb
+
+   class ProxiedExample(coweb.AppContainer):
+      def on_configure(self):
+         # disable static web resource sharing
+         self.httpStaticPath = None
+         # other options can follow
+
+   if __name__ == '__main__':
+      coweb.run_server(ProxiedExample)
+
+Form-based authentication
+#########################
+
+Say a certain deployment requires the coweb server to control authentication rather than an external application server. The coweb server is configured to support form-based authentication against a local datastore of usernames and passwords. In this case, the datastore is a simple INI file containing usernames and passwords.
+
+.. note::
+
+   Use of INI files for storing user credentials is clearly not recommend in production. Subclass :class:`coweb.auth.AuthBase` to implement an authentication manager that can connect to your secure credential store.
+
+.. sourcecode:: python
+
+   #!/usr/bin/env python
+   import coweb
+   import coweb.auth.ini.IniAuth
+
+   class FormLoginExample(coweb.AppContainer):
+      def on_configure(self):
+         # produced by pycoweb script
+         self.webSecretKey = '61bdd2b16db149c699d6e1d9d8ad239b'
+         # use init auth manager
+         self.authClass = coweb.auth.ini.IniAuth
+         # other options can follow
+
+   if __name__ == '__main__':
+      coweb.run_server(FormLoginExample)
+
+Bots in the same process
+########################
+
+Imagine a coweb server is deployed for one specific application where the bots are known to be well-behaved (i.e., don't block, are secure). In this case, importing the bots into the coweb server process and invoking their methods directly is efficient.
+
+.. sourcecode:: python
+
+   #!/usr/bin/env python
+   import coweb
+   from coweb.service.launcher.object import ObjectLauncher
+   from coweb.service.manager.object import ObjectServiceManager
+
+   class ImportedBotsExample(coweb.AppContainer):
+      def on_configure(self):
+         # use object launcher and look in local bot paths for imports
+         self.serviceLauncherClass = (ObjectLauncher, 
+            {botPaths : self.cowebBotLocalPaths})
+         # use object manager for direct invocation
+         self.serviceManagerClass = ObjectServiceManager
+         # other options can follow
+
+   if __name__ == '__main__':
+      coweb.run_server(ImportedBotsExample)
+
+.. seealso::
+   
+   :doc:`extensions`
+      Documentation of the various manager base classes that enable the extension of the coweb server authentication, access, service launching, and service management capabilities.
