@@ -3,7 +3,7 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
 class AuthBase(object):
-    '''Base class for authnetication manager.'''
+    '''Base class for authentication manager.'''
     def __init__(self, container):
         self._container = container
 
@@ -18,7 +18,7 @@ class AuthBase(object):
     def requires_cookies(self):
         '''
         Called to determine if this authentication manager requires the use
-        of tornado's secure cookie implementaiton. Expected to return True if
+        of tornado's secure cookie implementation. Expected to return True if
         secure cookies will be used so that tornado can be configured properly
         with a secret key.
         '''
