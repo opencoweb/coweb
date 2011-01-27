@@ -70,7 +70,11 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
 
    .. attribute:: accessClass
    
-      Subclass of :class:`coweb.access.AccessBase` to use for controlling user authentication on the coweb server. Defaults to :mod:`coweb.auth.PublicAccess` allowing access by all users with a randomly assigned username.
+      Subclass of :class:`coweb.access.AccessBase` to use for controlling user authentication on the coweb server. Defaults to :mod:`coweb.auth.PublicAccess` allowing access by all users.
+      
+      No other implementations are currently available in the :mod:`coweb` package. New access managers can be created, however, by subclassing :class:`coweb.access.AccessBase`.
+
+      This attribute may also be set to a 2-tuple with the class reference as the first element and a dictionary to be passed as keyword arguments to the class constructor as the second.
 
    .. attribute:: appSettings
    
@@ -79,6 +83,14 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
    .. attribute:: authClass
    
       Subclass of :class:`coweb.auth.AuthBase` to use for controlling user authentication on the coweb server. Defaults to :mod:`coweb.auth.PublicAuth` allowing authentication by all users with a randomly assigned username.
+      
+      Other available implementations of :class:`coweb.auth.AuthBase` include:
+      
+         * :class:`coweb.auth.IniAuth` supporting form-based plain-text or MD5-hashed auth
+      
+      New authentication managers can be created by subclassing :class:`coweb.access.AccessBase`.
+      
+      This attribute may also be set to a 2-tuple with the class reference as the first element and a dictionary to be passed as keyword arguments to the class constructor as the second.
    
    .. attribute:: containerPath
    
@@ -106,11 +118,27 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
    
    .. attribute:: serviceLauncherClass
    
-      Subclass of :class:`coweb.service.ServiceLauncherBase` to use for launching service bots in sessions. Defaults to :mod:`coweb.service.ProcessLauncher` which runs bots as child processes with arguments `sandbox = 'nobody'` and `botPaths = self.cowebBotLocalPaths` for per session instances.
+      Subclass of :class:`coweb.service.ServiceLauncherBase` to use for launching service bots in sessions. Defaults to a 2-tuple with class :mod:`coweb.service.ProcessLauncher` and dictionary `{sandbox : 'nobody', botPaths : self.cowebBotLocalPaths}`.
+
+      Other available implementations of :class:`coweb.service.ServiceLauncherBase` include:
+      
+         * :class:`coweb.service.ObjectLauncher` supporting the direct import of Python bots into the coweb server process
+
+      New service launchers can be created by subclassing :class:`coweb.service.ServiceLauncherBase`.
+
+      This attribute may also be set to a lone class reference if the class requires no keyword arguments upon instantiation.
    
    .. attribute:: serviceManagerClass
    
       Subclass of :class:`coweb.service.ServiceManagerBase` to use for launching service bots in sessions. Defaults to :mod:`coweb.service.BayeuxServiceManager` which enables Bayeux over WebSocket communication with bots.
+
+      Other available implementations of :class:`coweb.service.ServiceManagerBase` include:
+      
+         * :class:`coweb.service.ObjectServiceManager` supporting direct instantiation and direct method invocation on bots imported into the coweb server process
+
+      New service launchers can be created by subclassing :class:`coweb.service.ServiceManagerBase`.
+
+      This attribute may also be set to a 2-tuple with the class reference as the first element and a dictionary to be passed as keyword arguments to the class constructor as the second.
 
    .. attribute:: webAdminUrl
    
@@ -155,9 +183,9 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
    .. method:: on_build_access_manager(self)
    
       The constructor invokes this method to instantiate the configured access manager at server startup. Override to customize manager instantiation.
-      
+
       :rtype: :class:`coweb.access.AccessBase`
-   
+
    .. method:: on_build_service_launcher(self, sessionBridge)
    
       The session manager invokes this method to instantiate the configured service launcher at session startup. Override to customize manager instantiation.
