@@ -58,7 +58,7 @@ Implementing a bot delegate
 
    .. method:: on_sync(self, data, username)
    
-      A bot wrapper calls this method when a coweb application publishes a cooperative event to the session. The coweb server may or may not deliver these events to the bot based on its configuration.
+      A bot wrapper calls this method when a coweb application publishes a cooperative event to the session. Whether the coweb server delivers these events to the bot is determined by the return value from the :meth:`coweb.access.AccessBase.on_service_acls` method.
 
       :param dict data: Cooperative event data observed in the session
       :param str username: Coweb server username of the user who sent the request
