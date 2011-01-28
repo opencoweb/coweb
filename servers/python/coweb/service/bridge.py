@@ -138,7 +138,8 @@ class ServiceSessionBridge(object):
         data = req['data']
         username = user.username
         for bot in self.activeBots.values():
-            if bot.acls & ACL_SERVICE_SYNC:
+            if bot.acls & ACL_SERVICE_SYNC and data['topic'] != 'coweb.engine.sync':
+                # forward sync events if allowed and if not op engine gc sync
                 msg = self.manager.on_user_sync(bot.serviceName, username, data)
                 # decide whether to queue or send now based on bot state
                 if bot.is_subscribed():
