@@ -1,5 +1,7 @@
 .. include:: /replace.rst
 .. default-domain:: py
+.. module:: coweb
+   :synopsis: Python package containing a coweb server implementation.
 
 Application containers
 ----------------------
