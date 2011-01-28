@@ -47,6 +47,41 @@ test('two site multiple topics', 2, function() {
     deepEqual(b.state, correct, 'client state check');
 });
 
+test('two site lag', 0, function() {
+    ok(false, 'test will freeze browser, need caching in op engine');
+    return;
+    
+    var a = new tests.util.OpEngClient(0, {symbol : '1 2'});
+    var b = new tests.util.OpEngClient(1, {symbol : '1 2'});
+    
+    var aStr = 'abcdefghijkl'
+    var bStr = 'mnopqrstuvwxyz';
+    var op;
+    var aOps = [], bOps = [];
+    // lots of typing on a after the "1"
+    for(var i=0, pos=1; i < aStr.length; i++, pos++) {
+        op = a.local('symbol', aStr[i], 'insert', pos);
+        aOps.push(op);
+        a.send(op);
+    }
+    
+    // lots of typing on b after the "2"
+    for(var i=0, pos=3; i < bStr.length; i++, pos++) {
+        op = b.local('symbol', bStr[i], 'insert', pos);
+        bOps.push(op);
+        b.send(op);
+    }
+
+    a.recvAll();
+    b.recvAll();
+    
+    var correct = {symbol : '1abcdefghijkl 2mnopqrstuvwxyz'};
+    deepEqual(a.state, correct, 'client state check');
+    equals(a.eng.getBufferSize(), 26);
+    deepEqual(b.state, correct, 'client state check');
+    equals(b.eng.getBufferSize(), 26); 
+});
+
 test('two site puzzle #1', 4, function() {
     var a = new tests.util.OpEngClient(0, {symbol : 'IBM'});
     var b = new tests.util.OpEngClient(1, {symbol : 'IBM'});
