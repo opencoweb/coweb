@@ -65,7 +65,7 @@ test('two site puzzle #1', 4, function() {
     equals(b.eng.getBufferSize(), 3);
 });
 
-test('three site puzzle false-tie', 0, function() {
+test('three site puzzle false-tie', 6, function() {
     var a = new tests.util.OpEngClient(0, {text : 'abc'});
     var b = new tests.util.OpEngClient(1, {text : 'abc'});
     var c = new tests.util.OpEngClient(2, {text : 'abc'});
@@ -125,7 +125,7 @@ test('three site puzzle #1', 6, function() {
     });
 });
 
-test('three site puzzle #2', 0, function() {
+test('three site puzzle #2', 6, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":"m"}));
@@ -159,7 +159,7 @@ test('three site puzzle #2', 0, function() {
     });
 });
 
-test('three site puzzle #3', 0, function() {
+test('three site puzzle #3', 6, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":"tb"}));
@@ -191,7 +191,7 @@ test('three site puzzle #3', 0, function() {
     });
 });
 
-test('three site puzzle #4', 0, function() {
+test('three site puzzle #4', 6, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":"ze"}));
@@ -216,7 +216,7 @@ test('three site puzzle #4', 0, function() {
     });
 });
 
-test('three site puzzle #5', 0, function() {
+test('three site puzzle #5', 6, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":""}));
@@ -243,7 +243,7 @@ test('three site puzzle #5', 0, function() {
     });
 });
 
-test('three site puzzle #6', 0, function() {
+test('three site puzzle #6', 6, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":"ab"}));
@@ -369,7 +369,7 @@ test('three site puzzle #6', 0, function() {
     });
 });
 
-test('four site puzzle #1', 0, function() {
+test('four site puzzle #1', 8, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":"ab"}));
