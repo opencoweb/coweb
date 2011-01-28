@@ -47,6 +47,41 @@ test('two site multiple topics', 2, function() {
     deepEqual(b.state, correct, 'client state check');
 });
 
+test('two site lag', 0, function() {
+    ok(false, 'test will freeze browser, need caching in op engine');
+    return;
+    
+    var a = new tests.util.OpEngClient(0, {symbol : '1 2'});
+    var b = new tests.util.OpEngClient(1, {symbol : '1 2'});
+    
+    var aStr = 'abcdefghijkl'
+    var bStr = 'mnopqrstuvwxyz';
+    var op;
+    var aOps = [], bOps = [];
+    // lots of typing on a after the "1"
+    for(var i=0, pos=1; i < aStr.length; i++, pos++) {
+        op = a.local('symbol', aStr[i], 'insert', pos);
+        aOps.push(op);
+        a.send(op);
+    }
+    
+    // lots of typing on b after the "2"
+    for(var i=0, pos=3; i < bStr.length; i++, pos++) {
+        op = b.local('symbol', bStr[i], 'insert', pos);
+        bOps.push(op);
+        b.send(op);
+    }
+
+    a.recvAll();
+    b.recvAll();
+    
+    var correct = {symbol : '1abcdefghijkl 2mnopqrstuvwxyz'};
+    deepEqual(a.state, correct, 'client state check');
+    equals(a.eng.getBufferSize(), 26);
+    deepEqual(b.state, correct, 'client state check');
+    equals(b.eng.getBufferSize(), 26); 
+});
+
 test('two site puzzle #1', 4, function() {
     var a = new tests.util.OpEngClient(0, {symbol : 'IBM'});
     var b = new tests.util.OpEngClient(1, {symbol : 'IBM'});
@@ -65,7 +100,7 @@ test('two site puzzle #1', 4, function() {
     equals(b.eng.getBufferSize(), 3);
 });
 
-test('three site puzzle false-tie', 0, function() {
+test('three site puzzle false-tie', 6, function() {
     var a = new tests.util.OpEngClient(0, {text : 'abc'});
     var b = new tests.util.OpEngClient(1, {text : 'abc'});
     var c = new tests.util.OpEngClient(2, {text : 'abc'});
@@ -125,7 +160,7 @@ test('three site puzzle #1', 6, function() {
     });
 });
 
-test('three site puzzle #2', 0, function() {
+test('three site puzzle #2', 6, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":"m"}));
@@ -159,7 +194,7 @@ test('three site puzzle #2', 0, function() {
     });
 });
 
-test('three site puzzle #3', 0, function() {
+test('three site puzzle #3', 6, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":"tb"}));
@@ -191,7 +226,7 @@ test('three site puzzle #3', 0, function() {
     });
 });
 
-test('three site puzzle #4', 0, function() {
+test('three site puzzle #4', 6, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":"ze"}));
@@ -216,7 +251,7 @@ test('three site puzzle #4', 0, function() {
     });
 });
 
-test('three site puzzle #5', 0, function() {
+test('three site puzzle #5', 6, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":""}));
@@ -243,7 +278,7 @@ test('three site puzzle #5', 0, function() {
     });
 });
 
-test('three site puzzle #6', 0, function() {
+test('three site puzzle #6', 6, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":"ab"}));
@@ -369,7 +404,7 @@ test('three site puzzle #6', 0, function() {
     });
 });
 
-test('four site puzzle #1', 0, function() {
+test('four site puzzle #1', 8, function() {
     var sites = [];
     var op;
     sites.push(new tests.util.OpEngClient(0,{"topic1":"ab"}));

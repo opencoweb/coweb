@@ -263,6 +263,8 @@ Server sends notice of leaving updater
       }
    }]
 
+.. _proto-op:
+
 Client operations
 #################
 
