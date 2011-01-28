@@ -2,6 +2,7 @@
 // Adds focus tracking cooperative features to a dojox.grid control. Shows
 // where remote users currently have the input focus.
 //
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 dojo.provide('colist.CoopGrid');
@@ -111,7 +112,7 @@ dojo.declare('colist.CoopGrid', null, {
         for(var site in this.focused) {
             // add the css class to rows that are focused in remote grids only
             if(this.focused[site] == id && site != this.site) {
-                row.customClasses += ' tutFocus';
+                row.customClasses += ' focused';
             }
         }
     },

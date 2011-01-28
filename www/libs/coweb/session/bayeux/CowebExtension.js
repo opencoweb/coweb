@@ -1,6 +1,7 @@
 //
 // Adds coweb session IDs to the ext field of Bayeux messages.
 //
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 dojo.provide('coweb.session.bayeux.CowebExtension');

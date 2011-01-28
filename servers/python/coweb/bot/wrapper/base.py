@@ -1,4 +1,5 @@
 '''
+Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
 class BotWrapperBase(object):
@@ -19,7 +20,7 @@ class BotWrapperBase(object):
         raise NotImplementedError
 
     def add_callback(self, callback, *args, **kwargs):
-        '''Scheduled an asynchronouse callback in the main bot loop.'''
+        '''Scheduled an asynchronous callback in the main bot loop.'''
         raise NotImplementedError
 
     def add_timer(self, delay, callback, *args, **kwargs):

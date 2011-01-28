@@ -12,6 +12,8 @@ The |coweb API| includes a Java cooperative web servlet implementation based on 
 
 The Java setup currently relies on `Apache Maven`_ 2.2.1 or higher for builds. Make sure you have it installed before continuing.
 
+.. _maven-install:
+
 Build the coweb JARs
 ####################
 
@@ -29,18 +31,20 @@ Start by building the and installing the coweb modules in your local Maven repos
 Deploy the coweb demos
 ######################
 
-If you want to try the coweb demos, follow these steps to build and deploy the :file:`coweb_examples.war` under Jetty.
+If you want to try the coweb demos, follow these steps to build and deploy the :file:`coweb_example.war` under Jetty.
 
-#. Run Jetty using Maven in the :file:`servers/java/coweb_examples` directory.
+#. Run Jetty using Maven in the :file:`servers/java/coweb_example` directory.
 
    .. sourcecode:: console
    
-      $ cd servers/java/coweb_examples
+      $ cd servers/java/coweb_example
       $ mvn jetty:run-war
-      
-#. Visit http://localhost:8080/coweb_examples/comap/index.html in your browser to view the cooperative map demo.
+
+#. Visit http://localhost:8080/coweb_example/comap/index.html in your browser to view the cooperative map demo.
 
 Alternatively, you can use `mvn package` to build the WAR file and then copy it to the servlet container of your choice.
+
+.. _maven-archetype:
 
 Start a new coweb application
 #############################
@@ -49,11 +53,12 @@ Once the coweb modules are installed in your local repository, you can initializ
 
 .. sourcecode:: console
 
+   $ cd /desired/project/path
    $ mvn archetype:create \
       -DgroupId=<your groupId> \
       -DartifactId=<your artifactId> \
-      -DcowebVersion=.1 \
-      -DarchetypeVersion=.1 \
+      -DcowebVersion=0.2 \
+      -DarchetypeVersion=0.2 \
       -DarchetypeGroupId=org.coweb \
       -DarchetypeArtifactId=coweb_archetype
 
@@ -76,7 +81,7 @@ The Python setup currently relies on `virtualenv`_ 1.5.1 or higher. Make sure yo
 Install a demo virtualenv
 #########################
 
-If you want to play with the coweb demos without thinking about dependencies and configuration yet, follow these steps to run the :file:`setup_demoenv.py` bootstrap script. The script installs `Tornado`_ 1.1 or higher and the Python coweb server package into a `virtualenv`_. The script then places copies of the `CometD`_ JavaScript, the JavaScript coweb framework, and the coweb examples into a :file:`www` folder in the virtual environment. Finally, the script creates a coweb server run script that makes the :file:`www` folder web accessible and enables anonymous access to arbitrary coweb sessions.
+If you want to play with the coweb demos without thinking about dependencies and configuration yet, follow these steps to run the :file:`setup_demoenv.py` bootstrap script. The script installs `Tornado`_ 1.1 or higher and the Python coweb server package into a `virtualenv`_. The script then places copies of the `CometD`_ JavaScript, the JavaScript coweb framework, and the coweb examples into a :file:`www` folder in the virtual environment. Finally, the script creates a coweb application container using :file:`pycoweb init` that makes the :file:`www` folder web accessible and enables anonymous access to arbitrary coweb sessions.
 
 .. note:: The coweb demos for Python use Dojo 1.5 from the `Google CDN`_. Therefore, the bootstrap script does not place a copy of `Dojo`_ into the local web accessible folder.
 
@@ -117,7 +122,7 @@ If you want to create a virtualenv containing all the pre-requisites needed to d
 
       $ source /desired/virtualenv/path/bin/activate
 
-#. Modify the run script, :file:`/desired/virtualenv/path/bin/run_server.py`, to configure the server instance. The script is heavily documented explaining the defaults and available options.
+#. Modify the run script, :file:`/desired/virtualenv/path/bin/run_server.py`, to configure the server instance. See the Python section about :doc:`/python/container` for details.
 #. Execute the run script to start the server.
 
    .. sourcecode:: console
@@ -130,7 +135,12 @@ Install using distutils
 
 You can use the traditional distutils :file:`setup.py` to install the Python `coweb` package in your system :file:`site-packages`. If you follow this approach, you must manually install and/or configure `Tornado`_ 1.1 or higher, the `CometD`_ JavaScript, the coweb framework, and a coweb server run script. The :file:`servers/python/scripts/setup_js.sh` script in the framework source distribution can assist you with non-Python dependencies.
 
-After installing all of the pre-requisites, run :file:`pycoweb --help` for assistance generating a coweb server run script.
+After installing all of the pre-requisites, run :file:`pycoweb init` to generate an application container script. Configure the container and run it to start a coweb server instance.
+
+Configuring server instances
+############################
+
+You can configure Python server instances by modifying the application container script produced by :file:`pycoweb init`. See the Python section about :doc:`/python/container` for details.
 
 Going further
 ~~~~~~~~~~~~~

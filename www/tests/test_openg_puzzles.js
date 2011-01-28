@@ -1,6 +1,7 @@
 //
 // Tests for op engine puzzles.
 //
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 dojo.provide('tests.test_openg_puzzles');
@@ -11,6 +12,39 @@ module('op engine puzzles', {
         // clean up all clients
         tests.util.OpEngClient.all_clients = [];
     }
+});
+
+test('two site multiple topics', 2, function() {
+    var a = new tests.util.OpEngClient(0, {abc : '', xyz : ''});
+    var b = new tests.util.OpEngClient(1, {abc : '', xyz : ''});
+    var op;
+    op = a.local('abc', '1', 'insert', 0);
+    a.send(op);
+    op = b.local('xyz', '2', 'insert', 0);
+    b.send(op);
+    op = b.local('xyz', '3', 'update', 0);
+    b.send(op);
+    
+    a.recvAll();
+    b.recvAll();
+        
+    op = a.local('xyz', null, 'delete', 0);
+    a.send(op);
+    op = a.local('abc', '4', 'update', 0);
+    a.send(op);
+    op = b.local('xyz', '5', 'update', 0);
+    b.send(op);
+    op = b.local('abc', '6', 'update', 0);
+    b.send(op);
+    op = b.local('xyz', '7', 'update', 0);
+    b.send(op);
+    
+    a.recvAll();
+    b.recvAll();
+    
+    var correct = {abc : '4', xyz : ''};
+    deepEqual(a.state, correct, 'client state check');
+    deepEqual(b.state, correct, 'client state check');
 });
 
 test('two site puzzle #1', 4, function() {

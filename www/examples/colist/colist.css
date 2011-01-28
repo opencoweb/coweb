@@ -1,6 +1,7 @@
 /*
  * Cooperative list styles.
  *
+ * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
  * Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
  */
 html, body {
@@ -31,6 +32,6 @@ html, body {
     margin: 10px auto;
 }
 
-.tutFocus {
+#grid .focused {
     color: red;
 }

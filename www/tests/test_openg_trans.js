@@ -1,6 +1,7 @@
 //
 // Tests for simple 1v1 integration transforms.
 //
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 dojo.provide('tests.test_openg_trans');

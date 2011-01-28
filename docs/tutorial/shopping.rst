@@ -15,7 +15,7 @@ To get started, first consider the application requirements. Note that these are
 #. Each cell in the list can hold free-form text editable by the user.
 #. Edits to list items take effect when the user hits :kbd:`Enter`, not character-by-character.
 #. Users can sort their views of the list independently of one another.
-#. The list highlights which rows users have focused to assist collaboration.
+#. The list highlights rows that have remote user input focus.
 
 The final version of our application will look something like the following.
 
@@ -27,29 +27,35 @@ The final version of our application will look something like the following.
 Setup a coweb server instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The shopping list application requires a coweb server to operate. If you deployed the Java :file:`coweb_examples.war` file or created a Python demo virtualenv according to the :doc:`install` instructions, your server environment has a copy of the completed application. You should view it now to better understand the features you are implementing. The default URL for the complete app is `http://your.domain:9000/www/examples/colist/index.html` on a Python or `http://your.domain:8080/coweb_examples/colist/index.html` on a Java server.
+The shopping list application requires a coweb server to operate. If you deployed the Java :file:`coweb_example.war` file or created a Python demo virtualenv according to the :doc:`install` instructions, your server environment has a copy of the completed application. You should view it now to better understand the features you are implementing. The default URL for the complete app is `http://your.domain:9000/www/examples/colist/index.html` on a Python or `http://your.domain:8080/coweb_example/colist/index.html` on a Java server.
 
 If you plan to develop your own copy of the shopping list application, you should create and deploy your code in a new Java WAR or a fresh coweb Python virtualenv. Follow the instructions below to setup a workspace for development.
 
 Java
 ####
 
-#. Satisfy the Java servlet container and dependency install prerequisites under :doc:`install`.
-#. Create the directory :file:`servers/java/mycolist` in the |coweb api| source tree where your application source will reside.
-#. Create a build script that produces a :file:`mycolist.war` which includes:
+#. Use Maven to :ref:`install the coweb server dependencies <maven-install>`.
+#. Use the :ref:`coweb Maven archetype <maven-archetype>` to initialize a new `colist` project, substituting the current framework version where needed.
 
-   #. Your web application source.
-   #. The Java dependencies under :file:`servers/java/deps/jars`.
-   #. The JavaScript dependencies under :file:`servers/java/deps/js`.
-   #. The built coweb Java framework files :file:`servers/java/coweb_bots/coweb_bots.jar` and :file:`servers/java/coweb_server/coweb_server.jar`.
-   #. The coweb JavaScript framework files :file:`www/libs/coweb.js` and :file:`www/libs/coweb`.
+   .. sourcecode:: console
+   
+      $ cd /desired/project/path
+      $ mvn archetype:create \
+         -DgroupId=<your groupId> \
+         -DartifactId=mycolist \
+         -DcowebVersion=0.2 \
+         -DarchetypeVersion=0.2 \
+         -DarchetypeGroupId=org.coweb \
+         -DarchetypeArtifactId=coweb_archetype
+
+#. Run the application using `mvn jetty:run-war` or deploy it into your servlet container.
 
 Python
 ######
 
 #. Create and activate a new, :ref:`empty coweb virtualenv <empty-virtualenv>`.
 #. Make a folder under :file:`/desired/virtualenv/path/www/mycolist` where your application will reside.
-#. Run the coweb server in the project virtualenv, choosing a port that won't conflict with another server instance.
+#. Run the coweb server, choosing a port that won't conflict with another server instance.
 
    .. sourcecode:: console
    
@@ -65,12 +71,14 @@ You will start by creating an empty web application shell that loads the proper 
 
 First, create a new file named :file:`index.html` in your project folder. This file will eventually contain the Dojo widgets for the shopping list. For now, it will just show some simple text so that you can test the app deployment.
 
+.. note:: 
+
+   For a Java project, all web files live under the :file:`mycolist/src/main/webapp` folder created by the archetype. For a Python project, all web files live in the root of the :file:`mycolist` project folder you created.
+
 Java
 ++++
 
-If you plan to deploy your app on the Java server, seed :file:`index.html` with the following markup. This markup uses a local copy of Dojo. It assumes all of the JavaScript and CSS dependencies reside under a :file:`js/libs` folder. 
-
-Keep in mind that you may need to adjust the various CSS and JavaScript paths depending on how you build your WAR file.
+If you plan to deploy your app on the Java server, seed :file:`index.html` with the following markup. This markup uses a local copy of Dojo.
 
 .. sourcecode:: html
 
@@ -80,27 +88,27 @@ Keep in mind that you may need to adjust the various CSS and JavaScript paths de
        <meta charset="utf-8" />
        <title>Cooperative Shopping List Example</title>
        <style type="text/css">
-         @import "js/libs/dojo/resources/dojo.css";
-         @import "js/libs/dijit/themes/claro/claro.css";
-         @import "js/libs/dojox/grid/resources/Grid.css";
-         @import "js/libs/dojox/grid/resources/claroGrid.css";
-         @import "js/libs/coweb/ext/ui/styles/claro/claro.css";
+         @import "js/dojo/resources/dojo.css";
+         @import "js/dijit/themes/claro/claro.css";
+         @import "js/dojox/grid/resources/Grid.css";
+         @import "js/dojox/grid/resources/claroGrid.css";
+         @import "js/coweb/ext/ui/styles/claro/claro.css";
          @import "colist.css";
        </style>
-       <script type="text/javascript">
+      <script type="text/javascript">
          var djConfig = {
              cowebAdminUrl: '/mycolist/admin',
              isDebug: false,
-             parseOnLoad: false,
+             parseOnLoad: true,
              modulePaths: {
-               'coweb' : 'js/libs/coweb',
-               'colist' : '/coweb_mycolist'
+               'coweb' : '../coweb',
+               'colist' : '/mycolist' 
              }
          };
        </script>
-       <script type="text/javascript" src="js/libs/dojo/dojo.js"></script>
-       <script type="text/javascript" src="js/libs/dojo/OpenAjax.js"></script>
-       <script type="text/javascript" src="comap.js"></script>
+       <script type="text/javascript" src="js/dojo/dojo.js"></script>
+       <script type="text/javascript" src="js/dojo/OpenAjax.js"></script>
+       <script type="text/javascript" src="colist.js"></script>
      </head>
      <body class="claro">
        <h1>Hello World!</h1>
@@ -124,7 +132,7 @@ If you plan to deploy your app on the Python server, seed :file:`index.html` wit
          @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dijit/themes/claro/claro.css";
    		  @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojox/grid/resources/Grid.css";
    		  @import "http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojox/grid/resources/claroGrid.css";
-         @import "../../libs/coweb/ext/ui/styles/claro/claro.css";
+         @import "../libs/coweb/ext/ui/styles/claro/claro.css";
          @import "colist.css";
        </style>
        <script type="text/javascript">
@@ -140,7 +148,7 @@ If you plan to deploy your app on the Python server, seed :file:`index.html` wit
                'org.cometd' : 'org/cometd',
                'colist' : path
              },
-             baseUrl : '../../libs/'
+             baseUrl : '../libs/'
          };
        </script>
        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></script>
@@ -175,7 +183,7 @@ Now create the :file:`colist.css` file in your project folder. You will define s
 Checkpoint: Running the blank application
 #########################################
 
-You should test your application at this point to ensure you can access it in a web browser after deploying it. If you're working with Java, run your build script and deploy your :file:`mycolist.war` file in your servlet container. If you're working with Python, do nothing: your application is already web accessible at :file:`/www/mycolist` by default.
+You should test your application at this point to ensure you can access it in a web browser after deploying it. If you're working with Java, run your build script and deploy your :file:`mycolist.war` file in your servlet container. If you're working with Python, do nothing: your application is already web accessible at :file:`/www/mycolist/index.html` by default.
 
 If everything is working properly, the following should be possible in your application:
 
@@ -245,6 +253,8 @@ Edit the :file:`colist.js` file. Under the existing :func:`dojo.require` call at
    dojo.require('dojox.grid.DataGrid');
    dojo.require('dojo.data.ItemFileWriteStore');
    dojo.require('dijit.form.Button');
+   dojo.require('dijit.layout.BorderContainer');
+   dojo.require('dijit.layout.ContentPane');
 
 Next, replace the :func:`console.log` call in the :func:`dojo.ready` callback with the following code.
 
@@ -253,8 +263,10 @@ Next, replace the :func:`console.log` call in the :func:`dojo.ready` callback wi
     /**
      * Adds a new row with default values to the local grid.
      */
+    var itemId = 0;
     function onAddRow() {
         dataStore.newItem({
+            id : itemId++,
             name: 'New item',
             amount: 0
         });
@@ -329,10 +341,43 @@ You should test your application now to ensure the shopping list widgets work. T
 #. You can drag and drop the column headers to reorder them.
 #. You can use the mouse and keyboard to select one or more rows and then click the :guilabel:`Delete` button to remove them.
 
+Joining a session
+~~~~~~~~~~~~~~~~~
+
+Once satisfied that your shopping list works, you can begin making it cooperative. You should focus first on getting your application into a coweb session. As the application goes through the process of joining the session, it should report its progress to the local user.
+
+:file:`colist.js`
+#################
+
+Open the :file:`colist.js` file again. Under the :func:`dojo.require` calls at the top of the file, add the following to import the optional busy dialog component.
+
+.. sourcecode:: javascript
+
+   dojo.require('coweb.ext.ui.BusyDialog');
+
+Add the following code to the bottom of the :file:`dojo.ready` callback.
+
+.. sourcecode:: javascript
+
+   // get a session instance
+   var sess = coweb.initSession({adminUrl : djConfig.cowebAdminUrl});
+   // use the ext busy dialog to show progress joining/updating
+   coweb.ext.ui.createBusy(sess);
+   // do the prep and autoJoin / autoUpdate
+   var prep = {collab: true, autoJoin : true, autoUpdate: true};
+   sess.prepareConference(prep);
+
+This code initializes the :class:`SessionInterface` and points it at the proper admin REST URL. The URL differs from the default `/admin` on the Java server, so it reads the preferred URL from the :attr:`djConfig` object in the :file:`index.html` file for the application. The next link creates an instance of the optional dialog widget that reports progress as a session attempts to prepare, join, and update itself in a coweb session. After these setup steps, the code uses the :class:`SessionInterface` to initiate the session join process.
+
+Checkpoint: Running the standalone app
+######################################
+
+You should test your application again to see if it joins a session now. You can verify this behavior by watching for the brief appearance of the busy dialog over the application and its disappearance once the application is in the session. If the dialog remains and reports an error, something has gone wrong and you should review your code.
+
 Sharing data store changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once satisfied that your shopping list works, you can begin making it cooperative. Focus first on the primary editing operations of the shopping list first: add, update, and remove. When a user performs one of these operations, all application instances in the session should reflect the change. Further, all instances should converge to the same list of items, even in the face of concurrent conflicting edits.
+Now that the application can join a session, it's time to make the primary editing operations of the shopping list cooperative: add, update, and remove. When a user performs one of these operations, all application instances in the session should reflect the change. Further, all instances should converge to the same list of items, even in the face of concurrent conflicting edits.
 
 Fortunately, the :class:`dojo.data.ItemFileWriteStore` class supports callbacks whenever an item is added to, changed in, or removed from the data store. By registering for these callbacks, the application can send notices of changes in the local data store to remote data store instances whenever they occur. Conversely, the app can listen for changes from remote data stores and apply them to the local store.
 
@@ -354,7 +399,8 @@ Next, define a class that will hold a reference to a :class:`dojo.data.ItemFileW
 
    dojo.declare('colist.CoopItemFileWriteStore', null, {
       // reference to a regular dojo.data.ItemFileWriteStore instance
-      dataStore: null
+      dataStore: null,
+      // methods to go here
    });
 
 The following sections flesh-out the body of this class.
@@ -380,11 +426,11 @@ Add a constructor that stores the passed arguments in instance variables. Also, 
       // check consistency on a per-item basis, rather than per-grid, so we
       // include the * here to listen to all change messages
       this.collab.subscribeSync('change.*', this, 'onRemoteChange');
-   }
+   },
 
 .. note:: 
    
-   Keep in mind that you must add a comma after each method in your class body except for the last method. This tutorial ommits trailing commas in its blocks of code.
+   Keep in mind that you must add a comma after each method in your class body except for the last method.
    
 Look at the :func:`CollabInterface.subscribeSync` call. The first parameter indicates the name of the remote, cooperative event to observe. In this case, the instance wants to observe all remote events that start with `change.` followed by any text up to the next period. As you will see below, our callbacks for local changes send events in the form `change.<item id>` whenever an item is added, updated, or removed in the local data store. In effect, this :func:`CollabInterface.subscribeSync` call is registering for notifications of remote additions, updates, or removals in remote data stores.
 
@@ -413,7 +459,7 @@ Next add a method named :func:`_dsConnect`. You will use this private method rep
          // delete the handle
          this.dsHandles[type] = null;
       }
-   }
+   },
 
 The method uses :func:`dojo.connect` and :func:`dojo.disconnect` to enable and disable the callback methods you will define shortly. The `type` parameter identifies which data store notification / callback pair should be enabled or disabled.
 
@@ -448,7 +494,7 @@ Edit the constructor to initialize the :attr:`typeToFuncs` and :attr:`dsHandles`
       // check consistency on a per-item basis, rather than per-grid, so we
       // include the * here to listen to all change messages
       this.collab.subscribeSync('change.*', this, 'onRemoteChange');
-   }
+   },
 
 Callbacks for local changes
 +++++++++++++++++++++++++++
@@ -470,7 +516,7 @@ You should now add the methods responsible for sending information about local c
          row[attr] = this.dataStore.getValue(item, attr);
       }, this);
       return row;
-   }
+   },
 
 This method takes any item from the data store as a parameter, loops over all of its attributes, and adds their names and values to a regular JavaScript object. You can JSON-encode the new object to send to remote users whereas we cannot JSON-encode the original item.
 
@@ -494,14 +540,10 @@ Next define the callback methods for changes in the local :class:`dojo.data.Item
         // name includes row id for conflict resolution
         var id = this.dataStore.getIdentity(item);
         var name = 'change.'+id;
-        this.collab.sendSync(name, value, 'update');
-    }
+        this.collab.sendSync(name, value, 'insert');
+    },
 
 When a new item appears in the data store, this :func:`onLocalInsert` method first collects its values using :func:`_itemToRow`. Second, it packages the `row` object and the action name `insert` into another object as the value to transmit. Third, it gets the identity assigned to the new item and builds the event name using it. Finally, it invokes the :func:`CollabInterface.sendSync` method to send the cooperative event to remote instances.
-
-.. note:: 
-
-   For those that read the section about :doc:`/intro/openg`, the third parameter to :func:`CollabInterface.sendSync` may look wrong as `update` in this context. It is in fact correct. See the conflict resolution section below for the reason why.
 
 .. sourcecode:: javascript
 
@@ -528,7 +570,7 @@ When a new item appears in the data store, this :func:`onLocalInsert` method fir
         var id = this.dataStore.getIdentity(item);
         var name = 'change.'+id;
         this.collab.sendSync(name, value, 'update');
-    }
+    },
 
 When the attribute of an item in the data store changes value, this :func:`onLocalUpdate` method serializes and sends the item in much same manner as :func:`onLocalInsert`. The only difference is that this method includes the name of the attribute that changed in addition to the `action` and `row` values to assist remote instances in determining what changed.
 
@@ -546,8 +588,8 @@ When the attribute of an item in the data store changes value, this :func:`onLoc
         // name includes row id for conflict resolution
         var id = this.dataStore.getIdentity(item);
         var name = 'change.'+id;
-        this.collab.sendSync(name, value, 'update');
-    }
+        this.collab.sendSync(name, value, 'delete');
+    },
 
 When an item disappears from the data store, this :func:`onLocalDelete` method notifies remote instances of the deletion. Unlike the two methods above, it does not include the values of the removed item as they are no longer needed.
 
@@ -577,7 +619,7 @@ In the constructor, you subscribed a method named :func:`onRemoteChange` as the 
         } else if(value.action == 'delete') {
             this.onRemoteDelete(id);
         }
-    }
+    },
 
 The code in this method looks at the `action` property of the event value and dispatches to more specific methods shown below. Remember, the `action` value was set by the code in :func:`onLocalInsert`, :func:`onLocalUpdate`, or :func:`onLocalDelete`: whichever sent the cooperative event.
 
@@ -598,11 +640,11 @@ Now define the method to add remotely created items to the local data store.
         this.dataStore.newItem(value.row);
         // resume listening to local inserts
         this._dsConnect(true, 'insert');
-    }
+    },
 
 The second line of code in this method adds the name/value pairs of the item properties packaged in `value.row` to the local data store. But before adding the item, the code is careful to disconnect the listener for local data store changes to avoid a cooperative event storm. If left connected, the :func:`onLocalInsert` method would get invoked, the code in that method would send a duplicate event to remote instances, those instances would do the same, ad infinitum. After invoking :func:`newItem`, the code reconnects the listener for local events.
 
-Note this approach to avoiding echoed events only works because :class:`dojo.data.ItemFileWriteStore` invokes our :meth:`onLocalInsert` method synchronously within :meth:`newItem`. If the addition of the item or the callback was asynchronous (as is the case in other data store implementations), the code would need another method of avoiding event ping-pong (e.g., including a remote flag on the item.)
+Note this approach to avoiding echoed events only works because :class:`dojo.data.ItemFileWriteStore` invokes our :func:`onLocalInsert` method synchronously within :func:`newItem`. If the addition of the item or the callback was asynchronous (as is the case in other data store implementations), the code would need another method of avoiding event ping-pong (e.g., including a remote flag on the item.)
 
 Now define the methods needed to incorporate remote changes to existing items and remove remotely deleted items.
 
@@ -630,7 +672,8 @@ Now define the methods needed to incorporate remote changes to existing items an
                 this._dsConnect(true, 'update');
             }
         });
-    }
+    },
+
     /**
      * Called when an item disappears from a remote data store. Removes the
      * item with the same id from the local data store.
@@ -652,7 +695,7 @@ Now define the methods needed to incorporate remote changes to existing items an
         });
     }
 
-The code in these methods is more complex because the :class:`dojo.data.Identity` API supports both synchronous and asynchronous data stores. Again, the disconnect / reconnect approach to avoiding event ping-pong only works properly because the :class:`dojo.data.ItemFileWriteStore` implementations of :meth:`fetchItemByIdentity`, :meth:`setValue`, and :meth:`deleteItem` are synchronous.
+The code in these methods is more complex because the :class:`dojo.data.Identity` API supports both synchronous and asynchronous data stores. Again, the disconnect / reconnect approach to avoiding event ping-pong only works properly because the :class:`dojo.data.ItemFileWriteStore` implementations of :func:`fetchItemByIdentity`, :func:`setValue`, and :func:`deleteItem` are synchronous.
 
 :file:`colist.js`
 #################
@@ -678,9 +721,9 @@ Next, replace the :func:`onAddRow` function with the following:
        });
    };
    
-By default, the :class:`dojo.data.ItemFileWriteStore` assigns monotonically increasing IDs to new items. After adding cooperation, remote users can end up creating new items at the same time. The application must take care, therefore, to ensure two unique items do not receive the same ID. The new code generates pseudo-unique random IDs based on a random number and the current date and time.
+The previous code assigned monotonically increasing IDs to new items. But after adding cooperation, remote users can end up creating new items at the same time. You must take care, therefore, to ensure two unique items do not receive the same ID. The new code generates pseudo-unique random IDs based on a random number and the current date and time.
 
-Now modify the body of your :func:`dojo.ready` callback to include the following additional lines instantiating a :class:`colist.CoopItemFileWriteStore` instance below the existing code.
+Now modify the body of your :func:`dojo.ready` callback to include the following additional lines instantiating a :class:`colist.CoopItemFileWriteStore` instance.
 
 .. sourcecode:: javascript
    
@@ -694,34 +737,156 @@ Checkpoint: Checking data store cooperation
 
 You should test your application now to confirm cooperation between two or more grids. The easiest way to perform this test is to open at least two browser windows on the same machine and then make edits in each. In addition to the features from the previous checkpoint, the following should be possible in your application at this point:
 
+#. The busy dialog appears over your application while it attempts to join a session.
 #. When you add a row in one shopping list, it appears in all of the others.
 #. When you change an item name or amount in one list, the change occurs in the others.
 #. When you delete one or more items in a list, the items are removed in other lists.
 #. When an item name or value is updated in two or more lists simultaneously, the same value wins out in all of the lists so that they remain consistent.
 
-Intermission: About conflict resolution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 Supporting late-joiners
 ~~~~~~~~~~~~~~~~~~~~~~~
+
+With the current code, people who join a session late do not see any items added to the shopping list before they joined. The list stays in its empty, initial state. You should now add the necessary callbacks so that a late joining data store instance can initialize to the current state. To accomplish this, you must also define the callback that allows data store instances already in the session to provide their state to late comers.
 
 :file:`CoopItemFileWriteStore.js`
 #################################
 
+Open the :file:`CoopItemFileWriteStore.js` file. At the bottom of the constructor, add the following lines of code to register the full state request and response callbacks.
+
+.. sourcecode:: javascript
+
+   // listen for requests from remote applications joining the session
+   // when they ask for the full state of this widget
+   this.collab.subscribeStateRequest(this, 'onGetFullState');
+   // listen for responses from remote applications when this application
+   // instance joins a session so it can bring itself up to the current 
+   // state
+   this.collab.subscribeStateResponse(this, 'onSetFullState');
+
+Next, define the :func:`onGetFullState` callback function you just registered. The coweb framework invokes this method when a remote instance of this class is joining the session and needs to synchronize its state.
+
+.. sourcecode:: javascript
+
+    /**
+     * Called when a remote instance of this widget is joining a session and
+     * wants to get up to speed. This instance sends the joining one a 
+     * serialized array of all the items in the data store.
+     *
+     * @param params Object with properties for the ready event (see doc)
+     */
+    onGetFullState: function(token) {
+        // collect all items
+        var rows = [];
+        this.dataStore.fetch({
+            scope: this,
+            onItem: function(item) {                
+                var row = this._itemToRow(item);
+                rows.push(row);
+            }
+        });
+        this.collab.sendStateResponse(rows, token);
+    },
+
+When invoked, this callback uses our :func:`_itemToRow` method to serialize all of the content in the data store. It then invokes the :func:`CollabInterface.sendStateResponse` method to send the state to the joining instance. The token passed to this callback and provided to :func:`sendStateResponse` pairs the request for state with the eventual response.
+
+Now implement the :func:`onSetFullState` callback you registered in the constructor. The coweb framework invokes this method when this instance is joining an on-going session and receives full state from a remote instance.
+
+.. sourcecode:: javascript
+
+    /**
+     * Called when this instance of the widget is joining a session and wants
+     * to get up to speed. A remote instance provides this widget with an
+     * array of all the items in the data store.
+     *
+     * @param rows Array of row objects to be inserted as items
+     */
+    onSetFullState: function(rows) {
+        // stop listening to local insert events from the data store else
+        // we'll echo all of the insert back to others in the session!
+        // via our onLocalInsert callback
+        this._dsConnect(false, 'insert');
+        // add all rows to the data store as items
+        dojo.forEach(rows, this.dataStore.newItem, this.dataStore);
+        // now resume listening for inserts
+        this._dsConnect(true, 'insert');
+    },
+
+This callback unserializes the rows received from a remote :func:`onGetFullState` method. It adds all of the rows to the data store as items after ensuring its local :func:`onLocalInsert` callback is not inadvertently invoked for each item.
+
 Checkpoint: Testing data store improvements
 ###########################################
+
+You should test your application now to confirm late joining browsers immediately see the up-to-date shopping list. The easiest way to perform this test is to open at least two browser windows on the same machine, make changes to the list, and then refresh one of the browsers. The state of the list in the refreshed browser should match that of the list in the other browser.
 
 Providing remote user awareness
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Now that the shopping list items are properly shared, you can focus on providing information about shopping list users. The initial requirements stated that users should be aware of where other users are editing the shopping list. To do so, you should highlight where remote user input focus lies in the :class:`dojox.grid.DataGrid` widget.
+
 :file:`CoopGrid.js`
 ###################
 
-:file:`application.js`
-######################
+Create a new file in the application folder named :file:`CoopGrid.js`. Add the following code to the file.
+
+.. highlight:: javascript
+.. literalinclude:: ../../www/examples/colist/CoopGrid.js
+
+The :class:`colist.CoopGrid` class registers callbacks for grid focus and styling events when instantiated. It also registers observers for cooperative events concerning entry into a session, focus events from remote instances, notifications that remote instances of have left a session, and full state requests and responses for late joining. 
+
+At runtime, the instance tracks which row in the grid the local user has given input focus. It sends the data store item ID of the local focused row to remote instances. When the local instance receives notification of a remote focus, it stores the ID of the focused item in a dictionary keyed by the unique site ID of the remote instance. The local instance forces its grid to re-render when it receives a remote change notification, and adds the CSS class `focused` to all remotely focused rows.
+
+When a remote user leaves the session, the local :class:`colist.CoopGrid` instance clears any information about that user's site in its dictionary and forces a grid render to remove its focus row highlight. When the local user joins a session late, the local instance receives a copy of the focus dictionary from a remote instance. It then forces a render of the grid to immediately show the current focus state for all remote users. Likewise, when a remote user joins a session late, the local :class:`colist.CoopGrid` instance is able to provide the newcomer with its current focus dictionary.
+
+:file:`colist.css`
+##################
+
+Open :file:`colist.css` and add the following CSS rule.
+
+.. sourcecode:: css
+
+   #grid .focused {
+      color: red;
+   }
+
+:file:`colist.js`
+#################
+
+Open the :file:`colist.js` file for the last time. Add the necessary statements at the top of the file to import the new :class:`colist.CoopGrid` class.
+
+.. sourcecode:: javascript
+
+   dojo.require('colist.CoopGrid');
+
+Also instantiate an instance of the class in the :func:`dojo.ready` callback. 
+
+.. sourcecode:: javascript
+
+   // instantiate our cooperative grid extension, giving it a reference
+   // to the dojox.grid.DataGrid widget
+   args = {grid : grid, id : 'colist_grid'};
+   var coopGrid = new colist.CoopGrid(args);
+
+After these edits, your completed file should look something like the following:
+
+.. highlight:: javascript
+.. literalinclude:: ../../www/examples/colist/colist.js
 
 Checkpoint: Checking grid highlights
 ####################################
 
+Your application now meets all of the requirements we set forth at the beginning of this tutorial. You should test it using multiple browsers. In addition to the features from the previous checkpoint, the following should be possible in your finished application:
+
+#. The text of a row is black when no remote user has focus on that row.
+#. The text of a row is red when a remote user puts keyboard focus on that row.
+#. When a user leaves the session, the focus for that user is no longer shown.
+
 Going further
 ~~~~~~~~~~~~~
+
+The code in this tutorial touches some aspects of the coweb framework, but not all of them. You can continue to learn about the available APIs by extending the shopping list application. The following are some suggestions about what you might attempt next.
+
+* Add a list of users in the session.
+* Add a text chat widget.
+* Improve the display of remote user focus in the grid (e.g., include usernames, highlight specific cells, distinguish row focus from cell edit).
+* Persist shopping list changes for the next time a user enters the session.
+* Connect the shopping list to an external service for online orders.

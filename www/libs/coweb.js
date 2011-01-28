@@ -1,13 +1,14 @@
 //
 // Cooperative web package root.
 //
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 dojo.provide('coweb');
 dojo.require('coweb.topics');
 
 // version of the framework
-coweb.VERSION = '0.1';
+coweb.VERSION = '0.2';
 
 /**
  * Session factory.

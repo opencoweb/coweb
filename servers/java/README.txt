@@ -28,7 +28,7 @@ your own coweb webapp with the following command.
 mvn archetype:create \
 -DgroupId=<your groupId> \
 -DartifactId=<your artifactId> \
--DcowebVersion=.1 \
--DarchetypeVersion=.1 \
+-DcowebVersion=<current version> \
+-DarchetypeVersion=<current version> \
 -DarchetypeGroupId=org.coweb \
 -DarchetypeArtifactId=coweb_archetype
