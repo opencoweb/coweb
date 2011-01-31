@@ -8,6 +8,7 @@ import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerSession;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class DefaultDelegate implements SessionHandlerDelegate {
 
@@ -26,7 +27,10 @@ public class DefaultDelegate implements SessionHandlerDelegate {
 
     public boolean onServiceRequest(ServerSession client, Message message) {
 		try {
-            this.serviceHandler.forwardUserRequest(client, message);
+			Map<String, Object> data = message.getDataAsMap();
+			String topic = (String)data.get("topic");
+			if(!topic.startsWith("coweb.engine.sync"))
+				this.serviceHandler.forwardUserRequest(client, message);
 		}
 		catch(Exception e) {
 			e.printStackTrace();

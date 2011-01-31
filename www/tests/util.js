@@ -38,10 +38,14 @@ dojo.declare('tests.util.OpEngClient', null, {
         return false;
     },
     
-    recvAll: function() {
-        while(this.incoming.length) {
+    recvSome: function(count) {
+        while(count-- > 0 && this.incoming.length) {
             this.recv();
         }
+    },
+    
+    recvAll: function() {
+        this.recvSome(this.incoming.length);
     },
 
     syncWith: function(client) {
