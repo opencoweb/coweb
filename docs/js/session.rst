@@ -132,6 +132,8 @@ Using the session instance
    :callback: Invoked on successful update with no parameters
    :errback: Invoked on failed preparation with a string error tag of `bad-application-state` if the update fails.
 
+.. _session-states:
+
 Session busy states
 ~~~~~~~~~~~~~~~~~~~
 
