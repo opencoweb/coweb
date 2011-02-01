@@ -7,5 +7,5 @@
     chat_pane_title : 'Chat',
     log_pane_title : 'Map Log',
     help_pane_title : 'Help',
-    continuous_sync_button_label : 'Continuously sync map'
+    continuous_sync_button_label : 'Sync always'
 }
