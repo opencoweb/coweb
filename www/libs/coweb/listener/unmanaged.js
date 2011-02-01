@@ -20,6 +20,8 @@ dojo.declare('coweb.listener.unmanaged.UnmanagedHubListener', null, {
         this._engine = null;
         // should purge if we've received a sync
         this._shouldPurge = false;
+        // should sync if we've received a sync and have been quiet
+        this._shouldSync = false;
 
         // timer references
         this._syncTimer = null;
@@ -244,6 +246,7 @@ dojo.declare('coweb.listener.unmanaged.UnmanagedHubListener', null, {
             // we've gotten data from elsewhere, so we should sync and/or purge
             // the engine on the next interval
             this._shouldPurge = true;
+            this._shouldSync = true;
         }
     },
 
@@ -560,7 +563,7 @@ dojo.declare('coweb.listener.unmanaged.UnmanagedHubListener', null, {
      * alive.
      */
     _onSendEngineSync: function() {
-        if(!this._engine) {return;}
+        if(!this._engine || !this._shouldSync) {return;}
         //console.debug('HubListener._onSendEngineSync');
         // get engine context vector
         var cv = this._engine.copyContextVector();
@@ -576,7 +579,10 @@ dojo.declare('coweb.listener.unmanaged.UnmanagedHubListener', null, {
         } catch(e) {
             // ignore if can't post
             console.warn(this.declaredClass + ': failed to send engine sync ' + e.message);
+            return;
         }
+        console.log('resetting should sync');
+        this._shouldSync = false;
     },
     
     /**
