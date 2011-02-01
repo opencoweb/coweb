@@ -581,7 +581,6 @@ dojo.declare('coweb.listener.unmanaged.UnmanagedHubListener', null, {
             console.warn(this.declaredClass + ': failed to send engine sync ' + e.message);
             return;
         }
-        console.log('resetting should sync');
         this._shouldSync = false;
     },
     
