@@ -4,14 +4,21 @@
 Deployment descriptors
 ----------------------
 
-A Java coweb server instance typically consists of an admin servlet acting as a directory of running sessions and a CometD servlet governing session events bundled into a web application archive (WAR). Configuration of both servlets is driven by standard web deployment descriptors.
+A Java coweb server instance typically consists of an admin servlet acting as a directory of running sessions and a CometD servlet governing session events bundled into a web application archive (WAR). Configuration of both servlets is driven by standard web deployment descriptors (i.e., :file:`web.xml` files).
+
+The generation of deployment descriptors for new coweb applications requires:
+
+#. The installation of the coweb Maven modules.
+#. The use of the Maven :file:`coweb_archetype`.
+
+Both of these requirements are satisfied by the various Maven build scripts included in the source distribution and documented under :doc:`/tutorial/install`.
 
 Generating a deployment descriptor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To generate a deployment descriptor for a new coweb project, use the Maven `coweb_archetype` as described in the :ref:`maven-archetype` section.
 
-This archetype produces a deployment descriptor under :file:`src/main/webapp/WEB-INF.web.xml` in the project directory. The generated file configures one :class:`org.coweb.servlet.AdminServlet` and one :class:`org.cometd.server.CometdServlet` managing any number of independent sessions.
+This archetype produces a deployment descriptor under :file:`src/main/webapp/WEB-INF.web.xml` in the project directory. The generated file configures one :class:`org.coweb.servlet.AdminServlet` and one `org.cometd.server.CometdServlet`_ managing any number of independent sessions.
 
 .. sourcecode:: xml
 
@@ -76,7 +83,7 @@ delegateClass
    String name of a :class:`org.coweb.SessionHandlerDelegate` subclass to use instead of the default :class:`org.coweb.DefaultDelegate` which allows any user and any service to participate in a session.
 
 securityClass
-   String name of a :class:`org.coweb.CowebSecurityPolicy` subclass to use instead of the default base class which allows anonymous access to all sessions. 
+   String name of a :class:`org.coweb.CowebSecurityPolicy` subclass to use instead of the base class which allows anonymous access to all sessions. 
 
 Use cases
 ~~~~~~~~~
@@ -106,3 +113,4 @@ Say a certain app deployment requires the coweb server to control user access to
 
 
 .. _CometD 2 Java Server configuration: http://cometd.org/documentation/2.x/cometd-java/server/configuration
+.. _org.cometd.server.CometdServlet: http://cometd.org/documentation/2.x/cometd-java/server/configuration
