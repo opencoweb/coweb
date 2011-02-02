@@ -12,7 +12,7 @@ The creation and use of new managers requires:
 #. The import of the new manager module into an application container script.
 #. The configuration of an application container to use the new manager instead of its default.
 
-Revisit the section about :doc:`container` for assistance configuring a coweb server to use a third-party manager.
+Revisit the section about :doc:`container` for assistance configuring a coweb server to use third-party managers.
 
 Authenticating users
 ~~~~~~~~~~~~~~~~~~~~
