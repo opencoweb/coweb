@@ -80,7 +80,7 @@ Configuring coweb options
 The admin servlet accepts the following parameters configuring custom session management and security policies.
 
 delegateClass
-   String name of a :class:`org.coweb.SessionHandlerDelegate` subclass to use instead of the default :class:`org.coweb.DefaultDelegate` which allows any user and any service to participate in a session.
+   String name of a :class:`org.coweb.SessionHandlerDelegate` subclass to use instead of the default :class:`org.coweb.CollabDelegate` which governs the coweb protocol in a session.
 
 securityClass
    String name of a :class:`org.coweb.CowebSecurityPolicy` subclass to use instead of the base class which allows anonymous access to all sessions. 
@@ -113,4 +113,3 @@ Say a certain app deployment requires the coweb server to control user access to
 
 
 .. _CometD 2 Java Server configuration: http://cometd.org/documentation/2.x/cometd-java/server/configuration
-.. _org.cometd.server.CometdServlet: http://cometd.org/documentation/2.x/cometd-java/server/configuration

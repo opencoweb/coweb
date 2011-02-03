@@ -6,7 +6,7 @@
 Service bots
 ------------
 
-A Java :term:`service bot` implements the informal :class:`org.coweb.bots.Bot` interface to receive data from users in a coweb session. The bot uses a :class:`org.coweb.bots.Proxy` implementation to send data back to a coweb session. The bot configuration determines what transport it uses to communicate with a coweb server.
+A transport-agnostic Java :term:`service bot` implements the informal :class:`org.coweb.bots.Bot` interface to receive data from users in a coweb session. The bot uses a :class:`org.coweb.bots.Proxy` implementation to send data back to a coweb session. The bot configuration determines what transport the server uses to communicate with the bot.
 
 A Java bot must meet these criteria:
 
@@ -16,7 +16,9 @@ A Java bot must meet these criteria:
 Declaring bot metadata
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Bots declare their metadata and configuration in standard Java properties file.  The following are the known properties. Any property except those noted as required may be omitted.
+Bots declare their metadata and configuration in standard Java properties file. The property file resides with the deployed coweb server and describes how the server should expect to communicate with the bot.
+
+The following are the known properties. Any property except those noted as required may be omitted.
 
 name
    Human readable name of the service bot.
