@@ -8,6 +8,10 @@ Extension points
 
 The optional admin servlet parameters in the coweb application deployment descriptor can name custom classes deriving from base classes in the :mod:`org.coweb` package. The optional broker parameter in a service bot configuration file can also name a custom class deriving from a base class in the same package. New implementations of these bases can define new methods of managing sessions and communicating with bots. Together, they represent points of extension on the coweb server.
 
+.. note:: 
+
+   The interfaces for controlling session security, eventing, and bot transports are still in flux as of |version|. Be aware they may change up until 1.0.
+
 The creation and use of new subclasses at these extension points requires:
 
 #. The installation of the coweb Maven modules.
@@ -32,8 +36,8 @@ Controlling session access
       :param collab: Flag from :js:func:`SessionInterface.prepareConference` set to true if requesting a session supporting cooperative events, false if requesting a session supporting service bot calls only
       :return: True to allow preparation to continue, false to deny
 
-Manging session events
-~~~~~~~~~~~~~~~~~~~~~~
+Managing session events
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. class:: SessionHandlerDelegate
 
@@ -49,7 +53,7 @@ Manging session events
 
       The coweb server calls this method when a coweb application attempts to join a session.
 
-      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the client that sent the request
+      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the message
       :param message: `org.cometd.bayeux.Message`_ instance representing the join message
       :return: True to allow the application to join, false to deny access
    
@@ -68,7 +72,7 @@ Manging session events
    
       The coweb server calls this method when a coweb application attempts to send a private request to a service bot in a session.
 
-      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the client that sent the request
+      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the message
       :param message: `org.cometd.bayeux.Message`_ instance representing the request message
       :return: True to allow the request to proceed, false to deny it
 
@@ -76,7 +80,7 @@ Manging session events
    
       The coweb server calls this method when a coweb application attempts to subscribe to a service bot in a session.
 
-      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the client that sent the request
+      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the message
       :param message: `org.cometd.bayeux.Message`_ instance representing the subscribe message
       :return: True to allow the subscribe to proceed, false to deny it
 
@@ -84,7 +88,7 @@ Manging session events
    
       The coweb server calls this method when a coweb application attempts to subscribe to a service bot in a session.
 
-      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the client that sent the request
+      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the message
       :param message: `org.cometd.bayeux.Message`_ instance representing the sync message
       :return: True to allow the sync to proceed, false to deny it
       
@@ -94,7 +98,7 @@ Manging session events
 
       The coweb server calls this method when a coweb application attempts to unsubscribe from a service bot in a session.
 
-      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the client that sent the request
+      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the request
       :param message: `org.cometd.bayeux.Message`_ instance representing the unsubscribe message
       :return: True to allow the unsubscribe to proceed, false to deny it
    
@@ -102,7 +106,7 @@ Manging session events
    
       The coweb server calls this method when a coweb application attempts to respond to a request for full state in a session.
 
-      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the client that sent the request
+      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the message
       :param message: `org.cometd.bayeux.Message`_ instance representing the state message from the updater
       :return: True to forward the state to the joining application, false to drop the state
    
@@ -110,8 +114,8 @@ Manging session events
 
       The coweb server calls this method when a coweb application attempts to become an updater in a session.
 
-      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the client that sent the request
-      :param message: `org.cometd.bayeux.Message`_ instance representing the client that sent the request
+      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the message
+      :param message: `org.cometd.bayeux.Message`_ instance representing the subscribe message from the updater
       :return: True to allow the application as an updater, false to deny
 
 Communicating with service bots
@@ -122,6 +126,75 @@ Communicating with service bots
 
 .. class:: Transport
 
+   Abstract base class for new transport implementations between coweb server and service bots. Instantiated per service bot instance per session.
+   
+   .. attribute:: bayeuxServer
+   
+      `org.cometd.bayeux.server.BayeuxServer`_ instance of the coweb server
+   
+   .. attribute:: botConfig
+   
+      :class:`java.util.Properties` object containing bot configuration options and metadata
+   
+   .. attribute:: serviceName
+   
+      String name of the service provided by the bot communicating via this transport
+   
+   .. attribute:: sessionId
+   
+      String unique ID of the session to which the transport is bridging its bot
+   
+   .. method:: init() -> boolean
+   
+      The coweb server calls this method when a session decides to launch a service bot using this transport.
+      
+      :return: True if initialization is successful, false if not
+   
+   .. method:: shutdown() -> boolean
+   
+      The coweb server calls this method when a session decides to shut down the service bot using this transport. The transport should notify its bot of the impending shutdown.
+      
+      :return: Currently unused
+   
+   .. method:: subscribeUser(ServerSession client, Message message, boolean pub) -> boolean
+   
+      The coweb server calls this method when a coweb application subscribes to the service bot using this transport. The transport should notify its bot of the subscription.
+      
+      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the message
+      :param message: `org.cometd.bayeux.Message`_ instance representing the service subscription message
+      :param pub: True if subscribing to the bot's public broadcast channel, false if subscribing to its private request channel 
+      :except IOException: When the transport experiences a failure delivering the message
+      :return: Currently unused
+
+   .. method:: syncEvent(ServerSession client, Message message) -> boolean
+   
+      The coweb server calls this method when a coweb application sends a cooperative event to the session. The transport should notify its bot of the event.
+
+      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the message
+      :param message: `org.cometd.bayeux.Message`_ instance representing the cooperative event message
+      :except IOException: When the transport experiences a failure delivering the message
+      :return: Currently unused
+   
+   .. method:: unSubscribeUser(ServerSession client, Message message, boolean pub) -> boolean
+   
+      The coweb server calls this method when a coweb application unsubscribes from the service bot using this transport. The transport should notify its bot of the unsubscribe.
+
+      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the message
+      :param message: `org.cometd.bayeux.Message`_ instance representing the unsubscribe message
+      :param pub: True if unsubscribing from the bot's public broadcast channel, false if unsubscribing from its private request channel 
+      :except IOException: When the transport experiences a failure delivering the message
+      :return: Currently unused
+   
+   .. method:: userRequest(ServerSession client, Message message) -> boolean
+
+      The coweb server calls this method when a coweb application sends a private request to the service bot using this transport. The transport should notify its bot of the request.
+
+      :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the message
+      :param message: `org.cometd.bayeux.Message`_ instance representing the request message
+      :except IOException: When the transport experiences a failure delivering the message
+      :return: Currently unused
+
+.. _org.cometd.bayeux.server.BayeuxServer: http://download.cometd.org/bayeux-api/org/cometd/bayeux/server/BayeuxServer.html
 .. _org.cometd.server.DefaultSecurityPolicy: http://cometd.org/documentation/2.x/cometd-java/server/authorization
 .. _org.cometd.bayeux.server.ServerSession: http://download.cometd.org/bayeux-api/org/cometd/bayeux/server/ServerSession.html
 .. _org.cometd.bayeux.Message: http://download.cometd.org/bayeux-api/org/cometd/bayeux/Message.html
