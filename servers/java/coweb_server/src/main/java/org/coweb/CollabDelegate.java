@@ -133,9 +133,8 @@ public class CollabDelegate extends DefaultDelegate {
     }
 
     @Override
-    public boolean onUpdaterSubscribe(ServerSession client, Message message) {
+    public void onUpdaterSubscribe(ServerSession client, Message message) {
         this.addUpdater(client, true);
-        return true;
     }
 
     @Override
@@ -279,9 +278,7 @@ public class CollabDelegate extends DefaultDelegate {
 			Integer siteId = (Integer)c.getAttribute("siteid");
 			roster.put(siteId, (String)c.getAttribute("username"));
 		}
-
-        //System.out.println("roster = " + roster);
-		
+	
 		return roster;
 	}
 	

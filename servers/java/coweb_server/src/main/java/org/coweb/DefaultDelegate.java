@@ -67,7 +67,7 @@ public class DefaultDelegate implements SessionHandlerDelegate {
 		}
     }
 
-    public boolean onUnsubscribeService(ServerSession client,
+    public void onUnsubscribeService(ServerSession client,
             Message message) {
         try {
             this.serviceHandler.unSubscribeUser(client, message);
@@ -75,8 +75,6 @@ public class DefaultDelegate implements SessionHandlerDelegate {
         catch(Exception e) {
             e.printStackTrace();
         }
-
-        return true;
     }
       
     /**
@@ -96,10 +94,9 @@ public class DefaultDelegate implements SessionHandlerDelegate {
      * 
      * @param client The client who is ready to be an updater.
      * @param message Message associated with the subscribe.
-     * @return true if this client is allowed to be an updater.
      */
-    public boolean onUpdaterSubscribe(ServerSession client, Message message) {
-        return true;
+    public void onUpdaterSubscribe(ServerSession client, Message message) {
+        return;
     }
 
     public boolean onClientRemove(ServerSession client) {

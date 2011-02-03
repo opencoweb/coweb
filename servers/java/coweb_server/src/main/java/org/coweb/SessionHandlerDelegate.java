@@ -49,9 +49,8 @@ public interface SessionHandlerDelegate {
     /**
      * Called when a user attempts to unsubscribe from a service in a 
      * session. 
-     * @return true if the user can unsubscribe or false if not.
      */
-    public boolean onUnsubscribeService(ServerSession client,
+    public void onUnsubscribeService(ServerSession client,
             Message message);
                       
     /**
@@ -60,7 +59,6 @@ public interface SessionHandlerDelegate {
      *
      * @param client The client sending the state
      * @param message Message containing the state in the data field.
-     * @return true if this client is allowed to send state.
      */
     public void onUpdaterSendState(ServerSession client, Message message);
     
@@ -69,9 +67,8 @@ public interface SessionHandlerDelegate {
      * 
      * @param client The client who is ready to be an updater.
      * @param message Message associated with the subscribe.
-     * @return true if this client is allowed to be an updater.
      */
-    public boolean onUpdaterSubscribe(ServerSession client, Message message);
+    public void onUpdaterSubscribe(ServerSession client, Message message);
 
     /**
      * Called when a client leaves a session.
