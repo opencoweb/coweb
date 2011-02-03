@@ -6,7 +6,7 @@
 Service bots
 ------------
 
-A Python :term:`service bot` implements the informal :class:`coweb.bot.Delegate` interface to receive data from users in a coweb session. The bot uses a `coweb.bot.wrapper.BotWrapperBase` implementation as a proxy for sending data back to a coweb session. The coweb server configuration determines how it loads, launches, and communicates with a bot instance.
+A Python :term:`service bot` implements the informal :class:`coweb.bot.Delegate` interface to receive data from users in a coweb session. The bot uses a :class:`coweb.bot.wrapper.BotWrapperBase` implementation as a proxy for sending data back to a coweb session. The coweb server configuration determines how it loads, launches, and communicates with a bot instance.
 
 A Python bot must meet these criteria:
 
@@ -77,7 +77,7 @@ Using the bot wrapper
 .. module:: coweb.bot.wrapper
    :synopsis: Python package defining the bot wrapper interface and its default implementations.
 
-.. class:: BaseBotWrapper
+.. class:: BotWrapperBase
 
    The :func:`coweb.bot.run` function creates an instance of an implementation of this class based on the transport bot-server transport configured for the coweb server. The instance acts as a proxy between the :class:`pbs.bot.Delegate` and the coweb server. 
    
