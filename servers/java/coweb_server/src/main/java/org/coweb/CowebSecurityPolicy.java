@@ -26,6 +26,24 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
     }
     
     @Override
+    public final boolean canPublish(BayeuxServer server,
+    		ServerSession client,
+    		ServerChannel channel,
+    		ServerMessage message) {
+    	String channelName = (String)message.get(Message.SUBSCRIPTION_FIELD);
+    	String username = (String)client.getAttribute("username");
+		String sessionid = (String)client.getAttribute("sessionid");
+		
+		if(channelName.startsWith("/service/bot")) {
+			return this.canInvokeServiceRequest(username, 
+					sessionid,
+					ServiceHandler.getServiceNameFromChannel(channelName, false));
+		}
+		
+		return super.canPublish(server, client, channel, message);
+    }
+    
+    @Override
     public final boolean canSubscribe(BayeuxServer server,
     		ServerSession client,
     		ServerChannel channel,
@@ -41,21 +59,13 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
 		if(channelName.equals("/service/session/join/*")) {
 			return this.canSubscribeToSession(username, sessionid);
 		}
-		else if(channelName.startsWith("/service/bot")) {
-			this.canInvokeServiceRequest(username, 
-					sessionid,
-					ServiceHandler.getServiceNameFromChannel(channelName, false));
-		}
-		else if(channelName.startsWith("/bot")) {
-			
-			this.canSubscribeService(username,
+		else if(channelName.startsWith("/bot")) {			
+			return this.canSubscribeService(username,
 					sessionid,
 					ServiceHandler.getServiceNameFromChannel(channelName, true));
 		}
 		else 
 			return this.canSubscribeOther(server, client, channel, message);
-		
-    	return true;
     }
     
     @Override
