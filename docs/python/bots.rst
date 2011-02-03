@@ -6,7 +6,7 @@
 Service bots
 ------------
 
-A Python :term:`service bot` implements the informal :class:`coweb.bot.Delegate` interface to receive data from users in a coweb session. The bot uses a :class:`coweb.bot.wrapper.BotWrapperBase` implementation as a proxy for sending data back to a coweb session. The coweb server configuration determines how it loads, launches, and communicates with a bot instance.
+A transport-agnostic Python :term:`service bot` implements the informal :class:`coweb.bot.BotDelegate` interface to receive data from users in a coweb session. The bot uses a :class:`coweb.bot.wrapper.BotWrapperBase` implementation as a proxy for sending data back to a coweb session. The coweb server configuration determines how it loads, launches, and communicates with a bot instance.
 
 A Python bot must meet these criteria:
 
@@ -17,13 +17,13 @@ A Python bot must meet these criteria:
 Implementing a bot delegate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. class:: Delegate
+.. class:: BotDelegate
 
    A service bot must implement the constructor with the signature defined in this interface. A service bot may implement one or more of the other methods defined in this informal interface to receive data from applications in a session.
 
    .. note:: 
 
-      The :class:`Delegate` class itself is not actually declared in :mod:`pbs.bot`. It is an informal interface.
+      The :class:`BotDelegate` class itself is not actually declared in :mod:`pbs.bot`. It is an informal interface.
 
    .. method:: __init__(self, botWrapper, serviceName, appData)
    
@@ -79,7 +79,7 @@ Using the bot wrapper
 
 .. class:: BotWrapperBase
 
-   The :func:`coweb.bot.run` function creates an instance of an implementation of this class based on the transport bot-server transport configured for the coweb server. The instance acts as a proxy between the :class:`pbs.bot.Delegate` and the coweb server. 
+   The :func:`coweb.bot.run` function creates an instance of an implementation of this class based on the transport bot-server transport configured for the coweb server. The instance acts as a proxy between the :class:`pbs.bot.BotDelegate` and the coweb server. 
    
    Support for a new transport between bots and the coweb server can be added by creating a new subclass of :class:`BaseBotWrapper` and a corresponding :class:`coweb.service.manager.ServiceManagerBase` subclass.
 
@@ -113,7 +113,7 @@ Using the bot wrapper
    
       A bot delegate calls this method to send a private response to an application that previously sent it a request.
       
-      :param str replyToken: Token from :meth:`Delegate.on_request`
+      :param str replyToken: Token from :meth:`BotDelegate.on_request`
       :param dict data: Data to send privately as a response to the original request
       :rtype: None
 
