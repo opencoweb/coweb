@@ -1,8 +1,8 @@
 .. include:: /replace.rst
 .. default-domain:: py
 
-Manager extension points
--------------------------
+Extension points
+----------------
 
 The various manager classes specified in a :class:`coweb.AppContainer` derive from abstract base classes representing extension points in the :mod:`coweb` package. New implementations of these base classes can define new methods of authenticating users, controlling session access, launching bots, and communicating with bots.
 
@@ -125,7 +125,7 @@ Controlling session access
 
       :param coweb.session.Session session: Session instance in which the bot is launching
       :param str serviceName: Name of the service
-      :return: Dictionary of name/value pairs to pass to :class:`coweb.bot.Delegate` constructor
+      :return: Dictionary of name/value pairs to pass to :class:`coweb.bot.BotDelegate` constructor
       :rtype: dict
       :raise: Exception to prevent bot launch
 
@@ -140,7 +140,7 @@ Controlling session access
          :data:`coweb.access.ACL_NONE`
             No special permissions
          :data:`coweb.access.ACL_SERVICE_SYNC`
-            Ability to monitor cooperative events via the :meth:`coweb.bot.Delegate.on_sync` callback
+            Ability to monitor cooperative events via the :meth:`coweb.bot.BotDelegate.on_sync` callback
          :data:`coweb.access.ACL_SERVICE_ALL`
             All special permissions
 
