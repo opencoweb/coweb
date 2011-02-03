@@ -87,8 +87,8 @@ public class DefaultDelegate implements SessionHandlerDelegate {
      * @param message Message containing the state in the data field.
      * @return true if this client is allowed to send state.
      */
-    public boolean onUpdaterSendState(ServerSession client, Message message) {
-        return true;
+    public void onUpdaterSendState(ServerSession client, Message message) {
+        return;
     }
 
     /**

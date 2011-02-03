@@ -95,30 +95,30 @@ public class CollabDelegate extends DefaultDelegate {
     }
 
     @Override
-    public boolean onUpdaterSendState(ServerSession client, Message message) {
+    public void onUpdaterSendState(ServerSession client, Message message) {
         String clientId = client.getId();
 		Map<String, Object> data = message.getDataAsMap();
 		
 		String token = (String)data.get("token");
 		if(token == null) {
             this.sessionHandler.removeBadClient(client);
-			return false;
+			return;
         }
 		
 		List<String> tokens = this.updaters.get(clientId);
 		if(tokens == null) {
             this.sessionHandler.removeBadClient(client);
-			return false;
+			return;
         }
 		
 		if(!tokens.remove(token)) {
             this.sessionHandler.removeBadClient(client);
-			return false;
+			return;
 		}
 		
 		ServerSession updatee = this.updatees.get(token);
 		if(updatee == null)
-			return true;
+			return;
 		
 		this.updatees.remove(token);
 		this.lastState = (Object[])data.get("state");
@@ -130,8 +130,6 @@ public class CollabDelegate extends DefaultDelegate {
 		msg.setLazy(false);
 			
 		updatee.deliver(this.sessionManager.getServerSession(), msg);
-	
-		return true;
     }
 
     @Override

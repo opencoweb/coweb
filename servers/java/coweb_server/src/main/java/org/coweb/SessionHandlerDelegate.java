@@ -62,7 +62,7 @@ public interface SessionHandlerDelegate {
      * @param message Message containing the state in the data field.
      * @return true if this client is allowed to send state.
      */
-    public boolean onUpdaterSendState(ServerSession client, Message message);
+    public void onUpdaterSendState(ServerSession client, Message message);
     
     /**
      * Called after a client has been updated and is ready to be an updater.
