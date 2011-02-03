@@ -59,7 +59,7 @@ public class CollabDelegate extends DefaultDelegate {
     }
 
     @Override
-    public boolean onClientJoin(ServerSession client, Message message) {
+    public void onClientJoin(ServerSession client, Message message) {
 		int siteId = this.getSiteForClient(client);
 		
 		if(siteId == -1) {
@@ -92,8 +92,6 @@ public class CollabDelegate extends DefaultDelegate {
 				roster,
 				siteId,
 			    sendState));
-
-        return true;
     }
 
     @Override

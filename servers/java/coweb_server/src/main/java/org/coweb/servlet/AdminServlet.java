@@ -39,6 +39,7 @@ public class AdminServlet extends HttpServlet {
 	public static final String SESSMGR_ATTRIBUTE = "session.attribute";
 
     private SessionManager sessionManager = null;
+    private CowebSecurityPolicy securityPolicy = null;
 
 	@Override
 	public void init() throws ServletException {
@@ -59,7 +60,6 @@ public class AdminServlet extends HttpServlet {
         String securityClass = config.getInitParameter("securityClass");
 
         //Create the security policy.  Default to CowebSecurityPolicy.
-        CowebSecurityPolicy securityPolicy;
         if(securityClass == null)
             securityPolicy = new CowebSecurityPolicy();
         else {
@@ -94,7 +94,6 @@ public class AdminServlet extends HttpServlet {
         if(userName == null)
             userName = "anonymous";
 
-
 		String confKey = null;
 		boolean collab = false;
 		
@@ -117,6 +116,9 @@ public class AdminServlet extends HttpServlet {
             //TODO need to call the security policy to see if this user is 
             //allowed to send prep requests and allow any further processing
             //as an extension point.
+			if(!securityPolicy.canAdminRequest(userName, confKey, collab))
+				resp.sendError(HttpServletResponse.SC_FORBIDDEN, 
+						"user " + userName + "not allowed");
 		}
 		catch(Exception e) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "bad json");

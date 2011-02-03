@@ -19,26 +19,43 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
 
     public CowebSecurityPolicy() {
     }
-
-    public boolean canAdminRequest(String username, 
-            String key, 
-            boolean collab) {
-        return true;
+    
+    @Override
+    public boolean canSubscribe(BayeuxServer server,
+    		ServerSession client,
+    		ServerChannel channel,
+    		ServerMessage message) {
+    	
+    	String channelName = (String)message.get(Message.SUBSCRIPTION_FIELD);
+    	String username = (String)client.getAttribute("username");
+		String sessionid = (String)client.getAttribute("sessionid");
+		
+		if(username == null || sessionid == null)
+			return false;	
+		
+		if(channelName.equals("/service/session/join/*")) {
+			return this.canSubscribeToSession(username, sessionid);
+		}
+		else if(channelName.startsWith("/service/bot")) {
+			this.canInvokeServiceRequest(username, 
+					sessionid,
+					ServiceHandler.getServiceNameFromChannel(channelName, false));
+		}
+		else if(channelName.startsWith("/bot")) {
+			
+			this.canSubscribeBot(username,
+					sessionid,
+					ServiceHandler.getServiceNameFromChannel(channelName, true));
+		}
+		
+    	return true;
     }
-
-    public boolean onSessionRequest(String session, String username) {
-        return true;
-    }
-
-	@Override
+    
+    @Override
 	public boolean canHandshake(BayeuxServer bayeuxServer, ServerSession client,
 			ServerMessage message) {
-		
-		System.out.println("CowebSecurityPolicy::canHandshake");
-		System.out.println(message);
 
 		String sessionid = SessionManager.getSessionIdFromMessage(message);
-		System.out.println(sessionid);
 		if(sessionid != null) {
 
 			HttpTransport transport = (HttpTransport)bayeuxServer.getCurrentTransport();
@@ -55,4 +72,27 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
 		return super.canHandshake(bayeuxServer, client, message);
 	}
 
+    
+    public boolean canAdminRequest(String username, 
+            String key, 
+            boolean collab) {
+        return true;
+    }
+ 
+   
+    public boolean canSubscribeToSession(String username, String sessionid) {
+    	return true;
+    }
+    
+    public boolean canInvokeServiceRequest(String username, 
+			String sessionid,
+			String serviceName) {
+    	return true;
+    }
+
+    public boolean canSubscribeBot(String username,
+			String sessionid,
+			String serviceName) {
+    	return true;
+    }
 }

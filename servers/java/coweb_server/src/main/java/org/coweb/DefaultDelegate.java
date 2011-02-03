@@ -40,18 +40,11 @@ public class DefaultDelegate implements SessionHandlerDelegate {
     }
 
     public boolean onSync(ServerSession client, Message message) {
-        //System.out.println("DefaultDelegate:::onSync");
-        //System.out.println(message);
-        try {
-            this.serviceHandler.forwardSyncEvent(client, message);
-        }
-        catch(Exception e) { e.printStackTrace(); }
-
         return true;
     }
 
 
-    public boolean onClientJoin(ServerSession client, Message message) {
+    public void onClientJoin(ServerSession client, Message message) {
         String channel = (String)message.get(Message.SUBSCRIPTION_FIELD);
 		String cName = channel.substring(0, channel.length()-1);
 		
@@ -61,12 +54,10 @@ public class DefaultDelegate implements SessionHandlerDelegate {
 		
 		client.deliver(from, siteidChannel, new Integer(1), null);
 		client.deliver(from, stateChannel, new ArrayList(), null);
-
-        return true;
     }
 
 
-    public boolean onSubscribeService(ServerSession client, 
+    public void onSubscribeService(ServerSession client, 
                                       Message message) {
         try {
             this.serviceHandler.subscribeUser(client, message);
@@ -74,8 +65,6 @@ public class DefaultDelegate implements SessionHandlerDelegate {
 		catch(Exception e) {
 			e.printStackTrace();
 		}
-
-        return true;
     }
 
     public boolean onUnsubscribeService(ServerSession client,

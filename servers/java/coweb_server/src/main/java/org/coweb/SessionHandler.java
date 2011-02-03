@@ -58,7 +58,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		Map<String, Object> data = message.getDataAsMap();
         data.put("siteId", siteId);
 
-        return this.delegate.onSync(from, message);
+        if(this.delegate.onSync(from, message)) {
+        	 try {
+                 this.serviceHandler.forwardSyncEvent(from, message);
+             }
+             catch(Exception e) { e.printStackTrace(); }
+        }
+        
+        return true;
     }
 	
 	public void onPublish(ServerSession remote, Message message) {

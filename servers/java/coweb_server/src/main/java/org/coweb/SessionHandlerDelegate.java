@@ -31,23 +31,19 @@ public interface SessionHandlerDelegate {
      * @param client Client who sent the sync.
      * @param message Message containg sync event.
      *
-     * @return true if this sync event should be allowed or forwarded to
-     * the bots.
+     * @return true if this sync event should forwarded to the bots
      */
     public boolean onSync(ServerSession client, Message message);
 
     /**
      * Called when a client joins a prepared session.
-     *
-     * @return true if this client is allowed to join the session.
      */
-    public boolean onClientJoin(ServerSession client, Message message);
+    public void onClientJoin(ServerSession client, Message message);
 
     /**
      * Called when a user attempts to join a coweb session.
-     * @return true if the user can join or false if not.
      */
-    public boolean onSubscribeService(ServerSession client, 
+    public void onSubscribeService(ServerSession client, 
                                       Message message);
 
     /**
