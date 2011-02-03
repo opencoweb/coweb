@@ -21,8 +21,8 @@ The documentation starts by introducing cooperative web concepts and describing 
    intro/intro
    tutorial/tutorial
    js/js
-   python/python
    java/java
+   python/python
    protocol/protocol
    changelog
    glossary

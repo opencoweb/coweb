@@ -24,7 +24,7 @@ dojo.declare('coweb.ext.loaders.SimpleLoader', null, {
     // root logout url for session object (defaults to /logout if undefined)
     logoutUrl: undefined,
     // hard coded conference key to use
-    conferenceKey: null,
+    conferenceKey: undefined,
     // is the conference collaborative or standalone (bots only)?
     conferenceCollab: true,
 

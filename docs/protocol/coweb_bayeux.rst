@@ -5,7 +5,9 @@
 Cooperative events over Bayeux
 ------------------------------
 
-The following sections details the procedure a cooperative web application must follow to prepare, join, and participate in a coweb session hosted by a coweb server. The term *client* used herein means the cooperative web application including any client-side components from the coweb framework, the collective *application* and *client* layers described in the :doc:`framework architecture </intro/arch>` section. The term *server* means the cooperative web server. All message bodies are in valid JSON format.
+The following sections detail the procedure a cooperative web application must follow to prepare, join, and participate in a coweb session hosted by a coweb server. The term *client* used herein means the cooperative web application including any client-side components from the coweb framework, the collective *application* and *client* layers described in the :doc:`framework architecture </intro/arch>` section. The term *server* means the cooperative web server. All message bodies are in valid JSON format.
+
+The message examples below show complete HTTP headers assuming use of Bayeux over XHR long-polling connections. In other uses of Bayeux (e.g., over WebSocket), the HTTP headers may be absent but the message bodies remain the same.
 
 Session preparation
 ~~~~~~~~~~~~~~~~~~~
@@ -324,6 +326,8 @@ The client should subscribe to the `/service/bot/service_name/response` channel 
       "clientId" : "clientId",
       "subscription" : "/service/bot/service_name/response"
    }]
+   
+.. _proto-service-subscribe:
 
 Client subscribes to service broadcasts
 ```````````````````````````````````````
@@ -340,6 +344,8 @@ The client may subscribe to the `/bot/service_name` channel if it wishes to rece
       "subscription" : "/bot/service_name"
    }]
 
+.. _proto-service-unsubscribe:
+
 Client unsubscribes from responses or broadcasts
 ````````````````````````````````````````````````
 
@@ -354,6 +360,8 @@ The client may unsubscribe from the `/service/bot/service_name/response` or `/bo
       "clientId" : "clientId",
       "subscription" : "/response/or/broadcast/channel"
    }]
+
+.. _proto-service-request:
 
 Client sends a service requests
 ```````````````````````````````
@@ -372,6 +380,8 @@ The client may publish a request to the `/service/bot/service_name/request` chan
          "eventData" : { ... }
       }
    }]
+
+.. _proto-service-response:
 
 Server forwards a service response
 ``````````````````````````````````
@@ -393,10 +403,12 @@ The server must avoid sending any bot response to a client that does not have an
       }
    }]
 
+.. _proto-service-broadcast:
+
 Server forwards a service broadcast
 ```````````````````````````````````
 
-The server must send a bot broadcast to all clients subscribed to the `/bot/service_name`. The `eventData` property may contain arbitrary data from the bot.
+The server must send a bot broadcast to all clients subscribed to the `/bot/service_name` channel. The `eventData` property may contain arbitrary data from the bot.
 
 The server must ensure the bot is broadcasting on its own channel and no other.
 

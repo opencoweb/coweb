@@ -29,12 +29,24 @@ Start by viewing the framework documentation online at http://opencoweb.org/ocwd
 
 Send mail to the coweb users group or join us on IRC if you're having trouble.
 
-Status
-======
+Status and Support
+==================
 
-This is an initial code drop. You can grab the framework and start using it, but expect a bumpy ride in the near future. We're working hard on documentation and fixes to get to a stable v1.0.
+This is an initial code drop. You can grab the framework and start using it, but expect a bumpy ride in the near future. We're working hard on documentation and fixes to get to a stable v1.0. For more details, please refer to the issue tracker on GitHub.
 
-For more details, please refer to the issue tracker.
+Currently, the core components of the coweb framework should work in the following browsers.
+
+* Firefox 3.5+
+* Safari 4+
+* Chrome 5+
+* IE7+
+* Opera 10.50+
+* Mobile Safari on iOS 4+
+* Android Browser 1.6+
+
+For our Java coweb server, we support any environment that can run a Java Servlet 3.0 compliant container (e.g., Jetty, Tomcat). For the Python server, we support any environment where Tornado can operate.
+
+Please report an issue on GitHub if you have trouble in one of these browsers or server environments.
 
 License
 =======

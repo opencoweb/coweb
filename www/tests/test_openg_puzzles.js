@@ -100,31 +100,56 @@ test('two site puzzle #1', 4, function() {
     equals(b.eng.getBufferSize(), 3);
 });
 
-test('three site puzzle false-tie', 6, function() {
-    var a = new tests.util.OpEngClient(0, {text : 'abc'});
-    var b = new tests.util.OpEngClient(1, {text : 'abc'});
-    var c = new tests.util.OpEngClient(2, {text : 'abc'});
+(function() {
+    // permutations of who sends what
+    var send = [
+        [[1, 'insert'], [1, 'delete'], [2, 'insert']],
+        [[2, 'insert'], [1, 'insert'], [1, 'delete']],
+        [[1, 'delete'], [2, 'insert'], [1, 'insert']]
+    ];
+    // permutations of possible receive orders
+    var recv = [
+        [[1, 2], [0, 2], [0, 1]],
+        [[2, 1], [0, 2], [0, 1]],
+        [[1, 2], [2, 0], [0, 1]],
+        [[2, 1], [2, 0], [0, 1]],
+        [[1, 2], [0, 2], [1, 0]],
+        [[2, 1], [0, 2], [1, 0]],
+        [[1, 2], [2, 0], [1, 0]],
+        [[2, 1], [2, 0], [1, 0]]
+    ];
+    for(var s=0; s < send.length; s++) {
+        var toSend = send[s];
+        for(var r=0; r < recv.length; r++) {
+            var toRecv = recv[r];
+            test('three site false-tie puzzle permutation '+(s*8 + r), 6, function() {
+                var sites = [];
+                var ops = [];
+                for(var i=0; i < 3; i++) {
+                    var site = new tests.util.OpEngClient(i, {text : 'abc'});
+                    var pos = toSend[i][0];
+                    var type = toSend[i][1];
+                    var val = (type == 'insert') ? ''+pos : null;
+                    var op = site.local('text', val, type, pos);
+                    sites.push(site);
+                    ops[i] = op;
+                }
 
-    var a1 = a.local('text', '1', 'insert', 1);
-    var b1 = b.local('text', null, 'delete', 1);
-    var c1 = c.local('text', '2', 'insert', 2);
-    
-    a.remote(c1);
-    a.remote(b1);
-    
-    b.remote(a1);
-    b.remote(c1);
-    
-    c.remote(b1);
-    c.remote(a1);
-    
-    var correct = {text : 'a12c'};
-    dojo.forEach([a,b,c], function(e) {
-        deepEqual(e.state, correct, 'client state check');
-        equals(e.eng.getBufferSize(), 3, 'history buffer size check');
-    });
-});
+                for(var i=0; i < 3; i++) {
+                    var order = toRecv[i];
+                    sites[i].remote(ops[order[0]]);
+                    sites[i].remote(ops[order[1]]);
+                }
 
+                var correct = sites[0].state;
+                dojo.forEach(sites, function(e) {
+                    deepEqual(e.state, correct, 'client state check');
+                    equals(e.eng.getBufferSize(), 3, 'history buffer size check');
+                });
+            });
+        }
+    }
+})();
 
 test('three site puzzle #1', 6, function() {
     var a = new tests.util.OpEngClient(0, {text : 'abc'});
@@ -153,7 +178,8 @@ test('three site puzzle #1', 6, function() {
         c.remote(op);
     });
     
-    var correct = {text : 'zaxy'};
+    // var correct = {text : 'zaxy'};
+    var correct = a.state;
     dojo.forEach([a,b,c], function(e) {
         deepEqual(e.state, correct, 'client state check');
         equals(e.eng.getBufferSize(), 6, 'history buffer size check');
@@ -185,7 +211,8 @@ test('three site puzzle #2', 6, function() {
     // receive insert [0,1] in [0,0,0] now uf
     sites[1].recv();
     
-    var correct = {topic1 : 'uf'};
+    // var correct = {topic1 : 'uf'};
+    var correct = sites[0].state;
     dojo.forEach(sites, function(e, i) {
         e.recvAll();
         var eng = e.eng;
@@ -217,7 +244,8 @@ test('three site puzzle #3', 6, function() {
     op = sites[1].local("topic1", null, "delete", 0);
     sites[1].send(op);
 
-    var correct = {topic1 : 'VQBb'};
+    // var correct = {topic1 : 'VQBb'};
+    var correct = sites[0].state;
     dojo.forEach(sites, function(e, i) {
         e.recvAll();
         var eng = e.eng;
@@ -242,7 +270,8 @@ test('three site puzzle #4', 6, function() {
     op = sites[0].local("topic1", null, "delete", 0);
     sites[0].send(op);
     
-    var correct = {topic1 : 'Dk'};
+    // var correct = {topic1 : 'Dk'};
+    var correct = sites[0].state;
     dojo.forEach(sites, function(e, i) {
         e.recvAll();
         var eng = e.eng;
@@ -269,7 +298,8 @@ test('three site puzzle #5', 6, function() {
     op = sites[2].local("topic1", "Y", "insert", 0);
     sites[2].send(op);
 
-    var correct = {topic1 : 'YlE'};
+    // var correct = {topic1 : 'YlE'};
+    var correct = sites[0].state;
     dojo.forEach(sites, function(e, i) {
         e.recvAll();
         var eng = e.eng;
@@ -395,7 +425,8 @@ test('three site puzzle #6', 6, function() {
     // cv = new coweb.jsoe.pbs.jsoe.ContextVector({sites : [2,2,2]});
     // equals(sites[2].eng.cv.compare(cv), 0);
 
-    var correct = {topic1 : 'Cedb'};
+    // var correct = {topic1 : 'Cedb'};
+    var correct = sites[0].state;
     dojo.forEach(sites, function(e, i) {
         e.recvAll();
         var eng = e.eng;
@@ -432,7 +463,8 @@ test('four site puzzle #1', 8, function() {
     op = sites[1].local("topic1", null, "delete", 0);
     sites[1].send(op);
 
-    var correct = {topic1 : 'Cedfb'};
+    //var correct = {topic1 : 'Cedfb'};
+    var correct = sites[0].state;
     dojo.forEach(sites, function(e, i) {
         e.recvAll();
         var eng = e.eng;

@@ -283,8 +283,3 @@ Imagine a coweb server is deployed for one specific application where the bots a
 
    if __name__ == '__main__':
       coweb.run_server(ImportedBotsExample)
-
-.. seealso::
-   
-   :doc:`extensions`
-      Documentation of the various manager base classes that enable the extension of the coweb server authentication, access, service launching, and service management capabilities.
