@@ -203,13 +203,7 @@ Communicating with service bots
    .. attribute:: _bridge
 
       Instance of :class:`coweb.service.ServiceSessionBridge` the manager should use to post bot data to a session
-   
-   .. method:: get_manager_id(self)
-   
-      The coweb server calls this method to get the unique identifier of this manager. The identifier is used to locate the appropriate :class:`coweb.bot.wrapper.BaseBotWrapper` implementation that can communicate with this manager. Currently, the ID is the name of the package under :mod:`coweb.bot.wrapper` containing the bot wrapper implementation.
-   
-      :rtype: str
-   
+
    .. method:: get_connection_info(self)
    
       The coweb server calls this method to get information a bot needs to communication with this service manager instance (e.g., a URL, a port number).
@@ -217,25 +211,24 @@ Communicating with service bots
       :return: Dictionary with name/value pairs specific to this manager and its corresponding bot wrapper implementation 
       :rtype: dict
    
-   .. method:: start_services(self)
+   .. method:: get_manager_id(self)
    
-      The coweb server calls this method when the session is ready to support service requests and responses. The manager can initialize itself here.
-      
-      :rtype: None
+      The coweb server calls this method to get the unique identifier of this manager. The identifier is used to locate the appropriate :class:`coweb.bot.wrapper.BaseBotWrapper` implementation that can communicate with this manager. Currently, the ID is the name of the package under :mod:`coweb.bot.wrapper` containing the bot wrapper implementation.
+   
+      :rtype: str
    
    .. method:: end_services(self)
 
       The coweb server calls this method when the session has terminated, after invoking :meth:`coweb.service.launcher.ServiceLauncherBase.stop_all_services`. The manager should cleanup gracefully here.
 
       :rtype: None
-   
-   .. method:: send_message(self, msg, impl)
-   
-      The coweb server calls this method when the manager should send a message it previously constructed to a bot. The manager should transmit the message using whatever transport it supports.
+
+   .. method:: on_shutdown_request(self, serviceName)
+
+      The coweb server calls this method when a session decides to shut down a service bot. The manager should return an object representing the message which the server will later ask it to send using :meth:`send_message`.
       
-      :param object msg: Arbitrary method object previously returned by one of the manager methods
-      :param object impl: Arbitrary object previously passed to :meth:`coweb.service.ServiceSessionBridge.auth_bot`
-      :rtype: None
+      :param str serviceName: Name of the service
+      :rtype: object
    
    .. method:: on_user_request(self, serviceName, username, token, eventData)
 
@@ -262,22 +255,29 @@ Communicating with service bots
       :param str serviceName: Name of the service
       :param str username: Authenticated username of the requestor
       :rtype: object
-   
-   .. method:: on_shutdown_request(self, serviceName)
-
-      The coweb server calls this method when a session decides to shut down a service bot. The manager should return an object representing the message which the server will later ask it to send using :meth:`send_message`.
-      
-      :param str serviceName: Name of the service
-      :rtype: object
 
    .. method:: on_user_sync(self, serviceName, username, data)
 
-      The coweb server calls this method when a coweb application send a cooperative event to the session. The manager should return an object representing the message which the server will later ask it to send using :meth:`send_message`.
+      The coweb server calls this method when a coweb application sends a cooperative event to the session. The manager should return an object representing the message which the server will later ask it to send using :meth:`send_message`.
       
       :param str serviceName: Name of the service
       :param str username: Authenticated username of the requestor
       :param dict data: Event data sent by a coweb application using :js:func:`CollabInterface.sendSync`
       :rtype: object
+
+   .. method:: start_services(self)
+   
+      The coweb server calls this method when the session is ready to support service requests and responses. The manager can initialize itself here.
+      
+      :rtype: None
+   
+   .. method:: send_message(self, msg, impl)
+   
+      The coweb server calls this method when the manager should send a message it previously constructed to a bot. The manager should transmit the message using whatever transport it supports.
+      
+      :param object msg: Arbitrary method object previously returned by one of the manager methods
+      :param object impl: Arbitrary object previously passed to :meth:`coweb.service.ServiceSessionBridge.auth_bot`
+      :rtype: None
 
 Bridging bots and sessions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
