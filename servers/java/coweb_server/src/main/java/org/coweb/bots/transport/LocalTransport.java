@@ -49,7 +49,7 @@ public class LocalTransport extends Transport implements Proxy {
 	}
 	
 	@Override
-	public boolean unSubscribeUser(ServerSession client,
+	public boolean unsubscribeUser(ServerSession client,
 			Message message,
 			boolean pub) throws IOException {
 		
