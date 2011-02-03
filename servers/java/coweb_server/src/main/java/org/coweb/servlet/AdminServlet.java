@@ -90,9 +90,9 @@ public class AdminServlet extends HttpServlet {
 		
 		resp.setContentType("appliation/json");
 
-		String userName = req.getRemoteUser();
-        if(userName == null)
-            userName = "anonymous";
+		String username = req.getRemoteUser();
+        if(username == null)
+            username = "anonymous";
 
 		String confKey = null;
 		boolean collab = false;
@@ -116,9 +116,9 @@ public class AdminServlet extends HttpServlet {
             //TODO need to call the security policy to see if this user is 
             //allowed to send prep requests and allow any further processing
             //as an extension point.
-			if(!securityPolicy.canAdminRequest(userName, confKey, collab))
+			if(!securityPolicy.canAdminRequest(username, confKey, collab))
 				resp.sendError(HttpServletResponse.SC_FORBIDDEN, 
-						"user " + userName + "not allowed");
+						"user " + username + "not allowed");
 		}
 		catch(Exception e) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "bad json");
@@ -140,7 +140,7 @@ public class AdminServlet extends HttpServlet {
 		try {
 			jsonResp.put("sessionurl",base+"/cometd");
 			jsonResp.put("sessionid", sessionId);
-			jsonResp.put("username", userName);
+			jsonResp.put("username", username);
 			jsonResp.put("key", confKey);
 			jsonResp.put("collab", new Boolean(collab));
 			jsonResp.put("info", new HashMap());

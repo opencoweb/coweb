@@ -122,7 +122,7 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
    
    .. attribute:: serviceLauncherClass
    
-      Subclass of :class:`coweb.service.ServiceLauncherBase` to use for launching service bots in sessions. Defaults to a 2-tuple with class :mod:`coweb.service.ProcessLauncher` and dictionary `{sandbox : 'nobody', botPaths : self.cowebBotLocalPaths}`.
+      Subclass of :class:`coweb.service.ServiceLauncherBase` to use for launching service bots in sessions. Defaults to a 2-tuple with class :class:`coweb.service.ProcessLauncher` and dictionary `{sandbox : 'nobody', botPaths : self.cowebBotLocalPaths}`.
 
       Other available implementations of :class:`coweb.service.ServiceLauncherBase` include:
       

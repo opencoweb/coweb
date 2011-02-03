@@ -203,11 +203,11 @@ public class CollabDelegate extends DefaultDelegate {
 		ServerSession from = this.sessionManager.getServerSession();
 		
 		Integer siteId = (Integer)serverSession.getAttribute("siteid");
-        String userName = (String)serverSession.getAttribute("username");
+        String username = (String)serverSession.getAttribute("username");
 
 		Map<String, Object> data = new HashMap<String,Object>();
         data.put("siteId", siteId);
-        data.put("username", userName);
+        data.put("username", username);
 
         //System.out.println(data);
 		
@@ -219,11 +219,11 @@ public class CollabDelegate extends DefaultDelegate {
 		String channel = "/session/roster/unavailable";
 
 		Integer siteId = (Integer)client.getAttribute("siteid");
-        String userName = (String)client.getAttribute("username");
+        String username = (String)client.getAttribute("username");
 		
 		Map<String, Object> data = new HashMap<String,Object>();
         data.put("siteId", siteId);
-        data.put("username", userName);
+        data.put("username", username);
 		
 		client.deliver(from, channel, data, null);
 	}
