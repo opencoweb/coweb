@@ -10,16 +10,16 @@ A Python :term:`service bot` implements the informal :class:`coweb.bot.Delegate`
 
 A Python bot must meet these criteria:
 
-#. The bot script must reside in a search path determined by the coweb server configuration.
-#. The script must import :mod:`coweb.bot` from the :mod:`coweb` Python package.
-#. The script must invoke :func:`coweb.bot.run` upon import or execution.
+#. The bot must import :mod:`coweb.bot` from the :mod:`coweb` Python package.
+#. The bot must invoke :func:`coweb.bot.run` upon import or execution.
+#. The bot must meet the criteria of the configured service launcher and manager (e.g., reside in the local bot search path of :class:`coweb.service.ProcessLauncher`).
 
 Implementing a bot delegate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. class:: Delegate
 
-   A service bot must implement the constructor with the signature defined in this interface. A service bot may implement one or more of the other methods defined in this informal interface to receive data from applications in a conference.
+   A service bot must implement the constructor with the signature defined in this interface. A service bot may implement one or more of the other methods defined in this informal interface to receive data from applications in a session.
 
    .. note:: 
 
@@ -40,7 +40,7 @@ Implementing a bot delegate
    
       :param dict data: Arbitrary name/value pairs sent to the bot by a JavaScript application
       :param str replyToken: Token to use when responding privately to this request
-      :param str username: Coweb server username of the user who sent the request
+      :param str username: Authenticated username of the requestor
       :rtype: None
    
    .. method:: on_shutdown(self)
@@ -53,7 +53,7 @@ Implementing a bot delegate
    
       A bot wrapper calls this method when a coweb application subscribes to messages published by this bot.
    
-      :param str username: Coweb server username of the user who sent the request
+      :param str username: Authenticated username of the subscriber
       :rtype: None
 
    .. method:: on_sync(self, data, username)
@@ -61,14 +61,14 @@ Implementing a bot delegate
       A bot wrapper calls this method when a coweb application publishes a cooperative event to the session. Whether the coweb server delivers these events to the bot is determined by the return value from the :meth:`coweb.access.AccessBase.on_service_acls` method.
 
       :param dict data: Cooperative event data observed in the session
-      :param str username: Coweb server username of the user who sent the request
+      :param str username: Authenticated username of the sender
       :rtype: None
 
    .. method:: on_unsubscribe(self, username)
    
       A bot wrapper calls this method when a coweb application unsubscribes from messages published by this bot or when a user leaves the session.
 
-      :param str username: Name of the coweb server authenticated user who unsubscribed from the service
+      :param str username: Authenticated username of the unsubscriber
       :rtype: None
    
 Using the bot wrapper
@@ -113,7 +113,7 @@ Using the bot wrapper
    
       A bot delegate calls this method to send a private response to an application that previously sent it a request.
       
-      :param str replyToken: Token from :meth:`on_request`
+      :param str replyToken: Token from :meth:`Delegate.on_request`
       :param dict data: Data to send privately as a response to the original request
       :rtype: None
 
