@@ -44,7 +44,7 @@ Implementing a bot
    
       A bot proxy invokes this method upon the first message delivered to the bot (i.e., when it joins the session).
 
-   .. method:: onRequest(Map<String, Object> params, String replyToken, String userName) -> void
+   .. method:: onRequest(Map<String, Object> params, String replyToken, String username) -> void
    
       A bot proxy calls this method when a coweb application posts a private request to the bot.
       
@@ -56,20 +56,20 @@ Implementing a bot
 
       A bot proxy calls this method when the coweb server is about to shutdown the bot. The bot should cleanup its resources gracefully.
    
-   .. method:: onSubscribe(String userName) -> void
+   .. method:: onSubscribe(String username) -> void
    
       A bot proxy calls this method when a coweb application subscribes to messages published by this bot.
    
       :param username: Authenticated username of the subscriber
 
-   .. method:: onSync(Map<String, Object> params, String userName) -> void
+   .. method:: onSync(Map<String, Object> params, String username) -> void
    
       A bot proxy calls this method when a coweb application publishes a cooperative event to the session.
 
       :param params: Cooperative event data observed in the session
       :param username: Authenticated username of the sender
    
-   .. method:: onUnsubscribe(String userName) -> void
+   .. method:: onUnsubscribe(String username) -> void
    
       A bot proxy calls this method when a coweb application unsubscribes from messages published by this bot or when a user leaves the session.
 

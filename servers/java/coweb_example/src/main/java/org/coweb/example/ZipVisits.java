@@ -29,11 +29,11 @@ public class ZipVisits implements Bot {
        this.proxy = proxy;
     }
 
-	public void onSubscribe(String userName) {
+	public void onSubscribe(String username) {
         return;
 	}
 
-	public void onUnsubscribe(String userName) {
+	public void onUnsubscribe(String username) {
         return;
 	}
 	
