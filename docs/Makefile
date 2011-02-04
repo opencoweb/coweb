@@ -40,7 +40,7 @@ help:
 
 deploy: html javadoc
 	rsync -rv $(BUILDDIR)/html/* $(DEPLOYDIR)
-	rsync -rv $(JAVABUILDDIR)/* $(DEPLOYDIR)/javadocs
+	rsync -rv $(JAVABUILDDIR)/* $(DEPLOYDIR)/apidocs
 	@echo "Deployed docs to opencoweb.org/ocwdocs"
 
 clean:
