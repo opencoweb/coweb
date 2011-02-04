@@ -59,7 +59,7 @@ public class CollabDelegate extends DefaultDelegate {
     }
 
     @Override
-    public boolean onClientJoin(ServerSession client, Message message) {
+    public void onClientJoin(ServerSession client, Message message) {
 		int siteId = this.getSiteForClient(client);
 		
 		if(siteId == -1) {
@@ -92,35 +92,33 @@ public class CollabDelegate extends DefaultDelegate {
 				roster,
 				siteId,
 			    sendState));
-
-        return true;
     }
 
     @Override
-    public boolean onUpdaterSendState(ServerSession client, Message message) {
+    public void onUpdaterSendState(ServerSession client, Message message) {
         String clientId = client.getId();
 		Map<String, Object> data = message.getDataAsMap();
 		
 		String token = (String)data.get("token");
 		if(token == null) {
             this.sessionHandler.removeBadClient(client);
-			return false;
+			return;
         }
 		
 		List<String> tokens = this.updaters.get(clientId);
 		if(tokens == null) {
             this.sessionHandler.removeBadClient(client);
-			return false;
+			return;
         }
 		
 		if(!tokens.remove(token)) {
             this.sessionHandler.removeBadClient(client);
-			return false;
+			return;
 		}
 		
 		ServerSession updatee = this.updatees.get(token);
 		if(updatee == null)
-			return true;
+			return;
 		
 		this.updatees.remove(token);
 		this.lastState = (Object[])data.get("state");
@@ -132,14 +130,11 @@ public class CollabDelegate extends DefaultDelegate {
 		msg.setLazy(false);
 			
 		updatee.deliver(this.sessionManager.getServerSession(), msg);
-	
-		return true;
     }
 
     @Override
-    public boolean onUpdaterSubscribe(ServerSession client, Message message) {
+    public void onUpdaterSubscribe(ServerSession client, Message message) {
         this.addUpdater(client, true);
-        return true;
     }
 
     @Override
@@ -205,11 +200,11 @@ public class CollabDelegate extends DefaultDelegate {
 		ServerSession from = this.sessionManager.getServerSession();
 		
 		Integer siteId = (Integer)serverSession.getAttribute("siteid");
-        String userName = (String)serverSession.getAttribute("username");
+        String username = (String)serverSession.getAttribute("username");
 
 		Map<String, Object> data = new HashMap<String,Object>();
         data.put("siteId", siteId);
-        data.put("username", userName);
+        data.put("username", username);
 
         //System.out.println(data);
 		
@@ -221,11 +216,11 @@ public class CollabDelegate extends DefaultDelegate {
 		String channel = "/session/roster/unavailable";
 
 		Integer siteId = (Integer)client.getAttribute("siteid");
-        String userName = (String)client.getAttribute("username");
+        String username = (String)client.getAttribute("username");
 		
 		Map<String, Object> data = new HashMap<String,Object>();
         data.put("siteId", siteId);
-        data.put("username", userName);
+        data.put("username", username);
 		
 		client.deliver(from, channel, data, null);
 	}
@@ -283,9 +278,7 @@ public class CollabDelegate extends DefaultDelegate {
 			Integer siteId = (Integer)c.getAttribute("siteid");
 			roster.put(siteId, (String)c.getAttribute("username"));
 		}
-
-        //System.out.println("roster = " + roster);
-		
+	
 		return roster;
 	}
 	

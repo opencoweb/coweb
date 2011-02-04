@@ -31,31 +31,26 @@ public interface SessionHandlerDelegate {
      * @param client Client who sent the sync.
      * @param message Message containg sync event.
      *
-     * @return true if this sync event should be allowed or forwarded to
-     * the bots.
+     * @return true if this sync event should forwarded to the bots
      */
     public boolean onSync(ServerSession client, Message message);
 
     /**
      * Called when a client joins a prepared session.
-     *
-     * @return true if this client is allowed to join the session.
      */
-    public boolean onClientJoin(ServerSession client, Message message);
+    public void onClientJoin(ServerSession client, Message message);
 
     /**
      * Called when a user attempts to join a coweb session.
-     * @return true if the user can join or false if not.
      */
-    public boolean onSubscribeService(ServerSession client, 
+    public void onSubscribeService(ServerSession client, 
                                       Message message);
 
     /**
      * Called when a user attempts to unsubscribe from a service in a 
      * session. 
-     * @return true if the user can unsubscribe or false if not.
      */
-    public boolean onUnsubscribeService(ServerSession client,
+    public void onUnsubscribeService(ServerSession client,
             Message message);
                       
     /**
@@ -64,18 +59,16 @@ public interface SessionHandlerDelegate {
      *
      * @param client The client sending the state
      * @param message Message containing the state in the data field.
-     * @return true if this client is allowed to send state.
      */
-    public boolean onUpdaterSendState(ServerSession client, Message message);
+    public void onUpdaterSendState(ServerSession client, Message message);
     
     /**
      * Called after a client has been updated and is ready to be an updater.
      * 
      * @param client The client who is ready to be an updater.
      * @param message Message associated with the subscribe.
-     * @return true if this client is allowed to be an updater.
      */
-    public boolean onUpdaterSubscribe(ServerSession client, Message message);
+    public void onUpdaterSubscribe(ServerSession client, Message message);
 
     /**
      * Called when a client leaves a session.

@@ -4,71 +4,60 @@
  */
 package org.coweb;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.Date;
+import java.io.Writer;
+import java.io.IOException;
 
 import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.bayeux.server.ServerMessage.Mutable;
 
+/**
+ * Convenience class that could be used for debugging.  All incoming and 
+ * outgoing bayeux messages will be logged to thie provided streams.
+ */
 public class CowebExtension implements BayeuxServer.Extension {
 	
-	private PrintWriter outgoing = null;
-	private PrintWriter incoming = null;
+	private Writer outgoing = null;
+	private Writer incoming = null;
 	
-	public CowebExtension() {
-        /*
+	private static String NEWLINE = System.getProperty("line.separator");
+	
+	public CowebExtension(Writer incoming, Writer outgoing) {
+        this.outgoing = outgoing;
+        this.incoming = incoming;
+	}
+	
+	private void writeMessage(String msg, Writer w) {
 		try {
-			Date d = new Date();
-			
-			File out = new File("/tmp/outgoing_"+d.toString()+".txt");
-			out.createNewFile();
-			
-			File in = new File("/tmp/incoming_"+d.toString()+".txt");
-			in.createNewFile();
-			
-			this.outgoing = new PrintWriter(out);
-			this.incoming = new PrintWriter(in);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			w.write(msg);
+			w.write(NEWLINE);
+			w.flush();
 		}
-	    */	
+		catch(IOException e) { ; }
 	}
 
 	@Override
-	public boolean rcv(ServerSession client, Mutable msg) {
-		//this.incoming.println(msg.toString());
-		//this.incoming.flush();
+	public boolean rcv(ServerSession client, Mutable msg) {	
+		this.writeMessage(msg.toString(), this.incoming);	
 		return true;
 	}
 
 	@Override
 	public boolean rcvMeta(ServerSession client, Mutable msg) {
-		//System.out.println("CowebExtension::rcvMeta");
-		//System.out.println(arg1);
-		//super.rcvMeta(arg0, arg1);
-		
+		this.writeMessage(msg.toString(), this.incoming);	
 		return true;
 	}
 
 	@Override
 	public boolean sendMeta(ServerSession arg0, Mutable msg) {
-		//System.out.println("CowebExtension::sendMeta");
-		
+		this.writeMessage(msg.toString(), this.outgoing);
 		return true;
 	}
 
 	@Override
 	public boolean send(ServerSession from, ServerSession to, ServerMessage.Mutable msg) {
-	
-		//System.out.println("CowebExtension::send");
-		//this.outgoing.println(msg.toString());
-		//this.outgoing.flush();
+		this.writeMessage(msg.toString(), this.outgoing);
 		return true;
 	}
-
 }

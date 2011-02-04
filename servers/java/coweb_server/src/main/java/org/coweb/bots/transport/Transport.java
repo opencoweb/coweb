@@ -54,7 +54,7 @@ public abstract class Transport {
 			Message message,
 			boolean pub) throws IOException;
 	
-	public abstract boolean unSubscribeUser(ServerSession client,
+	public abstract boolean unsubscribeUser(ServerSession client,
 			Message message,
 			boolean pub) throws IOException;
 	

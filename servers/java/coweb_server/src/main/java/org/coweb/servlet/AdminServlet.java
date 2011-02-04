@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.server.ext.AcknowledgedMessagesExtension;
-import org.coweb.CowebExtension;
 import org.coweb.SessionHandler;
 import org.coweb.SessionManager;
 import org.coweb.CowebSecurityPolicy;
@@ -39,6 +38,7 @@ public class AdminServlet extends HttpServlet {
 	public static final String SESSMGR_ATTRIBUTE = "session.attribute";
 
     private SessionManager sessionManager = null;
+    private CowebSecurityPolicy securityPolicy = null;
 
 	@Override
 	public void init() throws ServletException {
@@ -59,7 +59,6 @@ public class AdminServlet extends HttpServlet {
         String securityClass = config.getInitParameter("securityClass");
 
         //Create the security policy.  Default to CowebSecurityPolicy.
-        CowebSecurityPolicy securityPolicy;
         if(securityClass == null)
             securityPolicy = new CowebSecurityPolicy();
         else {
@@ -72,9 +71,7 @@ public class AdminServlet extends HttpServlet {
             }
         }
 
-        //add the coweb extension so we know which session each bayeux message
-        //comes from.
-	    bayeux.addExtension(new CowebExtension());
+        //set the coweb security policty
 	    bayeux.setSecurityPolicy(securityPolicy);
 	   
         //create the session manager. 
@@ -90,10 +87,9 @@ public class AdminServlet extends HttpServlet {
 		
 		resp.setContentType("appliation/json");
 
-		String userName = req.getRemoteUser();
-        if(userName == null)
-            userName = "anonymous";
-
+		String username = req.getRemoteUser();
+        if(username == null)
+            username = "anonymous";
 
 		String confKey = null;
 		boolean collab = false;
@@ -117,6 +113,9 @@ public class AdminServlet extends HttpServlet {
             //TODO need to call the security policy to see if this user is 
             //allowed to send prep requests and allow any further processing
             //as an extension point.
+			if(!securityPolicy.canAdminRequest(username, confKey, collab))
+				resp.sendError(HttpServletResponse.SC_FORBIDDEN, 
+						"user " + username + "not allowed");
 		}
 		catch(Exception e) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "bad json");
@@ -138,7 +137,7 @@ public class AdminServlet extends HttpServlet {
 		try {
 			jsonResp.put("sessionurl",base+"/cometd");
 			jsonResp.put("sessionid", sessionId);
-			jsonResp.put("username", userName);
+			jsonResp.put("username", username);
 			jsonResp.put("key", confKey);
 			jsonResp.put("collab", new Boolean(collab));
 			jsonResp.put("info", new HashMap());

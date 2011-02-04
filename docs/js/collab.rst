@@ -34,7 +34,7 @@ Using a collaboration instance
    
    .. note:: In typical Dojo fashion, all `subscribe*` methods in this interface can take a callback function as a parameter or, as a convenience, a context plus a callback method. If a context is specified, the provided callback is invoked with `this` bound to the context. Note that the doc below lists both parameters, but only explains the required callback.
 
-.. function:: CollabInterface.subscribeConferenceReady(contextOrCallback, [boundCallback])
+.. function:: CollabInterface.subscribeConferenceReady(contextOrCallback [, boundCallback])
    
    A web application calls this method to subscribe to the event fired when the local :class:`SessionInterface` has finished preparing, joining, and updating in a session.
    
@@ -51,7 +51,7 @@ Using a collaboration instance
 
    :returns: object (token for :func:`CollabInterface.unsubscribe`)
    
-.. function:: CollabInterface.subscribeConferenceEnd(contextOrCallback, [boundCallback])
+.. function:: CollabInterface.subscribeConferenceEnd(contextOrCallback [, boundCallback])
    
    A web application calls this method to subscribe to the event fired when the local application is leaving or has left a session. The callback executes only if the application received the ready callback (i.e., it was updated in the session).
    
@@ -62,7 +62,7 @@ Using a collaboration instance
 
    :returns: object (token for :func:`CollabInterface.unsubscribe`)
 
-.. function:: CollabInterface.subscribeSiteJoin(contextOrCallback, [boundCallback])
+.. function:: CollabInterface.subscribeSiteJoin(contextOrCallback [, boundCallback])
 
    A web application calls this method to subscribe to the event fired when a remote application instance finishes updating in the same session as the local instance.
 
@@ -76,7 +76,7 @@ Using a collaboration instance
 
    :returns: object (token for :func:`CollabInterface.unsubscribe`)
 
-.. function:: CollabInterface.subscribeSiteLeave(contextOrCallback, [boundCallback])
+.. function:: CollabInterface.subscribeSiteLeave(contextOrCallback [, boundCallback])
 
    A web application calls this method to subscribe to the event fired when a remote application instance leaves the session. The callback executes only if the leaving site previously notified that it joined.
 
@@ -102,7 +102,7 @@ Using a collaboration instance
 
    .. note:: The coweb framework actively prevents the sending of coweb events from within a callback handling a coweb event. This limitation is by-design to mitigate event "storm" where one event triggers all other applications to send coweb events ad infinitum. If an application truly needs to send a coweb event immediately upon receiving one, it should do so asynchronously using :func:`setTimeout`.
 
-.. function:: CollabInterface.subscribeSync(name, contextOrCallback, [boundCallback])
+.. function:: CollabInterface.subscribeSync(name, contextOrCallback [, boundCallback])
 
    A web application calls this method to subscribe to cooperative events sent by remote application instances in a session. The callback never fires for events sent by any local :class:`CollabInterface` instance. The callback always fires after received events are processed and potentially transformed by the local coweb operation engine. The changes made by the operation engine are transparent to the application.
 
@@ -129,7 +129,7 @@ Using a collaboration instance
    :param string topic: A full string topic to parse 
    :returns: String name provided to the remote invocation of :func:`CollabInterface.sendSync` that triggered the callback. If the topic parameter is not in the correct form, the return value is an unknown string.
 
-.. function:: CollabInterface.subscribeStateRequest(contextOrCallback, [boundCallback])
+.. function:: CollabInterface.subscribeStateRequest(contextOrCallback [, boundCallback])
 
    A web application calls this method to subscribe to the requests for full application state by joining application instances. If the application instance does not service this request in timely manner, it risks being removed from the session by the coweb server.
 
@@ -144,14 +144,14 @@ Using a collaboration instance
    :param object token: The opaque token received in a prior :func:`CollabInterface.subscribeStateRequest` callback to which this invocation is a response
    :returns: undefined
 
-.. function:: CollabInterface.subscribeStateResponse(contextOrCallback, [boundCallback])
+.. function:: CollabInterface.subscribeStateResponse(contextOrCallback [, boundCallback])
 
    A web application calls this method to subscribe to full state responses while attempting to update in a session.
 
    :param function callback: Invoked when this application instance receives a copy of the shared session state from the coweb server so that the local instance can update itself before participating in the session. Receives an object with arbitrary property names and values corresponding to those sent by a remote call to :func:`CollabInterface.sendStateResponse`.
    :returns: object (token for :func:`CollabInterface.unsubscribe`)
 
-.. function:: CollabInterface.subscribeService(service, contextOrCallback, [boundCallback])
+.. function:: CollabInterface.subscribeService(service, contextOrCallback [, boundCallback])
 
    A web application calls this method to subscribe to data published by a service bot.
 
@@ -166,7 +166,7 @@ Using a collaboration instance
 
    :returns: object (token for :func:`CollabInterface.unsubscribe`)
 
-.. function:: CollabInterface.postService(service, params, contextOrCallback, [boundCallback])
+.. function:: CollabInterface.postService(service, params, contextOrCallback [, boundCallback])
 
    A web application calls this method to send a private request to a service bot and receive a single, private response.
    

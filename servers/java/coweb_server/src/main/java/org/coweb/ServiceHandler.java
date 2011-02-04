@@ -71,7 +71,7 @@ public class ServiceHandler {
 	public void removeUserFromAll(ServerSession client) {
 		for(Transport t: this.brokers.values()) {
 			try {
-				t.unSubscribeUser(client, null, true);
+				t.unsubscribeUser(client, null, true);
 			}
 			catch(Exception e) { e.printStackTrace(); }
 		}
@@ -129,7 +129,7 @@ public class ServiceHandler {
 		if(broker == null)
 			throw new IOException("no broker to handle this service " + serviceName);
 
-		broker.unSubscribeUser(client, message, pub);
+		broker.unsubscribeUser(client, message, pub);
 	}
 	
 	public void forwardUserRequest(ServerSession client, Message message)
@@ -160,8 +160,7 @@ public class ServiceHandler {
 	public static String getServiceNameFromSubscription(Message message, boolean pub) {
 		String channel = (String)message.get(Message.SUBSCRIPTION_FIELD);
 		
-		return getServiceNameFromChannel(channel, pub);
-		
+		return getServiceNameFromChannel(channel, pub);	
 	}
 	
 	public static String getServiceNameFromMessage(Message message, boolean pub) {

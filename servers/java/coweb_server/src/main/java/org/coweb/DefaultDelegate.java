@@ -40,18 +40,11 @@ public class DefaultDelegate implements SessionHandlerDelegate {
     }
 
     public boolean onSync(ServerSession client, Message message) {
-        //System.out.println("DefaultDelegate:::onSync");
-        //System.out.println(message);
-        try {
-            this.serviceHandler.forwardSyncEvent(client, message);
-        }
-        catch(Exception e) { e.printStackTrace(); }
-
         return true;
     }
 
 
-    public boolean onClientJoin(ServerSession client, Message message) {
+    public void onClientJoin(ServerSession client, Message message) {
         String channel = (String)message.get(Message.SUBSCRIPTION_FIELD);
 		String cName = channel.substring(0, channel.length()-1);
 		
@@ -61,12 +54,10 @@ public class DefaultDelegate implements SessionHandlerDelegate {
 		
 		client.deliver(from, siteidChannel, new Integer(1), null);
 		client.deliver(from, stateChannel, new ArrayList(), null);
-
-        return true;
     }
 
 
-    public boolean onSubscribeService(ServerSession client, 
+    public void onSubscribeService(ServerSession client, 
                                       Message message) {
         try {
             this.serviceHandler.subscribeUser(client, message);
@@ -74,11 +65,9 @@ public class DefaultDelegate implements SessionHandlerDelegate {
 		catch(Exception e) {
 			e.printStackTrace();
 		}
-
-        return true;
     }
 
-    public boolean onUnsubscribeService(ServerSession client,
+    public void onUnsubscribeService(ServerSession client,
             Message message) {
         try {
             this.serviceHandler.unSubscribeUser(client, message);
@@ -86,8 +75,6 @@ public class DefaultDelegate implements SessionHandlerDelegate {
         catch(Exception e) {
             e.printStackTrace();
         }
-
-        return true;
     }
       
     /**
@@ -98,8 +85,8 @@ public class DefaultDelegate implements SessionHandlerDelegate {
      * @param message Message containing the state in the data field.
      * @return true if this client is allowed to send state.
      */
-    public boolean onUpdaterSendState(ServerSession client, Message message) {
-        return true;
+    public void onUpdaterSendState(ServerSession client, Message message) {
+        return;
     }
 
     /**
@@ -107,10 +94,9 @@ public class DefaultDelegate implements SessionHandlerDelegate {
      * 
      * @param client The client who is ready to be an updater.
      * @param message Message associated with the subscribe.
-     * @return true if this client is allowed to be an updater.
      */
-    public boolean onUpdaterSubscribe(ServerSession client, Message message) {
-        return true;
+    public void onUpdaterSubscribe(ServerSession client, Message message) {
+        return;
     }
 
     public boolean onClientRemove(ServerSession client) {

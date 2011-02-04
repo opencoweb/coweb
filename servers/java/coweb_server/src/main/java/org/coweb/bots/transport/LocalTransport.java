@@ -49,7 +49,7 @@ public class LocalTransport extends Transport implements Proxy {
 	}
 	
 	@Override
-	public boolean unSubscribeUser(ServerSession client,
+	public boolean unsubscribeUser(ServerSession client,
 			Message message,
 			boolean pub) throws IOException {
 		
@@ -86,7 +86,7 @@ public class LocalTransport extends Transport implements Proxy {
 		Map<String, Object> data = message.getDataAsMap();
 		Map<String, Object> params = (Map<String, Object>)data.get("eventData");
 		String replyToken = (String)data.get("topic");
-		String userName = (String)client.getAttribute("username");
+		String username = (String)client.getAttribute("username");
 		
 		if(this.bot == null) {
 			this.bot = this.getBotInstance();
@@ -95,7 +95,7 @@ public class LocalTransport extends Transport implements Proxy {
 		}
 		
 		this.clients.put(replyToken, client);
-		this.bot.onRequest(params, replyToken, userName);
+		this.bot.onRequest(params, replyToken, username);
 
         return true;
 	}
@@ -108,7 +108,7 @@ public class LocalTransport extends Transport implements Proxy {
 		
 		Map<String, Object> data = message.getDataAsMap();
 
-		String userName = (String)client.getAttribute("username");
+		String username = (String)client.getAttribute("username");
 		
 		if(this.bot == null) {
 			this.bot = this.getBotInstance();
@@ -116,7 +116,7 @@ public class LocalTransport extends Transport implements Proxy {
 				throw new IOException("unable to locate bot " + this.serviceName);
 		}
 		
-		this.bot.onSync(data, userName);
+		this.bot.onSync(data, username);
 
         return true;
 	}

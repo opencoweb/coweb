@@ -122,7 +122,7 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
    
    .. attribute:: serviceLauncherClass
    
-      Subclass of :class:`coweb.service.ServiceLauncherBase` to use for launching service bots in sessions. Defaults to a 2-tuple with class :mod:`coweb.service.ProcessLauncher` and dictionary `{sandbox : 'nobody', botPaths : self.cowebBotLocalPaths}`.
+      Subclass of :class:`coweb.service.ServiceLauncherBase` to use for launching service bots in sessions. Defaults to a 2-tuple with class :class:`coweb.service.ProcessLauncher` and dictionary `{sandbox : 'nobody', botPaths : self.cowebBotLocalPaths}`.
 
       Other available implementations of :class:`coweb.service.ServiceLauncherBase` include:
       
@@ -283,8 +283,3 @@ Imagine a coweb server is deployed for one specific application where the bots a
 
    if __name__ == '__main__':
       coweb.run_server(ImportedBotsExample)
-
-.. seealso::
-   
-   :doc:`extensions`
-      Documentation of the various manager base classes that enable the extension of the coweb server authentication, access, service launching, and service management capabilities.

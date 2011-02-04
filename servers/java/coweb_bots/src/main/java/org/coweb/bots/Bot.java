@@ -19,15 +19,15 @@ public interface Bot {
 
     /**
      * Called when a user subscribes to the service provided by this bot.
-     * @param userName The username of the client subscribing.
+     * @param username The username of the client subscribing.
      */
-	public void onSubscribe(String userName);
+	public void onSubscribe(String username);
 	
     /**
      * Called when a user unsubscribes to the service provided by this bot.
-     * @param userName The username of the client unsubscribing.
+     * @param username The username of the client unsubscribing.
      */
-	public void onUnsubscribe(String userName);
+	public void onUnsubscribe(String username);
 
     /**
      * Called when a user make a private request to this bot.
@@ -35,11 +35,11 @@ public interface Bot {
      * @param params key value pairs of parameters sent by the user.
      * @param replyToken token associated with this request.  The bot must 
      * pass this token back to the proxy when replying to this request.
-     * @param userName The username of the client making this request.    
+     * @param username The username of the client making this request.    
      */
 	public void onRequest(Map<String, Object> params, 
 			String replyToken,
-			String userName);
+			String username);
 
     /**
      * Called when a sync events occurs in the session.
@@ -47,9 +47,9 @@ public interface Bot {
      * @param params key value pairs containing the sync event info.
      * topic = event topic.
      * eventData the state adata associated with this sync.
-     * @param userName the username from whom this sync originated.
+     * @param username the username from whom this sync originated.
      */
-	public void onSync(Map<String, Object> params, String userName);
+	public void onSync(Map<String, Object> params, String username);
 
     /**
      * Called when the bot service is to shutdown.  Allows the bot to do
