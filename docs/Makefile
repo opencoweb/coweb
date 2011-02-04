@@ -6,6 +6,8 @@ SPHINXOPTS	  =
 SPHINXBUILD	  = sphinx-build
 PAPER		  =
 BUILDDIR	  = _build
+JAVASRCDIR	  = ../servers/java
+JAVABUILDDIR  = ../servers/java/target/site/apidocs
 DEPLOYDIR	  = swgtc@opencoweb.org:opencoweb.org/ocwdocs/
 
 # Internal variables.
@@ -17,8 +19,9 @@ ALLSPHINXOPTS	= -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  deploy		to deploy HTML files to opencoweb.org"
+	@echo "	 deploy		to deploy HTML files to opencoweb.org"
 	@echo "	 html		to make standalone HTML files"
+	@echo "	 javadoc	to make Javadoc files using Maven"
 	@echo "	 dirhtml	to make HTML files named index.html in directories"
 	@echo "	 singlehtml to make a single large HTML file"
 	@echo "	 pickle		to make pickle files"
@@ -35,12 +38,17 @@ help:
 	@echo "	 linkcheck	to check all external links for integrity"
 	@echo "	 doctest	to run all doctests embedded in the documentation (if enabled)"
 
-deploy: html
+deploy: html javadoc
 	rsync -rv $(BUILDDIR)/html/* $(DEPLOYDIR)
+	rsync -rv $(JAVABUILDDIR)/* $(DEPLOYDIR)/javadocs
 	@echo "Deployed docs to opencoweb.org/ocwdocs"
 
 clean:
 	-rm -rf $(BUILDDIR)/*
+
+javadoc:
+	cd $(JAVASRCDIR); mvn javadoc:aggregate
+	@echo "Build finished. The Javadoc pages are in $(JAVABUILDDIR)"
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
