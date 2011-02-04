@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.server.ext.AcknowledgedMessagesExtension;
-import org.coweb.CowebExtension;
 import org.coweb.SessionHandler;
 import org.coweb.SessionManager;
 import org.coweb.CowebSecurityPolicy;
@@ -72,9 +71,7 @@ public class AdminServlet extends HttpServlet {
             }
         }
 
-        //add the coweb extension so we know which session each bayeux message
-        //comes from.
-	    bayeux.addExtension(new CowebExtension());
+        //set the coweb security policty
 	    bayeux.setSecurityPolicy(securityPolicy);
 	   
         //create the session manager. 
