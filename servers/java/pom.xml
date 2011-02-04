@@ -7,7 +7,6 @@
     <packaging>pom</packaging>
     <name>OpenCoweb</name>
     <version>0.2</version>
-    <url>http://opencoweb.org</url>
     <organization>
         <name>The Dojo Foundation</name>
         <url>http://dojofoundation.org</url>
