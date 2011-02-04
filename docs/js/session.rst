@@ -141,7 +141,7 @@ The session API publishes status topics on the |oaa hub| as it progresses throug
 
 .. data:: coweb.BUSY
 
-   A web application can subscribe to this topic using  `OpenAjax.hub.subscribe`__ to receive session status change notifications. The value the callback receives is one of the following:
+   A web application can subscribe to this topic using  `OpenAjax.hub.subscribe`_ to receive session status change notifications. The value the callback receives is one of the following:
 
    preparing
       Now preparing the session
@@ -163,8 +163,6 @@ The session API publishes status topics on the |oaa hub| as it progresses throug
       Now disconnected from the session because the local application raised an error during the update phase
    clean-disconnect
       Now disconnected from the session because of an expected disconnect
-
-__ http://www.openajax.org/member/wiki/OpenAjax_Hub_1.0_Specification_PublishSubscribe#OpenAjax.hub.subscribe.28name.2C_callback.2C_scope.2C_subscriberData.2C_filter.29
 
 Use cases
 ~~~~~~~~~

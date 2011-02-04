@@ -71,9 +71,9 @@ Controlling session access
 Detailed management
 ###################
 
-A security policy allows custom approval or denial of important coweb behaviors without affecting the operation of the coweb server. Implementations of :class:`org.coweb.SessionHandlerDelegate` enable more fine-grained control over the coweb protocol, but at the risk of impacting the proper operation of the coweb server.
+A security policy allows custom approval or denial of important coweb behaviors without affecting the operation of the coweb server. Implementations of `org.coweb.SessionHandlerDelegate`_ enable more fine-grained control over the coweb protocol, but at the risk of impacting the proper operation of the coweb server.
 
-For example, the default delegate, :class:`org.coweb.CollabDelegate`, controls the joining of new clients, the assignment of updaters, the forwarding of bot requests and responses, etc. A subclass can override methods in this delegate to customize these actions but must take care to invoke the base class methods properly to adhere to the coweb protocol.
+For example, the default delegate, `org.coweb.CollabDelegate`_, controls the joining of new clients, the assignment of updaters, the forwarding of bot requests and responses, etc. A subclass can override methods in this delegate to customize these actions but must take care to invoke the base class methods properly to adhere to the coweb protocol.
 
 Communicating with service bots
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

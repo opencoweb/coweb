@@ -18,7 +18,7 @@ Generating a deployment descriptor
 
 To generate a deployment descriptor for a new coweb project, use the Maven `coweb_archetype` as described in the :ref:`maven-archetype` section.
 
-This archetype produces a deployment descriptor under :file:`src/main/webapp/WEB-INF.web.xml` in the project directory. The generated file configures one :class:`org.coweb.servlet.AdminServlet` and one `org.cometd.server.CometdServlet`_ managing any number of independent sessions.
+This archetype produces a deployment descriptor under :file:`src/main/webapp/WEB-INF.web.xml` in the project directory. The generated file configures one `org.coweb.servlet.AdminServlet`_ and one `org.cometd.server.CometdServlet`_ managing any number of independent sessions.
 
 .. sourcecode:: xml
 
@@ -80,7 +80,7 @@ Configuring coweb options
 The admin servlet accepts the following parameters configuring custom session management and security policies.
 
 delegateClass
-   String name of a :class:`org.coweb.SessionHandlerDelegate` subclass to use instead of the default :class:`org.coweb.CollabDelegate` which governs the coweb protocol in a session.
+   String name of a `org.coweb.SessionHandlerDelegate`_ subclass to use instead of the default `org.coweb.CollabDelegate`_ which governs the coweb protocol in a session.
 
 securityClass
    String name of a :class:`org.coweb.CowebSecurityPolicy` subclass to use instead of the base class which allows anonymous access to all sessions. 
@@ -110,6 +110,3 @@ Say a certain app deployment requires the coweb server to control user access to
          <param-value>org.someorg.CustomSecurityPolicy</param-value>
       </init-param>
    </servlet>
-
-
-.. _CometD 2 Java Server configuration: http://cometd.org/documentation/2.x/cometd-java/server/configuration
