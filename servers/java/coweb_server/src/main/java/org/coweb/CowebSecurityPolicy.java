@@ -30,7 +30,7 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
     		ServerSession client,
     		ServerChannel channel,
     		ServerMessage message) {
-    	String channelName = (String)message.get(Message.SUBSCRIPTION_FIELD);
+    	String channelName = channel.toString();
     	String username = (String)client.getAttribute("username");
 		String sessionid = (String)client.getAttribute("sessionid");
 		
