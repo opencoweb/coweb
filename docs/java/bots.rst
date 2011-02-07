@@ -11,7 +11,7 @@ A transport-agnostic Java :term:`service bot` implements the informal :class:`or
 A Java bot must meet these criteria:
 
 #. The bot must implement the :class:`org.coweb.bots.Bot` interface.
-#. The bot must meet the criteria of its requested transport (e.g., reside in the coweb server class path for :class:`org.coweb.bots.transport.LocalTransport`).
+#. The bot must meet the criteria of its requested transport (e.g., reside in the coweb server class path for `org.coweb.bots.transport.LocalTransport`_).
 
 Declaring bot metadata
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -33,7 +33,7 @@ service
 class
    Required name of the class implementing the :class:`org.coweb.bots.Bot` interface.
 broker
-   Name of the :class:`org.coweb.bots.transport.Transport` class the bot should use to communicate with the coweb server. Defaults to :class:`org.coweb.bots.transport.LocalTransport` if omitted. 
+   Name of the :class:`org.coweb.bots.transport.Transport` class the bot should use to communicate with the coweb server. Defaults to `org.coweb.bots.transport.LocalTransport`_ if omitted. 
 
 Implementing a bot
 ~~~~~~~~~~~~~~~~~~

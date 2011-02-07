@@ -11,3 +11,8 @@ The Open Cooperative Web Framework includes a Java package providing both a cowe
    deploy
    extensions
    bots
+
+.. seealso::
+
+   `OpenCoweb Javadocs`_
+      Generated Javadocs for OpenCoweb version |version|

@@ -43,8 +43,6 @@ Convergence with operational transformation
 
 The coweb framework resolves the consistency problem introduced by concurrent editing by implementing an `operational transformation`_ (OT) algorithm. OT determines if an *operation* performed by a remote user is "out-of-date" when it when the local user receives it because other operations were received or performed locally in the meantime. When such a discrepancy is found, the OT algorithm *transforms* the incoming operation to account for the differences between the local application state and the state of the application when the remote user actually performed the operation. The transformation potentially adjusts the *value* and *position* of the operation to account for the differences in state. The resulting event can be handled as if it was performed locally, on the current application state.
 
-.. _operational transformation: http://en.wikipedia.org/wiki/Operational_transformation
-
 To better understand the basics of OT, return to the case where Alice and Bob edit the `bananas` shopping list item at the same time. In OT terms, Alice performs an *update* operation on the item at position zero in the shopping list with a value of `apples`. Likewise, Bob performs an *update* operation with a value of `oranges` to the item at the same position. Again, each user sees his or her own update immediately while each event is sent to the other user.
 
 .. figure:: /images/ot-openg.png

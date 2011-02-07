@@ -163,6 +163,3 @@ The server should send a notice to the bot when the bot should terminate itself 
          "timeout" : seconds
       }
    }]
-
-.. _Bayeux handshake request: http://svn.cometd.com/trunk/bayeux/bayeux.html#toc_49
-.. _Bayeux protocol: http://svn.cometd.com/trunk/bayeux/bayeux.html

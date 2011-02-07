@@ -141,19 +141,3 @@ Configuring server instances
 ############################
 
 You can configure Python server instances by modifying the application container script produced by :file:`pycoweb init`. See the Python section about :doc:`/python/container` for details.
-
-Going further
-~~~~~~~~~~~~~
-
-.. todo:: future
-
-Building a minified coweb.js
-############################
-
-
-.. _Dojo: http://dojotoolkit.org
-.. _CometD: http://cometd.org
-.. _Tornado: http://tornadoweb.org
-.. _virtualenv: http://pypi.python.org/pypi/virtualenv
-.. _Google CDN: http://code.google.com/apis/libraries/devguide.html#dojo
-.. _Apache Maven: http://maven.apache.org/

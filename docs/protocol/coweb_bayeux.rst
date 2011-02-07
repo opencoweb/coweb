@@ -423,6 +423,3 @@ The server must ensure the bot is broadcasting on its own channel and no other.
          "eventData" : { ... }
       }
    }]
-
-.. _Bayeux handshake request: http://svn.cometd.com/trunk/bayeux/bayeux.html#toc_49
-.. _Bayeux protocol: http://svn.cometd.com/trunk/bayeux/bayeux.html

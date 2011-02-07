@@ -4,8 +4,7 @@ Changelog
 Version 0.2
 ~~~~~~~~~~~
 
-In progress.
-
+* First release of manual doc and Javadocs.
 
 Version 0.1
 ~~~~~~~~~~~
