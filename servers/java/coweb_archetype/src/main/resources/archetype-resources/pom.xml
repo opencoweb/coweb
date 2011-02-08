@@ -10,11 +10,10 @@
     <properties>
         <jettyVersion>7.1.5.v20100705</jettyVersion>
         <jetty-plugin-version>${jettyVersion}</jetty-plugin-version>
-        <cometdVersion>2.1.0.beta2</cometdVersion>
+        <cometdVersion>2.1.0</cometdVersion>
         <cowebVersion>0.3</cowebVersion>
     </properties>
     
-
     <build>
         <defaultGoal>install</defaultGoal>
         <plugins>
