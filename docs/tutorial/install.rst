@@ -57,8 +57,8 @@ Once the coweb modules are installed in your local repository, you can initializ
    $ mvn archetype:create \
       -DgroupId=<your groupId> \
       -DartifactId=<your artifactId> \
-      -DcowebVersion=0.2 \
-      -DarchetypeVersion=0.2 \
+      -DcowebVersion=0.3 \
+      -DarchetypeVersion=0.3 \
       -DarchetypeGroupId=org.coweb \
       -DarchetypeArtifactId=coweb_archetype
 

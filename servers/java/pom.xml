@@ -6,7 +6,7 @@
     <artifactId>coweb-java</artifactId>
     <packaging>pom</packaging>
     <name>OpenCoweb</name>
-    <version>0.2</version>
+    <version>0.3</version>
     <organization>
         <name>The Dojo Foundation</name>
         <url>http://dojofoundation.org</url>
