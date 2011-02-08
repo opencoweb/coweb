@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jetty-version>7.1.5.v20100705</jetty-version>
         <jetty-plugin-version>${jetty-version}</jetty-plugin-version>
-        <cometd.version>2.1.0.beta2</cometd.version>
+        <cometd.version>2.1.0</cometd.version>
     </properties>
 
     <url>http://opencoweb.org</url>

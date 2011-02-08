@@ -1,7 +1,7 @@
 #!/bin/bash
-DOWNLOAD_URL="http://download.cometd.org/cometd-2.1.0.beta2-distribution.tar.gz"
-COMETD_TAR="cometd-2.1.0.beta2-distribution.tar.gz"
-DOJO_WAR_PATH="cometd-2.1.0.beta2/cometd-javascript/dojo/target/cometd-javascript-dojo-2.1.0.beta2.war"
+DOWNLOAD_URL="http://download.cometd.org/cometd-2.1.0-distribution.tar.gz"
+COMETD_TAR="cometd-2.1.0-distribution.tar.gz"
+DOJO_WAR_PATH="cometd-2.1.0/cometd-javascript/dojo/target/cometd-javascript-dojo-2.1.0.war"
 CURL_PATH="which curl"
 WGET_PATH="which wget"
 SCRIPT_PATH="$( cd "$( dirname "$0" )" && pwd )"
