@@ -71,6 +71,8 @@
                                         <exclude name="**/index.html"/>
                                     </fileset>
                                 </copy>
+                                <copy file="../../../www/examples/index.html" tofile="target/coweb_example/index.html" />
+                                <copy file="../../../www/examples/ocwlogo.png" tofile="target/coweb_example/ocwlogo.png" />
                             </tasks>
                         </configuration>
                         <goals>
