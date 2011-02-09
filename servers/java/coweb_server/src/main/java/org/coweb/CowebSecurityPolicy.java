@@ -56,10 +56,7 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
 		if(username == null || sessionid == null)
 			return false;	
 		
-		if(channelName.equals("/service/session/join/*")) {
-			return this.canSubscribeToSession(username, sessionid);
-		}
-		else if(channelName.startsWith("/bot")) {			
+		if(channelName.startsWith("/bot")) {			
 			return this.canSubscribeService(username,
 					sessionid,
 					ServiceHandler.getServiceNameFromChannel(channelName, true));
@@ -72,21 +69,38 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
 	public boolean canHandshake(BayeuxServer bayeuxServer, ServerSession client,
 			ServerMessage message) {
 
-		String sessionid = SessionManager.getSessionIdFromMessage(message);
-		if(sessionid != null) {
-
+    	if(client.getLocalSession() != null)
+    		return super.canHandshake(bayeuxServer, client, message);
+    	
+    	SessionManager manager = SessionManager.getInstance();
+    	if(manager == null) {
+    		return true;
+    	}
+    	
+    	SessionHandler handler = manager.getSessionHandler(message);
+    	boolean allowed = false;
+		//String sessionid = SessionManager.getSessionIdFromMessage(message);
+	    
+		if(handler != null) {
 			HttpTransport transport = (HttpTransport)bayeuxServer.getCurrentTransport();
 			HttpServletRequest req = transport.getCurrentRequest();
 
 			String username = req.getRemoteUser();
             if(username == null) 
                 username = "anonymous";
+            
+            allowed = this.canSubscribeToSession(username, 
+            		handler.getConfKey(),
+            		handler.isCollab());
 
-			client.setAttribute("username", username);
-			client.setAttribute("sessionid", sessionid);
+            if(allowed) {
+            	client.setAttribute("username", username);
+            	client.setAttribute("sessionid", handler.getSessionId());
+            }
+           
 		}
-
-		return super.canHandshake(bayeuxServer, client, message);
+		
+		return allowed;
 	}
     
     
@@ -118,6 +132,18 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
             String key, 
             boolean collab) {
         return true;
+    }
+    
+    /**
+     * Called when a user attempts to join a session.
+     * 
+     * @param username User attempting to join a session.
+     * @param key Coweb key associated with this session.
+     * @param collab true is this session is collaborative.
+     * @return true if the user is allowed to join the session.
+     */
+    public boolean canSubscribeToSession(String username, String key, boolean collab) {
+    	return true;
     }
  
    /**
