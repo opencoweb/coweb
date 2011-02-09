@@ -4,38 +4,32 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('coweb.collab.unmanaged');
-
-/**
- * Implementation of the coweb CollaborationInterface on the unmanaged OpenAjax 
- * Hub version 1.0.
- */
-dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
-    constructor: function() {
+define(function() {
+    var collab = function() {
         this.mutex = false;
         this.service_id = 0;
         this.tokens = [];
-    },
+    };
 
     /**
      * Stores the collaboration instance ID.
      *
      * @param params Parameter given to the collab wrapper factory function
-     */
-    init: function(params) {
-        if(typeof(params.id) == 'undefined') {
-            throw new Error('collaboration client ID required');
+     */    
+    collab.prototype.init = function(params) {
+        if(params.id === undefined) {
+            throw new Error('collab id required');
         }
         this.id = params.id;
-    },
-
+    };
+    
     /**
      * Subscribes to conference ready notifications coweb.site.ready.
      *
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    subscribeConferenceReady: function(context, callback) {
+    collab.prototype.subscribeConferenceReady = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
@@ -54,7 +48,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
         def._cowebToken = tok;
         def.callback();
         return def;
-    },
+    };
 
     /**
      * Subscribes to conference ready notifications coweb.site.end.
@@ -62,7 +56,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    subscribeConferenceEnd: function(context, callback) {
+    collab.prototype.subscribeConferenceEnd = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
@@ -81,7 +75,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
         def._cowebToken = tok;
         def.callback();
         return def;
-    },
+    };
 
     /**
      * Subscribes to site joining notifications coweb.site.join.
@@ -89,7 +83,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    subscribeSiteJoin: function(context, callback) {
+    collab.prototype.subscribeSiteJoin = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
@@ -108,7 +102,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
         def._cowebToken = tok;
         def.callback();
         return def;
-    },
+    };
 
     /**
      * Subscribes to site leaving notifications coweb.site.leave.
@@ -116,7 +110,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    subscribeSiteLeave: function(context, callback) {
+    collab.prototype.subscribeSiteLeave = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
@@ -135,7 +129,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
         def._cowebToken = tok;
         def.callback();
         return def;
-    },
+    };
 
     /**
      * Sends an incremental state change event coweb.sync.<topic>.<id>.
@@ -146,7 +140,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param type String type of change or null
      * @param position Integer position of the change
      */
-    sendSync: function(name, value, type, position) {
+    collab.prototype.sendSync = function(name, value, type, position) {
         if(this.id === null) {
             throw new Error('collab API uninitialized - call init first');
         }
@@ -161,7 +155,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
         this.mutex = true;
         OpenAjax.hub.publish(topic, params);
         this.mutex = false;
-    },
+    };
     
     /**
      * Subscribes to remote incremental state changes 
@@ -172,7 +166,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    subscribeSync: function(name, context, callback) {
+    collab.prototype.subscribeSync = function(name, context, callback) {
         if(this.id === null) {
             throw new Error('collab API uninitialized - call init first');
         }
@@ -197,7 +191,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
         def._cowebToken = tok;
         def.callback();
         return def;
-    },
+    };
     
     /**
      * Gets the application-defined state name from the full topic name sent by
@@ -206,10 +200,10 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param topic String response topic coweb.sync.**
      * @return String state name
      */
-    getSyncNameFromTopic: function(topic) {
+    collab.prototype.getSyncNameFromTopic = function(topic) {
          return topic.substring(coweb.SYNC.length, 
              topic.length-this.id.length-1);
-    },
+    };
     
     /**
      * Subscribes to full state requests coweb.state.get.
@@ -217,7 +211,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    subscribeStateRequest: function(context, callback) {
+    collab.prototype.subscribeStateRequest = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
@@ -236,7 +230,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
         def._cowebToken = tok;
         def.callback();
         return def;
-    },
+    };
     
     /**
      * Sends a response to a full state request coweb.state.set.<id>.
@@ -246,7 +240,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param token String opaque token from the original request
      * @return dojo.Deferred which always notifies success
      */
-    sendStateResponse: function(state, token) {
+    collab.prototype.sendStateResponse = function(state, token) {
         if(this.id === null) {
             throw new Error('collab API uninitialized - call init first');
         }
@@ -259,7 +253,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
             throw e;
         }
         this.mutex = false;
-    },
+    };
 
     /**
      * Subscribes to remote full state responses coweb.state.set.<id>.
@@ -268,7 +262,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */    
-    subscribeStateResponse: function(context, callback) {
+    collab.prototype.subscribeStateResponse = function(context, callback) {
         if(this.id === null) {
             throw new Error('collab API uninitialized - call init first');
         }
@@ -292,7 +286,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
         def._cowebToken = tok;
         def.callback();
         return def;
-    },
+    };
 
     /**
      * Subscribes to a service with coweb.service.sub.<service>
@@ -304,7 +298,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      *   subscribeService indicating a callback to reuse
      * @return dojo.Deferred which always notifies success
      */
-    subscribeService: function(service, context, callback) {
+    collab.prototype.subscribeService = function(service, context, callback) {
         if(this.id === null) {
             throw new Error('collab API uninitialized - call init first');
         }
@@ -342,7 +336,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
         def.callback();
         def._cowebToken = coweb_token;
         return def;
-    },
+    };
     
     /**
      * Requests a single service value with coweb.service.get.<service>
@@ -354,7 +348,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */    
-    postService: function(service, params, context, callback) {
+    collab.prototype.postService = function(service, params, context, callback) {
         if(this.id === null) {
             throw new Error('collab API uninitialized - call init first');
         }
@@ -390,7 +384,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
         def.callback();
         def._cowebToken = token;
         return def;
-    },
+    };
 
     /**
      * Handles a service response. Unsubscribes a get request after delivering
@@ -400,7 +394,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param params Object with value, type, position, and site
      * @return dojo.Deferred which always notifies success
      */
-    _cowebServiceResponse: function(topic, params, sub_data) {
+    collab.prototype._cowebServiceResponse = function(topic, params, sub_data) {
         // invoke the real callback
         try {
             sub_data.callback.call(sub_data.context, params.value, params.error);
@@ -416,7 +410,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
             // unsubscribe using token
             OpenAjax.hub.unsubscribe(sub_data.hub_token);
         }
-    },
+    };
 
     /**
      * Unsubscribes any subscription created via this interface.
@@ -424,7 +418,7 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
      * @param def dojo.Deferred returned by the method that created the
      *   subscription
      */
-    unsubscribe: function(def) {
+    collab.prototype.unsubscribe = function(def) {
         if(!def) { 
             return;
         } else if(def._cowebToken && def._cowebToken.hub_token) {
@@ -448,12 +442,16 @@ dojo.declare('coweb.collab.unmanaged.UnmanagedHubCollab', null, {
             var i = dojo.indexOf(this.tokens, token.hub_token);
             this.tokens = this.tokens.slice(0, i).concat(this.tokens.slice(i+1));
         }
-    },
+    };
     
     /**
      * Removes all subscriptions created via this interface.
      */
-    unsubscribeAll: function() {
-        dojo.forEach(this.tokens, OpenAjax.hub.unsubscribe, OpenAjax.hub);
-    }
+    collab.prototype.unsubscribeAll = function() {
+        for(var i=0, l=this.tokens.length; i < l; i++) {
+            OpenAjax.hub.unsubscribe(this.tokens[i]);
+        }
+    };
+    
+    return collab;
 });

@@ -4,15 +4,14 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('coweb.session.bayeux.HubController');
-dojo.require('dojox.cometd');
-dojo.require('dojox.cometd.ack');
-
-dojo.declare('coweb.session.bayeux.HubController', null, {
-    IDLE : 0,
-    UPDATING : 1,
-    UPDATED: 2,
-    constructor: function(args) {
+/*globals org*/
+define(function() {
+    var bridge = function(args) {
+        // constants
+        this.IDLE = 0;
+        this.UPDATING = 1;
+        this.UPDATED = 2;
+        
         // hub listener
         this._listener = args.listener;
         // session controller
@@ -46,23 +45,23 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
         // messages queued during update
         this._updateQueue = [];
         // initial roster, cleared after first read of it
-        this._roster = null;
-    },
+        this._roster = null;        
+    };
 
-    postHubTopic: function(topic, data) {
+    bridge.prototype.postHubTopic = function(topic, data) {
         // don't send events if we're not updated yet
         if(this._state != this.UPDATED) { return; }
         // @todo: need to compare performance of this with JSON encode/decode
         data = dojo.clone(data);
         // publish to server
-        dojox.cometd.publish('/session/sync', {
+        org.cometd.publish('/session/sync', {
             topic : topic, 
             eventData : data
         });
         return true;
-    },
+    };
     
-    postState: function(topic, value, recipient) {
+    bridge.prototype.postState = function(topic, value, recipient) {
         var state = this._stateReqs[recipient];
         // no outstanding request for state, ignore this message
         if(state === undefined) { return; }
@@ -80,9 +79,9 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
             // stop tracking state request
             delete this._stateReqs[recipient];
         }
-    },
+    };
 
-    postSubscriptionRequest: function(service, priv, params, topic) {
+    bridge.prototype.postSubscriptionRequest = function(service, priv, params, topic) {
         var info = this._serviceSubs[service];
         if(!info) {
             // one time subscribe
@@ -93,9 +92,9 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
         }
         // increment subscriber count
         info.count += 1;
-    },
+    };
     
-    postGetRequest: function(service, priv, params, topic) {
+    bridge.prototype.postGetRequest = function(service, priv, params, topic) {
         var info = this._serviceReqs[service];
         if(!info) {
             this._serviceReqs[service] = info = {token: null, pending: {}};
@@ -108,7 +107,7 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
         }
         // check for conflict in pending topics
         if(info.pending[topic]) {
-           console.warn(this.declaredClass + ': conflict in bot request topics ' + topic);
+           console.warn('bayeux: conflict in bot request topics ' + topic);
            return;
         }
         // publish the bot request
@@ -118,9 +117,9 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
         });
         // add topic to pending
         info.pending[topic] = true;
-    },
+    };
     
-    postUnsubscribeRequest: function(service, priv, topic) {
+    bridge.prototype.postUnsubscribeRequest = function(service, priv, topic) {
         var info = this._serviceSubs[service];
         if(!info) {
             // ignore, nothing to unsub
@@ -136,9 +135,9 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
             }
             delete this._serviceSubs[service];
         }
-    },
+    };
     
-    initiateUpdate: function() {
+    bridge.prototype.initiateUpdate = function() {
         this._updateDef = new dojo.Deferred();
 
         // start listening for subscribe responses so we can track subscription
@@ -166,15 +165,15 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
         });
         
         return this._updateDef;
-    },
+    };
     
-    getInitialRoster: function() {
+    bridge.prototype.getInitialRoster = function() {
         var r = this._roster
         this._roster = null;
         return r;
-    },
+    };
     
-    _onSubscribe: function(msg) {
+    bridge.prototype._onSubscribe = function(msg) {
         // check if bot subscribes were successful or not
         var topic, info, segs;
         if(!msg.successful) {
@@ -213,9 +212,9 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
             }
             // console.warn(this.declaredClass + ': unhandled subscription error ' + msg.error);
         }
-    },
+    };
     
-    _onPublish: function(msg) {
+    bridge.prototype._onPublish = function(msg) {
         if(!msg.successful) {
             var ch = msg.channel;
             var match = this._requestRegex.exec(ch);
@@ -237,9 +236,9 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
                 return;
             }
         }
-    },
+    };
 
-    _onServiceSessionJoin: function(msg) {
+    bridge.prototype._onServiceSessionJoin = function(msg) {
         // determine channel suffix
         var suffix = msg.channel.split('/');
         suffix = suffix[suffix.length-1];
@@ -265,32 +264,33 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
             }
         } else {
             // unknown message, ignore
-            console.warn(this.declaredClass + ': unknown message ' + msg.channel);
+            console.warn('bayeux: unknown message ' + msg.channel);
         }
-    },
+    };
 
-    _onServiceSessionJoinState: function(msg) {
+    bridge.prototype._onServiceSessionJoinState = function(msg) {
         // tell listener about state, one item at a time
-        dojo.forEach(msg.data, function(item) {
+        for(var i=0, l=msg.data.length; i < l; i++) {
             try {
                 this._listener.broadcastState(item.topic, item.value);
             } catch(e) {
-                console.warn(this.declaredClass + ': bad state applied');
+                console.warn('bayeux: application errored on received state');
                 throw e;
             }
-        }, this);
+        }
+        
         
         // process all queued events
-        dojo.forEach(this._updateQueue, function(item) {
+        for(var i=0, l=this._updateQueue.length; i < l; i++) {
             try {
                 this[item.mtd](item.args);
             } catch(e) {
-                console.warn(this.declaredClass + ': bad queued event');
+                console.warn('bayeux: application errored on queued event');
                 throw e;
             }
-        }, this);
+        }
 
-        dojox.cometd.batch(this, function() {
+        org.cometd.batch(this, function() {
             // unsubscribe from joining channel
             dojox.cometd.unsubscribe(this._joinToken);
             this._joinToken = null;
@@ -302,9 +302,9 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
         // join is done
         this._state = this.UPDATED;
         this._updateQueue = [];
-    },
+    };
     
-    _onSessionSync: function(msg) {
+    bridge.prototype._onSessionSync = function(msg) {
         //console.debug('_onSessionSync:', msg);
         var d = msg.data;
         // ignore echo'ed messages
@@ -317,9 +317,9 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
             return;
         }
         this._listener.broadcast(d.topic, d.eventData, d.siteId, 'result');        
-    },
+    };
     
-    _onSessionRoster: function(msg) {
+    bridge.prototype._onSessionRoster = function(msg) {
         if(this._state == this.UPDATING) {
             this._updateQueue.push({
                 mtd : '_onSessionRoster',
@@ -336,11 +336,11 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
             this._listener.broadcastNotice(suffix, msg.data);
         } else {
             // ignore unknown message
-            console.warn(this.declaredClass + ': unknown message ' + msg.channel);
+            console.warn('bayeux: unknown message ' + msg.channel);
         }
-    },
+    };
     
-    _onServiceSessionUpdater: function(msg) {
+    bridge.prototype._onServiceSessionUpdater = function(msg) {
         // note on-going request for state
         var token = msg.data;
         this._stateReqs[token] = [];
@@ -352,36 +352,38 @@ dojo.declare('coweb.session.bayeux.HubController', null, {
             // @todo: force disconnect because state is bad
             this._sessionc.onDisconnected(this._sessionc.id, 'bad-application-state');
         }
-    },
+    };
     
-    _onServiceBotPublish: function(msg) {
+    bridge.prototype._onServiceBotPublish = function(msg) {
         var ch = msg.channel;
         var match = this._publicRegex.exec(ch);
         if(!match) {
-           console.warn(this.declaredClass + ': unknown bot publish ' + ch);
+           console.warn('bayeux: unknown bot publish ' + ch);
            return;
         }
         var topic = coweb.SET_SERVICE + match[1];
         this._listener.broadcast(topic, msg.data.eventData, 0, 'result');
-    },
+    };
     
-    _onServiceBotResponse: function(msg) {
+    bridge.prototype._onServiceBotResponse = function(msg) {
         var ch = msg.channel;
         var topic = msg.data.topic;
         var match = this._privateRegex.exec(ch);    
         if(!match) {
-           console.warn(this.declaredClass + ': unknown bot response ' + ch);
+           console.warn('bayeux: unknown bot response ' + ch);
            return;
         }
         // clean up tracked topic
         var info = this._serviceReqs[match[1]];
         // check topic match for good measure
         if(!info.pending[topic]) {
-            console.warn(this.declaredClass + ': unknown bot response ' + ch);
+            console.warn('bayeux: unknown bot response ' + ch);
             return;
         }
         delete info.pending[topic];
         // send to listener
         this._listener.broadcast(topic, msg.data.eventData, 0, 'result');
-    }
+    };
+    
+    return bridge;
 });

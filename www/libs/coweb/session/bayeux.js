@@ -4,12 +4,10 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('coweb.session.bayeux');
-dojo.require('coweb.session.bayeux.SessionController');
-
-dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
-    // constants for state tracking
-    constructor: function() {
+define([
+    'coweb/session/bayeux/SessionBridge'
+], function(sbridge) {
+    var bayeux = function() {
         // vars set during runtime
         this._prepParams = null;
         this._lastPrep = null;
@@ -17,19 +15,19 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
         this._debug = false;
         this._client = null;
         this._listener = null;
-        this._versionDef = new dojo.Deferred();
         this._destroying = false;
         this._disconnectTok = null;
         this._loginUrl = null;
         this._logoutUrl = null;
-    },
+    };
 
     /**
      * Stores parameters.
      *
      * @param params Parameters given to the session factory function
      */
-    init: function(params) {
+    bayeux.prototype.init = function(params) {
+        var self = this;
         // store debug and strict compat check flags for later
         this._loginUrl = params.loginUrl;
         this._logoutUrl = params.logoutUrl;
@@ -48,26 +46,19 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
         // cleanup on destroy, important that this comes after the session
         // controller creation so this instance can notify about the end of the
         // session before the session connection is lost
+        var destroy = function() { self.destroy() };
         if(this._client.supportsBeforeUnload) {
-            dojo.addOnUnload(dojo.hitch(this, 'destroy'));
+            dojo.addOnUnload(destroy);
         } else {
-            dojo.addOnWindowUnload(dojo.hitch(this, 'destroy'));
+            dojo.addOnWindowUnload(destroy);
         }
-        // notify version deferred asynchronously
-        var v = {
-            clientVersion: coweb.VERSION,
-            serverVersion: coweb.VERSION,
-            match: true
-        };
-        setTimeout(dojo.hitch(this, function() {
-            this._versionDef.callback(v)
-        }), 0);
-    },
+    };
+
 
     /**
      * Called on page unload to disconnect properly.
      */
-    destroy: function() {
+    bayeux.prototype.destroy = function() {
         // set destroying state to avoid incorrect notifications
         this._destroying = true;
         if(this._client.getState() == this._client.UPDATED) {
@@ -89,36 +80,30 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
         this._client = null;
         dojo.disconnect(this._disconnectTok);
         this._disconnectTok = null;
-    },
+    };
 
     /**
      * Gets if the session was initialized for debugging or not.
      *
      * @return True if debugging, false if not
      */
-    isDebug: function() {
+    bayeux.prototype.isDebug = function() {
         return this._debug;
     },
 
-    /**
-     * Called by an app to get the client and server versions.
-     */
-    getVersion: function() {
-        return this._versionDef;
-    },
     
     /**
      * Gets a reference to the parameters last given to prepareConference().
      * Includes any values automatically filled in for missing attributes.
      */
-    getConferenceParams: function() {
+    bayeux.prototype.getConferenceParams = function() {
         return this._lastPrep;
     },
 
     /**
      * Called by an application to leave a session or abort joining it.
      */    
-    leaveConference: function() {
+    bayeux.prototype.leaveConference = function() {
         var state = this._client.getState();
         if(state == this._client.UPDATED) {
             // broadcast a final hub event indicating the client is now leaving
@@ -141,7 +126,7 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
     /**
      * Called by an app to optionally authenticate with the server.
      */
-    login: function(username, password) {
+    bayeux.prototype.login = function(username, password) {
         if(this._client.getState() != this._client.IDLE) {
             throw new Error('login() not valid in current state');
         }
@@ -155,7 +140,7 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
     /**
      * Called by an app to optionally logout from the server.
      */
-    logout: function() {
+    bayeux.prototype.logout = function() {
         // leave the session
         this.leaveConference();
         // contact credential server to remove creds
@@ -165,7 +150,7 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
     /**
      * Called by an app to prepare a session.
      */
-    prepareConference: function(params) {
+    bayeux.prototype.prepareConference = function(params) {
         if(this._client.getState() != this._client.IDLE) {
             throw new Error('prepareConference() not valid in current state');
         }
@@ -212,7 +197,7 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
         return this._prepParams.deferred;
     },
     
-    _onPrepared: function(params) {
+    bayeux.prototype._onPrepared = function(params) {
         // store response
         this._prepParams.response = dojo.clone(params);
         // pull out the deferred result
@@ -238,7 +223,7 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
         }
     },
 
-    _onPrepareError: function(err) {
+    bayeux.prototype._onPrepareError = function(err) {
         // notify busy dialog of error; no disconnect at this stage because 
         // we're not using cometd yet
         OpenAjax.hub.publish(coweb.BUSY, err.message);
@@ -252,7 +237,7 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
     /**
      * Called by an app to join a session.
      */
-    joinConference: function(nextDef) {
+    bayeux.prototype.joinConference = function(nextDef) {
         if(this._client.getState() != this._client.PREPARED) {
             throw new Error('joinConference() not valid in current state');
         }
@@ -270,7 +255,7 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
         return this._prepParams.deferred;
     },
 
-    _onJoined: function() {
+    bayeux.prototype._onJoined = function() {
         // pull out the deferred result
         var def = this._prepParams.deferred;
         // watch for errors during prep callback as indicators of failure to
@@ -295,7 +280,7 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
         }
     },
 
-    _onJoinError: function(err) {
+    bayeux.prototype._onJoinError = function(err) {
         // nothing to do, session controller goes back to idle
         var def = this._prepParams.deferred;
         this._prepParams = null;
@@ -305,7 +290,7 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
     /**
      * Called by an application to update its state in a session.
      */
-    updateInConference: function(nextDef) {
+    bayeux.prototype.updateInConference = function(nextDef) {
         if(this._client.getState() != this._client.JOINED) {
             throw new Error('updateInConference() not valid in current state');
         }
@@ -322,7 +307,7 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
         return this._prepParams.deferred;
     },
 
-    _onUpdated: function() {
+    bayeux.prototype._onUpdated = function() {
         var prepParams = this._prepParams;
         this._prepParams = null;
         // notify session interface of update success
@@ -348,14 +333,14 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
         OpenAjax.hub.publish(coweb.READY, value);
     },
 
-    _onUpdateError: function(err) {
+    bayeux.prototype._onUpdateError = function(err) {
         // nothing to do yet, session goes back to idle
         var def = this._prepParams.deferred;
         this._prepParams = null;
         def.errback(err);
     },
 
-    _onDisconnected: function(state, tag) {
+    bayeux.prototype._onDisconnected = function(state, tag) {
         if(tag && !this._destroying) {
             // show an error in the busy dialog
             OpenAjax.hub.publish(coweb.BUSY, tag);
@@ -379,12 +364,13 @@ dojo.declare('coweb.session.bayeux.BayeuxSession', null, {
      * Called by JS when an exception occurs in the application's successful
      * conference prepare callback. Disconnects and notifies busy.
      */
-    _onAppPrepareError: function(err) {
+    bayeux.prototype._onAppPrepareError = function(err) {
         console.error(err.message);
-        // clear 
         // force a logout to get back to the idle state
         this.leaveConference();
         // notify about error state
         OpenAjax.hub.publish(coweb.BUSY, 'bad-application-state');
-    }
+    };
+
+    return bayeux;
 });

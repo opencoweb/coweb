@@ -4,25 +4,26 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('coweb.session.bayeux.CowebExtension');
-
-dojo.declare('coweb.session.bayeux.CowebExtension', null, {
-    constructor: function(args) {
+define(function() {
+    var ext = function(args) {
         this._cometd = null;
         this._sessionid = args.sessionid;
-    },
+    };
     
-    registered: function(name, cometd) {
+    ext.prototype.registered = function(name, cometd) {
         this._cometd = cometd;
-    },
+    };
     
-    unregistered: function() {
+    ext.prototype.unregistered = function(name, cometd) {
         this._cometd = null;
-    },
-
-    outgoing: function(message) {
-        var coweb = dojo.getObject('ext.coweb', true, message);
+    };
+    
+    ext.prototype.outgoing = function(msg) {
+        var ext = msg.ext = msg.ext || {};
+        var coweb = msg.ext.coweb = msg.ext.coweb || {};
         coweb.sessionid = this._sessionid;
         return message;
-    }
+    };
+
+    return ext;
 });

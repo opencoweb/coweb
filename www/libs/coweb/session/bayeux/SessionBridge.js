@@ -4,22 +4,21 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('coweb.session.bayeux.SessionController');
-dojo.require('coweb.session.bayeux.HubController');
-dojo.require('coweb.session.bayeux.CowebExtension');
-dojo.require('dojox.cometd');
-dojo.require('dojox.cometd.ack');
+define([
+    'coweb/session/bayeux/CowebExtension',
+    'coweb/session/bayeux/ListenerBridge'
+], function(ext, lbridge) {
+    var bridge = function(args) {
+        // state constants
+        DISCONNECTING = 0;
+        IDLE = 1;
+        PREPARING = 2;
+        PREPARED = 3;
+        JOINING = 4;
+        JOINED = 5;
+        UPDATING = 6;
+        UPDATED = 7;
 
-dojo.declare('coweb.session.bayeux.SessionController', null, {
-    DISCONNECTING: 0,
-    IDLE: 1,
-    PREPARING: 2,
-    PREPARED: 3,
-    JOINING: 4,
-    JOINED: 5,
-    UPDATING: 6,
-    UPDATED: 7,
-    constructor: function(args) {
         // init variables
         this._listener = args.listener;
         this._debug = args.debug;
@@ -31,13 +30,10 @@ dojo.declare('coweb.session.bayeux.SessionController', null, {
         this._prepDef = null;
         this._joinDef = null;
         this._updateDef = null;
-        
-        // assume singleton for now
-        this.id = this.declaredClass;
 
         // info received from server
         this._prepResponse = null;
-        
+
         // determine when to schedule destruction based on browser unload
         // event support, prefer onbeforeunload
         this.supportsBeforeUnload = (
@@ -45,15 +41,15 @@ dojo.declare('coweb.session.bayeux.SessionController', null, {
             navigator.userAgent.search(/iPad|iPhone|iPod/) < 0
         );
 
-        // build hub controller instance
-        this._hubc = new coweb.session.bayeux.HubController({
+        // build listener bridge instance
+        this._lbridgeInst = new lbridge({
             debug: this._debug,
             listener: this._listener,
             sessionc: this
-        });        
-    },
+        });
+    };
 
-    destroy: function() {
+    bridge.prototype.destroy = function() {
         this._prepDef = null;
         this._joinDef = null;
         this._updateDef = null;
@@ -62,17 +58,17 @@ dojo.declare('coweb.session.bayeux.SessionController', null, {
             // force a logout
             this.logout();
         }
-    },
+    };
 
-    getState: function() {
+    bridge.prototype.getState = function() {
         return this._state;
-    },
+    };
 
-    getHubController: function() { 
-        return this._hubc;
-    },
+    bridge.prototype.getListenerBridge = function() { 
+        return this._lbridgeInst;
+    };
 
-    prepareConference: function(key, collab) {
+    bridge.prototype.prepareConference = function(key, collab) {
         // make sure we're idle
         if(this._state != this.IDLE) {
             throw new Error(this.id + ': cannot prepare in non-idle state');
@@ -82,22 +78,27 @@ dojo.declare('coweb.session.bayeux.SessionController', null, {
             key : key,
             collab : collab
         };
+        var self = this;
         var args = {
             url : this._adminUrl,
             handleAs: 'json',
             headers: { "Content-Type": "application/json" },
             preventCache: true,
             postData : dojo.toJson(data),
-            load: dojo.hitch(this, '_onPrepareResponse'),
-            error: dojo.hitch(this, '_onPrepareError')
+            load: function(resp, ioargs) { 
+                self._onPrepareResponse(resp, ioargs);
+            },
+            error: function(err, ioargs) {
+                self._onPrepareError(err, ioargs);
+            }
         };
         dojo.xhrPost(args);
         // change state to avoid duplicate prepares
         this._state = this.PREPARING;
         return this._prepDef;
-    },
+    };
 
-    _onPrepareResponse: function(resp, ioargs) {
+    bridge.prototype._onPrepareResponse = function(resp, ioargs) {
         if(this._state == this.PREPARING) {
             this._state = this.PREPARED;
             var def = this._prepDef;
@@ -108,9 +109,9 @@ dojo.declare('coweb.session.bayeux.SessionController', null, {
             def.callback(resp);
         }
         // @todo: cleanup?
-    },
+    };
     
-    _onPrepareError: function(err, ioargs) {
+    bridge.prototype._onPrepareError = function(err, ioargs) {
         // go back to idle state
         this._state = this.IDLE;
         var def = this._prepDef;
@@ -122,38 +123,37 @@ dojo.declare('coweb.session.bayeux.SessionController', null, {
         } else {
             def.errback(new Error('server-unavailable'));
         }
-    },
+    };
 
-    joinConference: function() {
+    bridge.prototype.joinConference = function() {
         if(this._state != this.PREPARED) {
             throw new Error(this.id + ': cannot join in unprepared state');
         }
 
         this._joinDef = new dojo.Deferred();
         // disable all websocket support for now
-        dojox.cometd.unregisterTransport('websocket');
+        org.cometd.unregisterTransport('websocket');
 
         // register extension to include session id in ext        
-        dojox.cometd.unregisterExtension('coweb');
+        org.cometd.unregisterExtension('coweb');
         var args = {sessionid : this._prepResponse.sessionid};
-        dojox.cometd.registerExtension('coweb', 
-            new coweb.session.bayeux.CowebExtension(args));
+        org.cometd.registerExtension('coweb', new ext(args));
 
-        dojox.cometd.configure({
+        org.cometd.configure({
             url : this._prepResponse.sessionurl, 
             logLevel: this._debug ? 'debug' : 'info',
             autoBatch : true,
             appendMessageTypeToURL: false
         });
-        dojox.cometd.addListener('/meta/unsuccessful', this, '_onSessionUnsuccessful');
-        this._connectToken = dojox.cometd.addListener('/meta/connect', this, '_onSessionConnect');
-        dojox.cometd.addListener('/meta/disconnect', this, '_onSessionDisconnect');
+        org.cometd.addListener('/meta/unsuccessful', this, '_onSessionUnsuccessful');
+        this._connectToken = org.cometd.addListener('/meta/connect', this, '_onSessionConnect');
+        org.cometd.addListener('/meta/disconnect', this, '_onSessionDisconnect');
         this._state = this.JOINING;
-        dojox.cometd.handshake();
+        org.cometd.handshake();
         return this._joinDef;
-    },
+    };
 
-    _onSessionUnsuccessful: function(err) {
+    bridge.prototype._onSessionUnsuccessful = function(err) {
         //console.debug('_onSessionUnsuccessful', err);
         // pull out error code
         var bayeuxCode = '';
@@ -196,9 +196,9 @@ dojo.declare('coweb.session.bayeux.SessionController', null, {
                 def.errback(new Error(tag));
             }
         }
-    },
+    };
 
-    _onSessionConnect: function(msg) {
+    bridge.prototype._onSessionConnect = function(msg) {
         if(this._state == this.JOINING) {
             this._state = this.JOINED;
             var def = this._joinDef;
@@ -206,42 +206,47 @@ dojo.declare('coweb.session.bayeux.SessionController', null, {
             def.callback();
             
             // stop listening for connects after the first
-            dojox.cometd.removeListener(this._connectToken);
+            org.cometd.removeListener(this._connectToken);
             this._connectToken = null;
         }
         // @todo: other cleanup?
-    },
+    };
 
-    _onSessionDisconnect: function(msg) {
+    bridge.prototype._onSessionDisconnect = function(msg) {
         // client requested disconnect confirmed by the server
         if(this._state != this.IDLE) {
             this.onDisconnected(this._state, 'clean-disconnect');
         }
-    },
+    };
     
-    updateInConference: function() {
+    bridge.prototype.updateInConference = function() {
         if(this._state != this.JOINED) {
             throw new Error(this.id + ': cannot update in unjoined state');
         }
         
         this._state = this.UPDATING;
         this._updateDef = new dojo.Deferred();
-        this._hubc.initiateUpdate()
-            .addCallback(dojo.hitch(this, '_onUpdateSuccess'))
-            .addErrback(dojo.hitch(this, '_onUpdateFailure'));
+        var self = this;
+        this._lbridgeInst.initiateUpdate()
+            .addCallback(function() { 
+                self._onUpdateSuccess.apply(self, arguments)
+            })
+            .addErrback(function() { 
+                self._onUpdateFailure.apply(self, arguments)
+            });
         return this._updateDef;
-    },
+    };
     
-    _onUpdateSuccess: function() {
+    bridge.prototype._onUpdateSuccess = function() {
         if(this._state == this.UPDATING) {
             this._state = this.UPDATED;
             var def = this._updateDef;
             this._updateDef = null;
             def.callback();
         }
-    },
+    };
     
-    _onUpdateFailure: function(err) {
+    bridge.prototype._onUpdateFailure = function(err) {
         if(this._state == this.UPDATING) {
             // do a logout to leave the session and go back to idle
             this.logout();
@@ -249,9 +254,9 @@ dojo.declare('coweb.session.bayeux.SessionController', null, {
             this._updateDef = null;
             def.errback(err);
         }
-    },
+    };
 
-    logout: function(async) {
+    bridge.prototype.logout = function(async) {
         // force sync logout if browser doesn't support onbeforeunload events
         async = (this.supportsBeforeUnload) ? !!async : false;
         if(this._state < this.IDLE) { 
@@ -259,20 +264,22 @@ dojo.declare('coweb.session.bayeux.SessionController', null, {
             return;
         } else if(this._state == this.IDLE) {
             // do the disconnect without any tracking
-            dojox.cometd.disconnect(!async);
+            org.cometd.disconnect(!async);
             return;
         }
         this._state = this.DISCONNECTING;
-        dojox.cometd.disconnect(!async);
+        org.cometd.disconnect(!async);
         if(this._state != this.IDLE) {
             // logout bombed, server must be dead; invoke callback manually
             this.onDisconnected(this._state, 'clean-disconnect');
         }
-    },
+    };
 
-    onDisconnected: function(state, tag) {
+    bridge.prototype.onDisconnected = function(state, tag) {
         // extension point
         console.debug('onDisconnected state:', state, 'tag:', tag);
         this._state = this.IDLE;
     }
+    
+    return bridge;
 });
