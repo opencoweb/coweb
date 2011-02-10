@@ -60,13 +60,16 @@ Controlling session access
       :param serviceName: Name of the service bot
       :return: True to allow the request, false to deny
    
-   .. method:: canSubscribeToSession(String username, String sessionid) -> boolean   
+   .. method:: canSubscribeToSession(String username, String key, Boolean collab) -> boolean   
    
-      The base class implementation of :meth:`canSubscribe` calls this method when a coweb application attempts to join a session.
+      The base class implementation of :meth:`canHandshake` calls this method when a coweb application attempts to join a session.
 
       :param username: Authenticated username of the requestor
-      :param sessionid: Session in which the request was sent
+      :param key: Key identifying the session from :js:func:`SessionInterface.prepareConference`.
+      :param collab: Flag from :js:func:`SessionInterface.prepareConference` set to true if requesting a session supporting cooperative events, false if requesting a session supporting service bot calls only
       :return: True to allow the join, false to deny
+      
+      .. versionchanged:: 0.3
 
 Detailed management
 ###################
