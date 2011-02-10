@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+Version 0.3
+~~~~~~~~~~~
+
+* :py:meth:`org.coweb.CowebSecurityPolicy.canSubscribeToSession` method changed parameters and meaning.
+
 Version 0.2
 ~~~~~~~~~~~
 
