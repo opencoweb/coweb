@@ -1,19 +1,21 @@
 //
 // Bayeux implementation of the SessionInterface.
 //
+// @todo: dojo replacement
+// 
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 define([
     'coweb/session/bayeux/SessionBridge'
-], function(sbridge) {
+], function(bridge) {
     var bayeux = function() {
         // vars set during runtime
         this._prepParams = null;
         this._lastPrep = null;
         // params to be set by init
         this._debug = false;
-        this._client = null;
+        this._bridge = null;
         this._listener = null;
         this._destroying = false;
         this._disconnectTok = null;
@@ -34,20 +36,20 @@ define([
         this._debug = params.debug;
         this._listener = params.listener;
         // create the client impl
-        this._client = new coweb.session.bayeux.SessionController({
+        this._bridge = new bridge({
             debug : this._debug,
             listener: this._listener,
             adminUrl : params.adminUrl
         });
         // track disconnect token
-        this._disconnectTok = dojo.connect(this._client, 'onDisconnected', 
+        this._disconnectTok = dojo.connect(this._bridge, 'onDisconnected', 
             this, '_onDisconnected');
         
         // cleanup on destroy, important that this comes after the session
         // controller creation so this instance can notify about the end of the
         // session before the session connection is lost
         var destroy = function() { self.destroy() };
-        if(this._client.supportsBeforeUnload) {
+        if(this._bridge.supportsBeforeUnload) {
             dojo.addOnUnload(destroy);
         } else {
             dojo.addOnWindowUnload(destroy);
@@ -61,7 +63,7 @@ define([
     bayeux.prototype.destroy = function() {
         // set destroying state to avoid incorrect notifications
         this._destroying = true;
-        if(this._client.getState() == this._client.UPDATED) {
+        if(this._bridge.getState() == this._bridge.UPDATED) {
             // broadcast a final hub event indicating the client is now leaving
             // the conference if it was ever fully joined to the conference
             var value = {connected : true};
@@ -72,12 +74,12 @@ define([
         // let listener shutdown gracefully
         this._listener.destroy();
         // cleanup the client
-        this._client.destroy();
+        this._bridge.destroy();
         // cleanup references
         this._listener = null;
         this._prepParams = null;
         this._lastPrep = null;
-        this._client = null;
+        this._bridge = null;
         dojo.disconnect(this._disconnectTok);
         this._disconnectTok = null;
     };
@@ -104,8 +106,8 @@ define([
      * Called by an application to leave a session or abort joining it.
      */    
     bayeux.prototype.leaveConference = function() {
-        var state = this._client.getState();
-        if(state == this._client.UPDATED) {
+        var state = this._bridge.getState();
+        if(state == this._bridge.UPDATED) {
             // broadcast a final hub event indicating the client is now leaving
             // the conference
             var value = {connected : true};
@@ -119,7 +121,7 @@ define([
         def = new dojo.Deferred();
         def.callback();
         // do the session logout
-        this._client.logout();
+        this._bridge.logout();
         return def;
     },
 
@@ -127,7 +129,7 @@ define([
      * Called by an app to optionally authenticate with the server.
      */
     bayeux.prototype.login = function(username, password) {
-        if(this._client.getState() != this._client.IDLE) {
+        if(this._bridge.getState() != this._bridge.IDLE) {
             throw new Error('login() not valid in current state');
         }
         var args = {
@@ -151,7 +153,7 @@ define([
      * Called by an app to prepare a session.
      */
     bayeux.prototype.prepareConference = function(params) {
-        if(this._client.getState() != this._client.IDLE) {
+        if(this._bridge.getState() != this._bridge.IDLE) {
             throw new Error('prepareConference() not valid in current state');
         }
 
@@ -185,7 +187,7 @@ define([
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
-        this._client.prepareConference(this._prepParams.key, 
+        this._bridge.prepareConference(this._prepParams.key, 
             this._prepParams.collab)
             .addCallback(dojo.hitch(this, '_onPrepared'))
             .addErrback(dojo.hitch(this, '_onPrepareError'));        
@@ -238,7 +240,7 @@ define([
      * Called by an app to join a session.
      */
     bayeux.prototype.joinConference = function(nextDef) {
-        if(this._client.getState() != this._client.PREPARED) {
+        if(this._bridge.getState() != this._bridge.PREPARED) {
             throw new Error('joinConference() not valid in current state');
         }
 
@@ -248,7 +250,7 @@ define([
         // new deferred for join success / failure
         this._prepParams.deferred = nextDef || new dojo.Deferred();
 
-        this._client.joinConference()
+        this._bridge.joinConference()
             .addCallback(dojo.hitch(this, '_onJoined'))
             .addErrback(dojo.hitch(this, '_onJoinError'));
         
@@ -291,7 +293,7 @@ define([
      * Called by an application to update its state in a session.
      */
     bayeux.prototype.updateInConference = function(nextDef) {
-        if(this._client.getState() != this._client.JOINED) {
+        if(this._bridge.getState() != this._bridge.JOINED) {
             throw new Error('updateInConference() not valid in current state');
         }
         // show the busy dialog for the update phase
@@ -300,7 +302,7 @@ define([
         // new deferred for join success / failure
         this._prepParams.deferred = nextDef || new dojo.Deferred();
         
-        this._client.updateInConference()
+        this._bridge.updateInConference()
             .addCallback(dojo.hitch(this, '_onUpdated'))
             .addErrback(dojo.hitch(this, '_onUpdateError'));
         
@@ -317,7 +319,7 @@ define([
 
         // session is now updated in conference
         OpenAjax.hub.publish(coweb.BUSY, 'ready');
-        var hc = this._client.getHubController();
+        var hc = this._bridge.getHubController();
         // initialize the hub listener with the client reference now that 
         // the conference is fully established
         this._listener.start(hc, prepParams.collab);
@@ -345,7 +347,7 @@ define([
             // show an error in the busy dialog
             OpenAjax.hub.publish(coweb.BUSY, tag);
         }
-        if(state == this._client.UPDATED) {
+        if(state == this._bridge.UPDATED) {
             // broadcast a final hub event indicating the client is now leaving
             // the conference if it was ever fully joined to the conference
             var value = {connected : false};

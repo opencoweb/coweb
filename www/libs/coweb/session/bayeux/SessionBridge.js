@@ -1,6 +1,8 @@
 //
 // Handles the flow from session preparation to update completion over Bayeux.
 //
+// @todo: dojo replacement
+//
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
@@ -131,9 +133,6 @@ define([
         }
 
         this._joinDef = new dojo.Deferred();
-        // disable all websocket support for now
-        org.cometd.unregisterTransport('websocket');
-
         // register extension to include session id in ext        
         org.cometd.unregisterExtension('coweb');
         var args = {sessionid : this._prepResponse.sessionid};
@@ -277,9 +276,9 @@ define([
 
     bridge.prototype.onDisconnected = function(state, tag) {
         // extension point
-        console.debug('onDisconnected state:', state, 'tag:', tag);
+        // console.debug('onDisconnected state:', state, 'tag:', tag);
         this._state = this.IDLE;
-    }
-    
+    };
+
     return bridge;
 });

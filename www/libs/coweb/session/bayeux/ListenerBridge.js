@@ -48,7 +48,7 @@ define(function() {
         this._roster = null;        
     };
 
-    bridge.prototype.postHubTopic = function(topic, data) {
+    bridge.prototype.postSync = function(topic, data) {
         // don't send events if we're not updated yet
         if(this._state != this.UPDATED) { return; }
         // @todo: need to compare performance of this with JSON encode/decode
@@ -61,7 +61,7 @@ define(function() {
         return true;
     };
     
-    bridge.prototype.postState = function(topic, value, recipient) {
+    bridge.prototype.postStateResponse = function(topic, value, recipient) {
         var state = this._stateReqs[recipient];
         // no outstanding request for state, ignore this message
         if(state === undefined) { return; }
@@ -81,7 +81,7 @@ define(function() {
         }
     };
 
-    bridge.prototype.postSubscriptionRequest = function(service, priv, params, topic) {
+    bridge.prototype.postServiceSubscribe = function(service) {
         var info = this._serviceSubs[service];
         if(!info) {
             // one time subscribe
@@ -94,7 +94,7 @@ define(function() {
         info.count += 1;
     };
     
-    bridge.prototype.postGetRequest = function(service, priv, params, topic) {
+    bridge.prototype.postServiceRequest = function(service, params, topic) {
         var info = this._serviceReqs[service];
         if(!info) {
             this._serviceReqs[service] = info = {token: null, pending: {}};
@@ -119,7 +119,7 @@ define(function() {
         info.pending[topic] = true;
     };
     
-    bridge.prototype.postUnsubscribeRequest = function(service, priv, topic) {
+    bridge.prototype.postServiceUnsubscribe = function(service) {
         var info = this._serviceSubs[service];
         if(!info) {
             // ignore, nothing to unsub
@@ -131,7 +131,7 @@ define(function() {
         if(info.count <= 0) {
             if(info.token) {
                 // send an unsub to sever if the token is still valid
-                dojox.cometd.unsubscribe(info.token);
+                org.cometd.unsubscribe(info.token);
             }
             delete this._serviceSubs[service];
         }
@@ -190,7 +190,7 @@ define(function() {
                 segs = msg.error.split(':');
                 // inform all callbacks of error
                 for(topic in info.pending) {
-                    this._listener.broadcast(topic, segs[2], 0, 'error');
+                    this._listener.syncInbound(topic, segs[2], 0, 'error');
                 }
                 // reset list of topics pending responses
                 info.pending = {};
@@ -206,7 +206,7 @@ define(function() {
                 dojox.cometd.removeListener(info.token);
                 info.token = null;
                 segs = msg.error.split(':');
-                this._listener.broadcast(topic, segs[2], 0, 'error');
+                this._listener.syncInbound(topic, segs[2], 0, 'error');
                 // @todo: do we need to unsubscribe? toss tokens?
                 return;
             }
@@ -229,7 +229,7 @@ define(function() {
                 var segs = msg.error.split(':');
                 // inform all callbacks of error
                 for(var topic in info.pending) {
-                    this._listener.broadcast(topic, segs[2], 0, 'error');
+                    this._listener.syncInbound(topic, segs[2], 0, 'error');
                 }
                 // reset list of topics pending responses
                 info.pending = {};
@@ -272,7 +272,7 @@ define(function() {
         // tell listener about state, one item at a time
         for(var i=0, l=msg.data.length; i < l; i++) {
             try {
-                this._listener.broadcastState(item.topic, item.value);
+                this._listener.stateInbound(item.topic, item.value);
             } catch(e) {
                 console.warn('bayeux: application errored on received state');
                 throw e;
@@ -316,7 +316,7 @@ define(function() {
             });
             return;
         }
-        this._listener.broadcast(d.topic, d.eventData, d.siteId, 'result');        
+        this._listener.syncInbound(d.topic, d.eventData, d.siteId, 'result');        
     };
     
     bridge.prototype._onSessionRoster = function(msg) {
@@ -333,7 +333,7 @@ define(function() {
         suffix = suffix[suffix.length-1];
         
         if(suffix == 'available' || suffix == 'unavailable') {
-            this._listener.broadcastNotice(suffix, msg.data);
+            this._listener.noticeInbound(suffix, msg.data);
         } else {
             // ignore unknown message
             console.warn('bayeux: unknown message ' + msg.channel);
@@ -345,9 +345,8 @@ define(function() {
         var token = msg.data;
         this._stateReqs[token] = [];
         
-        // broadcast request for state
         try {
-            this._listener.requestState(token);
+            this._listener.requestStateInbound(token);
         } catch(e) {
             // @todo: force disconnect because state is bad
             this._sessionc.onDisconnected(this._sessionc.id, 'bad-application-state');
@@ -362,7 +361,7 @@ define(function() {
            return;
         }
         var topic = coweb.SET_SERVICE + match[1];
-        this._listener.broadcast(topic, msg.data.eventData, 0, 'result');
+        this._listener.syncInbound(topic, msg.data.eventData, 0, 'result');
     };
     
     bridge.prototype._onServiceBotResponse = function(msg) {
@@ -382,7 +381,7 @@ define(function() {
         }
         delete info.pending[topic];
         // send to listener
-        this._listener.broadcast(topic, msg.data.eventData, 0, 'result');
+        this._listener.syncInbound(topic, msg.data.eventData, 0, 'result');
     };
     
     return bridge;
