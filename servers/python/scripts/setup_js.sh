@@ -41,10 +41,6 @@ unzip -q "$DOJO_WAR_PATH"
 # move portions needed into www folder
 # only overwrite what we need to, try to preserve everything else
 mkdir "${SRC_PATH}/libs"
-mkdir "${SRC_PATH}/libs/dojox"
-rm -r "${SRC_PATH}/libs/dojox/cometd"
-mv dojox/cometd.js "${SRC_PATH}/libs/dojox"
-mv dojox/cometd "${SRC_PATH}/libs/dojox"
 rm -r "${SRC_PATH}/libs/org/cometd"
 mkdir "${SRC_PATH}/libs/org"
 mv org/cometd.js "${SRC_PATH}/libs/org"

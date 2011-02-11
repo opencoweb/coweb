@@ -29,6 +29,9 @@ class DevInstall(setup_emptyenv.EmptyInstall):
         # symlink examples into home_dir/www
         exs = os.path.abspath('../../www/examples/')
         os.symlink(exs, os.path.join(paths.www, 'examples'))
+        # symlink tests into home_dir/www
+        exs = os.path.abspath('../../www/tests/')
+        os.symlink(exs, os.path.join(paths.www, 'tests'))
         # symlink bots into home_dir/bots
         bots = os.path.abspath('bots')
         try:
