@@ -5,20 +5,19 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('coweb.jsoe.ContextVector');
-dojo.require('coweb.jsoe.ContextDifference');
-
-/**
- * Represents the context in which an operation occurred at a site in terms of
- * the operation sequence numbers already applied at that site or the state
- * of the document at the time.
- *
- * @ivar sites Array of integer sequence numbers for a set of indexed sites
- */
-dojo.declare('coweb.jsoe.ContextVector', null, {
+define([
+    'coweb/jsoe/ContextDifference'
+], function(ContextDifference) {
     /**
+     * Represents the context in which an operation occurred at a site in 
+     * terms of the operation sequence numbers already applied at that site or
+     * the state of the document at the time.
+     *
      * Initializes the sequence context vector. Throws an exception if no
      * valid initialization parameter is provided.
+     *
+     * @ivar sites Array of integer sequence numbers for a set of indexed 
+     *   sites
      * 
      * @param args Object with properties initializing the context array in 
      *   various ways:
@@ -27,7 +26,7 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
      *   - sites: Array from a context vector object to copy
      *   - state: Array from a serialized context vector object to reference
      */
-    constructor: function(args) {
+    var ContextVector = function(args) {
         if(typeof args.count != 'undefined') {
             this.sites = [];
             this.growTo(args.count);
@@ -39,15 +38,15 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
             this.sites = args.state;
         } else {
             throw new Error('uninitialized context vector');
-        }
-    },
+        }        
+    };
 
     /**
      * Converts the contents of this context vector to a string.
      *
      * @return String for debugging
      */
-    toString: function() {
+    ContextVector.prototype.toString = function() {
         return '[' + this.sites.toString() + ']';
     },
 
@@ -56,7 +55,7 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
      *
      * @return Array of integer sequencen numbers
      */
-    getState: function() {
+    ContextVector.prototype.getState = function() {
         return this.sites;
     },
 
@@ -65,8 +64,8 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
      *
      * @return Context vector copy
      */
-    copy: function() {
-        return new coweb.jsoe.ContextVector({contextVector : this});
+    ContextVector.prototype.copy = function() {
+        return new ContextVector({contextVector : this});
     },
 
     /**
@@ -74,7 +73,7 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
      *
      * @return Array copy
      */
-    copySites: function() {
+    ContextVector.prototype.copySites = function() {
         return this.sites.slice();
     },
 
@@ -85,7 +84,7 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
      * @param cv Other context vector object
      * @return Context difference object
      */
-    subtract: function(cv) {
+    ContextVector.prototype.subtract = function(cv) {
         var cd = new coweb.jsoe.ContextDifference();
         for(var i=0; i < this.sites.length; i++) {
             var a = this.getSeqForSite(i);
@@ -104,8 +103,8 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
      * @param cv Other context vector object
      * @return Context difference object
      */
-    oldestDifference: function(cv) {
-        var cd = new coweb.jsoe.ContextDifference();
+    ContextVector.prototype.oldestDifference = function(cv) {
+        var cd = new ContextDifference();
         for(var i=0; i < this.sites.length; i++) {
             var a = this.getSeqForSite(i);
             var b = cv.getSeqForSite(i);
@@ -122,7 +121,7 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
      *
      * @param count Desired integer size
      */
-    growTo: function(count) {
+    ContextVector.prototype.growTo = function(count) {
         for(var i=this.sites.length; i < count; i++) {
             this.sites.push(0);
         }
@@ -135,7 +134,7 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
      * @param site Integer site ID
      * @return Integer sequence number
      */
-    getSeqForSite: function(site) {
+    ContextVector.prototype.getSeqForSite = function(site) {
         if(this.sites.length <= site) {
             this.growTo(site+1);
         }
@@ -149,7 +148,7 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
      * @param site Integer site ID
      * @param seq Integer sequence number
      */
-    setSeqForSite: function(site, seq) {
+    ContextVector.prototype.setSeqForSite = function(site, seq) {
         if(this.sites.length <= site) {
             this.growTo(site+1);
         }
@@ -159,7 +158,7 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
     /**
      * Gets the size of this context vector.
      */
-    getSize: function() {
+    ContextVector.prototype.getSize = function() {
         return this.sites.length;
     },
 
@@ -170,7 +169,7 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
      * @param cv Context vector instance
      * @return Boolean true if equal, false if not
      */
-    equals: function(cv) {
+    ContextVector.prototype.equals = function(cv) {
         var a = this.sites;
         var b = cv.sites;
         // account for different size vectors
@@ -192,7 +191,7 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
      *   the other, 0 if they are equal, or 1 if this context vector 
      *   represents a state later than the other
      */
-    compare: function(cv) {
+    ContextVector.prototype.compare = function(cv) {
         var a = this.sites;
         var b = cv.sites;
         // acount for different size vectors
@@ -207,5 +206,7 @@ dojo.declare('coweb.jsoe.ContextVector', null, {
             }
         }
         return 0;
-    }
+    };
+    
+    return ContextVector;
 });

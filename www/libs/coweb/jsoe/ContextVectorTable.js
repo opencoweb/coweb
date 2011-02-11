@@ -4,38 +4,39 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('coweb.jsoe.ContextVectorTable');
-dojo.require('coweb.jsoe.ContextVector');
-
-/**
- * Stores the context of each site known at this site.
- *
- * @ivar cvt Array of context vectors
- */
-dojo.declare('coweb.jsoe.ContextVectorTable', null, {
+define([
+    'coweb/jsoe/ContextVector'
+], function(ContextVector) {
     /**
+     * Stores the context of each site known at this site.
+     *
      * Initializes the table to include the given context vector at the given
      * site index. Ensures the table has enough empty context vectors up to
      * the given site index.
-     * 
+     *
+     * @ivar cvt Array of context vectors
+     *
      * @param cv Context vector object
      * @param index Integer site ID index into the table
      */
-    constructor: function(cv, index) {
+    var ContextVectorTable = function(cv, index) {
         this.cvt = [];
         this.growTo(index+1);
-        this.cvt[index] = cv;
-    },
-
+        this.cvt[index] = cv;        
+    };
+    
     /**
      * Converts the contents of this context vector table to a string.
      *
      * @return String for debugging
      */
-    toString: function() {
-        var arr = dojo.map(this.cvt, function(cv) { return cv.toString(); });
+    ContextVectorTable.prototype.toString = function() {
+        var arr = [];
+        for(var i = 0, l = this.cvt.length; i++; i < l) {
+            arr[i] = cv.toString();
+        }
         return arr.toString();
-    },
+    };
 
     /**
      * Gets the index of each entry in the table referencing the given context
@@ -45,41 +46,41 @@ dojo.declare('coweb.jsoe.ContextVectorTable', null, {
      * @param skip Integer index to skip
      * @return Array of integer indices
      */
-    getEquivalents: function(cv, skip) {
+    ContextVectorTable.prototype.getEquivalents = function(cv, skip) {
         var equiv = [];
-        for(var i=0; i < this.cvt.length; i++) {
+        for(var i=0, l=this.cvt.length; i < l; i++) {
             if(i != skip && this.cvt[i] == cv) {
                 equiv.push(i);
             }
         }
         return equiv;
-    },
+    };
 
     /**
      * Serializes the state of this context vector table for transmission.
      *
      * @return Array of serialized context vectors
      */
-    getState: function() {
+    ContextVectorTable.prototype.getState = function() {
         var arr = [];
-        for(var i=0; i < this.cvt.length; i++) {
+        for(var i=0, l=this.cvt.length; i < l; i++) {
             arr[i] = this.cvt[i].getState();
         }
         return arr;
-    },
+    };
 
     /**
      * Unserializes context vector table contents to initialize this intance.
      *
      * @param arr Array in the format returned by getState
      */
-    setState: function(arr) {
+    ContextVectorTable.prototype.setState = function(arr) {
         // clear out any existing state
         this.cvt = [];
-        for(var i=0; i < arr.length; i++) {
-            this.cvt[i] = new coweb.jsoe.ContextVector({state : arr[i]});
+        for(var i=0, l=arr.length; i < l; i++) {
+            this.cvt[i] = new ContextVector({state : arr[i]});
         }
-    },
+    };
 
     /**
      * Increases the size of the context vector table to the given size.
@@ -88,17 +89,17 @@ dojo.declare('coweb.jsoe.ContextVectorTable', null, {
      *
      * @param count Desired integer size
      */
-    growTo: function(count) {
+    ContextVectorTable.prototype.growTo = function(count) {
         // grow all context vectors
-        for(var i=0; i < this.cvt.length; i++) {
+        for(var i=0, l=this.cvt.length; i < l; i++) {
             this.cvt[i].growTo(count);
         }
         // add new vectors of proper size
         for(i=this.cvt.length; i < count; i++) {
-            var cv = new coweb.jsoe.ContextVector({count : count});
+            var cv = new ContextVector({count : count});
             this.cvt.push(cv);
         }
-    },
+    };
 
     /**
      * Gets the context vector for the given site. Grows the table if it does 
@@ -107,14 +108,14 @@ dojo.declare('coweb.jsoe.ContextVectorTable', null, {
      * @param site Integer site ID
      * @return Context vector instance
      */
-    getContextVector: function(site) {
+    ContextVectorTable.prototype.getContextVector = function(site) {
         if(this.cvt.length <= site) {
             // grow to encompass the given site at least
             // this is not necessarily the final desired size...
             this.growTo(site+1);
         }
         return this.cvt[site];
-    },
+    };
 
     /**
      * Sets the context vector for the given site. Grows the table if it does
@@ -123,7 +124,7 @@ dojo.declare('coweb.jsoe.ContextVectorTable', null, {
      * @param site Integer site ID
      * @param cv Context vector instance
      */
-    updateWithContextVector: function(site, cv) {
+    ContextVectorTable.prototype.updateWithContextVector = function(site, cv) {
         if(this.cvt.length <= site) {
             // grow to encompass the given site at least
             this.growTo(site+1);
@@ -133,7 +134,7 @@ dojo.declare('coweb.jsoe.ContextVectorTable', null, {
             cv.growTo(site+1);
         }
         this.cvt[site] = cv;
-    },
+    };
 
     /**
      * Sets the context vector for the given site. Grows the table if it does
@@ -141,14 +142,14 @@ dojo.declare('coweb.jsoe.ContextVectorTable', null, {
      *
      * @param op Operation with the site ID and context vector instance
      */
-    updateWithOperation: function(op) {
+    ContextVectorTable.prototype.updateWithOperation = function(op) {
         // copy the context vector from the operation
         var cv = op.contextVector.copy();
         // upgrade the cv so it includes the op
         cv.setSeqForSite(op.siteId, op.seqId);
         // store the cv
         this.updateWithContextVector(op.siteId, cv);
-    },
+    };
 
     /**
      * Gets the context vector with the minimum sequence number for each site
@@ -157,7 +158,7 @@ dojo.declare('coweb.jsoe.ContextVectorTable', null, {
      *
      * @return Context vector or null
      */
-    getMinimumContextVector: function() {
+    ContextVectorTable.prototype.getMinimumContextVector = function() {
         // if table is empty, abort
         if(!this.cvt.length) {
             return null;
@@ -166,10 +167,10 @@ dojo.declare('coweb.jsoe.ContextVectorTable', null, {
         // start with first context vector as a guess of which is minimum
         var mcv = this.cvt[0].copy();
 
-        for(var i=1; i < this.cvt.length; i++) {
+        for(var i=1, l=this.cvt.length; i < l; i++) {
             var cv = this.cvt[i];
             // cvt has to equal the max vector size contained within
-            for(var site = 0; site < this.cvt.length; site++) {
+            for(var site = 0; site < l; site++) {
                 var seq = cv.getSeqForSite(site);
                 var min = mcv.getSeqForSite(site);
                 if(seq < min) {
@@ -179,5 +180,7 @@ dojo.declare('coweb.jsoe.ContextVectorTable', null, {
             }
         }
         return mcv;
-    }
+    };
+
+    return ContextVectorTable;
 });

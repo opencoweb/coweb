@@ -2,6 +2,7 @@
 // Unmanaged OpenAjax Hub implementation of the ListenerInterface.
 // 
 // @todo: doc cleanup throughout
+// @todo: follow camel case rule for classes
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
@@ -9,7 +10,7 @@
 define([
     'coweb/topics',
     'coweb/jsoe/OperationEngine'
-], function(topics, jsoe) {
+], function(topics, OperationEngine) {
     // detect OpenAjax Hub 1.0
     var version;
     try {
@@ -160,7 +161,7 @@ define([
      */
     listener.prototype.setSiteID = function(id) {
         //console.debug('listener.unmanaged.setSiteID', id);
-        this._engine = new jsoe(id);
+        this._engine = new OperationEngine(id);
         // siteid 0 is reserved, we duplicate the local site's cv in that slot
         this._engine.freezeSite(0);
     };

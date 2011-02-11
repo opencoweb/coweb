@@ -1,40 +1,42 @@
 //
 // Operation engine public API.
 //
+// @todo: refactor ops to IT funcs on std objects for performance
+// 
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('coweb.jsoe.OperationEngine');
-dojo.require('coweb.jsoe.ContextVectorTable');
-dojo.require('coweb.jsoe.ContextVector');
-dojo.require('coweb.jsoe.HistoryBuffer');
-dojo.require('coweb.jsoe.Operation');
-
-/**
- * Controls the operational transformation algorithm. Provides a public
- * API for operation processing, garbage collection, engine synchronization.
- *
- * @ivar siteId Unique site integer for this engine instance in a conference
- * @ivar cv Context vector representing local document state
- * @ivar cvt Context vector table representing all conference document states
- * @ivar hb History buffer of local and remote operations
- * @ivar typeMap Mapping from string op names to op subclasses
- */
-dojo.declare('coweb.jsoe.OperationEngine', null, {
+define([
+    'coweb/jsoe/ContextVectorTable',
+    'coweb/jsoe/ContextVector',
+    'coweb/jsoe/HistoryBuffer',
+    'coweb/jsoe/UpdateOperation',
+    'coweb/jsoe/InsertOperation',
+    'coweb/jsoe/DeleteOperation',
+], function(ContextVectorTable, ContextVector, HistoryBuffer, 
+    UpdateOperation, InsertOperation, DeleteOperation) {
     /**
-     * Initializes the engine components.
-     * 
-     * @param site Local site integer to assign to this engine instance
+     * Controls the operational transformation algorithm. Provides a public
+     * API for operation processing, garbage collection, engine 
+     * synchronization.
+     *
+     * @ivar siteId Unique site integer for this engine instance in a 
+     *   session
+     * @ivar cv Context vector representing local document state
+     * @ivar cvt Context vector table representing all conference document 
+     *   states
+     * @ivar hb History buffer of local and remote operations
+     * @ivar typeMap Mapping from string op names to op subclasses
      */
-    constructor: function(site) {
+    var OperationEngine = function(siteId) {
         this.siteId = site;
-        this.cv = new coweb.jsoe.ContextVector({count : site+1});
-        this.cvt = new coweb.jsoe.ContextVectorTable(this.cv, site);
-        this.hb = new coweb.jsoe.HistoryBuffer();
-        this.typeMap = {update : coweb.jsoe.UpdateOperation,
-                        insert : coweb.jsoe.InsertOperation,
-                        'delete' : coweb.jsoe.DeleteOperation};
-    },
+        this.cv = new ContextVector({count : site+1});
+        this.cvt = new ContextVectorTable(this.cv, site);
+        this.hb = new HistoryBuffer();
+        this.typeMap = {update : UpdateOperation,
+                        insert : InsertOperation,
+                        'delete' : DeleteOperation};
+    };
 
     /**
      * Gets the state of this engine instance to seed a new instance.
@@ -42,20 +44,20 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      * @return Array of cvt state, hb state, local site ID, and indices of
      *   frozen cvt entries
      */
-    getState: function() {
+    OperationEngine.prototype.getState = function() {
         // op engine state can be cloned from cvt, hb, site ID, and frozen slots
         // get indices of frozen cvt slots
         var frozen = this.cvt.getEquivalents(this.cv, this.siteId);
         return [this.cvt.getState(), this.hb.getState(), this.siteId, frozen];
-    },
-
+    };
+    
     /**
      * Sets the state of this engine instance to state received from another
      * instance in a conference.
      *
      * @param arr Array of values returned by getState on a remote instance
      */
-    setState: function(arr) {
+    OperationEngine.prototype.setState = function(arr) {
         // configure the history buffer and context vector table
         this.cvt.setState(arr[0]);
         this.hb.setState(arr[1]);
@@ -70,16 +72,16 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
         for(var i=0; i < frozen.length; i++) {
             this.freezeSite(frozen[i]);
         }
-    },
+    };
 
     /**
      * Makes a copy of the engine context vector representing document state.
      *
      * @return Context vector
      */
-    copyContextVector: function() {
+    OperationEngine.prototype.copyContextVector = function() {
         return this.cv.copy();
-    },
+    };
 
     /**
      * Factory method that creates an operation object initialized with the
@@ -94,7 +96,8 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      * @param cv Context vector timestamp for the op (remote only)
      * @return Operation subclass instance matching the given type
      */
-    createOp: function(local, key, value, type, position, site, cv) {
+    OperationEngine.prototype.createOp = function(local, key, value, type, 
+    position, site, cv) {
         var cls = this.typeMap[type];
         var op;
         if(local) {
@@ -106,7 +109,7 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
                 contextVector : this.copyContextVector()});
         } else {
             // build cv from raw sites array
-            cv = new coweb.jsoe.ContextVector({sites : cv});
+            cv = new ContextVector({sites : cv});
             op = new cls({
                 key : key,
                 position : position,
@@ -130,14 +133,15 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      * @param cv Context vector timestamp for the op (remote only)
      * @return Original operation if local, transformed operation if remote
      */
-    push: function(local, key, value, type, position, site, cv) {
+    OperationEngine.prototype.push = function(local, key, value, type, 
+    position, site, cv) {
         var op = this.createOp(local, key, value, type, position, site, cv);
         if(local) {
             return this.pushLocalOp(op);
         } else {
             return this.pushRemoteOp(op);
         }
-    },
+    };
 
     /**
      * Procceses a local operation.
@@ -145,13 +149,13 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      * @param op Operation object
      * @return Operation object (same ref as param)
      */
-    pushLocalOp: function(op) {
+    OperationEngine.prototype.pushLocalOp = function(op) {
         // update local context vector
         this.cv.setSeqForSite(op.siteId, op.seqId);
         // add to history buffer
         this.hb.add(op);
         return op;
-    },
+    };
 
     /**
      * Procceses a remote operation.
@@ -159,7 +163,7 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      * @param op Operation object
      * @return Transformed operation object (not same ref as param)
      */
-    pushRemoteOp: function(op) {
+    OperationEngine.prototype.pushRemoteOp = function(op) {
         var top = null;
 
         if(this.hasProcessedOp(op)) {
@@ -187,7 +191,7 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
 
         // return the transformed op
         return top;
-    },
+    };
 
     /**
      * Processes an engine synchronization event.
@@ -195,10 +199,10 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      * @param site Integer site ID of where the sync originated
      * @param cv Context vector of that site
      */
-    pushSync: function(site, cv) {
+    OperationEngine.prototype.pushSync = function(site, cv) {
         // update the context vector table
         this.cvt.updateWithContextVector(site, cv);
-    },
+    };
 
     /**
      * Processes an engine synchronization event.
@@ -206,18 +210,18 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      * @param site Integer site ID of where the sync originated
      * @param site Array of site sequence values for a context vector
      */
-    pushSyncWithSites: function(site, sites) {
+    OperationEngine.prototype.pushSyncWithSites = function(site, sites) {
         // build a context vector from raw site data
-        var cv = new coweb.jsoe.ContextVector({state : sites});
+        var cv = new ContextVector({state : sites});
         this.pushSync(site, cv);
-    },
+    };
 
     /**
      * Runs the garbage collection algorithm over the history buffer.
      *
      * @return Minimum context vector object or null if gc didn't run
      */
-    purge: function() {
+    OperationEngine.prototype.purge = function() {
         if(this.getBufferSize() === 0) {
             // exit quickly if there is nothing to purge
             return null;
@@ -267,16 +271,16 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
             }
         }
         return mcv;
-    },
+    };
 
     /**
      * Gets the size of the history buffer in terms of stored operations.
      * 
      * @return Integer size
      */
-    getBufferSize: function() {
+    OperationEngine.prototype.getBufferSize = function() {
         return this.hb.getCount();
-    },
+    };
 
     /**
      * Gets if the engine has already processed the give operation based on
@@ -285,10 +289,10 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      * @param Operation object
      * @return True if already processed, false if not
      */
-    hasProcessedOp: function(op) {
+    OperationEngine.prototype.hasProcessedOp = function(op) {
         var seqId = this.cv.getSeqForSite(op.siteId);
         return (seqId >= op.seqId);
-    },
+    };
 
     /**
      * Freezes a slot in the context vector table by inserting a reference
@@ -296,10 +300,10 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      *
      * @param site Integer ID of the site to freeze
      */
-    freezeSite: function(site) {
+    OperationEngine.prototype.freezeSite = function(site) {
         // insert a ref to this site's cv into the cvt for the given site
         this.cvt.updateWithContextVector(site, this.cv);
-    },
+    };
 
     /**
      * Thaws a slot in the context vector table by inserting an empty context
@@ -307,7 +311,7 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      *
      * @param site Integer ID of the site to thaw
      */
-    thawSite: function(site) {
+    OperationEngine.prototype.thawSite = function(site) {
         // don't ever thaw the slot for our own site
         if(site == this.siteId) {return;}
         // get the minimum context vector
@@ -316,7 +320,7 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
         cv.growTo(site);
         // use it as the initial context of the site
         this.cvt.updateWithContextVector(site, cv);
-    },
+    };
 
     /**
      * Executes a recursive step in the integration algorithm.
@@ -326,7 +330,7 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      *   document state
      * @return Transformed operation (not a ref to the param op)
      */
-    _transform: function(op, cd) {
+    OperationEngine.prototype._transform = function(op, cd) {
         // get all ops for context different from history buffer sorted by
         //   context dependencies
         var ops = this.hb.getOpsForDifference(cd);
@@ -375,5 +379,7 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
         // op is always a copy because we never entered this method if no
         // transform was needed
         return op;
-    }
+    };
+    
+    return OperationEngine;
 });
