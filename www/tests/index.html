@@ -2,42 +2,42 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>coweb framework tests</title>
+    <title>OpenCoweb JS tests</title>
     <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
+    <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/OpenAjax.js"></script>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="http://code.jquery.com/qunit/git/qunit.js"></script>
+    <script src="../libs/org/cometd.js"></script>
+    <script src="../libs/org/cometd/AckExtension.js"></script>
+    <script src="../libs/require.js"></script>
     <script type="text/javascript">
-      var path = window.location.pathname.split('/');
-      path.pop();
-      path = path.join('/');
-      var djConfig = {
-          isDebug: false,
-          parseOnLoad: true,
-          modulePaths: {
-            'coweb' : 'coweb',
-            'dojox.cometd' : 'dojox/cometd',
-            'org.cometd' : 'org/cometd',
-            'tests' : '../tests'
-          },
-          baseUrl : '../libs/'
-      };
-    </script>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></script>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/OpenAjax.js"></script>
-    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
-    <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
-    <script type="text/javascript">
-    // don't run until xd module loader reports ready
+    // don't run until requirejs says run
     QUnit.config.autostart = false;
+
+    // load all test modules
+    require({
+      baseUrl : '.',
+      paths : {
+        'coweb' : '../libs/coweb'
+      }
+    }, [
+      'test_openg_trans'
+    ], function() {
+        // start qunit
+        require.ready(start);
+    });
+
     // load tests
-    dojo.require('tests.test_session');
-    dojo.require('tests.test_openg_gc');
-    dojo.require('tests.test_openg_puzzles');
-    dojo.require('tests.test_openg_trans');
-    //dojo.require('tests.test_openg_random');
-    dojo.ready(start);
+    // dojo.require('tests.test_session');
+    // dojo.require('tests.test_openg_gc');
+    // dojo.require('tests.test_openg_puzzles');
+    // dojo.require('tests.test_openg_trans');
+    // dojo.require('tests.test_openg_random');
+    // dojo.ready(start);
     </script>
   </head>
   <body>
-    <h1 id="qunit-header">coweb framework tests</h1>
+    <h1 id="qunit-header">OpenCoweb JS tests</h1>
 	  <h2 id="qunit-banner"></h2>
 	  <div id="qunit-testrunner-toolbar"></div>
 	  <h2 id="qunit-userAgent"></h2>

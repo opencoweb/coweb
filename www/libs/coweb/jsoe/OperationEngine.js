@@ -29,9 +29,9 @@ define([
      * @ivar typeMap Mapping from string op names to op subclasses
      */
     var OperationEngine = function(siteId) {
-        this.siteId = site;
-        this.cv = new ContextVector({count : site+1});
-        this.cvt = new ContextVectorTable(this.cv, site);
+        this.siteId = siteId;
+        this.cv = new ContextVector({count : siteId+1});
+        this.cvt = new ContextVectorTable(this.cv, siteId);
         this.hb = new HistoryBuffer();
         this.typeMap = {update : UpdateOperation,
                         insert : InsertOperation,
