@@ -41,7 +41,7 @@ Consistency is not a problem that can be ignored. In applications with more sens
 Convergence with operational transformation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The coweb framework resolves the consistency problem introduced by concurrent editing by implementing an `operational transformation`_ (OT) algorithm. OT determines if an *operation* performed by a remote user is "out-of-date" when it when the local user receives it because other operations were received or performed locally in the meantime. When such a discrepancy is found, the OT algorithm *transforms* the incoming operation to account for the differences between the local application state and the state of the application when the remote user actually performed the operation. The transformation potentially adjusts the *value* and *position* of the operation to account for the differences in state. The resulting event can be handled as if it was performed locally, on the current application state.
+The coweb framework resolves the consistency problem introduced by concurrent editing by implementing an `operational transformation`_ (OT) algorithm. OT determines if an *operation* performed by a remote user is "out-of-date" when the local user receives it because other operations were received or performed locally in the meantime. When such a discrepancy is found, the OT algorithm *transforms* the incoming operation to account for the differences between the local application state and the state of the application when the remote user actually performed the operation. The transformation potentially adjusts the *value* and *position* of the operation to account for the differences in state. The resulting event can be handled as if it was performed locally, on the current application state.
 
 To better understand the basics of OT, return to the case where Alice and Bob edit the `bananas` shopping list item at the same time. In OT terms, Alice performs an *update* operation on the item at position zero in the shopping list with a value of `apples`. Likewise, Bob performs an *update* operation with a value of `oranges` to the item at the same position. Again, each user sees his or her own update immediately while each event is sent to the other user.
 
@@ -51,11 +51,11 @@ To better understand the basics of OT, return to the case where Alice and Bob ed
    
    Diagram of operational transformation for conflict resolution. After all outstanding events are processed, Alice and Bill both see `apples`.
 
-When Alice receives Bob's edit, the OT algorithm processes the incoming operation. First, it notes that Alice's application is not in the same state as Bob's when he made his edit. The algorithm transforms the value of Bob's update (`apples`) to account for the local update already made by Alice (`oranges`). In this update-vs-update transformation, the algorithm simply picks a winner based on some consistent, global property guaranteed to be the same across users of the application. Let's say, in this implementation, the alphabetical ordering of the user's name decides the outcome, so OT chooses **A**\lice's value of `apples` over **B**\ob's. The algorithm then replaces the `oranges` value on Bob's event with `apples`. The OT algorithm finishes by detecting that no other operations were seen by Alice other than her own edit before Bob's event arrived. 
+When Alice receives Bob's edit, the OT algorithm processes the incoming operation. First, it notes that Alice's application is not in the same state as Bob's when he made his edit. The algorithm transforms the value of Bob's update (`oranges`) to account for the local update already made by Alice (`apples`). In this update-vs-update transformation, the algorithm simply picks a winner based on some consistent, global property guaranteed to be the same across users of the application. Let's say, in this implementation, the alphabetical ordering of the user's name decides the outcome, so OT chooses **A**\lice's value of `apples` over **B**\ob's. The algorithm then replaces the `oranges` value on Bob's event with `apples`. The OT algorithm finishes by detecting that no other operations were seen by Alice other than her own edit before Bob's event arrived. 
 
 Alice's shopping list can now apply Bob's transformed operation. In this case, the operation has no effect. The first item in Alice's shopping list reads `apples` and Bob's transformed event also sets it to `apples`. 
 
-Now consider what happens when Bob receives Alice's edit. Again, the OT algorithm running on his machine notices Bob's application is in a newer state than Alice's when she performed her edit. OT transforms the value of Alice's update (`apples`) to account for the local update made by Bob (`oranges`). The OT algorithm uses the alphabetical ordering of their names to pick a winner, and again **A**\lice's value trumps **B**\ob's. The value of operation is left as `apples`. OT processing completes as no other operations were seen by Bob while Alice's event was in transit.
+Now consider what happens when Bob receives Alice's edit. Again, the OT algorithm running on his machine notices Bob's application is in a newer state than Alice's when she performed her edit. OT transforms the value of Alice's update (`apples`) to account for the local update made by Bob (`oranges`). The OT algorithm uses the alphabetical ordering of their names to pick a winner, and again **A**\lice's value trumps **B**\ob's. The value of the operation is left as `apples`. OT processing completes as no other operations were seen by Bob while Alice's event was in transit.
 
 Bob's shopping list can now apply Alice's transformed operation. The application updates the first item in the list to the value of `apples`. At this point, if no other events are in flight between Alice and Bob, they are looking at the same shopping list. OT has yielded consistency between their shopping lists in the face of concurrent edits.
 
@@ -159,6 +159,7 @@ Inbound events
 
 Applications use the :func:`CollabInterface.subscribeSync` method to observe cooperative events from remote instances. The subscribed callback function  receives five parameters when invoked: `topic`, `value`, `type`, `position`, and `site`. The *meaning* of the first four correspond roughly with the event outbound event properties described above while the fifth, `site`, simply indicates where the even originated. The *data* stored in the `value` and `position` attributes, however, may differ from those set on the original outbound event. The operation engine transforms incoming events that are out-of-date by adjusting these two fields as needed to account for events already received.
 
+.. _openg-it
 .. rst-class:: openg-it 
 
 +------------------+--------+----------+----------+
@@ -180,7 +181,7 @@ Value adjustments
 
 The operation engine may change the `value` property of any inbound `update` event based on previously processed `update` events. This adjustment resolves conflicts between simultaneous changes to the same application property.
 
-Consider again the concurrent updates made by Alice and Bob from `bananas` to `apples` and `oranges`. As described under :ref:`<ot-converge>`, the engine notes the conflict between the two edits and picks a "winner" consistently on both machines. If the engine picks `apples` (Alice's original edit), Bob's subscribed callback receives Alice's coweb event unchanged. Alice's callback, on the other hand, receives Bob's event with the `value` switched from `oranges` (Bob's original edit) to `apples`.
+Consider again the concurrent updates made by Alice and Bob from `bananas` to `apples` and `oranges`. As described under :ref:`ot-converge`, the engine notes the conflict between the two edits and picks a "winner" consistently on both machines. If the engine picks `apples` (Alice's original edit), Bob's subscribed callback receives Alice's coweb event unchanged. Alice's callback, on the other hand, receives Bob's event with the `value` switched from `oranges` (Bob's original edit) to `apples`.
 
 .. figure:: /images/value-openg.png
    :alt: Value adjustment for an update-update conflict.
@@ -192,7 +193,7 @@ The operation engine never adjusts the `value` property on inbound `insert` or `
 
 To illustrate this point, imagine Cathy inserts `pears` ahead of bananas in the list while Alice is busy making concurrent edits. Cathy's `insert` creates a new item which Alice has yet to receive. It is impossible for Alice to be concurrently updating, creating, or deleting the value of Cathy's new item because her application is not even aware of it yet.
 
-Now imagine Cathy deletes `bananas` while Alice is busy making edits. Cathy event carries no value only the position of the deleted item in the list. It is nonsensical for Alice's operation engine instance to add a value to it and so it leaves Alice's `delete` event alone, with `null` value.
+Now imagine Cathy deletes `bananas` while Alice is busy making edits. Cathy's event carries no value only the position of the deleted item in the list. It is nonsensical for Alice's operation engine instance to add a value to it and so it leaves Alice's `delete` event alone, with `null` value.
 
 Position adjustments
 ####################
@@ -209,14 +210,14 @@ When Bob receives Alice's event, his operation engine notes it as out-of-date an
    
    Diagram showing how the operation engine adjusts the position of the update event inbound to Bob.
 
-Continuing this example, if Cathy decides to delete `pears` while Bob changes `apples` back to `bananas`, another position adjustment will be made when Cathy receives Bob's event. In this case, Cathy's engine will subtract one from the position on Bob's event to account for her concurrent removal of the `pears` item from the top of the list.
+Continuing this example, if Cathy decides to delete `oranges` while Bob changes `apples` back to `bananas`, another position adjustment will be made when Cathy receives Bob's event. In this case, Cathy's engine will subtract one from the position on Bob's event to account for her concurrent removal of the `oranges` item from the top of the list.
 
 Dropped events
 ##############
 
 Finally, the operation engine may drop inbound events (i.e., fail to deliver them to subscribed callbacks) based on previously processed `delete` events. This adjustment resolves conflicts arising from concurrent edits to and deletions from an ordered set.
 
-Now pretend Alice deletes `bananas`, the item at position zero, while Bob changes it to `oranges`. When Bob receives Alice's event, his operation engine notes it as out-of-date and transforms it against his local update. Prior `update` events have no effect on inbound `delete` events as noted above, so the operation engine leaves Alice's event unchanged. Bob's application receives the event and deletes the first item in the shopping list.
+Now pretend Alice deletes `bananas`, the item at position zero, while Bob changes it to `oranges`. When Bob receives Alice's event, his operation engine notes it as out-of-date and transforms it against his local update. Prior `update` events have no effect on inbound `delete` events as noted in the table of transforms above, so the operation engine leaves Alice's event unchanged. Bob's application receives the event and deletes the first item in the shopping list.
 
 When Alice receives Bob's event, her operation engine transforms it against her local delete. The `position` attribute on the inbound `update` is the same as the `position` of the item she previously deleted: zero. Because its target no longer exists, the inbound `update` has no meaning so the operation engine simply drops it. Alice's application receives no notification of Bob's event, but remains in the same, matching state as Bob's.
 
