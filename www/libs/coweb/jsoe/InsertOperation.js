@@ -7,8 +7,12 @@
 define([
     'coweb/jsoe/Operation'
 ], function(Operation) {
-    var InsertOperation = function() {};
+    var InsertOperation = function(args) {
+        Operation.call(this, args);
+        this.type = 'insert';
+    };
     InsertOperation.prototype = new Operation();
+    InsertOperation.prototype.constructor = InsertOperation;
         
     /**
      * Gets the method name to use to transform another operation against this

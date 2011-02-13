@@ -85,7 +85,7 @@ define([
      * @return Context difference object
      */
     ContextVector.prototype.subtract = function(cv) {
-        var cd = new coweb.jsoe.ContextDifference();
+        var cd = new ContextDifference();
         for(var i=0; i < this.sites.length; i++) {
             var a = this.getSeqForSite(i);
             var b = cv.getSeqForSite(i);

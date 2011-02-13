@@ -8,8 +8,12 @@
 define([
     'coweb/jsoe/Operation'
 ], function(Operation) {
-    var UpdateOperation = function() {};
+    var UpdateOperation = function(args) {
+        Operation.call(this, args);
+        this.type = 'update';
+    };
     UpdateOperation.prototype = new Operation();
+    UpdateOperation.prototype.constructor = UpdateOperation;
 
     /**
      * Gets the method name to use to transform another operation against this

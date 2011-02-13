@@ -127,16 +127,16 @@ define([
             return;
         }
         var curr = this.state[op.key] || '';
-        if(op.declaredClass == 'coweb.jsoe.UpdateOperation') {
+        if(op.type == 'update') {
             var p = op.position;
             if(p >= 0) {
                 curr = curr.slice(0,p) + op.value + curr.slice(p+1);
             } else {
                 curr = op.value;
             }
-        } else if(op.declaredClass == 'coweb.jsoe.InsertOperation') {
+        } else if(op.type == 'insert') {
             curr = curr.slice(0, op.position) + op.value + curr.slice(op.position);
-        } else if(op.declaredClass == 'coweb.jsoe.DeleteOperation') {
+        } else if(op.type == 'delete') {
             curr = curr.slice(0, op.position) + curr.slice(op.position+1);
         }
         this.state[op.key] = curr;

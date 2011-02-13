@@ -76,7 +76,7 @@ define([
      */
     Operation.prototype.getState = function() {
         // use an array to minimize the wire format
-        var arr = [this.declaredClass, this.key, this.value, this.position, 
+        var arr = [this.type, this.key, this.value, this.position, 
             this.contextVector.sites, this.seqId, this.siteId];
         return arr;
     };
@@ -116,8 +116,7 @@ define([
             origPosition : this.origPosition
         };
         // respect subclasses
-        var segs = this.declaredClass.split('.');
-        var op = new coweb.jsoe[segs[2]](args);
+        var op = new this.constructor(args);
         return op;
     };
 
