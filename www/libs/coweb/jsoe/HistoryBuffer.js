@@ -5,6 +5,7 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 dojo.provide('coweb.jsoe.HistoryBuffer');
+dojo.require('coweb.jsoe.Operation');
 
 /**
  * Creates a history buffer key from a site ID and sequence ID.
@@ -61,7 +62,8 @@ dojo.declare('coweb.jsoe.HistoryBuffer', null, {
         this.ops = {};
         for(var i=0; i < arr.length; i++) {
             // restore operations
-            this.add(new coweb.jsoe.Operation({'state' : arr[i]}));
+            var op = coweb.jsoe.Operation.createFromState(arr[i]);
+            this.add(op);
         }
     },
 

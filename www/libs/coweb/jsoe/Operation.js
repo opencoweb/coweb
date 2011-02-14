@@ -179,6 +179,10 @@ dojo.declare('coweb.jsoe.Operation', null, {
  * with another.
  */
 dojo.declare('coweb.jsoe.UpdateOperation', coweb.jsoe.Operation, {
+    constructor: function() {
+        this.type = 'update';
+    },
+    
     /**
      * Gets the method name to use to transform another operation against this
      * update operation.
@@ -372,3 +376,23 @@ dojo.declare('coweb.jsoe.DeleteOperation', coweb.jsoe.Operation, {
         return this;
     }
 });
+
+// factory functions for creating op instances from type or state
+coweb.jsoe.Operation.createFromType = function(type, args) {
+    var cls;
+    if(type === 'update') {
+        cls = coweb.jsoe.UpdateOperation;
+    } else if(type === 'insert') {
+        cls = coweb.jsoe.InsertOperation;
+    } else if(type === 'delete') {
+        cls = coweb.jsoe.DeleteOperation;
+    } else {
+        throw new Error('unknown operation type');
+    }
+    return new cls(args);
+};
+
+coweb.jsoe.Operation.createFromState = function(state) {
+    var segs = state[0].split('.');
+    return new coweb.jsoe[segs[2]]({state: state});
+};

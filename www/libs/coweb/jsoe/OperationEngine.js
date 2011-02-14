@@ -31,9 +31,6 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
         this.cv = new coweb.jsoe.ContextVector({count : site+1});
         this.cvt = new coweb.jsoe.ContextVectorTable(this.cv, site);
         this.hb = new coweb.jsoe.HistoryBuffer();
-        this.typeMap = {update : coweb.jsoe.UpdateOperation,
-                        insert : coweb.jsoe.InsertOperation,
-                        'delete' : coweb.jsoe.DeleteOperation};
     },
 
     /**
@@ -95,26 +92,27 @@ dojo.declare('coweb.jsoe.OperationEngine', null, {
      * @return Operation subclass instance matching the given type
      */
     createOp: function(local, key, value, type, position, site, cv) {
-        var cls = this.typeMap[type];
-        var op;
+        var args;
         if(local) {
-            op = new cls({
+            args = {
                 key : key,
                 position : position,
                 value : value,
                 siteId : this.siteId,
-                contextVector : this.copyContextVector()});
+                contextVector : this.copyContextVector()
+            };
         } else {
             // build cv from raw sites array
             cv = new coweb.jsoe.ContextVector({sites : cv});
-            op = new cls({
+            args = {
                 key : key,
                 position : position,
                 value : value,
                 siteId : site,
-                contextVector : cv});
+                contextVector : cv
+            };
         }
-        return op;
+        return coweb.jsoe.Operation.createFromType(type, args);
     },
 
     /**
