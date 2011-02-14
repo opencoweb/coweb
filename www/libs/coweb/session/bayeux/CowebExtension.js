@@ -5,25 +5,25 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 define(function() {
-    var ext = function(args) {
+    var CowebExtension = function(args) {
         this._cometd = null;
         this._sessionid = args.sessionid;
     };
     
-    ext.prototype.registered = function(name, cometd) {
+    CowebExtension.prototype.registered = function(name, cometd) {
         this._cometd = cometd;
     };
     
-    ext.prototype.unregistered = function(name, cometd) {
+    CowebExtension.prototype.unregistered = function(name, cometd) {
         this._cometd = null;
     };
     
-    ext.prototype.outgoing = function(msg) {
+    CowebExtension.prototype.outgoing = function(msg) {
         var ext = msg.ext = msg.ext || {};
         var coweb = msg.ext.coweb = msg.ext.coweb || {};
         coweb.sessionid = this._sessionid;
         return message;
     };
 
-    return ext;
+    return CowebExtension;
 });

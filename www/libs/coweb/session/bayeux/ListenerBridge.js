@@ -6,7 +6,7 @@
 //
 /*globals org*/
 define(function() {
-    var bridge = function(args) {
+    var ListenerBridge = function(args) {
         // constants
         this.IDLE = 0;
         this.UPDATING = 1;
@@ -47,8 +47,9 @@ define(function() {
         // initial roster, cleared after first read of it
         this._roster = null;        
     };
+    var proto = ListenerBridge.prototype;
 
-    bridge.prototype.postSync = function(topic, data) {
+    proto.postSync = function(topic, data) {
         // don't send events if we're not updated yet
         if(this._state != this.UPDATED) { return; }
         // @todo: need to compare performance of this with JSON encode/decode
@@ -61,7 +62,7 @@ define(function() {
         return true;
     };
     
-    bridge.prototype.postStateResponse = function(topic, value, recipient) {
+    proto.postStateResponse = function(topic, value, recipient) {
         var state = this._stateReqs[recipient];
         // no outstanding request for state, ignore this message
         if(state === undefined) { return; }
@@ -81,7 +82,7 @@ define(function() {
         }
     };
 
-    bridge.prototype.postServiceSubscribe = function(service) {
+    proto.postServiceSubscribe = function(service) {
         var info = this._serviceSubs[service];
         if(!info) {
             // one time subscribe
@@ -94,7 +95,7 @@ define(function() {
         info.count += 1;
     };
     
-    bridge.prototype.postServiceRequest = function(service, params, topic) {
+    proto.postServiceRequest = function(service, params, topic) {
         var info = this._serviceReqs[service];
         if(!info) {
             this._serviceReqs[service] = info = {token: null, pending: {}};
@@ -107,7 +108,7 @@ define(function() {
         }
         // check for conflict in pending topics
         if(info.pending[topic]) {
-           console.warn('bayeux: conflict in bot request topics ' + topic);
+           console.warn('bayeux.ListenerBridge: conflict in bot request topics ' + topic);
            return;
         }
         // publish the bot request
@@ -119,7 +120,7 @@ define(function() {
         info.pending[topic] = true;
     };
     
-    bridge.prototype.postServiceUnsubscribe = function(service) {
+    proto.postServiceUnsubscribe = function(service) {
         var info = this._serviceSubs[service];
         if(!info) {
             // ignore, nothing to unsub
@@ -137,7 +138,7 @@ define(function() {
         }
     };
     
-    bridge.prototype.initiateUpdate = function() {
+    proto.initiateUpdate = function() {
         this._updateDef = new dojo.Deferred();
 
         // start listening for subscribe responses so we can track subscription
@@ -167,13 +168,13 @@ define(function() {
         return this._updateDef;
     };
     
-    bridge.prototype.getInitialRoster = function() {
+    proto.getInitialRoster = function() {
         var r = this._roster
         this._roster = null;
         return r;
     };
     
-    bridge.prototype._onSubscribe = function(msg) {
+    proto._onSubscribe = function(msg) {
         // check if bot subscribes were successful or not
         var topic, info, segs;
         if(!msg.successful) {
@@ -210,11 +211,11 @@ define(function() {
                 // @todo: do we need to unsubscribe? toss tokens?
                 return;
             }
-            // console.warn(this.declaredClass + ': unhandled subscription error ' + msg.error);
+            // console.warn('bayeux.ListenerBridge: unhandled subscription error ' + msg.error);
         }
     };
     
-    bridge.prototype._onPublish = function(msg) {
+    proto._onPublish = function(msg) {
         if(!msg.successful) {
             var ch = msg.channel;
             var match = this._requestRegex.exec(ch);
@@ -238,7 +239,7 @@ define(function() {
         }
     };
 
-    bridge.prototype._onServiceSessionJoin = function(msg) {
+    proto._onServiceSessionJoin = function(msg) {
         // determine channel suffix
         var suffix = msg.channel.split('/');
         suffix = suffix[suffix.length-1];
@@ -264,17 +265,17 @@ define(function() {
             }
         } else {
             // unknown message, ignore
-            console.warn('bayeux: unknown message ' + msg.channel);
+            console.warn('bayeux.ListenerBridge: unknown message ' + msg.channel);
         }
     };
 
-    bridge.prototype._onServiceSessionJoinState = function(msg) {
+    proto._onServiceSessionJoinState = function(msg) {
         // tell listener about state, one item at a time
         for(var i=0, l=msg.data.length; i < l; i++) {
             try {
                 this._listener.stateInbound(item.topic, item.value);
             } catch(e) {
-                console.warn('bayeux: application errored on received state');
+                console.warn('bayeux.ListenerBridge: application errored on received state');
                 throw e;
             }
         }
@@ -285,7 +286,7 @@ define(function() {
             try {
                 this[item.mtd](item.args);
             } catch(e) {
-                console.warn('bayeux: application errored on queued event');
+                console.warn('bayeux.ListenerBridge: application errored on queued event');
                 throw e;
             }
         }
@@ -304,8 +305,8 @@ define(function() {
         this._updateQueue = [];
     };
     
-    bridge.prototype._onSessionSync = function(msg) {
-        //console.debug('_onSessionSync:', msg);
+    proto._onSessionSync = function(msg) {
+        //console.debug('bayeux.ListenerBridge._onSessionSync:', msg);
         var d = msg.data;
         // ignore echo'ed messages
         if(d.siteId == this._siteId) {return;}
@@ -319,7 +320,7 @@ define(function() {
         this._listener.syncInbound(d.topic, d.eventData, d.siteId, 'result');        
     };
     
-    bridge.prototype._onSessionRoster = function(msg) {
+    proto._onSessionRoster = function(msg) {
         if(this._state == this.UPDATING) {
             this._updateQueue.push({
                 mtd : '_onSessionRoster',
@@ -336,11 +337,11 @@ define(function() {
             this._listener.noticeInbound(suffix, msg.data);
         } else {
             // ignore unknown message
-            console.warn('bayeux: unknown message ' + msg.channel);
+            console.warn('bayeux.ListenerBridge: unknown message ' + msg.channel);
         }
     };
     
-    bridge.prototype._onServiceSessionUpdater = function(msg) {
+    proto._onServiceSessionUpdater = function(msg) {
         // note on-going request for state
         var token = msg.data;
         this._stateReqs[token] = [];
@@ -353,30 +354,30 @@ define(function() {
         }
     };
     
-    bridge.prototype._onServiceBotPublish = function(msg) {
+    proto._onServiceBotPublish = function(msg) {
         var ch = msg.channel;
         var match = this._publicRegex.exec(ch);
         if(!match) {
-           console.warn('bayeux: unknown bot publish ' + ch);
+           console.warn('bayeux.ListenerBridge: unknown bot publish ' + ch);
            return;
         }
         var topic = coweb.SET_SERVICE + match[1];
         this._listener.syncInbound(topic, msg.data.eventData, 0, 'result');
     };
     
-    bridge.prototype._onServiceBotResponse = function(msg) {
+    proto._onServiceBotResponse = function(msg) {
         var ch = msg.channel;
         var topic = msg.data.topic;
         var match = this._privateRegex.exec(ch);    
         if(!match) {
-           console.warn('bayeux: unknown bot response ' + ch);
+           console.warn('bayeux.ListenerBridge: unknown bot response ' + ch);
            return;
         }
         // clean up tracked topic
         var info = this._serviceReqs[match[1]];
         // check topic match for good measure
         if(!info.pending[topic]) {
-            console.warn('bayeux: unknown bot response ' + ch);
+            console.warn('bayeux.ListenerBridge: unknown bot response ' + ch);
             return;
         }
         delete info.pending[topic];
@@ -384,5 +385,5 @@ define(function() {
         this._listener.syncInbound(topic, msg.data.eventData, 0, 'result');
     };
     
-    return bridge;
+    return ListenerBridge;
 });

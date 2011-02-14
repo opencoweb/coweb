@@ -8,8 +8,8 @@
 //
 define([
     'coweb/session/bayeux/SessionBridge'
-], function(bridge) {
-    var bayeux = function() {
+], function(SessionBridge) {
+    var BayeuxSession = function() {
         // vars set during runtime
         this._prepParams = null;
         this._lastPrep = null;
@@ -22,37 +22,40 @@ define([
         this._loginUrl = null;
         this._logoutUrl = null;
     };
+    var proto = BayeuxSession.prototype;
 
     /**
      * Stores parameters.
      *
      * @param params Parameters given to the session factory function
      */
-    bayeux.prototype.init = function(params) {
+    proto.init = function(params) {
         var self = this;
         // store debug and strict compat check flags for later
         this._loginUrl = params.loginUrl;
         this._logoutUrl = params.logoutUrl;
         this._debug = params.debug;
         this._listener = params.listener;
-        // create the client impl
-        this._bridge = new bridge({
+        // create the bridge impl
+        this._bridge = new SessionBridge({
             debug : this._debug,
             listener: this._listener,
             adminUrl : params.adminUrl
         });
-        // track disconnect token
-        this._disconnectTok = dojo.connect(this._bridge, 'onDisconnected', 
-            this, '_onDisconnected');
-        
-        // cleanup on destroy, important that this comes after the session
-        // controller creation so this instance can notify about the end of the
-        // session before the session connection is lost
+
+        // cleanup on page unload, try to do it as early as possible so 
+        // we can clean disconnect if possible
         var destroy = function() { self.destroy() };
+        var evt;
         if(this._bridge.supportsBeforeUnload) {
-            dojo.addOnUnload(destroy);
+            evt = 'onbeforeunload';
         } else {
-            dojo.addOnWindowUnload(destroy);
+            evt = 'onunload';
+        }
+        if(window.addEventListener) {
+            window.addEventListener(evt, destroy, false);
+        } else if(window.attachEvent) {
+            window.attachEvent(evt, destroy);
         }
     };
 
@@ -60,7 +63,7 @@ define([
     /**
      * Called on page unload to disconnect properly.
      */
-    bayeux.prototype.destroy = function() {
+    proto.destroy = function() {
         // set destroying state to avoid incorrect notifications
         this._destroying = true;
         if(this._bridge.getState() == this._bridge.UPDATED) {
@@ -80,7 +83,6 @@ define([
         this._prepParams = null;
         this._lastPrep = null;
         this._bridge = null;
-        dojo.disconnect(this._disconnectTok);
         this._disconnectTok = null;
     };
 
@@ -89,7 +91,7 @@ define([
      *
      * @return True if debugging, false if not
      */
-    bayeux.prototype.isDebug = function() {
+    proto.isDebug = function() {
         return this._debug;
     },
 
@@ -98,14 +100,14 @@ define([
      * Gets a reference to the parameters last given to prepareConference().
      * Includes any values automatically filled in for missing attributes.
      */
-    bayeux.prototype.getConferenceParams = function() {
+    proto.getConferenceParams = function() {
         return this._lastPrep;
     },
 
     /**
      * Called by an application to leave a session or abort joining it.
      */    
-    bayeux.prototype.leaveConference = function() {
+    proto.leaveConference = function() {
         var state = this._bridge.getState();
         if(state == this._bridge.UPDATED) {
             // broadcast a final hub event indicating the client is now leaving
@@ -128,7 +130,7 @@ define([
     /**
      * Called by an app to optionally authenticate with the server.
      */
-    bayeux.prototype.login = function(username, password) {
+    proto.login = function(username, password) {
         if(this._bridge.getState() != this._bridge.IDLE) {
             throw new Error('login() not valid in current state');
         }
@@ -142,7 +144,7 @@ define([
     /**
      * Called by an app to optionally logout from the server.
      */
-    bayeux.prototype.logout = function() {
+    proto.logout = function() {
         // leave the session
         this.leaveConference();
         // contact credential server to remove creds
@@ -152,7 +154,7 @@ define([
     /**
      * Called by an app to prepare a session.
      */
-    bayeux.prototype.prepareConference = function(params) {
+    proto.prepareConference = function(params) {
         if(this._bridge.getState() != this._bridge.IDLE) {
             throw new Error('prepareConference() not valid in current state');
         }
@@ -187,10 +189,15 @@ define([
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
+        var self = this;
         this._bridge.prepareConference(this._prepParams.key, 
             this._prepParams.collab)
             .addCallback(dojo.hitch(this, '_onPrepared'))
-            .addErrback(dojo.hitch(this, '_onPrepareError'));        
+            .addErrback(dojo.hitch(this, '_onPrepareError'));
+        // start listening to disconnections
+        this._bridge.disconnectDef.then(function(result) {
+            self._onDisconnected(result);
+        });
 
         // show the busy dialog for the prepare phase
         OpenAjax.hub.publish(coweb.BUSY, 'preparing');
@@ -199,7 +206,7 @@ define([
         return this._prepParams.deferred;
     },
     
-    bayeux.prototype._onPrepared = function(params) {
+    proto._onPrepared = function(params) {
         // store response
         this._prepParams.response = dojo.clone(params);
         // pull out the deferred result
@@ -225,7 +232,7 @@ define([
         }
     },
 
-    bayeux.prototype._onPrepareError = function(err) {
+    proto._onPrepareError = function(err) {
         // notify busy dialog of error; no disconnect at this stage because 
         // we're not using cometd yet
         OpenAjax.hub.publish(coweb.BUSY, err.message);
@@ -239,7 +246,7 @@ define([
     /**
      * Called by an app to join a session.
      */
-    bayeux.prototype.joinConference = function(nextDef) {
+    proto.joinConference = function(nextDef) {
         if(this._bridge.getState() != this._bridge.PREPARED) {
             throw new Error('joinConference() not valid in current state');
         }
@@ -257,7 +264,7 @@ define([
         return this._prepParams.deferred;
     },
 
-    bayeux.prototype._onJoined = function() {
+    proto._onJoined = function() {
         // pull out the deferred result
         var def = this._prepParams.deferred;
         // watch for errors during prep callback as indicators of failure to
@@ -282,7 +289,7 @@ define([
         }
     },
 
-    bayeux.prototype._onJoinError = function(err) {
+    proto._onJoinError = function(err) {
         // nothing to do, session controller goes back to idle
         var def = this._prepParams.deferred;
         this._prepParams = null;
@@ -292,7 +299,7 @@ define([
     /**
      * Called by an application to update its state in a session.
      */
-    bayeux.prototype.updateInConference = function(nextDef) {
+    proto.updateInConference = function(nextDef) {
         if(this._bridge.getState() != this._bridge.JOINED) {
             throw new Error('updateInConference() not valid in current state');
         }
@@ -309,7 +316,7 @@ define([
         return this._prepParams.deferred;
     },
 
-    bayeux.prototype._onUpdated = function() {
+    proto._onUpdated = function() {
         var prepParams = this._prepParams;
         this._prepParams = null;
         // notify session interface of update success
@@ -335,14 +342,16 @@ define([
         OpenAjax.hub.publish(coweb.READY, value);
     },
 
-    bayeux.prototype._onUpdateError = function(err) {
+    proto._onUpdateError = function(err) {
         // nothing to do yet, session goes back to idle
         var def = this._prepParams.deferred;
         this._prepParams = null;
         def.errback(err);
     },
 
-    bayeux.prototype._onDisconnected = function(state, tag) {
+    proto._onDisconnected = function(result) {
+        // pull state and tag info about of deferred result
+        var state = result.state, tag = result.tag;
         if(tag && !this._destroying) {
             // show an error in the busy dialog
             OpenAjax.hub.publish(coweb.BUSY, tag);
@@ -366,7 +375,7 @@ define([
      * Called by JS when an exception occurs in the application's successful
      * conference prepare callback. Disconnects and notifies busy.
      */
-    bayeux.prototype._onAppPrepareError = function(err) {
+    proto._onAppPrepareError = function(err) {
         console.error(err.message);
         // force a logout to get back to the idle state
         this.leaveConference();
@@ -374,5 +383,5 @@ define([
         OpenAjax.hub.publish(coweb.BUSY, 'bad-application-state');
     };
 
-    return bayeux;
+    return BayeuxSession;
 });

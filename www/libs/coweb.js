@@ -4,27 +4,32 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+if(typeof cowebConfig === 'undefined') {
+    var cowebConfig = {};
+}
+
+// mix defaults into coweb config where left undefined
+cowebConfig = {
+    sessionImpl : cowebConfig.sessionImpl || 'coweb/session/BayeuxSession',
+    listenerImpl : cowebConfig.listenerImpl || 'coweb/listener/UnmanagedHubListener',
+    collabImpl : cowebConfig.collabImpl || 'coweb/collab/UnmanagedHubCollab',
+    debug : cowebConfig.debug || false,
+    adminUrl : cowebConfig.adminUrl || '/admin',
+    loginUrl : cowebConfig.loginUrl || '/login',
+    logoutUrl : cowebConfig.logoutUrl || '/logout'    
+};
+
+// @todo: is build tool going to work with vars? find out NOW!
 define([
     'coweb/topics',
-    (typeof cowebConfig === 'undefined') ? 'coweb/session/bayeux' : (cowebConfig.sessionImpl || 'coweb/session/bayeux'),
-    (typeof cowebConfig === 'undefined') ? 'coweb/listener/unmanaged' : (cowebConfig.listenerImpl || 'coweb/listener/unmanaged'),
-    (typeof cowebConfig === 'undefined') ? 'coweb/collab/unmanaged' : (cowebConfig.collabImpl || 'coweb/collab/unmanaged')
-], function(topics, session, listener, collab) {
-    // build default config options
-    var cfg = {
-        debug : false,
-        adminUrl : '/admin',
-        loginUrl : '/login',
-        logoutUrl : '/logout'
-    };
-    // mix in any defined config options
-    if(typeof cowebConfig !== 'undefined') {
-        dojo.mixin(cfg, cowebConfig);
-    }
+    cowebConfig.sessionImpl,
+    cowebConfig.listenerImpl,
+    cowebConfig.collabImpl
+], function(topics, SessionImpl, ListenerImpl, CollabImpl) {
     // session and listener instance singletons
     var sessionInst = null;
     var listenerInst = null;
-    
+
     // factory interface
     return {
         VERSION : '0.3',
@@ -34,19 +39,19 @@ define([
                 return sessionInst;
             }
             // create the session instance
-            sessionInst = new session();
+            sessionInst = new SessionImpl();
             // create the listener instance
-            listenerInst = new listener();
+            listenerInst = new ListenerImpl();
             // initialize the listener
             listenerInst.init({session : sessionInst});
             // initialize the session
-            sessionInst.init(cfg, listenerInst);
+            sessionInst.init(cowebConfig, listenerInst);
             return sessionInst;
         },
 
         initCollab: function(params) {
             var params = params || {};
-            var collabInst = new collab();
+            var collabInst = new CollabImpl();
             collabInst.init(params)
             return collabInst;
         }

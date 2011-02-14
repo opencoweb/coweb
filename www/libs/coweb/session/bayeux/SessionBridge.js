@@ -9,8 +9,8 @@
 define([
     'coweb/session/bayeux/CowebExtension',
     'coweb/session/bayeux/ListenerBridge'
-], function(ext, lbridge) {
-    var bridge = function(args) {
+], function(CowebExtension, ListenerBridge) {
+    var SessionBridge = function(args) {
         // state constants
         DISCONNECTING = 0;
         IDLE = 1;
@@ -32,6 +32,7 @@ define([
         this._prepDef = null;
         this._joinDef = null;
         this._updateDef = null;
+        this.disconnectDef = null;
 
         // info received from server
         this._prepResponse = null;
@@ -44,14 +45,16 @@ define([
         );
 
         // build listener bridge instance
-        this._lbridgeInst = new lbridge({
+        this._bridge = new ListenerBridge({
             debug: this._debug,
             listener: this._listener,
             sessionc: this
         });
     };
+    // save typing and lookup
+    var proto = SessionBridge.prototype;
 
-    bridge.prototype.destroy = function() {
+    proto.destroy = function() {
         this._prepDef = null;
         this._joinDef = null;
         this._updateDef = null;
@@ -62,21 +65,20 @@ define([
         }
     };
 
-    bridge.prototype.getState = function() {
+    proto.getState = function() {
         return this._state;
     };
 
-    bridge.prototype.getListenerBridge = function() { 
-        return this._lbridgeInst;
-    };
-
-    bridge.prototype.prepareConference = function(key, collab) {
+    proto.prepareConference = function(key, collab) {
         // make sure we're idle
         if(this._state != this.IDLE) {
             throw new Error(this.id + ': cannot prepare in non-idle state');
         }
+        // build new disconnect deferred
+        this.disconnectDef = new dojo.Deferred();
+        // build new prepare deferred
         this._prepDef = new dojo.Deferred();
-        var data = {            
+        var data = {
             key : key,
             collab : collab
         };
@@ -100,7 +102,7 @@ define([
         return this._prepDef;
     };
 
-    bridge.prototype._onPrepareResponse = function(resp, ioargs) {
+    proto._onPrepareResponse = function(resp, ioargs) {
         if(this._state == this.PREPARING) {
             this._state = this.PREPARED;
             var def = this._prepDef;
@@ -113,7 +115,7 @@ define([
         // @todo: cleanup?
     };
     
-    bridge.prototype._onPrepareError = function(err, ioargs) {
+    proto._onPrepareError = function(err, ioargs) {
         // go back to idle state
         this._state = this.IDLE;
         var def = this._prepDef;
@@ -127,7 +129,7 @@ define([
         }
     };
 
-    bridge.prototype.joinConference = function() {
+    proto.joinConference = function() {
         if(this._state != this.PREPARED) {
             throw new Error(this.id + ': cannot join in unprepared state');
         }
@@ -136,7 +138,7 @@ define([
         // register extension to include session id in ext        
         org.cometd.unregisterExtension('coweb');
         var args = {sessionid : this._prepResponse.sessionid};
-        org.cometd.registerExtension('coweb', new ext(args));
+        org.cometd.registerExtension('coweb', new CowebExtension(args));
 
         org.cometd.configure({
             url : this._prepResponse.sessionurl, 
@@ -152,7 +154,7 @@ define([
         return this._joinDef;
     };
 
-    bridge.prototype._onSessionUnsuccessful = function(err) {
+    proto._onSessionUnsuccessful = function(err) {
         //console.debug('_onSessionUnsuccessful', err);
         // pull out error code
         var bayeuxCode = '';
@@ -182,7 +184,7 @@ define([
             }
             
             // invoke disconnected callback directly
-            this.onDisconnected(this._state, tag);
+            this._onDisconnected(this._state, tag);
             
             // force a local disconnect to avoid retries to a dead server
             this.logout();
@@ -197,7 +199,7 @@ define([
         }
     };
 
-    bridge.prototype._onSessionConnect = function(msg) {
+    proto._onSessionConnect = function(msg) {
         if(this._state == this.JOINING) {
             this._state = this.JOINED;
             var def = this._joinDef;
@@ -211,14 +213,14 @@ define([
         // @todo: other cleanup?
     };
 
-    bridge.prototype._onSessionDisconnect = function(msg) {
+    proto._onSessionDisconnect = function(msg) {
         // client requested disconnect confirmed by the server
         if(this._state != this.IDLE) {
-            this.onDisconnected(this._state, 'clean-disconnect');
+            this._onDisconnected(this._state, 'clean-disconnect');
         }
     };
     
-    bridge.prototype.updateInConference = function() {
+    proto.updateInConference = function() {
         if(this._state != this.JOINED) {
             throw new Error(this.id + ': cannot update in unjoined state');
         }
@@ -226,7 +228,7 @@ define([
         this._state = this.UPDATING;
         this._updateDef = new dojo.Deferred();
         var self = this;
-        this._lbridgeInst.initiateUpdate()
+        this._bridge.initiateUpdate()
             .addCallback(function() { 
                 self._onUpdateSuccess.apply(self, arguments)
             })
@@ -236,7 +238,7 @@ define([
         return this._updateDef;
     };
     
-    bridge.prototype._onUpdateSuccess = function() {
+    proto._onUpdateSuccess = function() {
         if(this._state == this.UPDATING) {
             this._state = this.UPDATED;
             var def = this._updateDef;
@@ -245,7 +247,7 @@ define([
         }
     };
     
-    bridge.prototype._onUpdateFailure = function(err) {
+    proto._onUpdateFailure = function(err) {
         if(this._state == this.UPDATING) {
             // do a logout to leave the session and go back to idle
             this.logout();
@@ -255,7 +257,7 @@ define([
         }
     };
 
-    bridge.prototype.logout = function(async) {
+    proto.logout = function(async) {
         // force sync logout if browser doesn't support onbeforeunload events
         async = (this.supportsBeforeUnload) ? !!async : false;
         if(this._state < this.IDLE) { 
@@ -270,15 +272,19 @@ define([
         org.cometd.disconnect(!async);
         if(this._state != this.IDLE) {
             // logout bombed, server must be dead; invoke callback manually
-            this.onDisconnected(this._state, 'clean-disconnect');
+            this._onDisconnected(this._state, 'clean-disconnect');
         }
     };
 
-    bridge.prototype.onDisconnected = function(state, tag) {
-        // extension point
+    proto._onDisconnected = function(state, tag) {
         // console.debug('onDisconnected state:', state, 'tag:', tag);
         this._state = this.IDLE;
+        // notify disconnect deferred
+        this.disconnectDef.callback({
+            state : state,
+            tag : tag
+        });
     };
 
-    return bridge;
+    return SessionBridge;
 });
