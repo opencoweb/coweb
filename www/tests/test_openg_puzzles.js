@@ -152,6 +152,40 @@ define([
             }
         }
     })();
+    
+    test('three site late join', 6, function() {
+        var a = new util.OpEngClient(0, {symbol : 'x'});
+        var b = new util.OpEngClient(1, {symbol : 'x'});
+        var c = new util.OpEngClient(2, {symbol : 'x'}, true);
+    
+        // a and b send events, not received by each other yet
+        var a1 = a.local('symbol', 'A', 'update', 0);
+        a.send(a1);
+        var b1 = b.local('symbol', 'B', 'update', 0);
+        b.send(b1);
+    
+        // join c and use state from b
+        var state = b.eng.getState();
+        c.eng.setState(state);
+        c.state.symbol = 'B';
+    
+        // notify all sites of c's existence after update
+        a.eng.thawSite(2);
+        b.eng.thawSite(2);
+    
+        // c sends an event, not received yet
+        var c1 = c.local('symbol', 'C', 'update', 0);
+        c.send(c1);
+    
+        var correct = {symbol : 'A'};
+        var sites = [a,b,c];
+        for(i=0, l=sites.length; i<l; i++) {
+            var e = sites[i];
+            e.recvAll();
+            deepEqual(e.state, correct, 'client state check');
+            equals(e.eng.getBufferSize(), 3, 'history buffer size check');
+        }
+    });
 
     test('three site puzzle #1', 6, function() {
         var a = new util.OpEngClient(0, {text : 'abc'});
