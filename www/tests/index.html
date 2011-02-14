@@ -21,19 +21,15 @@
         'coweb' : '../libs/coweb'
       }
     }, [
-      'test_openg_trans'
+      'test_openg_trans',
+      'test_openg_puzzles',
+      'test_openg_gc',
+      //'test_session',
+      //'test_openg_random'
     ], function() {
         // start qunit
         require.ready(start);
     });
-
-    // load tests
-    // dojo.require('tests.test_session');
-    // dojo.require('tests.test_openg_gc');
-    // dojo.require('tests.test_openg_puzzles');
-    // dojo.require('tests.test_openg_trans');
-    // dojo.require('tests.test_openg_random');
-    // dojo.ready(start);
     </script>
   </head>
   <body>
