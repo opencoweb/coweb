@@ -5,8 +5,8 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 define([
-    'coweb/jsoe/HistoryBuffer'
-], function(HistoryBuffer) {
+    'coweb/jsoe/factory'
+], function(factory) {
     /**
     * Stores the difference in operations between two contexts in terms of 
     * site IDs and sequence numbers.
@@ -54,7 +54,7 @@ define([
     ContextDifference.prototype.getHistoryBufferKeys = function() {
         var arr = [];
         for(var i=0, l=this.seqs.length; i < l; i++) {
-            var key = HistoryBuffer.createHistoryKey(this.sites[i], 
+            var key = factory.createHistoryKey(this.sites[i], 
                 this.seqs[i]);
             arr.push(key);
         }

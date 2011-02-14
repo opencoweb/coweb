@@ -4,7 +4,10 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-define(function() {
+define([
+    'coweb/jsoe/factory',
+    'coweb/jsoe/Operation',
+], function(factory, Operation) {
     /**
      * Stores information about local and remote operations for future 
      * transformations.
@@ -17,17 +20,6 @@ define(function() {
         this.size = 0;    
     };
 
-    /**
-     * Creates a history buffer key from a site ID and sequence ID.
-     *
-     * @param site Integer site ID
-     * @param seq Integer sequence ID at that site
-     * @return String key
-     */
-    HistoryBuffer.createHistoryKey = function(site, seq) {
-        return site + ',' + seq;
-    };
-    
     /**
      * Serializes the history buffer contents to seed a remote instance.
      *
@@ -56,8 +48,8 @@ define(function() {
         this.ops = {};
         for(var i=0; i < arr.length; i++) {
             // restore operations
-            // @todo: bug?
-            this.add(new coweb.jsoe.Operation({'state' : arr[i]}));
+            var op = factory.createOperationFromState(arr[i]);
+            this.add(op);
         }
     };
 
@@ -92,7 +84,7 @@ define(function() {
      * @param op Operation instance
      */
     HistoryBuffer.prototype.add = function(op) {
-        var key = HistoryBuffer.createHistoryKey(op.siteId, op.seqId);
+        var key = factory.createHistoryKey(op.siteId, op.seqId);
         this.ops[key] = op;
         op.immutable = true;
         ++this.size;
@@ -105,7 +97,7 @@ define(function() {
      * @return Operation removed
      */
     HistoryBuffer.prototype.remove = function(op) {
-        var key = HistoryBuffer.createHistoryKey(op.siteId, op.seqId);
+        var key = factory.createHistoryKey(op.siteId, op.seqId);
         op = this.ops[key];
         delete this.ops[key];
         op.immutable = false;

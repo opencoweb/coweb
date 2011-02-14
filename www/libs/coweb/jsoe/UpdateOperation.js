@@ -6,14 +6,16 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 define([
-    'coweb/jsoe/Operation'
-], function(Operation) {
+    'coweb/jsoe/Operation',
+    'coweb/jsoe/factory'
+], function(Operation, factory) {
     var UpdateOperation = function(args) {
         Operation.call(this, args);
         this.type = 'update';
     };
     UpdateOperation.prototype = new Operation();
     UpdateOperation.prototype.constructor = UpdateOperation;
+    factory.registerOperationForType('update', UpdateOperation);
 
     /**
      * Gets the method name to use to transform another operation against this

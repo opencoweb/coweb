@@ -33,6 +33,7 @@ define([
     var Operation = function(args) {
         if(args === undefined) {
             // abstract
+            this.type = null;
             return;
         } else if(args.state) {
             // restore from state alone
@@ -91,6 +92,7 @@ define([
         this.key = arr[1];
         this.value = arr[2];
         this.position = arr[3];
+        console.log(ContextVector);
         this.contextVector = new ContextVector({state : arr[4]});
         this.seqId = arr[5];
         this.siteId = arr[6];
@@ -185,6 +187,6 @@ define([
     Operation.prototype.transformWithDelete = function(op) {
         throw Error('transformWithDelete not implemented');
     };
-    
+
     return Operation;
 });

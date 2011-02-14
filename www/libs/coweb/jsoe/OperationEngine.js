@@ -10,11 +10,12 @@ define([
     'coweb/jsoe/ContextVectorTable',
     'coweb/jsoe/ContextVector',
     'coweb/jsoe/HistoryBuffer',
+    'coweb/jsoe/factory',
+    // load subclass to get them registered with the factory
     'coweb/jsoe/UpdateOperation',
     'coweb/jsoe/InsertOperation',
     'coweb/jsoe/DeleteOperation',
-], function(ContextVectorTable, ContextVector, HistoryBuffer, 
-    UpdateOperation, InsertOperation, DeleteOperation) {
+], function(ContextVectorTable, ContextVector, HistoryBuffer, factory) {
     /**
      * Controls the operational transformation algorithm. Provides a public
      * API for operation processing, garbage collection, engine 
@@ -26,16 +27,12 @@ define([
      * @ivar cvt Context vector table representing all conference document 
      *   states
      * @ivar hb History buffer of local and remote operations
-     * @ivar typeMap Mapping from string op names to op subclasses
      */
     var OperationEngine = function(siteId) {
         this.siteId = siteId;
         this.cv = new ContextVector({count : siteId+1});
         this.cvt = new ContextVectorTable(this.cv, siteId);
         this.hb = new HistoryBuffer();
-        this.typeMap = {update : UpdateOperation,
-                        insert : InsertOperation,
-                        'delete' : DeleteOperation};
     };
 
     /**
@@ -98,26 +95,27 @@ define([
      */
     OperationEngine.prototype.createOp = function(local, key, value, type, 
     position, site, cv) {
-        var cls = this.typeMap[type];
-        var op;
+        var args;
         if(local) {
-            op = new cls({
+            args = {
                 key : key,
                 position : position,
                 value : value,
                 siteId : this.siteId,
-                contextVector : this.copyContextVector()});
+                contextVector : this.copyContextVector()
+            };
         } else {
             // build cv from raw sites array
             cv = new ContextVector({sites : cv});
-            op = new cls({
+            args = {
                 key : key,
                 position : position,
                 value : value,
                 siteId : site,
-                contextVector : cv});
+                contextVector : cv
+            };
         }
-        return op;
+        return factory.createOperationFromType(type, args);
     },
 
     /**

@@ -5,14 +5,16 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 define([
-    'coweb/jsoe/Operation'
-], function(Operation) {
+    'coweb/jsoe/Operation',
+    'coweb/jsoe/factory'
+], function(Operation, factory) {
     var InsertOperation = function(args) {
         Operation.call(this, args);
         this.type = 'insert';
     };
     InsertOperation.prototype = new Operation();
     InsertOperation.prototype.constructor = InsertOperation;
+    factory.registerOperationForType('insert', InsertOperation);
         
     /**
      * Gets the method name to use to transform another operation against this

@@ -6,14 +6,16 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 define([
-    'coweb/jsoe/Operation'
-], function(Operation) {
+    'coweb/jsoe/Operation',
+    'coweb/jsoe/factory'
+], function(Operation, factory) {
     var DeleteOperation = function(args) {
         Operation.call(this, args);
         this.type = 'delete';
     };
     DeleteOperation.prototype = new Operation();
     DeleteOperation.prototype.constructor = DeleteOperation;
+    factory.registerOperationForType('delete', DeleteOperation);
     
     /**
      * Gets the method name to use to transform another operation against this
