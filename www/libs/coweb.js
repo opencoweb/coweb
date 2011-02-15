@@ -4,6 +4,8 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*jslint white: false */
+/*global define */
 if(typeof cowebConfig === 'undefined') {
     var cowebConfig = {};
 }
@@ -27,8 +29,8 @@ define([
     cowebConfig.collabImpl
 ], function(topics, SessionImpl, ListenerImpl, CollabImpl) {
     // session and listener instance singletons
-    var sessionInst = null;
-    var listenerInst = null;
+    var sessionInst = null,
+        listenerInst = null;
 
     // factory interface
     return {
@@ -50,9 +52,9 @@ define([
         },
 
         initCollab: function(params) {
-            var params = params || {};
+            params = params || {};
             var collabInst = new CollabImpl();
-            collabInst.init(params)
+            collabInst.init(params);
             return collabInst;
         }
     };

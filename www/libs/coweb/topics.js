@@ -4,9 +4,10 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*jslint white: false */
+/*global define */
 define(function() {
-
-    var p = 'coweb.'
+    var p = 'coweb.';
     return { 
         // prefix for all Hub messages
         PREFIX : p,
@@ -29,7 +30,7 @@ define(function() {
         READY : p+'site.ready',
         END : p+'site.end',
         // busy state topics
-        BUSY : p+'busy.change',
+        BUSY : p+'busy.change'
     };
 
 });
