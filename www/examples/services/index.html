@@ -6,7 +6,10 @@
     <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/OpenAjax.js"></script>
     <script src="../../libs/org/cometd.js"></script>
     <script src="../../libs/org/cometd/AckExtension.js"></script>
-    <script data-main="services.js" src="../../libs/require.js"></script>
+    <script src="../../libs/require.js"></script>
+    <script>
+      require({baseUrl : '../../libs'}, ['services.js']);
+    </script>
   </head>
   <body class="claro">
     <h1>Simple Service Example</h1>

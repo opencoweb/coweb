@@ -21,7 +21,7 @@ cowebConfig = {
     logoutUrl : cowebConfig.logoutUrl || '/logout'    
 };
 
-// @todo: is build tool going to work with vars? find out NOW!
+// @todo: is this build tool friendly?
 define([
     'coweb/topics',
     cowebConfig.sessionImpl,
