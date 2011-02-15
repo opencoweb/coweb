@@ -8,7 +8,7 @@ dojo.provide('coweb');
 dojo.require('coweb.topics');
 
 // version of the framework
-coweb.VERSION = '0.3';
+coweb.VERSION = '0.4';
 
 /**
  * Session factory.
