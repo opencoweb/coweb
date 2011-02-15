@@ -7,4 +7,6 @@
 .DS_Store
 docs/_build
 servers/python/build
+www/build/coweb-build
+require.js
 target/
