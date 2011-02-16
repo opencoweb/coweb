@@ -17,16 +17,18 @@ define(function() {
     };
 
     return {
-        send: function(packet) {
+        send: function(args) {
             // build xhr object
             var xhr = new window.XMLHttpRequest();
-            // attach to read state change
-            xhr.onreadystatechange = function(e) {
-                // get event and state state
-                e = e || window.event;
+            // attach to ready state change
+            xhr.onreadystatechange = function(event) {
+                // get event and ready state
+                event = event || window.event;
                 var rs = xhr.readyState;
                 // check if complete
                 if(rs === 4) {
+                    // stash xhr object into args before responding
+                    args.xhr = xhr;
                     // protect against dupe calls
                     xhr.onreadystatechange = function() {};
                     // check status
@@ -34,22 +36,26 @@ define(function() {
                     if((stat >= 200 && stat < 300) || 
                         // success is any 200 or a 304 from cache or an IE 1223
                         stat === 304 || stat === 1223) {
-                        packet.onSuccess(xhr.responseText);
+                        if(args.onSuccess) {
+                            args.onSuccess(xhr.responseText, args);
+                        }
                     } else {
                         // error on everything else
-                        var err = new Error("failed loading "+packet.url+" status:"+xhr.status);
-                        packet.onError(xhr.statusText, err);
+                        var err = new Error("failed loading "+args.url+" status:"+xhr.status);
+                        if(args.onError) {
+                            args.onError(err, args);
+                        }
                     }
                 }
             };
             // do all ops in try/catch to report all errors
             try {
-                xhr.open(packet.method, packet.url, packet.sync !== true);
-                _setHeaders(xhr, packet.headers);
-                xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-                xhr.send(packet.body);
+                xhr.open(args.method, args.url, args.sync !== true);
+                _setHeaders(xhr, args.headers);
+                xhr.send(args.body || null);
             } catch(e) {
-                packet.onError('failed sending xhr to '+packet.url, e);
+                args.onError('failed sending xhr to '+args.url, e);
+                throw e;
             }
             return xhr;
         }

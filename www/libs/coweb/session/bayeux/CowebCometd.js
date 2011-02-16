@@ -25,6 +25,8 @@ define([
         // implement abstract method
         that.xhrSend = function(packet) {
             packet.method = 'POST';
+            packet.headers = packet.headers || {};
+            packet.headers['Content-Type'] = 'application/json;charset=UTF-8';
             return xhr.send(packet);
         };
         return that;
