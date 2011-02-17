@@ -6,6 +6,8 @@ COMETD_TAR="cometd-2.1.0-distribution.tar.gz"
 OAAHUB_ZIP="OpenAjaxHub1.0_build117_v1.0.zip"
 DOJO_WAR_PATH="cometd-2.1.0/cometd-javascript/dojo/target/cometd-javascript-dojo-2.1.0.war"
 OAAHUB_PATH="OpenAjaxHub1.0_build117_v1.0/release/OpenAjax.js"
+COMETD_PATH="org/cometd.js"
+COMETDACK_PATH="org/cometd.js"
 CURL_PATH="which curl"
 WGET_PATH="which wget"
 SCRIPT_PATH="$( cd "$( dirname "$0" )" && pwd )"
@@ -20,40 +22,31 @@ else
     fi
 fi
 
+function fetch () {
+    echo "progress: fetching $1 ..."
+    if $CURL_PATH; then
+        curl "$1" > "$2"
+    elif $WGET_PATH; then
+        wget "$1" -O "$2"
+    else
+        echo "error: curl or wget not available"
+        exit 1
+    fi
+}
+
+# fetch cometd if not fetched
 if [ ! -f "$SCRIPT_PATH/$COMETD_TAR" ]; then
-    # download the latest release
-    if $CURL_PATH; then
-        curl $COMETD_URL > "$SCRIPT_PATH/$COMETD_TAR"
-        curl $OAAHUB_URL > "$SCRIPT_PATH/$OAAHUB_ZIP"
-    elif $WGET_PATH; then
-        wget $COMETD_URL -O "$SCRIPT_PATH/$COMETD_TAR"
-        wget $OAAHUB_URL -O "$SCRIPT_PATH/$OAAHUB_ZIP"
-    else
-        echo "error: curl or wget not available"
-        exit 1
-    fi
+    fetch "$COMETD_URL" "$SCRIPT_PATH/$COMETD_TAR"
 fi
 
+# fetch oaa hub if not fetched
 if [ ! -f "$SCRIPT_PATH/$OAAHUB_ZIP" ]; then
-    # download the latest release
-    if $CURL_PATH; then
-        curl $OAAHUB_URL > "$SCRIPT_PATH/$OAAHUB_ZIP"
-    elif $WGET_PATH; then
-        wget $OAAHUB_URL -O "$SCRIPT_PATH/$OAAHUB_ZIP"
-    else
-        echo "error: curl or wget not available"
-        exit 1
-    fi
+    fetch "$OAAHUB_URL" "$SCRIPT_PATH/$OAAHUB_ZIP"
 fi
 
-# download the latest release
-if $CURL_PATH; then
-    curl $REQUIREJS_URL > "$SCRIPT_PATH/require.js"
-elif $WGET_PATH; then
-    wget $REQUIREJS_URL -O "$SCRIPT_PATH/require.js"
-else
-    echo "error: curl or wget not available"
-    exit 1
+# fetch require.js if not fetched
+if [ ! -f "$SCRIPT_PATH/require.js" ]; then
+    fetch "$REQUIREJS_URL" "$SCRIPT_PATH/require.js"
 fi
 
 # go to temp folder
@@ -65,19 +58,35 @@ unzip "$SCRIPT_PATH/$OAAHUB_ZIP" -d "$WORK_PATH"
 
 echo "progress: working in $WORK_PATH"
 cd "$WORK_PATH"
+
 # unpack the cometd js resources needed
 unzip -q "$DOJO_WAR_PATH"
+
+# wrap oaa hub for amd
+echo "define(function () {" > amd
+cat "$OAAHUB_PATH" >> amd
+echo "return OpenAjax;
+});" >> amd
+mv amd "$OAAHUB_PATH"
+
+# wrap cometd for amd
+echo "define(function () {" > amd
+cat "$COMETD_PATH" >> amd
+cat "$COMETDACK_PATH" >> amd
+echo "return org.cometd;
+});" >> amd
+mv amd "$COMETD_PATH"
+
 # move portions needed into www folder
 # only overwrite what we need to, try to preserve everything else
 mkdir "${SRC_PATH}/libs"
 mkdir "${SRC_PATH}/libs/org"
 rm -r "${SRC_PATH}/libs/org/cometd"
-mv org/cometd "${SRC_PATH}/libs/org"
-mv org/cometd.js "${SRC_PATH}/libs/org/cometd"
-mv "${OAAHUB_PATH}" "${SRC_PATH}/libs/org"
-mv "${SCRIPT_PATH}/require.js" "${SRC_PATH}/libs/"
+mv "${COMETD_PATH}" "${SRC_PATH}/libs/org/"
+mv "${OAAHUB_PATH}" "${SRC_PATH}/libs/org/"
+cp "${SCRIPT_PATH}/require.js" "${SRC_PATH}/libs/"
 
 # cleanup temp path
 rm -r "$WORK_PATH"
 
-echo "done: created org/cometd and dojox/cometd in ${SRC_PATH}/libs"
+echo "done: put dependencies in ${SRC_PATH}/libs"
