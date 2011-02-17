@@ -9,13 +9,13 @@ require({baseUrl : '../../libs'}, [
 ], function(coweb) {
 
     /* Logs info about a response to a bot request. */
-    function _onBotResponse(serviceName, id, value, error) {
+    var _onBotResponse = function(serviceName, id, value, error) {
         console.log(serviceName, 'responded to collab.id:', id, 'value:', 
             value, 'error:', error);
     }
 
     /* Logs info about a message published to all users by a bot. */
-    function _onBotPublish(serviceName, id, value, error) {
+    var _onBotPublish = function(serviceName, id, value, error) {
         console.log(serviceName, 'published to collab.id:', id, 'value:', 
             value, 'error:', error);
     } 
@@ -23,7 +23,7 @@ require({baseUrl : '../../libs'}, [
     /* Builds a function that invokes the echo bot using the given collab API
      * instance. 
      */
-    function _makeEchoFunc(collab) {
+    var _makeEchoFunc = function(collab) {
         return function(text) {
             collab.postService('echo', {message : text}, 
                 dojo.partial(_onBotResponse, 'echo', collab.id));
@@ -33,7 +33,7 @@ require({baseUrl : '../../libs'}, [
     /* Builds a function that invokes the utctime bot using the given collab API
      * instance. 
      */
-    function _makeTimeFunc(collab) {
+    var _makeTimeFunc = function(collab) {
         return function() {
             collab.postService('utctime', {}, 
                 dojo.partial(_onBotResponse, 'utctime', collab.id));
@@ -41,7 +41,7 @@ require({baseUrl : '../../libs'}, [
     }
 
     /* Subscribes the collab instances to the echo and utctime services. */
-    function _onCollabReady(collab) {
+    var _onCollabReady = function(collab) {
         // listen on both interfaces to echo service
         collab.subscribeService('echo', 
             dojo.partial(_onBotPublish, 'echo', collab.id));
@@ -50,7 +50,6 @@ require({baseUrl : '../../libs'}, [
     }
 
     require.ready(function() {
-    
         // build a couple collab interfaces
         // collab1 = coweb.initCollab({id : 'collab1'});
         // collab1.subscribeConferenceReady(dojo.partial(_onCollabReady, collab1));
