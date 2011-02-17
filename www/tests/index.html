@@ -4,11 +4,8 @@
     <meta charset="utf-8" />
     <title>OpenCoweb JS tests</title>
     <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
-    <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/OpenAjax.js"></script>
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="http://code.jquery.com/qunit/git/qunit.js"></script>
-    <script src="../libs/org/cometd.js"></script>
-    <script src="../libs/org/cometd/AckExtension.js"></script>
     <script src="../libs/require.js"></script>
     <script type="text/javascript">
     // don't run until requirejs says run
@@ -18,13 +15,16 @@
     require({
       baseUrl : '.',
       paths : {
-        'coweb' : '../libs/coweb'
+        'coweb' : '../libs/coweb',
+        'org' : '../libs/org',
       }
     }, [
       'test_openg_trans',
       'test_openg_puzzles',
       'test_openg_gc',
-      'test_xhr'
+      'test_xhr',
+      'test_unhub_collab',
+      'test_promise'
       //'test_session',
       //'test_openg_random'
     ], function() {
