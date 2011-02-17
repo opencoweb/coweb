@@ -4,6 +4,7 @@
 *.war
 *.jar
 *egg-info*
+*.zip
 .DS_Store
 docs/_build
 servers/python/build
