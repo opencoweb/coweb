@@ -7,23 +7,24 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 define([
+    'coweb/topics',
     'org/OpenAjax'
-], function(OpenAjax) {
+], function(topics, OpenAjax) {
     var UnmanagedHubCollab = function() {
         this.mutex = false;
         this.service_id = 0;
         this.tokens = [];
     };
     // save the finger joints
-    var methods = UnmanagedHubCollab.prototype;
+    var proto = UnmanagedHubCollab.prototype;
 
     /**
      * Stores the collaboration instance ID.
      *
      * @param params Parameter given to the collab wrapper factory function
      */    
-    methods.init = function(params) {
-        if(params.id === undefined) {
+    proto.init = function(params) {
+        if(!params || params.id === undefined) {
             throw new Error('collab id required');
         }
         this.id = params.id;
@@ -35,20 +36,19 @@ define([
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    methods.subscribeConferenceReady = function(context, callback) {
+    proto.subscribeConferenceReady = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
         }
-        if(dojo.isString(callback)) {
+        if(typeof callback !== 'function') {
             callback = context[callback];
         }
-        var topic = coweb.READY;
-        var tok = OpenAjax.hub.subscribe(topic, dojo.hitch(this,
-            function(topic, params) {
+        var topic = topics.READY;
+        var tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
                 callback.call(context, params);
-            })
-        );
+            }
+        , this);
         this.tokens.push(tok);
         var def = new dojo.Deferred();
         def._cowebToken = tok;
@@ -62,7 +62,7 @@ define([
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    methods.subscribeConferenceEnd = function(context, callback) {
+    proto.subscribeConferenceEnd = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
@@ -89,7 +89,7 @@ define([
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    methods.subscribeSiteJoin = function(context, callback) {
+    proto.subscribeSiteJoin = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
@@ -116,7 +116,7 @@ define([
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    methods.subscribeSiteLeave = function(context, callback) {
+    proto.subscribeSiteLeave = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
@@ -146,7 +146,7 @@ define([
      * @param type String type of change or null
      * @param position Integer position of the change
      */
-    methods.sendSync = function(name, value, type, position) {
+    proto.sendSync = function(name, value, type, position) {
         if(this.id === null) {
             throw new Error('collab API uninitialized - call init first');
         }
@@ -172,7 +172,7 @@ define([
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    methods.subscribeSync = function(name, context, callback) {
+    proto.subscribeSync = function(name, context, callback) {
         if(this.id === null) {
             throw new Error('collab API uninitialized - call init first');
         }
@@ -206,7 +206,7 @@ define([
      * @param topic String response topic coweb.sync.**
      * @return String state name
      */
-    methods.getSyncNameFromTopic = function(topic) {
+    proto.getSyncNameFromTopic = function(topic) {
          return topic.substring(coweb.SYNC.length, 
              topic.length-this.id.length-1);
     };
@@ -217,7 +217,7 @@ define([
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */
-    methods.subscribeStateRequest = function(context, callback) {
+    proto.subscribeStateRequest = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
@@ -246,7 +246,7 @@ define([
      * @param token String opaque token from the original request
      * @return dojo.Deferred which always notifies success
      */
-    methods.sendStateResponse = function(state, token) {
+    proto.sendStateResponse = function(state, token) {
         if(this.id === null) {
             throw new Error('collab API uninitialized - call init first');
         }
@@ -268,7 +268,7 @@ define([
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */    
-    methods.subscribeStateResponse = function(context, callback) {
+    proto.subscribeStateResponse = function(context, callback) {
         if(this.id === null) {
             throw new Error('collab API uninitialized - call init first');
         }
@@ -304,10 +304,7 @@ define([
      *   subscribeService indicating a callback to reuse
      * @return dojo.Deferred which always notifies success
      */
-    methods.subscribeService = function(service, context, callback) {
-        if(this.id === null) {
-            throw new Error('collab API uninitialized - call init first');
-        }
+    proto.subscribeService = function(service, context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
@@ -354,7 +351,7 @@ define([
      * @param callback Function to invoke
      * @return dojo.Deferred which always notifies success
      */    
-    methods.postService = function(service, params, context, callback) {
+    proto.postService = function(service, params, context, callback) {
         if(this.id === null) {
             throw new Error('collab API uninitialized - call init first');
         }
@@ -400,7 +397,7 @@ define([
      * @param params Object with value, type, position, and site
      * @return dojo.Deferred which always notifies success
      */
-    methods._cowebServiceResponse = function(topic, params, sub_data) {
+    proto._cowebServiceResponse = function(topic, params, sub_data) {
         // invoke the real callback
         try {
             sub_data.callback.call(sub_data.context, params.value, params.error);
@@ -424,7 +421,7 @@ define([
      * @param def dojo.Deferred returned by the method that created the
      *   subscription
      */
-    methods.unsubscribe = function(def) {
+    proto.unsubscribe = function(def) {
         if(!def) { 
             return;
         } else if(def._cowebToken && def._cowebToken.hub_token) {
@@ -453,7 +450,7 @@ define([
     /**
      * Removes all subscriptions created via this interface.
      */
-    methods.unsubscribeAll = function() {
+    proto.unsubscribeAll = function() {
         for(var i=0, l=this.tokens.length; i < l; i++) {
             OpenAjax.hub.unsubscribe(this.tokens[i]);
         }
