@@ -5,10 +5,7 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 require({baseUrl : '../../libs'}, [
-    'coweb/main',
-    'http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/OpenAjax.js',
-    '../../libs/org/cometd.js',
-    '../../libs/org/cometd/AckExtension.js'
+    'coweb/main'
 ], function(coweb) {
 
     /* Logs info about a response to a bot request. */
