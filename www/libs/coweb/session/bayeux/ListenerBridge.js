@@ -7,7 +7,9 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 /*globals org*/
-define(function() {
+define([
+    'org/cometd',
+], function() {
     var ListenerBridge = function(args) {
         // constants
         this.IDLE = 0;

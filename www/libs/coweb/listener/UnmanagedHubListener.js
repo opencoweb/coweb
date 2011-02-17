@@ -8,20 +8,9 @@
 //
 define([
     'coweb/topics',
-    'coweb/jsoe/OperationEngine'
-], function(topics, OperationEngine) {
-    // detect OpenAjax Hub 1.0
-    var version;
-    try {
-        version = OpenAjax.hub.implVersion;
-        if(version !== '1.0' && version !== '0.6') {
-            throw new Error();
-        }
-    } catch(e) {
-        // throw an error; need Hub for all of our implementations
-        throw new Error('OpenAjax Hub 1.0 not loaded');
-    }
-    
+    'coweb/jsoe/OperationEngine',
+    'org/OpenAjax'
+], function(topics, OperationEngine, OpenAjax) {    
     // purge interval constants
     var SYNC_INTERVAL = 10000;
     var PURGE_INTERVAL = 10000;

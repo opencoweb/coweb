@@ -6,19 +6,9 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-define(function() {
-    // detect OpenAjax Hub 1.0
-    var version;
-    try {
-        version = OpenAjax.hub.implVersion;
-        if(version !== '1.0' && version !== '0.6') {
-            throw new Error();
-        }
-    } catch(e) {
-        // throw an error; need Hub for all of our implementations
-        throw new Error('OpenAjax Hub 1.0 not loaded');
-    }
-
+define([
+    'org/OpenAjax'
+], function(OpenAjax) {
     var UnmanagedHubCollab = function() {
         this.mutex = false;
         this.service_id = 0;

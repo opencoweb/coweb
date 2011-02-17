@@ -8,8 +8,9 @@
 //
 define([
     'coweb/session/bayeux/CowebExtension',
-    'coweb/session/bayeux/ListenerBridge'
-], function(CowebExtension, ListenerBridge) {
+    'coweb/session/bayeux/ListenerBridge',
+    'org/cometd'
+], function(CowebExtension, ListenerBridge, cometd) {
     var SessionBridge = function(args) {
         // state constants
         DISCONNECTING = 0;
