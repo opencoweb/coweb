@@ -25,13 +25,12 @@ class DevInstall(setup_emptyenv.EmptyInstall):
         # symlink www/libs/coweb into home_dir/www/libs
         libs = os.path.abspath('../../www/libs/')
         os.symlink(os.path.join(libs, 'coweb'), os.path.join(paths.www, 'libs', 'coweb'))
-        os.symlink(os.path.join(libs, 'coweb.js'), os.path.join(paths.www, 'libs', 'coweb.js'))
         # symlink examples into home_dir/www
-        exs = os.path.abspath('../../www/examples/')
-        os.symlink(exs, os.path.join(paths.www, 'examples'))
+        src = os.path.abspath('../../www/examples/')
+        os.symlink(src, os.path.join(paths.www, 'examples'))
         # symlink tests into home_dir/www
-        exs = os.path.abspath('../../www/tests/')
-        os.symlink(exs, os.path.join(paths.www, 'tests'))
+        src = os.path.abspath('../../www/tests/')
+        os.symlink(src, os.path.join(paths.www, 'tests'))
         # symlink bots into home_dir/bots
         bots = os.path.abspath('bots')
         try:

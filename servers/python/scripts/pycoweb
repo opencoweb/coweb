@@ -30,7 +30,7 @@ def init(options):
     with file(outPath, 'w') as f:
         f.write(text)
         os.fchmod(f.fileno(), stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP)
-    print 'Created coweb script at: %s' % outPath
+    print 'wrote coweb script at: %s' % outPath
 
 def run():
     parser = optparse.OptionParser('usage: %prog init [options]')
