@@ -2,8 +2,6 @@
 // Binding for CometD that uses pure browser features, no toolkits.
 // Assumes org.cometd loaded independently. 
 //
-// @todo: factor xhr code out into util for reuse in prep, login, logout
-//
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
