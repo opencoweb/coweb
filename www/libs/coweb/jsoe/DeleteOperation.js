@@ -5,6 +5,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define*/
 define([
     'coweb/jsoe/Operation',
     'coweb/jsoe/factory'
@@ -44,7 +45,7 @@ define([
      * @return This instance
      */
     DeleteOperation.prototype.transformWithInsert = function(op) {
-        if(this.key != op.key) {
+        if(this.key !== op.key) {
             return this;
         }
         if(this.position >= op.position) {
@@ -60,12 +61,12 @@ define([
      * @return This instance or null
      */
     DeleteOperation.prototype.transformWithDelete = function(op) {
-        if(this.key != op.key) {
+        if(this.key !== op.key) {
             return this;
         }
         if(this.position > op.position) {
             --this.position;
-        } else if(this.position == op.position) {
+        } else if(this.position === op.position) {
             return null;
         }
         return this;

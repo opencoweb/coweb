@@ -4,6 +4,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define*/
 define([
     'coweb/jsoe/ContextVector'
 ], function(ContextVector) {
@@ -33,6 +34,7 @@ define([
     ContextVectorTable.prototype.toString = function() {
         var arr = [];
         for(var i = 0, l = this.cvt.length; i++; i < l) {
+            var cv = this.cvt[i];
             arr[i] = cv.toString();
         }
         return arr.toString();
@@ -49,7 +51,7 @@ define([
     ContextVectorTable.prototype.getEquivalents = function(cv, skip) {
         var equiv = [];
         for(var i=0, l=this.cvt.length; i < l; i++) {
-            if(i != skip && this.cvt[i] == cv) {
+            if(i !== skip && this.cvt[i] === cv) {
                 equiv.push(i);
             }
         }

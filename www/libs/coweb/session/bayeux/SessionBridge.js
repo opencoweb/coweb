@@ -4,6 +4,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define*/
 define([
     'coweb/session/bayeux/cometd',
     'coweb/session/bayeux/CowebExtension',
@@ -13,14 +14,14 @@ define([
 ], function(cometd, CowebExtension, ListenerBridge, Promise, xhr) {
     var SessionBridge = function(args) {
         // state constants
-        DISCONNECTING = 0;
-        IDLE = 1;
-        PREPARING = 2;
-        PREPARED = 3;
-        JOINING = 4;
-        JOINED = 5;
-        UPDATING = 6;
-        UPDATED = 7;
+        this.DISCONNECTING = 0;
+        this.IDLE = 1;
+        this.PREPARING = 2;
+        this.PREPARED = 3;
+        this.JOINING = 4;
+        this.JOINED = 5;
+        this.UPDATING = 6;
+        this.UPDATED = 7;
 
         // init variables
         this._listener = args.listener;
@@ -60,7 +61,7 @@ define([
         this._joinDef = null;
         this._updateDef = null;
         this._listener = null;
-        if(this._state != this.IDLE) {
+        if(this._state !== this.IDLE) {
             // force a logout
             this.logout();
         }
@@ -72,7 +73,7 @@ define([
 
     proto.prepareConference = function(key, collab) {
         // make sure we're idle
-        if(this._state != this.IDLE) {
+        if(this._state !== this.IDLE) {
             throw new Error(this.id + ': cannot prepare in non-idle state');
         }
         // build new disconnect deferred
@@ -106,7 +107,7 @@ define([
 
     proto._onPrepareResponse = function(text) {
         var resp = JSON.parse(text);
-        if(this._state == this.PREPARING) {
+        if(this._state === this.PREPARING) {
             this._state = this.PREPARED;
             var def = this._prepDef;
             this._prepDef = null;
@@ -124,7 +125,7 @@ define([
         var def = this._prepDef;
         this._prepDef = null;
         var s = ioargs.xhr.status;
-        if(s == 403 || s == 401) {
+        if(s === 403 || s === 401) {
             // need to auth
             def.errback(new Error('not-allowed'));
         } else {
@@ -133,7 +134,7 @@ define([
     };
 
     proto.joinConference = function() {
-        if(this._state != this.PREPARED) {
+        if(this._state !== this.PREPARED) {
             throw new Error(this.id + ': cannot join in unprepared state');
         }
 
@@ -167,7 +168,7 @@ define([
         
         var tag;
         // @todo: handle 402, 412
-        if(bayeuxCode == '500') {
+        if(bayeuxCode === '500') {
             // unexpected server error
             this.onDisconnected(this._state, 'stream-error');
             // force a disconnect to avoid more communication
@@ -175,7 +176,7 @@ define([
         } else if(err.xhr && this._state > this.IDLE) {
             // low level error
             var httpCode = err.xhr.status;
-            if(httpCode === 403 || httpCode == 401) {
+            if(httpCode === 403 || httpCode === 401) {
                 // missing auth error
                 tag = 'not-allowed';
             } else if(httpCode === 0) {
@@ -203,7 +204,7 @@ define([
     };
 
     proto._onSessionConnect = function(msg) {
-        if(this._state == this.JOINING) {
+        if(this._state === this.JOINING) {
             this._state = this.JOINED;
             var def = this._joinDef;
             this._joinDef = null;
@@ -218,13 +219,13 @@ define([
 
     proto._onSessionDisconnect = function(msg) {
         // client requested disconnect confirmed by the server
-        if(this._state != this.IDLE) {
+        if(this._state !== this.IDLE) {
             this._onDisconnected(this._state, 'clean-disconnect');
         }
     };
     
     proto.updateInConference = function() {
-        if(this._state != this.JOINED) {
+        if(this._state !== this.JOINED) {
             throw new Error(this.id + ': cannot update in unjoined state');
         }
         
@@ -236,7 +237,7 @@ define([
     };
     
     proto._onUpdateSuccess = function() {
-        if(this._state == this.UPDATING) {
+        if(this._state === this.UPDATING) {
             this._state = this.UPDATED;
             var def = this._updateDef;
             this._updateDef = null;
@@ -245,7 +246,7 @@ define([
     };
     
     proto._onUpdateFailure = function(err) {
-        if(this._state == this.UPDATING) {
+        if(this._state === this.UPDATING) {
             // do a logout to leave the session and go back to idle
             this.logout();
             var def = this._updateDef;
@@ -260,14 +261,14 @@ define([
         if(this._state < this.IDLE) { 
             // ignore if already disconnecting
             return;
-        } else if(this._state == this.IDLE) {
+        } else if(this._state === this.IDLE) {
             // do the disconnect without any tracking
             cometd.disconnect(!async);
             return;
         }
         this._state = this.DISCONNECTING;
         cometd.disconnect(!async);
-        if(this._state != this.IDLE) {
+        if(this._state !== this.IDLE) {
             // logout bombed, server must be dead; invoke callback manually
             this._onDisconnected(this._state, 'clean-disconnect');
         }

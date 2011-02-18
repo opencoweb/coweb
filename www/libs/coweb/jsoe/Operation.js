@@ -7,6 +7,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define*/
 define([
     'coweb/jsoe/ContextVector'
 ], function(ContextVector) {
@@ -158,7 +159,7 @@ define([
      * Abstract implementation always throws an exception if not overriden.
      */ 
     Operation.prototype.transformMethod = function() {
-        throw Error('transformMethod not implemented');
+        throw new Error('transformMethod not implemented');
     };
 
     /**
@@ -167,7 +168,7 @@ define([
      * Abstract implementation always throws an exception if not overriden.
      */ 
     Operation.prototype.transformWithUpdate = function(op) {
-        throw Error('transformWithUpdate not implemented');
+        throw new Error('transformWithUpdate not implemented');
     };
 
     /**
@@ -176,7 +177,7 @@ define([
      * Abstract implementation always throws an exception if not overriden.
      */ 
     Operation.prototype.transformWithInsert = function(op) {
-        throw Error('transformWithInsert not implemented');
+        throw new Error('transformWithInsert not implemented');
     };
 
     /**
@@ -185,7 +186,7 @@ define([
      * Abstract implementation always throws an exception if not overriden.
      */ 
     Operation.prototype.transformWithDelete = function(op) {
-        throw Error('transformWithDelete not implemented');
+        throw new Error('transformWithDelete not implemented');
     };
 
     return Operation;

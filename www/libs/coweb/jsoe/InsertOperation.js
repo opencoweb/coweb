@@ -4,6 +4,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define*/
 define([
     'coweb/jsoe/Operation',
     'coweb/jsoe/factory'
@@ -43,22 +44,22 @@ define([
      * @return This instance
      */
     InsertOperation.prototype.transformWithInsert = function(op) {
-        if(this.key != op.key) {
+        if(this.key !== op.key) {
             return this;
         }
 
         if(this.position > op.position) {
             ++this.position;
-        } else if(this.position == op.position) {
+        } else if(this.position === op.position) {
             if(this.origPosition > op.origPosition) {
                 // adjust local position if other's position is earlier
                 ++this.position;
-            } else if(this.origPosition == op.origPosition) {
+            } else if(this.origPosition === op.origPosition) {
                 var rv = this.origContextVector.compare(op.origContextVector);
                 if(rv < 0) {
                     // adjust local position if other's original context is later
                     ++this.position;
-                } else if(rv == 0 && this.siteId > op.siteId) {
+                } else if(rv === 0 && this.siteId > op.siteId) {
                     ++this.position;
                 }
             }
@@ -73,7 +74,7 @@ define([
      * @return This instance or null
      */
     InsertOperation.prototype.transformWithDelete = function(op) {
-        if(this.key != op.key) {
+        if(this.key !== op.key) {
             return this;
         }
         if(this.position > op.position) {

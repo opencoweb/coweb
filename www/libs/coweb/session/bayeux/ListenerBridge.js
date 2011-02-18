@@ -4,11 +4,12 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-/*globals org*/
+/*global define*/
 define([
     'coweb/session/bayeux/cometd',
-    'coweb/util/Promise'
-], function(cometd, Promise) {
+    'coweb/util/Promise',
+    'coweb/topics'
+], function(cometd, Promise, topics) {
     var ListenerBridge = function(args) {
         // constants
         this.IDLE = 0;
@@ -54,7 +55,7 @@ define([
 
     proto.postSync = function(topic, data) {
         // don't send events if we're not updated yet
-        if(this._state != this.UPDATED) { return; }
+        if(this._state !== this.UPDATED) { return; }
         // @todo: performance
         data = JSON.stringify(JSON.parse(data));
         // publish to server
@@ -69,7 +70,7 @@ define([
         var state = this._stateReqs[recipient];
         // no outstanding request for state, ignore this message
         if(state === undefined) { return; }
-        if(topic != coweb.END_STATE) {
+        if(topic !== topics.END_STATE) {
             // hold onto state
             // @todo: performance
             value = JSON.stringify(JSON.parse(value));
@@ -173,7 +174,7 @@ define([
     };
     
     proto.getInitialRoster = function() {
-        var r = this._roster
+        var r = this._roster;
         this._roster = null;
         return r;
     };
@@ -195,7 +196,9 @@ define([
                 segs = msg.error.split(':');
                 // inform all callbacks of error
                 for(topic in info.pending) {
-                    this._listener.syncInbound(topic, segs[2], 0, 'error');
+                    if(info.pending.hasOwnProperty(topic)) {
+                        this._listener.syncInbound(topic, segs[2], 0, 'error');
+                    }
                 }
                 // reset list of topics pending responses
                 info.pending = {};
@@ -204,7 +207,7 @@ define([
             match = this._publicRegex.exec(ch);
             if(match) {
                 // error subscribing to public bot channel
-                topic = coweb.SET_SERVICE + match[1];
+                topic = topics.SET_SERVICE + match[1];
                 // toss the subscription token
                 info = this._serviceSubs[match[1]];
                 // remove local listener only, sub never happened on server
@@ -234,7 +237,9 @@ define([
                 var segs = msg.error.split(':');
                 // inform all callbacks of error
                 for(var topic in info.pending) {
-                    this._listener.syncInbound(topic, segs[2], 0, 'error');
+                    if(info.pending.hasOwnProperty(topic)) {
+                        this._listener.syncInbound(topic, segs[2], 0, 'error');
+                    }
                 }
                 // reset list of topics pending responses
                 info.pending = {};
@@ -248,14 +253,14 @@ define([
         var suffix = msg.channel.split('/');
         suffix = suffix[suffix.length-1];
         
-        if(suffix == 'siteid') {
+        if(suffix === 'siteid') {
             this._siteId = msg.data;
             // tell listener about site ID
             this._listener.setSiteID(msg.data);
-        } else if(suffix == 'roster') {
+        } else if(suffix === 'roster') {
             // store initial roster until we're ready
             this._roster = msg.data;
-        } else if(suffix == 'state') {
+        } else if(suffix === 'state') {
             // handle state messages
             var def = this._updateDef;
             this._updateDef = null;
@@ -274,24 +279,26 @@ define([
     };
 
     proto._onServiceSessionJoinState = function(msg) {
+        var i, l, item;
         // tell listener about state, one item at a time
-        for(var i=0, l=msg.data.length; i < l; i++) {
+        for(i=0, l=msg.data.length; i < l; i++) {
+            item = msg.data[i];
             try {
                 this._listener.stateInbound(item.topic, item.value);
-            } catch(e) {
+            } catch(e1) {
                 console.warn('bayeux.ListenerBridge: application errored on received state');
-                throw e;
+                throw e1;
             }
         }
         
-        
         // process all queued events
-        for(var i=0, l=this._updateQueue.length; i < l; i++) {
+        for(i=0, l=this._updateQueue.length; i < l; i++) {
+            item = this._updateQueue[i];
             try {
                 this[item.mtd](item.args);
-            } catch(e) {
+            } catch(e2) {
                 console.warn('bayeux.ListenerBridge: application errored on queued event');
-                throw e;
+                throw e2;
             }
         }
 
@@ -313,8 +320,8 @@ define([
         //console.debug('bayeux.ListenerBridge._onSessionSync:', msg);
         var d = msg.data;
         // ignore echo'ed messages
-        if(d.siteId == this._siteId) {return;}
-        if(this._state == this.UPDATING) {
+        if(d.siteId === this._siteId) {return;}
+        if(this._state === this.UPDATING) {
             this._updateQueue.push({
                 mtd : '_onSessionSync',
                 args : msg
@@ -325,7 +332,7 @@ define([
     };
     
     proto._onSessionRoster = function(msg) {
-        if(this._state == this.UPDATING) {
+        if(this._state === this.UPDATING) {
             this._updateQueue.push({
                 mtd : '_onSessionRoster',
                 args : msg
@@ -337,7 +344,7 @@ define([
         var suffix = msg.channel.split('/');
         suffix = suffix[suffix.length-1];
         
-        if(suffix == 'available' || suffix == 'unavailable') {
+        if(suffix === 'available' || suffix === 'unavailable') {
             this._listener.noticeInbound(suffix, msg.data);
         } else {
             // ignore unknown message
@@ -365,7 +372,7 @@ define([
            console.warn('bayeux.ListenerBridge: unknown bot publish ' + ch);
            return;
         }
-        var topic = coweb.SET_SERVICE + match[1];
+        var topic = topics.SET_SERVICE + match[1];
         this._listener.syncInbound(topic, msg.data.eventData, 0, 'result');
     };
     

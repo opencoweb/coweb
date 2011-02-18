@@ -4,9 +4,10 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define*/
 define([
     'coweb/jsoe/factory',
-    'coweb/jsoe/Operation',
+    'coweb/jsoe/Operation'
 ], function(factory, Operation) {
     /**
      * Stores information about local and remote operations for future 
@@ -30,9 +31,11 @@ define([
         var arr = [];
         var i = 0;
         for(var key in this.ops) {
-            // only deal with values, keys can be rebuilt from them
-            arr[i] = this.ops[key].getState();
-            ++i;
+            if(this.ops.hasOwnProperty(key)) {
+                // only deal with values, keys can be rebuilt from them
+                arr[i] = this.ops[key].getState();
+                ++i;
+            }
         }
         return arr;
     };
@@ -123,7 +126,9 @@ define([
         var ops = [];
         // put all ops into an array
         for(var key in this.ops) {
-            ops.push(this.ops[key]);
+            if(this.ops.hasOwnProperty(key)) {
+                ops.push(this.ops[key]);
+            }
         }
         // sort them by context, sequence, and site
         ops.sort(function(a,b) { return a.compare(b); });

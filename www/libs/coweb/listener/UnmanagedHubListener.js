@@ -6,6 +6,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define*/
 define([
     'coweb/topics',
     'coweb/jsoe/OperationEngine',
@@ -197,7 +198,7 @@ define([
         // don't try to transform anything that doesn't have a context vector
         // just let it pass...
         if(cv !== null && type !== null) {
-            if(topic == topics.ENGINE_SYNC) {
+            if(topic === topics.ENGINE_SYNC) {
                 // handle engine sync events here in the listener
                 this._engineSyncInbound(site, cv);
                 // and then quit; no one else should get syncs
@@ -340,7 +341,7 @@ define([
         // build event object
         event.site = roster.siteId;
         event.username = roster.username;
-        if(type == 'available') {
+        if(type === 'available') {
             // joining user
             topic = topics.SITE_JOIN;
             // thaw the slot in the engine so the new site's cv is tracked
@@ -350,7 +351,7 @@ define([
             } catch(e) {
                 console.warn('UnmanagedHubListener: failed to thaw site ' + event.site + ' ' + e.message);
             }
-        } else if(type == 'unavailable') {
+        } else if(type === 'unavailable') {
             // leaving user
             topic = topics.SITE_LEAVE;
             // freeze the slot in the engine so garbage collection can continue
@@ -517,7 +518,7 @@ define([
      */
     proto.stateInbound = function(topic, state) {
         //console.debug('UnmanagedHubListener.broadcastState', topic);
-        if(topic == topics.ENGINE_STATE) {
+        if(topic === topics.ENGINE_STATE) {
             // handle engine state
             try {
                 this._engine.setState(state);
