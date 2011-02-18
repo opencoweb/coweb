@@ -1,16 +1,16 @@
 //
 // Handles the flow from session preparation to update completion over Bayeux.
 //
-// @todo: dojo replacement
-//
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 define([
+    'coweb/session/bayeux/cometd',
     'coweb/session/bayeux/CowebExtension',
     'coweb/session/bayeux/ListenerBridge',
-    'org/cometd'
-], function(CowebExtension, ListenerBridge, cometd) {
+    'coweb/util/Promise',
+    'coweb/util/xhr'
+], function(cometd, CowebExtension, ListenerBridge, Promise, xhr) {
     var SessionBridge = function(args) {
         // state constants
         DISCONNECTING = 0;
@@ -76,34 +76,36 @@ define([
             throw new Error(this.id + ': cannot prepare in non-idle state');
         }
         // build new disconnect deferred
-        this.disconnectDef = new dojo.Deferred();
+        this.disconnectDef = new Promise();
         // build new prepare deferred
-        this._prepDef = new dojo.Deferred();
+        this._prepDef = new Promise();
         var data = {
             key : key,
             collab : collab
         };
         var self = this;
         var args = {
+            method : 'POST',
             url : this._adminUrl,
-            handleAs: 'json',
-            headers: { "Content-Type": "application/json" },
-            preventCache: true,
-            postData : dojo.toJson(data),
-            load: function(resp, ioargs) { 
+            headers: {
+                'Content-Type' : 'application/json;charset=UTF-8' 
+            },
+            body : JSON.stringify(data),
+            onSuccess: function(resp, ioargs) { 
                 self._onPrepareResponse(resp, ioargs);
             },
-            error: function(err, ioargs) {
+            onError: function(err, ioargs) {
                 self._onPrepareError(err, ioargs);
             }
         };
-        dojo.xhrPost(args);
+        xhr.send(args);
         // change state to avoid duplicate prepares
         this._state = this.PREPARING;
         return this._prepDef;
     };
 
-    proto._onPrepareResponse = function(resp, ioargs) {
+    proto._onPrepareResponse = function(text) {
+        var resp = JSON.parse(text);
         if(this._state == this.PREPARING) {
             this._state = this.PREPARED;
             var def = this._prepDef;
@@ -135,23 +137,23 @@ define([
             throw new Error(this.id + ': cannot join in unprepared state');
         }
 
-        this._joinDef = new dojo.Deferred();
+        this._joinDef = new Promise();
         // register extension to include session id in ext        
-        org.cometd.unregisterExtension('coweb');
+        cometd.unregisterExtension('coweb');
         var args = {sessionid : this._prepResponse.sessionid};
-        org.cometd.registerExtension('coweb', new CowebExtension(args));
+        cometd.registerExtension('coweb', new CowebExtension(args));
 
-        org.cometd.configure({
+        cometd.configure({
             url : this._prepResponse.sessionurl, 
             logLevel: this._debug ? 'debug' : 'info',
             autoBatch : true,
             appendMessageTypeToURL: false
         });
-        org.cometd.addListener('/meta/unsuccessful', this, '_onSessionUnsuccessful');
-        this._connectToken = org.cometd.addListener('/meta/connect', this, '_onSessionConnect');
-        org.cometd.addListener('/meta/disconnect', this, '_onSessionDisconnect');
+        cometd.addListener('/meta/unsuccessful', this, '_onSessionUnsuccessful');
+        this._connectToken = cometd.addListener('/meta/connect', this, '_onSessionConnect');
+        cometd.addListener('/meta/disconnect', this, '_onSessionDisconnect');
         this._state = this.JOINING;
-        org.cometd.handshake();
+        cometd.handshake();
         return this._joinDef;
     };
 
@@ -208,7 +210,7 @@ define([
             def.callback();
             
             // stop listening for connects after the first
-            org.cometd.removeListener(this._connectToken);
+            cometd.removeListener(this._connectToken);
             this._connectToken = null;
         }
         // @todo: other cleanup?
@@ -227,15 +229,9 @@ define([
         }
         
         this._state = this.UPDATING;
-        this._updateDef = new dojo.Deferred();
-        var self = this;
+        this._updateDef = new Promise();
         this._bridge.initiateUpdate()
-            .addCallback(function() { 
-                self._onUpdateSuccess.apply(self, arguments)
-            })
-            .addErrback(function() { 
-                self._onUpdateFailure.apply(self, arguments)
-            });
+            .then(this, '_onUpdateSuccess', this, '_onUpdateFailure');
         return this._updateDef;
     };
     
@@ -266,11 +262,11 @@ define([
             return;
         } else if(this._state == this.IDLE) {
             // do the disconnect without any tracking
-            org.cometd.disconnect(!async);
+            cometd.disconnect(!async);
             return;
         }
         this._state = this.DISCONNECTING;
-        org.cometd.disconnect(!async);
+        cometd.disconnect(!async);
         if(this._state != this.IDLE) {
             // logout bombed, server must be dead; invoke callback manually
             this._onDisconnected(this._state, 'clean-disconnect');

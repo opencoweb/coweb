@@ -224,7 +224,7 @@ define([
 
         // all op engine processed events are JSON encoded; try to decode 
         // everything but ignore if failed because not encoded
-        //if(dojo.isString(value)) {
+        //if(typeof value === 'string') {
         try {
             value = JSON.parse(value);
         } catch(x) {}

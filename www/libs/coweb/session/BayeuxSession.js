@@ -7,8 +7,10 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 define([
-    'coweb/session/bayeux/SessionBridge'
-], function(SessionBridge) {
+    'coweb/session/bayeux/SessionBridge',
+    'coweb/util/Promise',
+    'coweb/util/xhr'
+], function(SessionBridge, Promise, xhr) {
     var BayeuxSession = function() {
         // vars set during runtime
         this._prepParams = null;
@@ -120,7 +122,7 @@ define([
         }
         
         // instant success
-        def = new dojo.Deferred();
+        def = new Promise();
         def.callback();
         // do the session logout
         this._bridge.logout();
@@ -134,11 +136,23 @@ define([
         if(this._bridge.getState() != this._bridge.IDLE) {
             throw new Error('login() not valid in current state');
         }
+        var p = new Promise();
         var args = {
+            method : 'POST',
             url : this._loginUrl,
-            postData: dojo.toJson({username : username, password: password})
+            body: JSON.stringify({username : username, password: password}),
+            headers : {
+                'Content-Type' : 'application/json;charset=UTF-8'
+            },
+            onSuccess: function(text) {
+                p.resolve(text);
+            },
+            onError: function(err) {
+                p.fail(err);
+            }
         };
-        return dojo.xhrPost(args);
+        xhr.send(args);
+        return p;
     },
 
     /**
@@ -148,7 +162,19 @@ define([
         // leave the session
         this.leaveConference();
         // contact credential server to remove creds
-        return dojo.xhrGet({url : this._logoutUrl});
+        var p = new Promise();
+        var args = {
+            method : 'GET',
+            url : this._logoutUrl,
+            onSuccess: function(text) {
+                p.resolve(text);
+            },
+            onError: function(err) {
+                p.fail(err);
+            }
+        }
+        xhr.send(args);
+        return p;
     },
 
     /**
@@ -179,25 +205,20 @@ define([
         }
 
         // create a deferred result and hang onto its ref as part of the params
-        this._prepParams = dojo.clone(params);
-        this._prepParams.deferred = new dojo.Deferred();
-        
+        // @todo: performance
+        var json = JSON.stringify(params);
+        this._prepParams = JSON.parse(json);
+        this._prepParams.deferred = new Promise();
+
         // store second copy of prep info for public access to avoid meddling
-        this._lastPrep = {};
-        dojo.mixin(this._lastPrep, this._prepParams);
-        delete this._lastPrep.deferred;
+        this._lastPrep = JSON.parse(json);
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
-        var self = this;
-        this._bridge.prepareConference(this._prepParams.key, 
-            this._prepParams.collab)
-            .addCallback(dojo.hitch(this, '_onPrepared'))
-            .addErrback(dojo.hitch(this, '_onPrepareError'));
+        this._bridge.prepareConference(params.key, params.collab)
+            .then(this, '_onPrepared', this, '_onPrepareError');
         // start listening to disconnections
-        this._bridge.disconnectDef.then(function(result) {
-            self._onDisconnected(result);
-        });
+        this._bridge.disconnectDef.then(this, '_onDisconnected');
 
         // show the busy dialog for the prepare phase
         OpenAjax.hub.publish(coweb.BUSY, 'preparing');
@@ -208,15 +229,15 @@ define([
     
     proto._onPrepared = function(params) {
         // store response
-        this._prepParams.response = dojo.clone(params);
+        this._prepParams.response = JSON.parse(JSON.stringify(params));
         // pull out the deferred result
         var def = this._prepParams.deferred;
         // watch for errors during prep callback as indicators of failure to
         // configure an application
-        def.addErrback(dojo.hitch(this, '_onAppPrepareError'));
+        def.then(null, this, '_onAppPrepareError');
         // if auto joining, build next def and pass with params
         if(this._prepParams.autoJoin) {
-            params.nextDef = new dojo.Deferred();
+            params.nextDef = new Promise();
         }
         // inform all deferred listeners about success
         try {
@@ -255,11 +276,10 @@ define([
         OpenAjax.hub.publish(coweb.BUSY, 'joining');
 
         // new deferred for join success / failure
-        this._prepParams.deferred = nextDef || new dojo.Deferred();
+        this._prepParams.deferred = nextDef || new Promise();
 
-        this._bridge.joinConference()
-            .addCallback(dojo.hitch(this, '_onJoined'))
-            .addErrback(dojo.hitch(this, '_onJoinError'));
+        this._bridge.joinConference().then(this, '_onJoined',
+            this, '_onJoinError');
         
         return this._prepParams.deferred;
     },
@@ -269,11 +289,11 @@ define([
         var def = this._prepParams.deferred;
         // watch for errors during prep callback as indicators of failure to
         // configure an application
-        def.addErrback(dojo.hitch(this, '_onAppPrepareError'));
+        def.then(null, this, '_onAppPrepareError');
         var params = {};
         // if auto updating, build next def and pass with params
         if(this._prepParams.autoUpdate) {
-            params.nextDef = new dojo.Deferred();
+            params.nextDef = new Promise();
         }
         // inform all deferred listeners about success
         try {
@@ -307,11 +327,10 @@ define([
         OpenAjax.hub.publish(coweb.BUSY, 'updating');
 
         // new deferred for join success / failure
-        this._prepParams.deferred = nextDef || new dojo.Deferred();
+        this._prepParams.deferred = nextDef || new Promise();
         
-        this._bridge.updateInConference()
-            .addCallback(dojo.hitch(this, '_onUpdated'))
-            .addErrback(dojo.hitch(this, '_onUpdateError'));
+        this._bridge.updateInConference().then(this, '_onUpdated', this, 
+            '_onUpdateError');
         
         return this._prepParams.deferred;
     },

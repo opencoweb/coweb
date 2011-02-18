@@ -1,15 +1,14 @@
 //
 // Handles session joining and updating plus cooperative events over Bayeux.
 //
-// @todo: dojo replacement
-//
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 /*globals org*/
 define([
-    'org/cometd',
-], function() {
+    'coweb/session/bayeux/cometd',
+    'coweb/util/Promise'
+], function(cometd, Promise) {
     var ListenerBridge = function(args) {
         // constants
         this.IDLE = 0;
@@ -56,10 +55,10 @@ define([
     proto.postSync = function(topic, data) {
         // don't send events if we're not updated yet
         if(this._state != this.UPDATED) { return; }
-        // @todo: need to compare performance of this with JSON encode/decode
-        data = dojo.clone(data);
+        // @todo: performance
+        data = JSON.stringify(JSON.parse(data));
         // publish to server
-        org.cometd.publish('/session/sync', {
+        cometd.publish('/session/sync', {
             topic : topic, 
             eventData : data
         });
@@ -72,7 +71,8 @@ define([
         if(state === undefined) { return; }
         if(topic != coweb.END_STATE) {
             // hold onto state
-            value = dojo.clone(value);
+            // @todo: performance
+            value = JSON.stringify(JSON.parse(value));
             state.push({topic: topic, value: value});
         } else {
             state = {
@@ -80,7 +80,7 @@ define([
                 state: state
             };
             // send all state to server            
-            dojox.cometd.publish('/service/session/updater', state);
+            cometd.publish('/service/session/updater', state);
             // stop tracking state request
             delete this._stateReqs[recipient];
         }
@@ -90,7 +90,7 @@ define([
         var info = this._serviceSubs[service];
         if(!info) {
             // one time subscribe
-            var token = dojox.cometd.subscribe('/bot/'+service, this,
+            var token = cometd.subscribe('/bot/'+service, this,
                 '_onServiceBotPublish');
             info = {count: 0, token: token};
             this._serviceSubs[service] = info;
@@ -107,7 +107,7 @@ define([
         if(!info.token) {
             // one time subscribe for bot responses, unless error occurs
             var ch = '/service/bot/'+service+'/response';
-            var token = dojox.cometd.subscribe(ch, this, '_onServiceBotResponse');
+            var token = cometd.subscribe(ch, this, '_onServiceBotResponse');
             info.token = token;
         }
         // check for conflict in pending topics
@@ -116,7 +116,7 @@ define([
            return;
         }
         // publish the bot request
-        dojox.cometd.publish('/service/bot/'+service+'/request', {
+        cometd.publish('/service/bot/'+service+'/request', {
             eventData: params,
             topic : topic
         });
@@ -136,36 +136,36 @@ define([
         if(info.count <= 0) {
             if(info.token) {
                 // send an unsub to sever if the token is still valid
-                org.cometd.unsubscribe(info.token);
+                cometd.unsubscribe(info.token);
             }
             delete this._serviceSubs[service];
         }
     };
     
     proto.initiateUpdate = function() {
-        this._updateDef = new dojo.Deferred();
+        this._updateDef = new Promise();
 
         // start listening for subscribe responses so we can track subscription
         // failures
-        dojox.cometd.addListener('/meta/subscribe', this, '_onSubscribe');
+        cometd.addListener('/meta/subscribe', this, '_onSubscribe');
         // start listening for publish responses so we can track subscription
         // failures
-        dojox.cometd.addListener('/meta/publish', this, '_onPublish');
+        cometd.addListener('/meta/publish', this, '_onPublish');
 
         // go into joining state
         this._state = this.UPDATING;
         // make sure queue of held events 
         this._updateQueue = [];
         // batch these subscribes
-        dojox.cometd.batch(this, function() {
+        cometd.batch(this, function() {
             // subscribe to roster list
-            this._rosterToken = dojox.cometd.subscribe('/session/roster/*', 
+            this._rosterToken = cometd.subscribe('/session/roster/*', 
                 this, '_onSessionRoster');
             // subscribe to sync events
-            this._syncToken = dojox.cometd.subscribe('/session/sync', 
+            this._syncToken = cometd.subscribe('/session/sync', 
                 this, '_onSessionSync');
             // start the joining process
-            this._joinToken = dojox.cometd.subscribe('/service/session/join/*', 
+            this._joinToken = cometd.subscribe('/service/session/join/*', 
                 this, '_onServiceSessionJoin');
         });
         
@@ -189,7 +189,7 @@ define([
                 // toss the subscription token
                 info = this._serviceReqs[match[1]];
                 // remove local listener only, sub never happened on server
-                dojox.cometd.removeListener(info.token);
+                cometd.removeListener(info.token);
                 info.token = null;
                 // pull out error tag
                 segs = msg.error.split(':');
@@ -208,7 +208,7 @@ define([
                 // toss the subscription token
                 info = this._serviceSubs[match[1]];
                 // remove local listener only, sub never happened on server
-                dojox.cometd.removeListener(info.token);
+                cometd.removeListener(info.token);
                 info.token = null;
                 segs = msg.error.split(':');
                 this._listener.syncInbound(topic, segs[2], 0, 'error');
@@ -228,7 +228,7 @@ define([
                 // toss the subscription token
                 var info = this._serviceReqs[match[1]];
                 // remove local listener only, sub never happened on server
-                dojox.cometd.removeListener(info.token);
+                cometd.removeListener(info.token);
                 info.token = null;
                 // pull out error tag
                 var segs = msg.error.split(':');
@@ -295,12 +295,12 @@ define([
             }
         }
 
-        org.cometd.batch(this, function() {
+        cometd.batch(this, function() {
             // unsubscribe from joining channel
-            dojox.cometd.unsubscribe(this._joinToken);
+            cometd.unsubscribe(this._joinToken);
             this._joinToken = null;
             // subscribe as an updater
-            this._updaterToken = dojox.cometd.subscribe('/service/session/updater', 
+            this._updaterToken = cometd.subscribe('/service/session/updater', 
                 this, '_onServiceSessionUpdater');
         });
         
