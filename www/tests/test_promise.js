@@ -3,6 +3,7 @@
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 //
+/*global define module test raises equal deepEqual*/
 define([
     'coweb/util/Promise'
 ], function(Promise) {
@@ -24,31 +25,48 @@ define([
         raises(this.p.fail);
     });
 
-    test('resolve chain', 5, function() {
-        var target = {a : 'a', b : 'b'};
+    test('resolve listeners', 10, function() {
+        var target = {a : 'a', b : 'b'},
+            chainVal = 'ignored',
+            chainErr = new Error('ignored');
+
         this.p.then(function(val) {
             deepEqual(val, target);
-            return 'ignored';
+            return chainVal;
+        }).then(function(val) {
+            equal(val, chainVal);
         });
+        
         this.p.then(function(val) {
             deepEqual(val, target);
-            return new Error('ignored');
+            return chainErr;
+        }).then(null, function(err) {
+            equal(err, chainErr);
         });
+        
         this.p.then(function(val) {
             deepEqual(val, target);
-            throw new Error('ignored');
+            throw chainErr;
+        }).then(null, function(err) {
+            equal(err, chainErr);            
         });
+        
         this.p.then(function(val) {
             equal(val, target);
-        });                
+        }).then(function(val) {
+            deepEqual(val, target);
+        });
+        
         this.p.resolve(target);
         this.p.then(function(val) {
             equal(val, target);
+        }).then(function(val) {
+            deepEqual(val, target);
         });
     });
-    
-    test('fail chain', 8, function() {
-        var target = new Error(),
+
+    test('fail listeners', 10, function() {
+        var target = new Error('target error'),
             chainVal = 'ignored',
             chainErr = new Error('ignored');
 
@@ -68,22 +86,48 @@ define([
         
         this.p.then(null, function(err) {
             equal(err, target);
-            throw new Error('ignored');
+            throw chainErr;
         }).then(null, function(err) {
             equal(err, chainErr);
         });
         
         this.p.then(null, function(err) {
             equal(err, target);
-        }).then(function() {
-            // @todo: what?
+        }).then(function(val) {
+           equal(val, target);
         });
         
         this.p.fail(target);
         this.p.then(null, function(err) {
             equal(err, target);
-        }).then(function() {
-            // @todo: what?
+        }).then(function(val) {
+           equal(val, target);
         });
+    });
+    
+    test('promise chain', 5, function() {
+        var target = {a : 'a', b : 'b'},
+            chainSuccessPromise = new Promise(),
+            chainTarget = {c : 'c', d : 'd'},
+            chainFailurePromise = new Promise(),
+            chainErr = new Error('promise error');
+        
+        this.p.then(function(val) {
+            deepEqual(val, target);
+            return chainSuccessPromise;
+        }).then(function(val) {
+            deepEqual(val, chainTarget);
+        }).then(function(val) {
+            deepEqual(val, chainTarget);
+            return chainFailurePromise;
+        }).then(null, function(err) {
+            equal(err, chainErr);
+        }).then(function(val) {
+            equal(val, chainErr);
+        });
+        
+        this.p.resolve(target);
+        chainSuccessPromise.resolve(chainTarget);
+        chainFailurePromise.fail(chainErr);
     });
 });

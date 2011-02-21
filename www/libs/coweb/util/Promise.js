@@ -5,6 +5,7 @@
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 //
+/*global define*/
 define(function() {
     var Promise = function() {
         // immutable properties
@@ -12,8 +13,15 @@ define(function() {
         
         var notifyListeners = function() {
             var func, rv, nextVal, ptr;
+            var success = function(val) {
+                ptr.promise.resolve(val);
+            };
+            var failure = function(err) {
+                ptr.promise.fail(err);
+            };
             while(currListener) {
                 ptr = currListener;
+                currListener = currListener.next;
                 func = (errored) ? ptr.errback : ptr.callback;
                 if(func) {
                     // have a registered function for notification
@@ -21,15 +29,11 @@ define(function() {
                         rv = func(result);
                         if(rv && typeof rv.then === 'function') {
                             // function returned a new promise
-                            rv.then(function(val) {
-                                ptr.promise.resolve(val);
-                            }, function(err) {
-                                ptr.promise.fail(err);
-                            });
+                            rv.then(success, failure);
                             continue;
                         }
                         // keep current value or use next
-                        nextVal = (rv === undefined) ? value : rv;
+                        nextVal = (rv === undefined) ? result : rv;
                         if(rv instanceof Error) {
                             ptr.promise.fail(nextVal);
                         } else {
@@ -47,8 +51,6 @@ define(function() {
                         ptr.promise.resolve(result);
                     }
                 }
-                // next registered listener
-                currListener = currListener.next;
             }
         };
 
