@@ -9,12 +9,14 @@
 /*global define*/
 define([
     'coweb/topics',
+    'coweb/util/Promise',
     'org/OpenAjax'
-], function(topics, OpenAjax) {
+], function(topics, Promise, OpenAjax) {
     var UnmanagedHubCollab = function() {
         this.mutex = false;
         this.service_id = 0;
         this.tokens = [];
+        this.id = undefined;
     };
     // save the finger joints
     var proto = UnmanagedHubCollab.prototype;
@@ -35,7 +37,7 @@ define([
      * Subscribes to conference ready notifications coweb.site.ready.
      *
      * @param callback Function to invoke
-     * @return dojo.Deferred which always notifies success
+     * @return Promise which always notifies success
      */
     proto.subscribeConferenceReady = function(context, callback) {
         if(callback === undefined) {
@@ -44,16 +46,18 @@ define([
         }
         if(typeof callback !== 'function') {
             callback = context[callback];
+            if(typeof callback !== 'function') {
+                throw new Error('callback must be a function');
+            }
         }
         var topic = topics.READY;
         var tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
-                callback.call(context, params);
-            }
-        , this);
+            callback.call(context, params);
+        }, this);
         this.tokens.push(tok);
-        var def = new dojo.Deferred();
+        var def = new Promise();
         def._cowebToken = tok;
-        def.callback();
+        def.resolve();
         return def;
     };
 
@@ -61,26 +65,27 @@ define([
      * Subscribes to conference ready notifications coweb.site.end.
      *
      * @param callback Function to invoke
-     * @return dojo.Deferred which always notifies success
+     * @return Promise which always notifies success
      */
     proto.subscribeConferenceEnd = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
         }
-        if(dojo.isString(callback)) {
+        if(typeof callback !== 'function') {
             callback = context[callback];
+            if(typeof callback !== 'function') {
+                throw new Error('callback must be a function');
+            }
         }
-        var topic = coweb.END;
-        var tok = OpenAjax.hub.subscribe(topic, dojo.hitch(this,
-            function(topic, params) {
-                callback.call(context, params);
-            })
-        );
+        var topic = topics.END;
+        var tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
+            callback.call(context, params);
+        }, this);
         this.tokens.push(tok);
-        var def = new dojo.Deferred();
+        var def = new Promise();
         def._cowebToken = tok;
-        def.callback();
+        def.resolve();
         return def;
     };
 
@@ -88,26 +93,27 @@ define([
      * Subscribes to site joining notifications coweb.site.join.
      *
      * @param callback Function to invoke
-     * @return dojo.Deferred which always notifies success
+     * @return Promise which always notifies success
      */
     proto.subscribeSiteJoin = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
         }
-        if(dojo.isString(callback)) {
+        if(typeof callback !== 'function') {
             callback = context[callback];
+            if(typeof callback !== 'function') {
+                throw new Error('callback must be a function');
+            }
         }
-        var topic = coweb.SITE_JOIN;
-        var tok = OpenAjax.hub.subscribe(topic, dojo.hitch(this,
-            function(topic, params) {
-                callback.call(context, params);
-            })
-        );
+        var topic = topics.SITE_JOIN;
+        var tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
+            callback.call(context, params);
+        }, this);
         this.tokens.push(tok);
-        var def = new dojo.Deferred();
+        var def = new Promise();
         def._cowebToken = tok;
-        def.callback();
+        def.resolve();
         return def;
     };
 
@@ -115,26 +121,27 @@ define([
      * Subscribes to site leaving notifications coweb.site.leave.
      *
      * @param callback Function to invoke
-     * @return dojo.Deferred which always notifies success
+     * @return Promise which always notifies success
      */
     proto.subscribeSiteLeave = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
         }
-        if(dojo.isString(callback)) {
+        if(typeof callback !== 'function') {
             callback = context[callback];
+            if(typeof callback !== 'function') {
+                throw new Error('callback must be a function');
+            }
         }
-        var topic = coweb.SITE_LEAVE;
-        var tok = OpenAjax.hub.subscribe(topic, dojo.hitch(this,
-            function(topic, params) {
-                callback.call(context, params);
-            })
-        );
+        var topic = topics.SITE_LEAVE;
+        var tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
+            callback.call(context, params);
+        }, this);
         this.tokens.push(tok);
-        var def = new dojo.Deferred();
+        var def = new Promise();
         def._cowebToken = tok;
-        def.callback();
+        def.resolve();
         return def;
     };
 
@@ -148,16 +155,16 @@ define([
      * @param position Integer position of the change
      */
     proto.sendSync = function(name, value, type, position) {
-        if(this.id === null) {
-            throw new Error('collab API uninitialized - call init first');
+        if(this.id === undefined) {
+            throw new Error('call init() first');
         }
-        if(typeof(type) == 'undefined') {
+        if(type === undefined) {
             type = 'update';
         }
-        if(typeof(position) == 'undefined') {
+        if(position === undefined) {
             position = 0;
         }
-        var topic = coweb.SYNC+name+'.'+this.id;
+        var topic = topics.SYNC+name+'.'+this.id;
         var params = {value: value, type: type, position:position};
         this.mutex = true;
         OpenAjax.hub.publish(topic, params);
@@ -171,32 +178,36 @@ define([
      *
      * @param name String state name
      * @param callback Function to invoke
-     * @return dojo.Deferred which always notifies success
+     * @return Promise which always notifies success
      */
     proto.subscribeSync = function(name, context, callback) {
-        if(this.id === null) {
-            throw new Error('collab API uninitialized - call init first');
+        if(this.id === undefined) {
+            throw new Error('call init() first');
+        }
+        if(!name) {
+            throw new Error('valid sync name required');
         }
         if(callback === undefined) {
             callback = context;
             context = this;
         }
-        if(dojo.isString(callback)) {
+        if(typeof callback !== 'function') {
             callback = context[callback];
+            if(typeof callback !== 'function') {
+                throw new Error('callback must be a function');
+            }
         }
-        var topic = coweb.SYNC+name+'.'+this.id;
-        var tok = OpenAjax.hub.subscribe(topic, dojo.hitch(this,
-            function(tp, params) {
-                if(!this.mutex) {
-                    callback.call(context, tp, params.value, params.type, 
-                        params.position, params.site);
-                }
-            })
-        );
+        var topic = topics.SYNC+name+'.'+this.id;
+        var tok = OpenAjax.hub.subscribe(topic, function(tp, params) {
+            if(!this.mutex) {
+                callback.call(context, tp, params.value, params.type, 
+                    params.position, params.site);
+            }
+        }, this);
         this.tokens.push(tok);
-        var def = new dojo.Deferred();
+        var def = new Promise();
         def._cowebToken = tok;
-        def.callback();
+        def.resolve();
         return def;
     };
     
@@ -208,7 +219,7 @@ define([
      * @return String state name
      */
     proto.getSyncNameFromTopic = function(topic) {
-         return topic.substring(coweb.SYNC.length, 
+         return topic.substring(topics.SYNC.length, 
              topic.length-this.id.length-1);
     };
     
@@ -216,26 +227,27 @@ define([
      * Subscribes to full state requests coweb.state.get.
      *
      * @param callback Function to invoke
-     * @return dojo.Deferred which always notifies success
+     * @return Promise which always notifies success
      */
     proto.subscribeStateRequest = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
         }
-        if(dojo.isString(callback)) {
+        if(typeof callback !== 'function') {
             callback = context[callback];
+            if(typeof callback !== 'function') {
+                throw new Error('callback must be a function');
+            }
         }
-        var topic = coweb.GET_STATE;
-        var tok = OpenAjax.hub.subscribe(topic, dojo.hitch(this,
-            function(topic, params) {
-                callback.call(context, params);
-            })
-        );
+        var topic = topics.GET_STATE;
+        var tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
+            callback.call(context, params);
+        }, this);
         this.tokens.push(tok);
-        var def = new dojo.Deferred();
+        var def = new Promise();
         def._cowebToken = tok;
-        def.callback();
+        def.resolve();
         return def;
     };
     
@@ -245,16 +257,16 @@ define([
      *
      * @param state JSON-encodable state data for the response
      * @param token String opaque token from the original request
-     * @return dojo.Deferred which always notifies success
+     * @return Promise which always notifies success
      */
     proto.sendStateResponse = function(state, token) {
-        if(this.id === null) {
-            throw new Error('collab API uninitialized - call init first');
+        if(this.id === undefined) {
+            throw new Error('call init() first');
         }
         var params = {state : state, recipient : token};
         this.mutex = true;
         try {
-            OpenAjax.hub.publish(coweb.SET_STATE+this.id, params);
+            OpenAjax.hub.publish(topics.SET_STATE+this.id, params);
         } catch(e) {
             this.mutex = false;
             throw e;
@@ -267,31 +279,32 @@ define([
      * Throws an exception if this instance is not initialized.
      *
      * @param callback Function to invoke
-     * @return dojo.Deferred which always notifies success
+     * @return Promise which always notifies success
      */    
     proto.subscribeStateResponse = function(context, callback) {
-        if(this.id === null) {
-            throw new Error('collab API uninitialized - call init first');
+        if(this.id === undefined) {
+            throw new Error('call init() first');
         }
         if(callback === undefined) {
             callback = context;
             context = this;
         }
-        if(dojo.isString(callback)) {
+        if(typeof callback !== 'function') {
             callback = context[callback];
+            if(typeof callback !== 'function') {
+                throw new Error('callback must be a function');
+            }
         }
-        var topic = coweb.SET_STATE+this.id;
-        var tok = OpenAjax.hub.subscribe(topic, dojo.hitch(this,
-            function(t, params) {
-                if(!this.mutex) {
-                    callback.call(context, params);
-                }
-            })
-        );
+        var topic = topics.SET_STATE+this.id;
+        var tok = OpenAjax.hub.subscribe(topic, function(t, params) {
+            if(!this.mutex) {
+                callback.call(context, params);
+            }
+        }, this);
         this.tokens.push(tok);
-        var def = new dojo.Deferred();
+        var def = new Promise();
         def._cowebToken = tok;
-        def.callback();
+        def.resolve();
         return def;
     };
 
@@ -303,19 +316,21 @@ define([
      * @param service String name of the service
      * @param callback Function to invoke or a token from a previous call
      *   subscribeService indicating a callback to reuse
-     * @return dojo.Deferred which always notifies success
+     * @return Promise which always notifies success
      */
     proto.subscribeService = function(service, context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
         }
-        if(dojo.isString(callback)) {
+        if(typeof callback !== 'function') {
             callback = context[callback];
+            if(typeof callback !== 'function') {
+                throw new Error('callback must be a function');
+            }
         }
-
         // build the service response topic
-        var set_topic = coweb.SET_SERVICE+service;
+        var set_topic = topics.SET_SERVICE+service;
 
         // register internal callback for service response
         var sub_data = {
@@ -330,14 +345,14 @@ define([
         // add metadata and data to the subscription request
         var msg = {topic : set_topic, service : service};
         // send subscription request
-        var sub_topic = coweb.SUB_SERVICE+service;
+        var sub_topic = topics.SUB_SERVICE+service;
         OpenAjax.hub.publish(sub_topic, msg);
 
         // save all info needed to unregister
         var coweb_token = {topic : set_topic, service : service, 
             hub_token : token};
-        var def = new dojo.Deferred();
-        def.callback();
+        var def = new Promise();
+        def.resolve();
         def._cowebToken = coweb_token;
         return def;
     };
@@ -350,21 +365,24 @@ define([
      * @param service String name of the service
      * @param params JSON-encodable parameters to configure the service
      * @param callback Function to invoke
-     * @return dojo.Deferred which always notifies success
+     * @return Promise which always notifies success
      */    
     proto.postService = function(service, params, context, callback) {
-        if(this.id === null) {
-            throw new Error('collab API uninitialized - call init first');
+        if(this.id === undefined) {
+            throw new Error('call init() first');
         }
         if(callback === undefined) {
             callback = context;
             context = this;
         }
-        if(dojo.isString(callback)) {
+        if(typeof callback !== 'function') {
             callback = context[callback];
+            if(typeof callback !== 'function') {
+                throw new Error('callback must be a function');
+            }
         }
         // subscribe to response event
-        var set_topic = coweb.SET_SERVICE+service+'_'+this.service_id+'.'+this.id;
+        var set_topic = topics.SET_SERVICE+service+'_'+this.service_id+'.'+this.id;
         // use our callback so we can automatically unregister 
         var sub_data = {
             context : context,
@@ -380,12 +398,12 @@ define([
         // add metadata and data to message
         var msg = {topic : set_topic, params : params, service : service};
         // send get request to listener
-        var get_topic = coweb.GET_SERVICE+service;
+        var get_topic = topics.GET_SERVICE+service;
         OpenAjax.hub.publish(get_topic, msg);
         // make next request unique
         this.service_id++;
-        var def = new dojo.Deferred();
-        def.callback();
+        var def = new Promise();
+        def.resolve();
         def._cowebToken = token;
         return def;
     };
@@ -396,7 +414,7 @@ define([
      *
      * @param topic String response topic coweb.service.set.**
      * @param params Object with value, type, position, and site
-     * @return dojo.Deferred which always notifies success
+     * @return Promise which always notifies success
      */
     proto._cowebServiceResponse = function(topic, params, sub_data) {
         // invoke the real callback
@@ -419,7 +437,7 @@ define([
     /**
      * Unsubscribes any subscription created via this interface.
      *
-     * @param def dojo.Deferred returned by the method that created the
+     * @param def Promise returned by the method that created the
      *   subscription
      */
     proto.unsubscribe = function(def) {
@@ -435,7 +453,7 @@ define([
             var i = dojo.indexOf(this.tokens, token.hub_token);
             this.tokens = this.tokens.slice(0, i).concat(this.tokens.slice(i+1));
             // send unsubscribe request to listener
-            var topic = coweb.UNSUB_SERVICE+token.service;
+            var topic = topics.UNSUB_SERVICE+token.service;
             // include original topic
             OpenAjax.hub.publish(topic, token);
         } else if(def._cowebToken) {        
