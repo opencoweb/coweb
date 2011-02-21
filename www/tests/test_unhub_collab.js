@@ -260,7 +260,7 @@ define([
                     cb(state);
                 }
             };
-        
+
         this.collab.subscribeStateResponse(cb);
         this.collab.subscribeStateResponse(obj, obj.cb);
         this.collab.subscribeStateResponse(obj, 'cb');
@@ -268,7 +268,19 @@ define([
     });
     
     test('send state response', 1, function() {
-        
+        var tok,
+            topic = topics.SET_STATE+this.collab.id,
+            target = {
+                state : {
+                    a : 'a',
+                    b : 'b'
+                },
+                recipient : '12312313'
+            };
+        tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
+            deepEqual(params, target);
+        });
+        this.collab.sendStateResponse(target.state, target.recipient);
     });
     
     test('subscribe service', 1, function() {
