@@ -5,6 +5,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define*/
 define([
     'coweb/jsoe/ContextDifference'
 ], function(ContextDifference) {
@@ -27,7 +28,7 @@ define([
      *   - state: Array from a serialized context vector object to reference
      */
     var ContextVector = function(args) {
-        if(typeof args.count != 'undefined') {
+        if(typeof args.count !== 'undefined') {
             this.sites = [];
             this.growTo(args.count);
         } else if(args.contextVector) {
@@ -48,7 +49,7 @@ define([
      */
     ContextVector.prototype.toString = function() {
         return '[' + this.sites.toString() + ']';
-    },
+    };
 
     /**
      * Serializes this context vector.
@@ -57,7 +58,7 @@ define([
      */
     ContextVector.prototype.getState = function() {
         return this.sites;
-    },
+    };
 
     /**
      * Makes an independent copy of this context vector.
@@ -66,7 +67,7 @@ define([
      */
     ContextVector.prototype.copy = function() {
         return new ContextVector({contextVector : this});
-    },
+    };
 
     /**
      * Makes an independent copy of the array in this context vector.
@@ -75,7 +76,7 @@ define([
      */
     ContextVector.prototype.copySites = function() {
         return this.sites.slice();
-    },
+    };
 
     /**
      * Computes the difference in sequence numbers at each site between this
@@ -94,7 +95,7 @@ define([
             }
         }
         return cd;
-    },
+    };
     
     /**
      * Finds the oldest sequence number in the difference in sequence numbers
@@ -113,7 +114,7 @@ define([
             }
         }
         return cd;
-    },
+    };
 
     /**
      * Increases the size of the context vector to the given size. Initializes
@@ -125,7 +126,7 @@ define([
         for(var i=this.sites.length; i < count; i++) {
             this.sites.push(0);
         }
-    },
+    };
 
     /**
      * Gets the sequence number for the given site in this context vector.
@@ -139,7 +140,7 @@ define([
             this.growTo(site+1);
         }
         return this.sites[site];
-    },
+    };
 
     /**
      * Sets the sequence number for the given site in this context vector.
@@ -153,14 +154,14 @@ define([
             this.growTo(site+1);
         }
         this.sites[site] = seq;
-    },
+    };
 
     /**
      * Gets the size of this context vector.
      */
     ContextVector.prototype.getSize = function() {
         return this.sites.length;
-    },
+    };
 
     /**
      * Determines if this context vector equals the other. If the vectors are
@@ -177,10 +178,12 @@ define([
         for(var i=0; i < max; i++) {
             var va = (i < a.length) ? a[i] : 0;
             var vb = (i < b.length) ? b[i] : 0;
-            if(va != vb) return false;
+            if(va !== vb) {
+                return false;
+            }
         }
         return true;
-    },
+    };
 
     /**
      * Compares two context vectors. If the v vectors are of different sizes, 

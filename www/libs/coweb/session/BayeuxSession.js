@@ -6,9 +6,14 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define window*/
 define([
-    'coweb/session/bayeux/SessionBridge'
-], function(SessionBridge) {
+    'coweb/session/bayeux/SessionBridge',
+    'coweb/util/Promise',
+    'coweb/topics',
+    'coweb/util/xhr',
+    'org/OpenAjax'
+], function(SessionBridge, Promise, topics, xhr, OpenAjax) {
     var BayeuxSession = function() {
         // vars set during runtime
         this._prepParams = null;
@@ -45,7 +50,7 @@ define([
 
         // cleanup on page unload, try to do it as early as possible so 
         // we can clean disconnect if possible
-        var destroy = function() { self.destroy() };
+        var destroy = function() { self.destroy(); };
         var evt;
         if(this._bridge.supportsBeforeUnload) {
             evt = 'onbeforeunload';
@@ -66,11 +71,11 @@ define([
     proto.destroy = function() {
         // set destroying state to avoid incorrect notifications
         this._destroying = true;
-        if(this._bridge.getState() == this._bridge.UPDATED) {
+        if(this._bridge.getState() === this._bridge.UPDATED) {
             // broadcast a final hub event indicating the client is now leaving
             // the conference if it was ever fully joined to the conference
             var value = {connected : true};
-            OpenAjax.hub.publish(coweb.END, value);
+            OpenAjax.hub.publish(topics.END, value);
         }
         // do a logout to disconnect from the session
         this.leaveConference();
@@ -93,8 +98,7 @@ define([
      */
     proto.isDebug = function() {
         return this._debug;
-    },
-
+    };
     
     /**
      * Gets a reference to the parameters last given to prepareConference().
@@ -102,44 +106,56 @@ define([
      */
     proto.getConferenceParams = function() {
         return this._lastPrep;
-    },
+    };
 
     /**
      * Called by an application to leave a session or abort joining it.
      */    
     proto.leaveConference = function() {
         var state = this._bridge.getState();
-        if(state == this._bridge.UPDATED) {
+        if(state === this._bridge.UPDATED) {
             // broadcast a final hub event indicating the client is now leaving
             // the conference
             var value = {connected : true};
-            OpenAjax.hub.publish(coweb.END, value);
+            OpenAjax.hub.publish(topics.END, value);
         } else {
-            OpenAjax.hub.publish(coweb.BUSY, 'aborting');
+            OpenAjax.hub.publish(topics.BUSY, 'aborting');
             this._prepParams = null;
         }
         
         // instant success
-        def = new dojo.Deferred();
+        var def = new Promise();
         def.callback();
         // do the session logout
         this._bridge.logout();
         return def;
-    },
+    };
 
     /**
      * Called by an app to optionally authenticate with the server.
      */
     proto.login = function(username, password) {
-        if(this._bridge.getState() != this._bridge.IDLE) {
+        if(this._bridge.getState() !== this._bridge.IDLE) {
             throw new Error('login() not valid in current state');
         }
+        var p = new Promise();
         var args = {
+            method : 'POST',
             url : this._loginUrl,
-            postData: dojo.toJson({username : username, password: password})
+            body: JSON.stringify({username : username, password: password}),
+            headers : {
+                'Content-Type' : 'application/json;charset=UTF-8'
+            },
+            onSuccess: function(text) {
+                p.resolve(text);
+            },
+            onError: function(err) {
+                p.fail(err);
+            }
         };
-        return dojo.xhrPost(args);
-    },
+        xhr.send(args);
+        return p;
+    };
 
     /**
      * Called by an app to optionally logout from the server.
@@ -148,14 +164,26 @@ define([
         // leave the session
         this.leaveConference();
         // contact credential server to remove creds
-        return dojo.xhrGet({url : this._logoutUrl});
-    },
+        var p = new Promise();
+        var args = {
+            method : 'GET',
+            url : this._logoutUrl,
+            onSuccess: function(text) {
+                p.resolve(text);
+            },
+            onError: function(err) {
+                p.fail(err);
+            }
+        };
+        xhr.send(args);
+        return p;
+    };
 
     /**
      * Called by an app to prepare a session.
      */
     proto.prepareConference = function(params) {
-        if(this._bridge.getState() != this._bridge.IDLE) {
+        if(this._bridge.getState() !== this._bridge.IDLE) {
             throw new Error('prepareConference() not valid in current state');
         }
 
@@ -179,44 +207,39 @@ define([
         }
 
         // create a deferred result and hang onto its ref as part of the params
-        this._prepParams = dojo.clone(params);
-        this._prepParams.deferred = new dojo.Deferred();
-        
+        // @todo: performance
+        var json = JSON.stringify(params);
+        this._prepParams = JSON.parse(json);
+        this._prepParams.deferred = new Promise();
+
         // store second copy of prep info for public access to avoid meddling
-        this._lastPrep = {};
-        dojo.mixin(this._lastPrep, this._prepParams);
-        delete this._lastPrep.deferred;
+        this._lastPrep = JSON.parse(json);
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
-        var self = this;
-        this._bridge.prepareConference(this._prepParams.key, 
-            this._prepParams.collab)
-            .addCallback(dojo.hitch(this, '_onPrepared'))
-            .addErrback(dojo.hitch(this, '_onPrepareError'));
+        this._bridge.prepareConference(params.key, params.collab)
+            .then(this, '_onPrepared', this, '_onPrepareError');
         // start listening to disconnections
-        this._bridge.disconnectDef.then(function(result) {
-            self._onDisconnected(result);
-        });
+        this._bridge.disconnectDef.then(this, '_onDisconnected');
 
         // show the busy dialog for the prepare phase
-        OpenAjax.hub.publish(coweb.BUSY, 'preparing');
+        OpenAjax.hub.publish(topics.BUSY, 'preparing');
 
         // return deferred result
         return this._prepParams.deferred;
-    },
+    };
     
     proto._onPrepared = function(params) {
         // store response
-        this._prepParams.response = dojo.clone(params);
+        this._prepParams.response = JSON.parse(JSON.stringify(params));
         // pull out the deferred result
         var def = this._prepParams.deferred;
         // watch for errors during prep callback as indicators of failure to
         // configure an application
-        def.addErrback(dojo.hitch(this, '_onAppPrepareError'));
+        def.then(null, this, '_onAppPrepareError');
         // if auto joining, build next def and pass with params
         if(this._prepParams.autoJoin) {
-            params.nextDef = new dojo.Deferred();
+            params.nextDef = new Promise();
         }
         // inform all deferred listeners about success
         try {
@@ -230,50 +253,49 @@ define([
         if(this._prepParams.autoJoin) {
             this.joinConference(params.nextDef);
         }
-    },
+    };
 
     proto._onPrepareError = function(err) {
         // notify busy dialog of error; no disconnect at this stage because 
         // we're not using cometd yet
-        OpenAjax.hub.publish(coweb.BUSY, err.message);
+        OpenAjax.hub.publish(topics.BUSY, err.message);
 
         // invoke prepare error callback
         var def = this._prepParams.deferred;
         this._prepParams = null;
         def.errback(err);
-    },
+    };
 
     /**
      * Called by an app to join a session.
      */
     proto.joinConference = function(nextDef) {
-        if(this._bridge.getState() != this._bridge.PREPARED) {
+        if(this._bridge.getState() !== this._bridge.PREPARED) {
             throw new Error('joinConference() not valid in current state');
         }
 
         // switch busy dialog to joining state
-        OpenAjax.hub.publish(coweb.BUSY, 'joining');
+        OpenAjax.hub.publish(topics.BUSY, 'joining');
 
         // new deferred for join success / failure
-        this._prepParams.deferred = nextDef || new dojo.Deferred();
+        this._prepParams.deferred = nextDef || new Promise();
 
-        this._bridge.joinConference()
-            .addCallback(dojo.hitch(this, '_onJoined'))
-            .addErrback(dojo.hitch(this, '_onJoinError'));
+        this._bridge.joinConference().then(this, '_onJoined',
+            this, '_onJoinError');
         
         return this._prepParams.deferred;
-    },
+    };
 
     proto._onJoined = function() {
         // pull out the deferred result
         var def = this._prepParams.deferred;
         // watch for errors during prep callback as indicators of failure to
         // configure an application
-        def.addErrback(dojo.hitch(this, '_onAppPrepareError'));
+        def.then(null, this, '_onAppPrepareError');
         var params = {};
         // if auto updating, build next def and pass with params
         if(this._prepParams.autoUpdate) {
-            params.nextDef = new dojo.Deferred();
+            params.nextDef = new Promise();
         }
         // inform all deferred listeners about success
         try {
@@ -287,34 +309,33 @@ define([
         if(this._prepParams.autoUpdate) {
             this.updateInConference(params.nextDef);
         }
-    },
+    };
 
     proto._onJoinError = function(err) {
         // nothing to do, session controller goes back to idle
         var def = this._prepParams.deferred;
         this._prepParams = null;
         def.errback(err);
-    },
+    };
     
     /**
      * Called by an application to update its state in a session.
      */
     proto.updateInConference = function(nextDef) {
-        if(this._bridge.getState() != this._bridge.JOINED) {
+        if(this._bridge.getState() !== this._bridge.JOINED) {
             throw new Error('updateInConference() not valid in current state');
         }
         // show the busy dialog for the update phase
-        OpenAjax.hub.publish(coweb.BUSY, 'updating');
+        OpenAjax.hub.publish(topics.BUSY, 'updating');
 
         // new deferred for join success / failure
-        this._prepParams.deferred = nextDef || new dojo.Deferred();
+        this._prepParams.deferred = nextDef || new Promise();
         
-        this._bridge.updateInConference()
-            .addCallback(dojo.hitch(this, '_onUpdated'))
-            .addErrback(dojo.hitch(this, '_onUpdateError'));
+        this._bridge.updateInConference().then(this, '_onUpdated', this, 
+            '_onUpdateError');
         
         return this._prepParams.deferred;
-    },
+    };
 
     proto._onUpdated = function() {
         var prepParams = this._prepParams;
@@ -325,7 +346,7 @@ define([
         def.callback();
 
         // session is now updated in conference
-        OpenAjax.hub.publish(coweb.BUSY, 'ready');
+        OpenAjax.hub.publish(topics.BUSY, 'ready');
         var hc = this._bridge.getHubController();
         // initialize the hub listener with the client reference now that 
         // the conference is fully established
@@ -339,28 +360,28 @@ define([
             site : this._listener.getSiteID(),
             roster : roster
         };
-        OpenAjax.hub.publish(coweb.READY, value);
-    },
+        OpenAjax.hub.publish(topics.READY, value);
+    };
 
     proto._onUpdateError = function(err) {
         // nothing to do yet, session goes back to idle
         var def = this._prepParams.deferred;
         this._prepParams = null;
         def.errback(err);
-    },
+    };
 
     proto._onDisconnected = function(result) {
         // pull state and tag info about of deferred result
         var state = result.state, tag = result.tag;
         if(tag && !this._destroying) {
             // show an error in the busy dialog
-            OpenAjax.hub.publish(coweb.BUSY, tag);
+            OpenAjax.hub.publish(topics.BUSY, tag);
         }
-        if(state == this._bridge.UPDATED) {
+        if(state === this._bridge.UPDATED) {
             // broadcast a final hub event indicating the client is now leaving
             // the conference if it was ever fully joined to the conference
             var value = {connected : false};
-            OpenAjax.hub.publish(coweb.END, value);
+            OpenAjax.hub.publish(topics.END, value);
         }
         // stop the hub listener from performing further actions
         this._listener.stop();
@@ -369,7 +390,7 @@ define([
         if(this._prepParams && !this._prepParams.deferred) {
             this._prepParams = null;
         }
-    },
+    };
     
     /**
      * Called by JS when an exception occurs in the application's successful
@@ -380,7 +401,7 @@ define([
         // force a logout to get back to the idle state
         this.leaveConference();
         // notify about error state
-        OpenAjax.hub.publish(coweb.BUSY, 'bad-application-state');
+        OpenAjax.hub.publish(topics.BUSY, 'bad-application-state');
     };
 
     return BayeuxSession;

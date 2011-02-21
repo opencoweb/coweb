@@ -1,15 +1,15 @@
 //
 // Handles session joining and updating plus cooperative events over Bayeux.
 //
-// @todo: dojo replacement
-//
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-/*globals org*/
+/*global define*/
 define([
-    'org/cometd',
-], function() {
+    'coweb/session/bayeux/cometd',
+    'coweb/util/Promise',
+    'coweb/topics'
+], function(cometd, Promise, topics) {
     var ListenerBridge = function(args) {
         // constants
         this.IDLE = 0;
@@ -55,11 +55,11 @@ define([
 
     proto.postSync = function(topic, data) {
         // don't send events if we're not updated yet
-        if(this._state != this.UPDATED) { return; }
-        // @todo: need to compare performance of this with JSON encode/decode
-        data = dojo.clone(data);
+        if(this._state !== this.UPDATED) { return; }
+        // @todo: performance
+        data = JSON.stringify(JSON.parse(data));
         // publish to server
-        org.cometd.publish('/session/sync', {
+        cometd.publish('/session/sync', {
             topic : topic, 
             eventData : data
         });
@@ -70,9 +70,10 @@ define([
         var state = this._stateReqs[recipient];
         // no outstanding request for state, ignore this message
         if(state === undefined) { return; }
-        if(topic != coweb.END_STATE) {
+        if(topic !== topics.END_STATE) {
             // hold onto state
-            value = dojo.clone(value);
+            // @todo: performance
+            value = JSON.stringify(JSON.parse(value));
             state.push({topic: topic, value: value});
         } else {
             state = {
@@ -80,7 +81,7 @@ define([
                 state: state
             };
             // send all state to server            
-            dojox.cometd.publish('/service/session/updater', state);
+            cometd.publish('/service/session/updater', state);
             // stop tracking state request
             delete this._stateReqs[recipient];
         }
@@ -90,7 +91,7 @@ define([
         var info = this._serviceSubs[service];
         if(!info) {
             // one time subscribe
-            var token = dojox.cometd.subscribe('/bot/'+service, this,
+            var token = cometd.subscribe('/bot/'+service, this,
                 '_onServiceBotPublish');
             info = {count: 0, token: token};
             this._serviceSubs[service] = info;
@@ -107,7 +108,7 @@ define([
         if(!info.token) {
             // one time subscribe for bot responses, unless error occurs
             var ch = '/service/bot/'+service+'/response';
-            var token = dojox.cometd.subscribe(ch, this, '_onServiceBotResponse');
+            var token = cometd.subscribe(ch, this, '_onServiceBotResponse');
             info.token = token;
         }
         // check for conflict in pending topics
@@ -116,7 +117,7 @@ define([
            return;
         }
         // publish the bot request
-        dojox.cometd.publish('/service/bot/'+service+'/request', {
+        cometd.publish('/service/bot/'+service+'/request', {
             eventData: params,
             topic : topic
         });
@@ -136,36 +137,36 @@ define([
         if(info.count <= 0) {
             if(info.token) {
                 // send an unsub to sever if the token is still valid
-                org.cometd.unsubscribe(info.token);
+                cometd.unsubscribe(info.token);
             }
             delete this._serviceSubs[service];
         }
     };
     
     proto.initiateUpdate = function() {
-        this._updateDef = new dojo.Deferred();
+        this._updateDef = new Promise();
 
         // start listening for subscribe responses so we can track subscription
         // failures
-        dojox.cometd.addListener('/meta/subscribe', this, '_onSubscribe');
+        cometd.addListener('/meta/subscribe', this, '_onSubscribe');
         // start listening for publish responses so we can track subscription
         // failures
-        dojox.cometd.addListener('/meta/publish', this, '_onPublish');
+        cometd.addListener('/meta/publish', this, '_onPublish');
 
         // go into joining state
         this._state = this.UPDATING;
         // make sure queue of held events 
         this._updateQueue = [];
         // batch these subscribes
-        dojox.cometd.batch(this, function() {
+        cometd.batch(this, function() {
             // subscribe to roster list
-            this._rosterToken = dojox.cometd.subscribe('/session/roster/*', 
+            this._rosterToken = cometd.subscribe('/session/roster/*', 
                 this, '_onSessionRoster');
             // subscribe to sync events
-            this._syncToken = dojox.cometd.subscribe('/session/sync', 
+            this._syncToken = cometd.subscribe('/session/sync', 
                 this, '_onSessionSync');
             // start the joining process
-            this._joinToken = dojox.cometd.subscribe('/service/session/join/*', 
+            this._joinToken = cometd.subscribe('/service/session/join/*', 
                 this, '_onServiceSessionJoin');
         });
         
@@ -173,7 +174,7 @@ define([
     };
     
     proto.getInitialRoster = function() {
-        var r = this._roster
+        var r = this._roster;
         this._roster = null;
         return r;
     };
@@ -189,13 +190,15 @@ define([
                 // toss the subscription token
                 info = this._serviceReqs[match[1]];
                 // remove local listener only, sub never happened on server
-                dojox.cometd.removeListener(info.token);
+                cometd.removeListener(info.token);
                 info.token = null;
                 // pull out error tag
                 segs = msg.error.split(':');
                 // inform all callbacks of error
                 for(topic in info.pending) {
-                    this._listener.syncInbound(topic, segs[2], 0, 'error');
+                    if(info.pending.hasOwnProperty(topic)) {
+                        this._listener.syncInbound(topic, segs[2], 0, 'error');
+                    }
                 }
                 // reset list of topics pending responses
                 info.pending = {};
@@ -204,11 +207,11 @@ define([
             match = this._publicRegex.exec(ch);
             if(match) {
                 // error subscribing to public bot channel
-                topic = coweb.SET_SERVICE + match[1];
+                topic = topics.SET_SERVICE + match[1];
                 // toss the subscription token
                 info = this._serviceSubs[match[1]];
                 // remove local listener only, sub never happened on server
-                dojox.cometd.removeListener(info.token);
+                cometd.removeListener(info.token);
                 info.token = null;
                 segs = msg.error.split(':');
                 this._listener.syncInbound(topic, segs[2], 0, 'error');
@@ -228,13 +231,15 @@ define([
                 // toss the subscription token
                 var info = this._serviceReqs[match[1]];
                 // remove local listener only, sub never happened on server
-                dojox.cometd.removeListener(info.token);
+                cometd.removeListener(info.token);
                 info.token = null;
                 // pull out error tag
                 var segs = msg.error.split(':');
                 // inform all callbacks of error
                 for(var topic in info.pending) {
-                    this._listener.syncInbound(topic, segs[2], 0, 'error');
+                    if(info.pending.hasOwnProperty(topic)) {
+                        this._listener.syncInbound(topic, segs[2], 0, 'error');
+                    }
                 }
                 // reset list of topics pending responses
                 info.pending = {};
@@ -248,14 +253,14 @@ define([
         var suffix = msg.channel.split('/');
         suffix = suffix[suffix.length-1];
         
-        if(suffix == 'siteid') {
+        if(suffix === 'siteid') {
             this._siteId = msg.data;
             // tell listener about site ID
             this._listener.setSiteID(msg.data);
-        } else if(suffix == 'roster') {
+        } else if(suffix === 'roster') {
             // store initial roster until we're ready
             this._roster = msg.data;
-        } else if(suffix == 'state') {
+        } else if(suffix === 'state') {
             // handle state messages
             var def = this._updateDef;
             this._updateDef = null;
@@ -274,33 +279,35 @@ define([
     };
 
     proto._onServiceSessionJoinState = function(msg) {
+        var i, l, item;
         // tell listener about state, one item at a time
-        for(var i=0, l=msg.data.length; i < l; i++) {
+        for(i=0, l=msg.data.length; i < l; i++) {
+            item = msg.data[i];
             try {
                 this._listener.stateInbound(item.topic, item.value);
-            } catch(e) {
+            } catch(e1) {
                 console.warn('bayeux.ListenerBridge: application errored on received state');
-                throw e;
+                throw e1;
             }
         }
         
-        
         // process all queued events
-        for(var i=0, l=this._updateQueue.length; i < l; i++) {
+        for(i=0, l=this._updateQueue.length; i < l; i++) {
+            item = this._updateQueue[i];
             try {
                 this[item.mtd](item.args);
-            } catch(e) {
+            } catch(e2) {
                 console.warn('bayeux.ListenerBridge: application errored on queued event');
-                throw e;
+                throw e2;
             }
         }
 
-        org.cometd.batch(this, function() {
+        cometd.batch(this, function() {
             // unsubscribe from joining channel
-            dojox.cometd.unsubscribe(this._joinToken);
+            cometd.unsubscribe(this._joinToken);
             this._joinToken = null;
             // subscribe as an updater
-            this._updaterToken = dojox.cometd.subscribe('/service/session/updater', 
+            this._updaterToken = cometd.subscribe('/service/session/updater', 
                 this, '_onServiceSessionUpdater');
         });
         
@@ -313,8 +320,8 @@ define([
         //console.debug('bayeux.ListenerBridge._onSessionSync:', msg);
         var d = msg.data;
         // ignore echo'ed messages
-        if(d.siteId == this._siteId) {return;}
-        if(this._state == this.UPDATING) {
+        if(d.siteId === this._siteId) {return;}
+        if(this._state === this.UPDATING) {
             this._updateQueue.push({
                 mtd : '_onSessionSync',
                 args : msg
@@ -325,7 +332,7 @@ define([
     };
     
     proto._onSessionRoster = function(msg) {
-        if(this._state == this.UPDATING) {
+        if(this._state === this.UPDATING) {
             this._updateQueue.push({
                 mtd : '_onSessionRoster',
                 args : msg
@@ -337,7 +344,7 @@ define([
         var suffix = msg.channel.split('/');
         suffix = suffix[suffix.length-1];
         
-        if(suffix == 'available' || suffix == 'unavailable') {
+        if(suffix === 'available' || suffix === 'unavailable') {
             this._listener.noticeInbound(suffix, msg.data);
         } else {
             // ignore unknown message
@@ -365,7 +372,7 @@ define([
            console.warn('bayeux.ListenerBridge: unknown bot publish ' + ch);
            return;
         }
-        var topic = coweb.SET_SERVICE + match[1];
+        var topic = topics.SET_SERVICE + match[1];
         this._listener.syncInbound(topic, msg.data.eventData, 0, 'result');
     };
     

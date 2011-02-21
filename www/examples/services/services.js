@@ -25,8 +25,9 @@ require({baseUrl : '../../libs'}, [
      */
     var _makeEchoFunc = function(collab) {
         return function(text) {
-            collab.postService('echo', {message : text}, 
-                dojo.partial(_onBotResponse, 'echo', collab.id));
+            collab.postService('echo', {message : text}, function(v, e) {
+                _onBotResponse('echo', collab.id, v, e);
+            });
         };
     }
 
@@ -35,26 +36,33 @@ require({baseUrl : '../../libs'}, [
      */
     var _makeTimeFunc = function(collab) {
         return function() {
-            collab.postService('utctime', {}, 
-                dojo.partial(_onBotResponse, 'utctime', collab.id));
+            collab.postService('utctime', {}, function(v, e) {
+                _onBotResponse('utctime', collab.id, v, e)
+            });
         };
     }
 
     /* Subscribes the collab instances to the echo and utctime services. */
     var _onCollabReady = function(collab) {
         // listen on both interfaces to echo service
-        collab.subscribeService('echo', 
-            dojo.partial(_onBotPublish, 'echo', collab.id));
-        collab.subscribeService('utctime', 
-            dojo.partial(_onBotPublish, 'utctime', collab.id));    
+        collab.subscribeService('echo', function(v, e) {
+            _onBotPublish('echo', collab.id, v, e)
+        });
+        collab.subscribeService('utctime', function(v, e) {
+            _onBotPublish('utctime', collab.id, v, e)
+        });
     }
 
     require.ready(function() {
         // build a couple collab interfaces
         // collab1 = coweb.initCollab({id : 'collab1'});
-        // collab1.subscribeConferenceReady(dojo.partial(_onCollabReady, collab1));
+        // collab1.subscribeConferenceReady(function() {
+        //     _onCollabReady(collab1);
+        // });
         // collab2 = coweb.initCollab({id : 'collab2'});
-        // collab2.subscribeConferenceReady(dojo.partial(_onCollabReady, collab2));
+        // collab2.subscribeConferenceReady(function() {
+        //     _onCollabReady(collab2);
+        // });         
         // 
         // // build funcs for use at the console
         // echo1 = _makeEchoFunc(collab1);

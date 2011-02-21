@@ -3,15 +3,14 @@
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 //
+/*global define window*/
 define(function() {
     var _setHeaders = function(xhr, headers) {
         if(headers) {
             for (var headerName in headers) {
-                if(!headers.hasOwnProperty(headerName) ||
-                    headerName.toLowerCase() === 'content-type') {
-                    continue;
+                if(headers.hasOwnProperty(headerName)) {
+                    xhr.setRequestHeader(headerName, headers[headerName]);                    
                 }
-                xhr.setRequestHeader(headerName, headers[headerName]);
             }
         }
     };
@@ -19,7 +18,7 @@ define(function() {
     return {
         send: function(args) {
             // build xhr object
-            var xhr = new window.XMLHttpRequest();
+            var xhr = new XMLHttpRequest();
             // attach to ready state change
             xhr.onreadystatechange = function(event) {
                 // get event and ready state

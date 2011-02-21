@@ -6,6 +6,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define*/
 define([
     'coweb/jsoe/ContextVectorTable',
     'coweb/jsoe/ContextVector',
@@ -14,7 +15,7 @@ define([
     // load subclass to get them registered with the factory
     'coweb/jsoe/UpdateOperation',
     'coweb/jsoe/InsertOperation',
-    'coweb/jsoe/DeleteOperation',
+    'coweb/jsoe/DeleteOperation'
 ], function(ContextVectorTable, ContextVector, HistoryBuffer, factory) {
     /**
      * Controls the operational transformation algorithm. Provides a public
@@ -116,7 +117,7 @@ define([
             };
         }
         return factory.createOperationFromType(type, args);
-    },
+    };
 
     /**
      * Creates an operation object and pushes it into the operation engine
@@ -240,7 +241,7 @@ define([
             var curr = ops.pop();
             // if we haven't pick a minimum op yet OR
             // the current op is sorted before minimum op in the hb
-            if(min_op === undefined || curr.compare(min_op) == -1) {
+            if(min_op === undefined || curr.compare(min_op) === -1) {
                 // compute the oldest difference between the document state
                 // and the current op
                 cd = this.cv.oldestDifference(curr.contextVector);
@@ -259,7 +260,7 @@ define([
             // if there is no minimum op OR
             // if this op is not the minimium
             if(min_op === undefined || 
-               (min_op.siteId != op.siteId || min_op.seqId != op.seqId)) {
+               (min_op.siteId !== op.siteId || min_op.seqId !== op.seqId)) {
                 // remove operation from history buffer
                 this.hb.remove(op);
             } else {
@@ -311,7 +312,7 @@ define([
      */
     OperationEngine.prototype.thawSite = function(site) {
         // don't ever thaw the slot for our own site
-        if(site == this.siteId) {return;}
+        if(site === this.siteId) {return;}
         // get the minimum context vector
         var cv = this.cvt.getMinimumContextVector();
         // grow it to include the site if needed

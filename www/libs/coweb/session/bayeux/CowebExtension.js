@@ -4,6 +4,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define*/
 define(function() {
     var CowebExtension = function(args) {
         this._cometd = null;
@@ -22,7 +23,7 @@ define(function() {
         var ext = msg.ext = msg.ext || {};
         var coweb = msg.ext.coweb = msg.ext.coweb || {};
         coweb.sessionid = this._sessionid;
-        return message;
+        return msg;
     };
 
     return CowebExtension;
