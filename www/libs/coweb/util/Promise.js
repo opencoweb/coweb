@@ -1,5 +1,5 @@
 //
-// Lightweight promises implementation based on 
+// Lightweight promises implementation loosely based on 
 // http://wiki.commonjs.org/wiki/Promises/A and the dojo.Deferred 
 // implementation.
 //
@@ -26,10 +26,10 @@ define(function() {
                 if(func) {
                     // have a registered function for notification
                     try {
-                        rv = func(result);
+                        rv = func.call(ptr.context || this, result);
                         if(rv && typeof rv.then === 'function') {
                             // function returned a new promise
-                            rv.then(success, failure);
+                            rv.then(success, failure, ptr.context);
                             continue;
                         }
                         // keep current value or use next
@@ -54,10 +54,23 @@ define(function() {
             }
         };
 
-        this.then = function(callback, errback) {
+        this.then = function(callback, errback, context) {
+            if(callback && typeof callback !== 'function') {
+                callback = context[callback];
+                if(typeof callback !== 'function') {
+                    throw new Error('callback must be a function');
+                }
+            }
+            if(errback && typeof errback !== 'function') {
+                errback = context[errback];
+                if(typeof errback !== 'function') {
+                    throw new Error('errback must be a function');
+                }
+            }
             var listener = {
                 callback : callback,
                 errback : errback,
+                context : context,
                 promise : new Promise()
             };
             if(currListener) {

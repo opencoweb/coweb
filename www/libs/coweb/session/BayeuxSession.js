@@ -218,9 +218,9 @@ define([
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
         this._bridge.prepareConference(params.key, params.collab)
-            .then(this, '_onPrepared', this, '_onPrepareError');
+            .then('_onPrepared', '_onPrepareError', this);
         // start listening to disconnections
-        this._bridge.disconnectDef.then(this, '_onDisconnected');
+        this._bridge.disconnectDef.then('_onDisconnected', this);
 
         // show the busy dialog for the prepare phase
         OpenAjax.hub.publish(topics.BUSY, 'preparing');
@@ -236,7 +236,7 @@ define([
         var def = this._prepParams.deferred;
         // watch for errors during prep callback as indicators of failure to
         // configure an application
-        def.then(null, this, '_onAppPrepareError');
+        def.then(null, '_onAppPrepareError', this);
         // if auto joining, build next def and pass with params
         if(this._prepParams.autoJoin) {
             params.nextDef = new Promise();
@@ -279,10 +279,7 @@ define([
 
         // new deferred for join success / failure
         this._prepParams.deferred = nextDef || new Promise();
-
-        this._bridge.joinConference().then(this, '_onJoined',
-            this, '_onJoinError');
-        
+        this._bridge.joinConference().then('_onJoined', '_onJoinError', this);
         return this._prepParams.deferred;
     };
 
@@ -291,7 +288,7 @@ define([
         var def = this._prepParams.deferred;
         // watch for errors during prep callback as indicators of failure to
         // configure an application
-        def.then(null, this, '_onAppPrepareError');
+        def.then(null, '_onAppPrepareError', this);
         var params = {};
         // if auto updating, build next def and pass with params
         if(this._prepParams.autoUpdate) {
@@ -330,10 +327,8 @@ define([
 
         // new deferred for join success / failure
         this._prepParams.deferred = nextDef || new Promise();
-        
-        this._bridge.updateInConference().then(this, '_onUpdated', this, 
-            '_onUpdateError');
-        
+        this._bridge.updateInConference().then('_onUpdated', '_onUpdateError',
+            this);
         return this._prepParams.deferred;
     };
 

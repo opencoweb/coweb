@@ -125,9 +125,39 @@ define([
         }).then(function(val) {
             equal(val, chainErr);
         });
+        // make sure original chain still works
+        this.p.then(function(val) {
+            deepEqual(val, target);
+        });
         
         this.p.resolve(target);
         chainSuccessPromise.resolve(chainTarget);
         chainFailurePromise.fail(chainErr);
+    });
+    
+    test('context', 6, function() {
+        var target = {a : 'a', b : 'b'},
+            chainSuccessPromise = new Promise(),
+            chainTarget = {c : 'c', d : 'd'},
+            obj = {
+                sentinel : 'sentinel',
+                callback : function(val) {
+                    equal(this.sentinel, 'sentinel');
+                    deepEqual(val, target);
+                    return chainSuccessPromise;
+                },
+                chainCallback : function(val) {
+                    equal(this.sentinel, 'sentinel');
+                    deepEqual(val, chainTarget);                    
+                },
+                errback : function(err) {
+                    equal(this.sentinel, 'sentinel');
+                }
+            };
+        
+        this.p.then('callback', null, obj).then('chainCallback', null, obj);
+        this.p.then(obj.callback, null, obj);
+        this.p.resolve(target);
+        chainSuccessPromise.resolve(chainTarget);
     });
 });

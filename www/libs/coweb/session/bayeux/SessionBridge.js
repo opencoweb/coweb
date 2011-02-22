@@ -232,7 +232,7 @@ define([
         this._state = this.UPDATING;
         this._updateDef = new Promise();
         this._bridge.initiateUpdate()
-            .then(this, '_onUpdateSuccess', this, '_onUpdateFailure');
+            .then('_onUpdateSuccess', '_onUpdateFailure', this);
         return this._updateDef;
     };
     
