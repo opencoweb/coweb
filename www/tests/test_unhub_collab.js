@@ -1,11 +1,9 @@
 //
 // Tests the UnamangedHubCollab implementation of CollabInterface.
-//
-// @todo: test bad callback handlers
 // 
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 //
-/*global define module test raises deepEqual ok equal*/
+/*global define module test raises deepEqual ok equal strictEqual*/
 define([
     'coweb/collab/UnmanagedHubCollab',
     'org/OpenAjax',
@@ -15,10 +13,14 @@ define([
         setup: function() {
             this.collab = new UnmanagedHubCollab();
             this.collab.init({id : 'test'});
+            this._subs = [];
         },
         teardown: function() {
             this.collab.unsubscribeAll();
             delete this.collab;
+            for(var i=0, l=this._subs.length; i<l; i++) {
+                OpenAjax.hub.unsubscribe(this._subs[i]);
+            }
         }
     });
     
@@ -203,6 +205,8 @@ define([
         tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
             deepEqual(params, target);
         });
+        // cleanup on teardown
+        this._subs.push(tok);
         this.collab.sendSync(name, target.value);
     });
     
@@ -280,26 +284,178 @@ define([
         tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
             deepEqual(params, target);
         });
+        this._subs.push(tok);
         this.collab.sendStateResponse(target.state, target.recipient);
     });
     
-    test('subscribe service', 1, function() {
+    test('subscribe service', 14, function() {
+        var tok, service = 'foobar',
+            subTopic = topics.SUB_SERVICE+service,
+            subTarget = {
+                topic : topics.SET_SERVICE+service,
+                service : service
+            },
+            pubTopic = topics.SET_SERVICE+service,
+            pubTarget = {
+                value: {
+                    a: 'a',
+                    b : 'b'
+                },
+                error : false
+            },
+            cb = function(value, error) {
+                deepEqual(value, pubTarget.value);
+                equal(error, pubTarget.error);
+            },
+            obj = {
+                sentinel : 'sentinel',
+                cb : function(value, error) {
+                    equal(this.sentinel, 'sentinel');
+                    cb(value, error);
+                }
+            };
+        // listen for publishes upon subscribe
+        tok = OpenAjax.hub.subscribe(subTopic, function(topic, value) {
+            equal(topic, subTopic);
+            deepEqual(value, subTarget);
+        });
+        this._subs.push(tok);
         
+        // do the subscribes
+        this.collab.subscribeService(service, cb);
+        this.collab.subscribeService(service, obj, obj.cb);
+        this.collab.subscribeService(service, obj, 'cb');
+        
+        // simulate a service bot publish
+        OpenAjax.hub.publish(topics.SET_SERVICE+service, pubTarget);
+        // simulate a publish from a different bot
+        OpenAjax.hub.publish(topics.SET_SERVICE+service+'1', pubTarget);
     });
     
-    test('post to service', 1, function() {
+    test('post to service', 6, function() {
+        var tok, service = 'foobar',
+            respTopic = topics.SET_SERVICE+service+'_0.'+this.collab.id,
+            reqTopic = topics.GET_SERVICE+service,
+            reqTarget = {
+                topic : respTopic,
+                params : {
+                    a : 'a',
+                    b : 'b'
+                },
+                service : service
+            },
+            respTarget = {
+                value : {
+                    c : 'c',
+                    d : 'd'
+                },
+                error : false
+            },
+            cb = function(value, error) {
+                deepEqual(value, respTarget.value);
+                equal(error, respTarget.error);
+            },
+            obj = {
+                sentinel : 'sentinel',
+                cb : function(value, error) {
+                    equal(this.sentinel, 'sentinel');
+                    cb(value, error);
+                }
+            };
+        // listen for publishes upon subscribe
+        tok = OpenAjax.hub.subscribe(reqTopic, function(topic, value) {
+            equal(topic, reqTopic);
+            deepEqual(value, reqTarget);
+        });
+        this._subs.push(tok);
         
+        // do the post
+        this.collab.postService(service, reqTarget.params, obj, 'cb');
+        
+        // simulate a service bot response
+        OpenAjax.hub.publish(respTopic, respTarget);
+        // simulate a second response that should get ignored
+        OpenAjax.hub.publish(respTopic, respTarget);
+        // whitebox: poke at hub to make sure we're unsubscribing
+        strictEqual(OpenAjax.hub._subscriptions.c.coweb.c.service.response, 
+            undefined);
     });
     
-    test('unsubscribe service', 1, function() {
+    test('unsubscribe', 10, function() {
+        var toks = [],
+            syncName = 'a.b',
+            serviceName = 'bazbot',
+            cb = function() {
+                ok(false, 'should never fire');
+            },
+            subs = OpenAjax.hub._subscriptions,
+            serviceSubs, syncSubs;
+
+        // do some subscribes
+        toks.push(this.collab.subscribeSync(syncName, cb));
+        toks.push(this.collab.subscribeSync(syncName, this, cb));
+        toks.push(this.collab.subscribeService(serviceName, cb));
+        toks.push(this.collab.subscribeService(serviceName, this, cb));
         
+        // whitebox: poke at hub to make sure we're unsubscribing
+        serviceSubs = subs.c.coweb.c.service.c.response.c.bazbot.s;
+        syncSubs = subs.c.coweb.c.sync.c.a.c.b.c.test.s;
+
+        // unsubscribe one by one
+        equal(serviceSubs.length, 2);
+        equal(syncSubs.length, 2);
+        this.collab.unsubscribe(toks[0]);
+        equal(syncSubs.length, 1);
+        equal(serviceSubs.length, 2);
+        this.collab.unsubscribe(toks[1]);
+        equal(syncSubs.length, 0);
+        equal(serviceSubs.length, 2);
+        this.collab.unsubscribe(toks[2]);
+        equal(syncSubs.length, 0);
+        equal(serviceSubs.length, 1);
+        this.collab.unsubscribe(toks[3]);
+        equal(syncSubs.length, 0);
+        equal(serviceSubs.length, 0);
     });
     
-    test('unsubscribe', 1, function() {
-        
-    });
-    
-    test('unsubscribe all', 1, function() {
-        
+    test('unsubscribe all', 0, function() {
+        var cb = function() {
+                ok(false, 'should never fire');
+            },
+            tok,
+            syncName = 'a.b.c.d',
+            syncTopic = topics.SYNC+syncName+'.'+this.collab.id,
+            syncTarget = {
+                value : 'b',
+                type : 'update',
+                position : 1,
+                site : 10
+            },
+            serviceName = 'foobar',
+            serviceTopic = topics.SET_SERVICE+serviceName,
+            serviceTarget = {
+                value: {
+                    a: 'a',
+                    b : 'b'
+                },
+                error : false
+            };
+
+        // test regular subscribes
+        this.collab.subscribeSync(syncName, cb);
+        this.collab.subscribeSync(syncName, this, cb);
+        this.collab.subscribeService(serviceName, cb);
+        this.collab.subscribeService(serviceName, this, cb);
+        // test service subscribes
+        this.collab.unsubscribeAll();
+        // whitebox test: make sure tokens contains nothing
+        for(tok in this.collab._tokens) {
+            if(this.collab._tokens.hasOwnProperty(tok)) {
+                ok(false, tok);
+            }
+        }
+        // publish to make sure nothing gets received
+        OpenAjax.hub.publish(syncTopic, syncTarget);
+        OpenAjax.hub.publish(serviceTopic, serviceTarget);
     });
 });

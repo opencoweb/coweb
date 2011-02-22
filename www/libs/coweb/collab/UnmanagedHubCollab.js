@@ -13,9 +13,9 @@ define([
     'org/OpenAjax'
 ], function(topics, Promise, OpenAjax) {
     var UnmanagedHubCollab = function() {
-        this.mutex = false;
-        this.service_id = 0;
-        this.tokens = [];
+        this._mutex = false;
+        this._serviceId = 0;
+        this._tokens = {};
         this.id = undefined;
     };
     // save the finger joints
@@ -54,7 +54,7 @@ define([
         var tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
             callback.call(context, params);
         }, this);
-        this.tokens.push(tok);
+        this._tokens[tok] = null;
         var def = new Promise();
         def._cowebToken = tok;
         def.resolve();
@@ -82,7 +82,7 @@ define([
         var tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
             callback.call(context, params);
         }, this);
-        this.tokens.push(tok);
+        this._tokens[tok] = null;
         var def = new Promise();
         def._cowebToken = tok;
         def.resolve();
@@ -110,7 +110,7 @@ define([
         var tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
             callback.call(context, params);
         }, this);
-        this.tokens.push(tok);
+        this._tokens[tok] = null;
         var def = new Promise();
         def._cowebToken = tok;
         def.resolve();
@@ -138,7 +138,7 @@ define([
         var tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
             callback.call(context, params);
         }, this);
-        this.tokens.push(tok);
+        this._tokens[tok] = null;
         var def = new Promise();
         def._cowebToken = tok;
         def.resolve();
@@ -166,9 +166,9 @@ define([
         }
         var topic = topics.SYNC+name+'.'+this.id;
         var params = {value: value, type: type, position:position};
-        this.mutex = true;
+        this._mutex = true;
         OpenAjax.hub.publish(topic, params);
-        this.mutex = false;
+        this._mutex = false;
     };
     
     /**
@@ -199,12 +199,12 @@ define([
         }
         var topic = topics.SYNC+name+'.'+this.id;
         var tok = OpenAjax.hub.subscribe(topic, function(tp, params) {
-            if(!this.mutex) {
+            if(!this._mutex) {
                 callback.call(context, tp, params.value, params.type, 
                     params.position, params.site);
             }
         }, this);
-        this.tokens.push(tok);
+        this._tokens[tok] = null;
         var def = new Promise();
         def._cowebToken = tok;
         def.resolve();
@@ -244,7 +244,7 @@ define([
         var tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
             callback.call(context, params);
         }, this);
-        this.tokens.push(tok);
+        this._tokens[tok] = null;
         var def = new Promise();
         def._cowebToken = tok;
         def.resolve();
@@ -264,14 +264,12 @@ define([
             throw new Error('call init() first');
         }
         var params = {state : state, recipient : token};
-        this.mutex = true;
+        this._mutex = true;
         try {
             OpenAjax.hub.publish(topics.SET_STATE+this.id, params);
-        } catch(e) {
-            this.mutex = false;
-            throw e;
+        } finally {
+            this._mutex = false;
         }
-        this.mutex = false;
     };
 
     /**
@@ -297,11 +295,11 @@ define([
         }
         var topic = topics.SET_STATE+this.id;
         var tok = OpenAjax.hub.subscribe(topic, function(t, params) {
-            if(!this.mutex) {
+            if(!this._mutex) {
                 callback.call(context, params);
             }
         }, this);
-        this.tokens.push(tok);
+        this._tokens[tok] = null;
         var def = new Promise();
         def._cowebToken = tok;
         def.resolve();
@@ -330,30 +328,31 @@ define([
             }
         }
         // build the service response topic
-        var set_topic = topics.SET_SERVICE+service;
+        var setTopic = topics.SET_SERVICE+service;
 
         // register internal callback for service response
-        var sub_data = {
+        var subData = {
             callback : callback, 
             context : context, 
             type : 'subscribe'
         };
-        var token = OpenAjax.hub.subscribe(set_topic, dojo.hitch(this,
-            '_cowebServiceResponse'), null, sub_data);
-        this.tokens.push(token);
+        var hubToken = OpenAjax.hub.subscribe(setTopic, 
+            '_cowebServiceResponse', this, subData);
 
         // add metadata and data to the subscription request
-        var msg = {topic : set_topic, service : service};
+        var msg = {topic : setTopic, service : service};
         // send subscription request
-        var sub_topic = topics.SUB_SERVICE+service;
-        OpenAjax.hub.publish(sub_topic, msg);
+        var subTopic = topics.SUB_SERVICE+service;
+        OpenAjax.hub.publish(subTopic, msg);
 
         // save all info needed to unregister
-        var coweb_token = {topic : set_topic, service : service, 
-            hub_token : token};
+        var cowebToken = {topic : setTopic, service : service, 
+            hubToken : hubToken};
+        this._tokens[hubToken] = cowebToken;
+        
         var def = new Promise();
         def.resolve();
-        def._cowebToken = coweb_token;
+        def._cowebToken = cowebToken;
         return def;
     };
     
@@ -382,29 +381,30 @@ define([
             }
         }
         // subscribe to response event
-        var set_topic = topics.SET_SERVICE+service+'_'+this.service_id+'.'+this.id;
+        var setTopic = topics.SET_SERVICE+service+'_'+this._serviceId+'.'+this.id;
         // use our callback so we can automatically unregister 
-        var sub_data = {
+        var subData = {
             context : context,
             callback : callback, 
             type : 'get'
         };
-        var token = OpenAjax.hub.subscribe(set_topic, dojo.hitch(this, 
-            '_cowebServiceResponse'), null, sub_data);
-        this.tokens.push(token);
+        var hubToken = OpenAjax.hub.subscribe(setTopic, 
+            '_cowebServiceResponse', this, subData);
+        // track token for unsubscribeAll
+        this._tokens[hubToken] = null;            
         // add the unsubscribe token to the subscriber data so we have it
         // when the callback is invoked
-        sub_data.hub_token = token;
+        subData.hubToken = hubToken;
         // add metadata and data to message
-        var msg = {topic : set_topic, params : params, service : service};
+        var msg = {topic : setTopic, params : params, service : service};
         // send get request to listener
         var get_topic = topics.GET_SERVICE+service;
         OpenAjax.hub.publish(get_topic, msg);
         // make next request unique
-        this.service_id++;
+        this._serviceId++;
         var def = new Promise();
         def.resolve();
-        def._cowebToken = token;
+        def._cowebToken = hubToken;
         return def;
     };
 
@@ -416,21 +416,21 @@ define([
      * @param params Object with value, type, position, and site
      * @return Promise which always notifies success
      */
-    proto._cowebServiceResponse = function(topic, params, sub_data) {
+    proto._cowebServiceResponse = function(topic, params, subData) {
+        var hubToken = subData.hubToken;
         // invoke the real callback
         try {
-            sub_data.callback.call(sub_data.context, params.value, params.error);
-        } catch(e) {
-            if(sub_data.type == 'get') {
-                // unsubscribe using token
-                OpenAjax.hub.unsubscribe(sub_data.hub_token);
+            console.log('doing callback');
+            subData.callback.call(subData.context, params.value, params.error);
+        } finally {
+            if(subData.type === 'get') {
+                console.log('doing unsubscribe', subData.hubToken);
+                // unsubscribe from hub
+                OpenAjax.hub.unsubscribe(subData.hubToken);
+                console.log('did unsubscribe');
+                // stop tracking token
+                delete this._tokens[hubToken];
             }
-            // re-raise error
-            throw e;
-        }
-        if(sub_data.type == 'get') {
-            // unsubscribe using token
-            OpenAjax.hub.unsubscribe(sub_data.hub_token);
         }
     };
 
@@ -441,28 +441,28 @@ define([
      *   subscription
      */
     proto.unsubscribe = function(def) {
+        var token, i;
         if(!def) { 
             return;
-        } else if(def._cowebToken && def._cowebToken.hub_token) {
-            var token = def._cowebToken;
+        } else if(def._cowebToken && def._cowebToken.hubToken) {
+            token = def._cowebToken;
             // don't allow reuse of token
             delete def._cowebToken;
             // unsubscribe from local event
-            OpenAjax.hub.unsubscribe(token.hub_token);
+            OpenAjax.hub.unsubscribe(token.hubToken);
             // remove from tracked tokens
-            var i = dojo.indexOf(this.tokens, token.hub_token);
-            this.tokens = this.tokens.slice(0, i).concat(this.tokens.slice(i+1));
+            delete this._tokens[token.hubToken];
             // send unsubscribe request to listener
             var topic = topics.UNSUB_SERVICE+token.service;
             // include original topic
             OpenAjax.hub.publish(topic, token);
         } else if(def._cowebToken) {        
-            OpenAjax.hub.unsubscribe(def._cowebToken);
+            token = def._cowebToken;
             // don't allow reuse of token
             delete def._cowebToken;
             // remove from tracked tokens
-            var i = dojo.indexOf(this.tokens, token.hub_token);
-            this.tokens = this.tokens.slice(0, i).concat(this.tokens.slice(i+1));
+            delete this._tokens[token];
+            OpenAjax.hub.unsubscribe(token);
         }
     };
     
@@ -470,8 +470,20 @@ define([
      * Removes all subscriptions created via this interface.
      */
     proto.unsubscribeAll = function() {
-        for(var i=0, l=this.tokens.length; i < l; i++) {
-            OpenAjax.hub.unsubscribe(this.tokens[i]);
+        for(var hubToken in this._tokens) {
+            if(this._tokens.hasOwnProperty(hubToken)) {
+                var cowebToken = this._tokens[hubToken];
+                // unsubscribe
+                OpenAjax.hub.unsubscribe(hubToken);
+                // stop tracking
+                delete this._tokens[hubToken];
+                if(cowebToken) {
+                    // unregister from service too
+                    var topic = topics.UNSUB_SERVICE+cowebToken.service;
+                    // include original topic
+                    OpenAjax.hub.publish(topic, cowebToken);
+                }
+            }
         }
     };
     
