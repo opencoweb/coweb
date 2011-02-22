@@ -2,7 +2,6 @@
 Open Cooperative Web Framework
 ==============================
 
-:Dojo Foundation: http://dojofoundation.org/projects/opencoweb
 :Homepage: http://opencoweb.org
 :Code: https://github.com/opencoweb/coweb
 :Documentation: http://opencoweb.org/ocwdocs
