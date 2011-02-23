@@ -30,8 +30,6 @@ define([
         this._syncTimer = null;
         this._purgeTimer = null;
 
-        // reference to the session interface
-        this._session = null;
         // reference to the listener bridge
         this._bridge = null;
         // whether collaborative messages should be sent or not
@@ -46,7 +44,6 @@ define([
      * Called on page unload to remove client references.
      */
     proto.destroy = function() {
-        this._session = null;
         this._bridge = null;
         if(this._syncTimer) {clearInterval(this._syncTimer);}
         if(this._purgeTimer) {clearInterval(this._purgeTimer);}
@@ -54,28 +51,18 @@ define([
     };
     
     /**
-     * Stores a reference to the session that owns this listener.
-     *
-     * @param params Parameters created by the session factory function
-     */
-    proto.init = function(params) {
-        this._session = params.session;
-    };
-    
-    /**
      * Starts listening for cooperative events on the OpenAjax hub to forward
-     * to the HubController.
+     * to the session bridge instance.
      *
      * @param bridge Reference to the ListenerBridge
-     * @param collab True to enable sync, state, and service events, false to 
-     *   watch service events only
+     * @param prepResponse Preparation response from the admin
      */
-    proto.start = function(bridge, collab) {
+    proto.start = function(bridge, prepResponse) {
         this._bridge = bridge;
-        this._subscribeHub(collab);
+        this._subscribeHub(prepResponse.collab);
         
         // set op engine timers as heartbeat, but only if collaborative
-        if(collab) {
+        if(prepResponse.collab) {
             // clear old timers
             if(this._syncTimer) {clearInterval(this._syncTimer);}
             if(this._purgeTimer) {clearInterval(this._purgeTimer);}
@@ -88,6 +75,15 @@ define([
                 self._onPurgeEngine();
             }, PURGE_INTERVAL);
         }
+        
+        // notify ready for coweb events
+        var roster = this._bridge.getInitialRoster();
+        var value = {
+            username : prepResponse.username,
+            site : this._engine.siteId,
+            roster : roster
+        };
+        OpenAjax.hub.publish(topics.READY, value);
     };
 
     /**
@@ -155,15 +151,6 @@ define([
         this._engine = new OperationEngine(id);
         // siteid 0 is reserved, we duplicate the local site's cv in that slot
         this._engine.freezeSite(0);
-    };
-
-    /**
-     * Call to get the current site identifier in the active conference.
-     *
-     * @return Unique integer ID for this site in the current conference
-     */
-    proto.getSiteID = function() {
-        return this._engine.siteId;
     };
 
     /**

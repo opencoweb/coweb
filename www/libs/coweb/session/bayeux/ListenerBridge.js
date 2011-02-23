@@ -16,10 +16,10 @@ define([
         this.UPDATING = 1;
         this.UPDATED = 2;
         
-        // hub listener
+        // ListenerImpl
         this._listener = args.listener;
-        // session controller
-        this._sessionc = args.sessionc;
+        // SessionImpl bridge 
+        this._bridge = args.bridge;
         // /service/session/join/* subscription
         this._joinToken = null;
         // /session/roster/* subscription
@@ -153,9 +153,9 @@ define([
         // failures
         cometd.addListener('/meta/publish', this, '_onPublish');
 
-        // go into joining state
+        // go into updating state
         this._state = this.UPDATING;
-        // make sure queue of held events 
+        // empty the queue of held events
         this._updateQueue = [];
         // batch these subscribes
         cometd.batch(this, function() {
@@ -265,13 +265,15 @@ define([
             var def = this._updateDef;
             this._updateDef = null;
             try {
-                this._onServiceSessionJoinState(msg);                        
+                this._onServiceSessionJoinState(msg);
                 // note updated
                 def.resolve();
             } catch(e) {
                 // note update failed
                 def.fail(new Error('bad-application-state'));
             }
+            // initialize the listener with the listener bridge reference
+            this._listener.start(this, this._bridge.prepResponse);
         } else {
             // unknown message, ignore
             console.warn('bayeux.ListenerBridge: unknown message ' + msg.channel);
@@ -361,7 +363,7 @@ define([
             this._listener.requestStateInbound(token);
         } catch(e) {
             // @todo: force disconnect because state is bad
-            this._sessionc.onDisconnected(this._sessionc.id, 'bad-application-state');
+            this._bridge.onDisconnected(this._bridge.id, 'bad-application-state');
         }
     };
     

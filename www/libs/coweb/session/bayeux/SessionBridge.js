@@ -37,7 +37,7 @@ define([
         this.disconnectDef = null;
 
         // info received from server
-        this._prepResponse = null;
+        this.prepResponse = null;
 
         // determine when to schedule destruction based on browser unload
         // event support, prefer onbeforeunload
@@ -51,7 +51,7 @@ define([
         this._bridge = new ListenerBridge({
             debug: this._debug,
             listener: this._listener,
-            sessionc: this
+            bridge: this
         });
     };
     // save typing and lookup
@@ -105,7 +105,7 @@ define([
             this._state = this.PREPARED;
             var def = this._prepDef;
             this._prepDef = null;
-            this._prepResponse = resp;
+            this.prepResponse = resp;
             // merge the username into the info so we can give back one object
             resp.info.username = resp.username;
             def.resolve(resp);
@@ -135,11 +135,11 @@ define([
         this._joinDef = new Promise();
         // register extension to include session id in ext        
         cometd.unregisterExtension('coweb');
-        var args = {sessionid : this._prepResponse.sessionid};
+        var args = {sessionid : this.prepResponse.sessionid};
         cometd.registerExtension('coweb', new CowebExtension(args));
 
         cometd.configure({
-            url : this._prepResponse.sessionurl, 
+            url : this.prepResponse.sessionurl, 
             logLevel: this._debug ? 'debug' : 'info',
             autoBatch : true,
             appendMessageTypeToURL: false

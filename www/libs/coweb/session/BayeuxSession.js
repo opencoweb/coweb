@@ -32,13 +32,13 @@ define([
      *
      * @param params Parameters given to the session factory function
      */
-    proto.init = function(params) {
+    proto.init = function(params, listenerImpl) {
         var self = this;
         // store debug and strict compat check flags for later
         this._loginUrl = params.loginUrl;
         this._logoutUrl = params.logoutUrl;
         this._debug = params.debug;
-        this._listener = params.listener;
+        this._listener = listenerImpl;
         // create the bridge impl
         this._bridge = new SessionBridge({
             debug : this._debug,
@@ -332,20 +332,6 @@ define([
 
         // session is now updated in conference
         OpenAjax.hub.publish(topics.BUSY, 'ready');
-        var hc = this._bridge.getHubController();
-        // initialize the hub listener with the client reference now that 
-        // the conference is fully established
-        this._listener.start(hc, prepParams.collab);
-
-        // broadcast a final hub event indicating the client is now fully in
-        // the conference
-        var roster = hc.getInitialRoster();
-        var value = {
-            username : prepParams.response.username,
-            site : this._listener.getSiteID(),
-            roster : roster
-        };
-        OpenAjax.hub.publish(topics.READY, value);
     };
 
     proto._onUpdateError = function(err) {
@@ -370,7 +356,7 @@ define([
         }
         // stop the hub listener from performing further actions
         this._listener.stop();
-        
+
         // keep prep info if a deferred is still waiting for notification
         if(this._prepParams && !this._prepParams.deferred) {
             this._prepParams = null;

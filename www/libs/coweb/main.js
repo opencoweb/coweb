@@ -43,8 +43,6 @@ define([
             sessionInst = new SessionImpl();
             // create the listener instance
             listenerInst = new ListenerImpl();
-            // initialize the listener
-            listenerInst.init({session : sessionInst});
             // initialize the session
             sessionInst.init(cowebConfig, listenerInst);
             return sessionInst;
