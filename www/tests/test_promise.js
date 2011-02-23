@@ -105,7 +105,7 @@ define([
         });
     });
     
-    test('promise chain', 5, function() {
+    test('promise chain', 6, function() {
         var target = {a : 'a', b : 'b'},
             chainSuccessPromise = new Promise(),
             chainTarget = {c : 'c', d : 'd'},

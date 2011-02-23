@@ -13,11 +13,17 @@ define(function() {
         
         var notifyListeners = function() {
             var func, rv, nextVal, ptr;
-            var success = function(val) {
-                ptr.promise.resolve(val);
+            var success = function(ptr) {
+                var promise = ptr.promise;
+                return function(val) {
+                    promise.resolve(val);
+                };
             };
             var failure = function(err) {
-                ptr.promise.fail(err);
+                var promise = ptr.promise;
+                return function(err) {                    
+                    promise.fail(err);
+                };
             };
             while(currListener) {
                 ptr = currListener;
@@ -29,7 +35,7 @@ define(function() {
                         rv = func.call(ptr.context || this, result);
                         if(rv && typeof rv.then === 'function') {
                             // function returned a new promise
-                            rv.then(success, failure, ptr.context);
+                            rv.then(success(ptr), failure(ptr), ptr.context);
                             continue;
                         }
                         // keep current value or use next
