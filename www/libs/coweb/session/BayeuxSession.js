@@ -1,8 +1,6 @@
 //
 // Bayeux implementation of the SessionInterface.
 //
-// @todo: dojo replacement
-// 
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
@@ -187,14 +185,20 @@ define([
             throw new Error('prepareConference() not valid in current state');
         }
 
-        // get url params in case we need them
-        var url_params = dojo.queryToObject(window.location.search.substring(1));
-        
+        // get url params
+        var urlParams = {};
+        var searchText = window.location.search.substring(1);
+        var searchSegs = searchText.split('&');
+        for(var i=0, l=searchSegs.length; i<l; i++) {
+            var tmp = searchSegs.split('=');
+            urlParams[decodeURIComponent(tmp[0])] = decodeURIComponent(tmp[1]);
+        }
+
         if(params.key === undefined) {
             // app didn't specify explicit key
-            if(url_params.cowebkey !== undefined) {
+            if(urlParams.cowebkey !== undefined) {
                 // use the key from the url
-                params.key = url_params.cowebkey;
+                params.key = urlParams.cowebkey;
             } else {
                 // default to use the full url minus the hash value
                 params.key = decodeURI(window.location.host + window.location.pathname + window.location.search);
