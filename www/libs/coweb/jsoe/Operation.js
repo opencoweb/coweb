@@ -93,7 +93,6 @@ define([
         this.key = arr[1];
         this.value = arr[2];
         this.position = arr[3];
-        console.log(ContextVector);
         this.contextVector = new ContextVector({state : arr[4]});
         this.seqId = arr[5];
         this.siteId = arr[6];

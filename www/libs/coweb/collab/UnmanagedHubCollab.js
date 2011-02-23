@@ -420,14 +420,11 @@ define([
         var hubToken = subData.hubToken;
         // invoke the real callback
         try {
-            console.log('doing callback');
             subData.callback.call(subData.context, params.value, params.error);
         } finally {
             if(subData.type === 'get') {
-                console.log('doing unsubscribe', subData.hubToken);
                 // unsubscribe from hub
                 OpenAjax.hub.unsubscribe(subData.hubToken);
-                console.log('did unsubscribe');
                 // stop tracking token
                 delete this._tokens[hubToken];
             }
