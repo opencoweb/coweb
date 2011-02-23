@@ -26,7 +26,13 @@ define([
             packet.method = 'POST';
             packet.headers = packet.headers || {};
             packet.headers['Content-Type'] = 'application/json;charset=UTF-8';
-            return xhr.send(packet);
+            var promise = xhr.send(packet);
+            promise.then(function(args) {
+                packet.onSuccess(args.xhr.responseText);
+            }, function(args) {
+                packet.onError(args.xhr.statusText, args.error);
+            });
+            return promise.xhr;
         };
         return that;
     };

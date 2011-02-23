@@ -84,29 +84,22 @@ define([
             key : key,
             collab : collab
         };
-        var self = this;
         var args = {
             method : 'POST',
             url : this._adminUrl,
             headers: {
                 'Content-Type' : 'application/json;charset=UTF-8' 
             },
-            body : JSON.stringify(data),
-            onSuccess: function(resp, ioargs) { 
-                self._onPrepareResponse(resp, ioargs);
-            },
-            onError: function(err, ioargs) {
-                self._onPrepareError(err, ioargs);
-            }
+            body : JSON.stringify(data)
         };
-        xhr.send(args);
+        xhr.send(args).then('_onPrepareResponse', '_onPrepareError', this);
         // change state to avoid duplicate prepares
         this._state = this.PREPARING;
         return this._prepDef;
     };
 
-    proto._onPrepareResponse = function(text) {
-        var resp = JSON.parse(text);
+    proto._onPrepareResponse = function(args) {
+        var resp = JSON.parse(args.xhr.responseText);
         if(this._state === this.PREPARING) {
             this._state = this.PREPARED;
             var def = this._prepDef;
@@ -119,12 +112,12 @@ define([
         // @todo: cleanup?
     };
     
-    proto._onPrepareError = function(err, ioargs) {
+    proto._onPrepareError = function(args) {
         // go back to idle state
         this._state = this.IDLE;
         var def = this._prepDef;
         this._prepDef = null;
-        var s = ioargs.xhr.status;
+        var s = args.xhr.status;
         if(s === 403 || s === 401) {
             // need to auth
             def.errback(new Error('not-allowed'));

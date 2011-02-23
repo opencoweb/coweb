@@ -143,16 +143,9 @@ define([
             body: JSON.stringify({username : username, password: password}),
             headers : {
                 'Content-Type' : 'application/json;charset=UTF-8'
-            },
-            onSuccess: function(text) {
-                p.resolve(text);
-            },
-            onError: function(err) {
-                p.fail(err);
             }
         };
-        xhr.send(args);
-        return p;
+        return xhr.send(args);
     };
 
     /**
@@ -165,16 +158,9 @@ define([
         var p = new Promise();
         var args = {
             method : 'GET',
-            url : this._logoutUrl,
-            onSuccess: function(text) {
-                p.resolve(text);
-            },
-            onError: function(err) {
-                p.fail(err);
-            }
+            url : this._logoutUrl
         };
-        xhr.send(args);
-        return p;
+        return xhr.send(args);
     };
 
     /**

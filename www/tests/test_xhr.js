@@ -4,6 +4,7 @@
 // @todo: can reuse for sync or no?
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+/*global define module test equal deepEqual raises stop start ok*/
 define([
     'coweb/util/xhr'
 ], function(xhr) {
@@ -24,86 +25,78 @@ define([
     });
     
     test('GET success', 2, function() {
-        var args;
-        args = {
+        var args = {
             url : 'target.json',
-            method : 'GET',
-            onSuccess: function(result) {
-                equal(args.xhr.status, 200);
-                result = JSON.parse(result);
-                deepEqual(result, target);
-                start();
-            }
+            method : 'GET'
         };
         stop(this.timeout);
-        xhr.send(args);
+        xhr.send(args).then(function(args) {
+            equal(args.xhr.status, 200);
+            var result = JSON.parse(args.xhr.responseText);
+            deepEqual(result, target);
+            start();            
+        });
     });
 
     test('GET failure', 1, function() {
-        var args;
-        args = {
+        var args = {
             url : 'bad.json',
-            method : 'GET',
-            onError: function(err) {
-                equal(args.xhr.status, 404);
-                start();
-            }
+            method : 'GET'
         };
         stop(this.timeout);
-        req = xhr.send(args);
+        xhr.send(args).then(null, function(args) {
+            equal(args.xhr.status, 404);
+            start();            
+        });
     });
 
     test('POST success', 3, function() {
-        var args;
-        args = {
+        var args = {
             url : '/admin',
             method : 'POST',
             body : JSON.stringify({
                 key : 123,
                 collab : true
-            }),
-            onSuccess: function(result) {
-                equal(args.xhr.status, 200);
-                result = JSON.parse(result);
-                equal(result.collab, true);
-                equal(result.key, 123);
-                start();
-            }
+            })
         };
         stop(this.timeout);
-        xhr.send(args);
+        xhr.send(args).then(function(args) {
+            equal(args.xhr.status, 200);
+            var result = JSON.parse(args.xhr.responseText);
+            equal(result.collab, true);
+            equal(result.key, 123);
+            start();
+        });
     });
     
     test('POST failure', 1, function() {
-        var args;
-        args = {
+        var args = {
             url : 'target.json',
             method : 'POST',
-            body : JSON.stringify(target),
-            onError: function(err) {
-                ok(args.xhr.status, 405);
-                start();
-            }
+            body : JSON.stringify(target)
         };
         stop(this.timeout);
-        xhr.send(args);
+        xhr.send(args).then(null, function(args) {
+            ok(args.xhr.status, 405);
+            start();
+        });
     });
 
     test('abort', 1, function() {
-        var args, req;
+        var args, promise;
         args = {
             url : 'bad.json',
-            method : 'GET',
-            onError: function(err) {
-                var status = args.xhr.status;
-                // might have completed before the abort
-                ok(status === 0 || status === 404);
-                start();
-            }
+            method : 'GET'
         };
         stop(this.timeout);
-        req = xhr.send(args);
-        req.abort();
+        promise = xhr.send(args);
+        promise.then(null, function(args) {
+            var status = args.xhr.status;
+            // might have completed before the abort
+            ok(status === 0 || status === 404, 'status: '+status);
+            start();
+        });
+        promise.xhr.abort();
     });
         
     test('concurrent', 3, function() {
@@ -119,26 +112,24 @@ define([
         // good fetch
         args1 = {
             url : 'target.json',
-            method : 'GET',
-            onSuccess: function(result) {
-                equal(args1.xhr.status, 200);
-                result = JSON.parse(result);
-                deepEqual(result, target);
-                done();
-            }
+            method : 'GET'
         };
-        xhr.send(args1);
+        xhr.send(args1).then(function(args) {
+            equal(args.xhr.status, 200);
+            var result = JSON.parse(args.xhr.responseText);
+            deepEqual(result, target);
+            done();            
+        });
         
         // bad fetch
         args2 = {
             url : 'bad.json',
-            method : 'GET',
-            onError: function(err) {
-                var status = args2.xhr.status;
-                equal(status, 404);
-                done();
-            }
+            method : 'GET'
         };
-        xhr.send(args2);        
+        xhr.send(args2).then(null, function(args) {
+            var status = args.xhr.status;
+            equal(status, 404);
+            done();
+        });    
     });
 });

@@ -4,7 +4,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 //
 /*global define window*/
-define(function() {
+define(['coweb/util/Promise'], function(Promise) {
     var _setHeaders = function(xhr, headers) {
         if(headers) {
             for (var headerName in headers) {
@@ -17,8 +17,12 @@ define(function() {
 
     return {
         send: function(args) {
+            // build a promise
+            var promise = new Promise();
             // build xhr object
             var xhr = new XMLHttpRequest();
+            // stash the xhr on the promise object and the args
+            args.xhr = promise.xhr = xhr;
             // attach to ready state change
             xhr.onreadystatechange = function(event) {
                 // get event and ready state
@@ -26,8 +30,6 @@ define(function() {
                 var rs = xhr.readyState;
                 // check if complete
                 if(rs === 4) {
-                    // stash xhr object into args before responding
-                    args.xhr = xhr;
                     // protect against dupe calls
                     xhr.onreadystatechange = function() {};
                     // check status
@@ -35,15 +37,11 @@ define(function() {
                     if((stat >= 200 && stat < 300) || 
                         // success is any 200 or a 304 from cache or an IE 1223
                         stat === 304 || stat === 1223) {
-                        if(args.onSuccess) {
-                            args.onSuccess(xhr.responseText, args);
-                        }
+                        promise.resolve(args);
                     } else {
                         // error on everything else
-                        var err = new Error("failed loading "+args.url+" status:"+xhr.status);
-                        if(args.onError) {
-                            args.onError(err, args);
-                        }
+                        args.error = new Error('failed loading '+args.url+' status:'+xhr.status);
+                        promise.fail(args);
                     }
                 }
             };
@@ -56,7 +54,7 @@ define(function() {
                 args.onError('failed sending xhr to '+args.url, e);
                 throw e;
             }
-            return xhr;
+            return promise;
         }
     };
 });
