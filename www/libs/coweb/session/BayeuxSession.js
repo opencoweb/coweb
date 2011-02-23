@@ -123,7 +123,7 @@ define([
         
         // instant success
         var def = new Promise();
-        def.callback();
+        def.resolve();
         // do the session logout
         this._bridge.logout();
         return def;
@@ -176,7 +176,7 @@ define([
         var searchText = window.location.search.substring(1);
         var searchSegs = searchText.split('&');
         for(var i=0, l=searchSegs.length; i<l; i++) {
-            var tmp = searchSegs.split('=');
+            var tmp = searchSegs[i].split('=');
             urlParams[decodeURIComponent(tmp[0])] = decodeURIComponent(tmp[1]);
         }
 
@@ -210,7 +210,7 @@ define([
         this._bridge.prepareConference(params.key, params.collab)
             .then('_onPrepared', '_onPrepareError', this);
         // start listening to disconnections
-        this._bridge.disconnectDef.then('_onDisconnected', this);
+        this._bridge.disconnectDef.then('_onDisconnected', null, this);
 
         // show the busy dialog for the prepare phase
         OpenAjax.hub.publish(topics.BUSY, 'preparing');
@@ -233,7 +233,7 @@ define([
         }
         // inform all deferred listeners about success
         try {
-            def.callback(params);
+            def.resolve(params);
         } catch(e) {
             // in debug mode, the exception bubbles and we should invoke
             // the error handler manually
@@ -253,7 +253,7 @@ define([
         // invoke prepare error callback
         var def = this._prepParams.deferred;
         this._prepParams = null;
-        def.errback(err);
+        def.fail(err);
     };
 
     /**
@@ -286,7 +286,7 @@ define([
         }
         // inform all deferred listeners about success
         try {
-            def.callback(params);
+            def.resolve(params);
         } catch(e) {
             // in debug mode, the exception bubbles and we should invoke
             // the error handler manually
@@ -302,7 +302,7 @@ define([
         // nothing to do, session controller goes back to idle
         var def = this._prepParams.deferred;
         this._prepParams = null;
-        def.errback(err);
+        def.fail(err);
     };
     
     /**
@@ -328,7 +328,7 @@ define([
         // notify session interface of update success
         var def = prepParams.deferred;
         // notify of update success
-        def.callback();
+        def.resolve();
 
         // session is now updated in conference
         OpenAjax.hub.publish(topics.BUSY, 'ready');
@@ -352,7 +352,7 @@ define([
         // nothing to do yet, session goes back to idle
         var def = this._prepParams.deferred;
         this._prepParams = null;
-        def.errback(err);
+        def.fail(err);
     };
 
     proto._onDisconnected = function(result) {

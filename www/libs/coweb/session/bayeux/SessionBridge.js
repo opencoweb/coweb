@@ -41,6 +41,7 @@ define([
 
         // determine when to schedule destruction based on browser unload
         // event support, prefer onbeforeunload
+        // @todo: get rid of this junk
         this.supportsBeforeUnload = (
             document.body.onbeforeunload !== undefined &&
             navigator.userAgent.search(/iPad|iPhone|iPod/) < 0
@@ -107,7 +108,7 @@ define([
             this._prepResponse = resp;
             // merge the username into the info so we can give back one object
             resp.info.username = resp.username;
-            def.callback(resp);
+            def.resolve(resp);
         }
         // @todo: cleanup?
     };
@@ -120,9 +121,9 @@ define([
         var s = args.xhr.status;
         if(s === 403 || s === 401) {
             // need to auth
-            def.errback(new Error('not-allowed'));
+            def.fail(new Error('not-allowed'));
         } else {
-            def.errback(new Error('server-unavailable'));
+            def.fail(new Error('server-unavailable'));
         }
     };
 
@@ -191,7 +192,7 @@ define([
             if(def) {
                 this._updateDef = null;
                 this._joinDef = null;
-                def.errback(new Error(tag));
+                def.fail(new Error(tag));
             }
         }
     };
@@ -201,7 +202,7 @@ define([
             this._state = this.JOINED;
             var def = this._joinDef;
             this._joinDef = null;
-            def.callback();
+            def.resolve();
             
             // stop listening for connects after the first
             cometd.removeListener(this._connectToken);
@@ -234,7 +235,7 @@ define([
             this._state = this.UPDATED;
             var def = this._updateDef;
             this._updateDef = null;
-            def.callback();
+            def.resolve();
         }
     };
     
@@ -244,12 +245,13 @@ define([
             this.logout();
             var def = this._updateDef;
             this._updateDef = null;
-            def.errback(err);
+            def.fail(err);
         }
     };
 
     proto.logout = function(async) {
         // force sync logout if browser doesn't support onbeforeunload events
+        // @todo: this is badness
         async = (this.supportsBeforeUnload) ? !!async : false;
         if(this._state < this.IDLE) { 
             // ignore if already disconnecting
@@ -271,7 +273,7 @@ define([
         // console.debug('onDisconnected state:', state, 'tag:', tag);
         this._state = this.IDLE;
         // notify disconnect deferred
-        this.disconnectDef.callback({
+        this.disconnectDef.resolve({
             state : state,
             tag : tag
         });

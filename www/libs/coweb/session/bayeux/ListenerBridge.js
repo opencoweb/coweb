@@ -267,10 +267,10 @@ define([
             try {
                 this._onServiceSessionJoinState(msg);                        
                 // note updated
-                def.callback();
+                def.resolve();
             } catch(e) {
                 // note update failed
-                def.errback(new Error('bad-application-state'));
+                def.fail(new Error('bad-application-state'));
             }
         } else {
             // unknown message, ignore
