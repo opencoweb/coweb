@@ -33,7 +33,7 @@ define([
 
     // factory interface
     return {
-        VERSION : '0.3',
+        VERSION : '0.4',
         initSession : function() {
             if(sessionInst) {
                 // return singleton session instance
