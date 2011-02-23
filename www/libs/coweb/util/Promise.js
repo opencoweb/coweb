@@ -46,6 +46,9 @@ define(function() {
                             ptr.promise.resolve(nextVal);
                         }
                     } catch(e) {
+                        if(console && console.error) {
+                            console.error(e, func);
+                        }
                         // some registered function failed
                         ptr.promise.fail(e);
                     }
