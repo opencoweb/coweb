@@ -7,7 +7,6 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 dojo.provide('colist.CoopItemFileWriteStore');
-dojo.require('coweb');
 
 dojo.declare('colist.CoopItemFileWriteStore', null, {
     // reference to a regular dojo.data.ItemFileWriteStore instance

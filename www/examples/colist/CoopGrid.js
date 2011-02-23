@@ -5,11 +5,11 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('colist.CoopGrid');
-dojo.require('coweb');
-
-dojo.declare('colist.CoopGrid', null, {
-    constructor: function(args) {
+/*global define dojo*/
+define([
+    'coweb/main'
+], function(coweb) {
+    var CoopGrid = function(args) {
         this.grid = args.grid;
         this.id = args.id;
         if(!this.grid || !this.id) {
@@ -31,8 +31,7 @@ dojo.declare('colist.CoopGrid', null, {
         this.collab.subscribeSync('focus', this, 'onFocusRemoteCell');
         // listen for when this app instance is in the session and ready to 
         // send and receive events
-        this.collab.subscribeConferenceReady(dojo.hitch(this, 
-            'onConferenceReady'));
+        this.collab.subscribeConferenceReady(this, 'onConferenceReady');
         // listen for other sites leaving the session so we can cleanup their
         // focus tracking information
         this.collab.subscribeSiteLeave(dojo.hitch(this, 'onSiteLeave'));
@@ -42,8 +41,9 @@ dojo.declare('colist.CoopGrid', null, {
         // listen for responses from remote applications when this application
         // instance joins a session so it can bring itself up to the current 
         // state
-        this.collab.subscribeStateResponse(dojo.hitch(this, 'onSetFullState'));
-    },
+        this.collab.subscribeStateResponse(dojo.hitch(this, 'onSetFullState'));        
+    };
+    var proto = CoopGrid.prototype;
     
     /**
      * Called when this local application instance is joined to a session and
@@ -52,21 +52,21 @@ dojo.declare('colist.CoopGrid', null, {
      *
      * @param params Object with properties for the ready event (see doc)
      */
-    onConferenceReady: function(params) {
+    proto.onConferenceReady = function(params) {
         this.site = params.site;
-    },
-    
+    };
+
     /**
      * Called when a remote application instance leaves the session. Removes
      * focus information for the leaving site and refreshes the grid view.
      *
      * @param params Object with properties for the ready event (see doc)
      */
-    onSiteLeave: function(params) {
+    proto.onSiteLeave = function(params) {
         delete this.focused[params.site];
         this.grid.render();
-    },
-    
+    };
+
     /**
      * Called when a remote instance of this widget is joining a session and
      * wants to get up to speed. This instance send the joining one the list of
@@ -74,10 +74,10 @@ dojo.declare('colist.CoopGrid', null, {
      *
      * @param params Object with properties for the ready event (see doc)
      */
-    onGetFullState: function(token) {
+    proto.onGetFullState = function(token) {
         this.collab.sendStateResponse(this.focused, token);
-    },
-    
+    };
+
     /**
      * Called when this instance of the widget is joining a session and wants
      * to get up to speed. A remote instance provides this widget with its list
@@ -87,10 +87,10 @@ dojo.declare('colist.CoopGrid', null, {
      * @param focused The state of the focused grid cells sent by a remote
      *   widget instance in its onGetFullState method
      */
-    onSetFullState: function(focused) {
+    proto.onSetFullState = function(focused) {
         this.focused = focused;
         this.grid.render();
-    },
+    };
 
     /**
      * Called when the grid is styling a row for display. Adds the class name
@@ -101,7 +101,7 @@ dojo.declare('colist.CoopGrid', null, {
      *
      * @param row Row object including the row index as one of its properties
      */
-    onStyleRow: function(row) {
+    proto.onStyleRow = function(row) {
         // get the item shown in the row
         var item = this.grid.getItem(row.index);
         // abort if we couldn't find the item for this row
@@ -111,11 +111,11 @@ dojo.declare('colist.CoopGrid', null, {
         // look through which rows are focused
         for(var site in this.focused) {
             // add the css class to rows that are focused in remote grids only
-            if(this.focused[site] == id && site != this.site) {
+            if(this.focused[site] === id && site !== this.site) {
                 row.customClasses += ' focused';
             }
         }
-    },
+    };
 
     /**
      * Called when the user gives focus (keyboard or mouse) to a certain cell.
@@ -126,7 +126,7 @@ dojo.declare('colist.CoopGrid', null, {
      * @param cell Focused cell object from grid
      * @param rowIndex Index of row containing the focused cell
      */
-    onFocusLocalCell: function(cell, rowIndex) {
+    proto.onFocusLocalCell = function(cell, rowIndex) {
         // get item associated with row containing the focused cell
         var item = this.grid.getItem(rowIndex);
         // get identity of the item
@@ -136,7 +136,7 @@ dojo.declare('colist.CoopGrid', null, {
         this.collab.sendSync('focus', value, null);
         // store local focus too for late joiners
         this.focused[this.site] = id;
-    },
+    };
 
     /**
      * Called when a remote widget instance reports focus on a cell.
@@ -149,9 +149,9 @@ dojo.declare('colist.CoopGrid', null, {
      * @param pos Unused
      * @param site Unique site id of the sending widget instance
      */
-    onFocusRemoteCell: function(topic, value, type, pos, site) {
+    proto.onFocusRemoteCell = function(topic, value, type, pos, site) {
         // store the selected id and the site that has it selected
         this.focused[site] = value.id;
         this.grid.render();
-    }
+    };
 });

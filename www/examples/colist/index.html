@@ -12,7 +12,7 @@
       @import "../../libs/coweb/ext/ui/styles/claro/claro.css";
       @import "colist.css";
     </style>
-    <script type="text/javascript">
+    <script>
       var path = window.location.pathname.split('/');
       path.pop();
       path = path.join('/');
@@ -20,17 +20,13 @@
           isDebug: false,
           parseOnLoad: true,
           modulePaths: {
-            'coweb' : 'coweb',
-            'dojox.cometd' : 'dojox/cometd',
-            'org.cometd' : 'org/cometd',
             'colist' : path
           },
           baseUrl : '../../libs/'
       };
     </script>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></script>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/OpenAjax.js"></script>
-    <script type="text/javascript" src="colist.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></script>
+    <script data-main="colist" src="../../libs/require.js"></script>
   </head>
   <body class="claro">
     <div dojoType="dijit.layout.BorderContainer" 
