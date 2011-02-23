@@ -1,0 +1,44 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.coweb.admin</groupId>
+    <artifactId>admin-ejb</artifactId>
+    <packaging>ejb</packaging>
+    <version>0.4</version>
+    <name>OpenCoweb :: Java :: Admin :: Ejb</name>
+    <parent>
+        <groupId>org.coweb.admin</groupId>
+        <artifactId>coweb_admin</artifactId>
+        <version>0.4</version>
+    </parent>
+   <dependencies>
+       <dependency>
+           <groupId>javax</groupId>
+           <artifactId>javaee-api</artifactId>
+           <version>6.0</version>
+           <scope>provided</scope>
+       </dependency>
+       <dependency>
+           <groupId>org.coweb.admin</groupId>
+           <artifactId>admin-common</artifactId>
+           <version>0.4</version>
+           <scope>provided</scope>
+       </dependency>
+   </dependencies>
+   <build>
+       <plugins>
+           <plugin>
+               <artifactId>maven-ejb-plugin</artifactId>
+               <configuration>
+                   <archive>
+                       <manifest>
+                           <addClasspath>true</addClasspath>
+                       </manifest>
+                       <manifestEntries>
+                           <Class-Path>admin-common-0.4.jar</Class-Path>
+                       </manifestEntries>
+                   </archive> 
+               </configuration>
+           </plugin>
+       </plugins>
+   </build>
+</project>

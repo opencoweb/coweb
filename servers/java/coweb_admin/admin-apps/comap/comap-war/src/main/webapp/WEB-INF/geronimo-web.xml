@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://geronimo.apache.org/xml/ns/j2ee/web-1.1">
+
+	<environment>
+		<moduleId>
+            <artifactId>comap</artifactId>
+		</moduleId>
+		<dependencies>
+			<dependency>
+				<groupId>console.realm</groupId>
+				<artifactId>coweb</artifactId>
+				<version>1.0</version>
+				<type>car</type>
+			</dependency>
+		</dependencies>
+	</environment>
+
+    <context-root>/comap</context-root>
+
+	<security-realm-name>coweb</security-realm-name>
+	<security>
+		<role-mappings>
+			<role role-name="cowebadmins">
+				<principal name="admins" designated-run-as="true"
+					class="org.apache.geronimo.security.realm.providers.GeronimoGroupPrincipal" />
+			</role>
+			<role role-name="cowebusers">
+				<principal name="users" designated-run-as="false"
+					class="org.apache.geronimo.security.realm.providers.GeronimoGroupPrincipal" />
+			</role>
+		</role-mappings>
+	</security>
+
+</web-app> 

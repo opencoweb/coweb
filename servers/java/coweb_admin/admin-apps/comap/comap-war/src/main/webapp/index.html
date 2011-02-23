@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Cooperative Map Example</title>
+    <style type="text/css">
+      @import "js/dojo/resources/dojo.css";
+      @import "js/dijit/themes/claro/claro.css";
+      @import "js/coweb/ext/ui/styles/claro/claro.css";
+      @import "comap/comap.css";
+    </style>
+    <script type="text/javascript">
+      var djConfig = {
+          cowebAdminUrl: '/comap/admin',
+          isDebug: false,
+          parseOnLoad: false,
+          modulePaths: {
+            'coweb' : '../coweb',
+            'comap' : '/comap/comap'
+          }
+      };
+    </script>
+    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+    <script type="text/javascript" src="js/dojo/dojo.js"></script>
+    <script type="text/javascript" src="js/dojo/OpenAjax.js"></script>
+    <script type="text/javascript" src="comap/comap.js"></script>
+  </head>
+  <body class="claro" style="display: none;">
+    <div id="layout" dojoType="dijit.layout.BorderContainer" liveSplitters="true" design="sidebar">
+      <div id="map" dojoType="comap.GMap" region="center"></div>
+      <div id="sidebar" dojoType="dijit.layout.AccordionContainer" region="right" splitter="true">
+        <div dojoType="dijit.layout.AccordionPane" title="{chat_pane_title}">
+          <div id="chat" dojoType="comap.ChatBox"></div>
+        </div>
+        <div dojoType="dijit.layout.AccordionPane" title="{log_pane_title}">
+          <div id="log" dojoType="comap.ChatBox" allowEntry="false"></div>
+        </div>
+        <div id="help" href="nls/help.html" dojoType="dijit.layout.AccordionPane" title="{help_pane_title}"></div>
+      </div>
+      <div dojoType="dijit.Toolbar" region="bottom">
+        <button dojoType="dijit.form.Button" id="syncButton" iconClass="syncIcon">{sync_button_label}</button>
+        <label style="display: block-inline; vertical-align: middle;" for="syncBox">{continuous_sync_button_label}</label> <input dojoType="dijit.form.CheckBox" id="syncBox"/> 
+      </div>
+    </div>
+  </body>
+</html>
