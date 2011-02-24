@@ -5,17 +5,13 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('coweb.ext.wrapper');
-dojo.require('coweb');
-
-dojo.declare('coweb.ext.wrapper.CoopWrapper', null, {
-    // widget to wrap
-    widget: null,
-    // id of this instance
-    id : null,
-    constructor: function(args) {
-        dojo.mixin(this, args);
-        // adopt widget id if it has one
+define([
+    'coweb/main'
+], function(coweb) {
+    var CowebWrapper = function(id) {
+        // widget to wrap
+        this.widget = null;
+        // id of this instance
         this.id = this.id || this.widget.id;
         // init collab interface
         this.collab = coweb.initCollab({id : this.id});
@@ -23,21 +19,25 @@ dojo.declare('coweb.ext.wrapper.CoopWrapper', null, {
         this.collab.subscribeConferenceReady(this, 'onReady');
         this.collab.subscribeStateRequest(this, 'onStateRequest');
         this.collab.subscribeStateResponse(this, 'onStateRequest');
-    },
-    
-    uninitialize: function() {
+    };
+    var proto = CowebWrapper.prototype;
+
+    proto.uninitialize = function() {
+        // invoke this to unsubscribe on widget destruction
         this.collab.unsubscribeAll();
-    },
+    };
     
-    onReady: function(info) {
-        // override
-    },
+    proto.onReady = function(info) {
+        // override to handle session ready
+    };
     
-    onStateRequest: function(token) {
+    proto.onStateRequest = function(token) {
         // override and invoke this.collab.sendStateResponse
-    },
+    };
     
-    onStateResponse: function(state) {
-        // override
-    }
+    proto.onStateResponse = function(state) {
+        // override to apply state
+    };
+    
+    return CowebWrapper;
 });

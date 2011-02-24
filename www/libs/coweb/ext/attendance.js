@@ -4,78 +4,132 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('coweb.ext.attendance');
-dojo.require('coweb');
-
-coweb.ext.attendance = (function() {
-    var obj = {
+/*global define*/
+define([
+    'coweb/main',
+    'coweb/util/Promise'
+], function(coweb, Promise) {
+    var attendance = {
+        // all attendees, read-only externally
         users : {},
+        // total attendee count, read-only externally
         count : 0,
+        // subscriptions
+        _subs : {
+            'localjoin' : {},
+            'remoteexisting' : {},
+            'remotejoin' : {},
+            'remoteleave' : {}
+        },
+        // next subscription id
+        _subId : 0,
+        _subscribe : function(event, context, callback) {
+            if(callback === undefined) {
+                callback = context;
+                context = this;
+            }
+            if(typeof callback !== 'function') {
+                callback = context[callback];
+                if(typeof callback !== 'function') {
+                    throw new Error('callback must be a function');
+                }
+            }
+            var s = this._subs[event];
+            var id = this._subId;
+            s[id] = {
+                context : context,
+                callback : callback
+            };
+            this._subId++;
+            return event+'.'+id;
+        },
+        
+        _notify : function(event, user, count) {
+            var subs = this._subs[event];
+            for(var id in subs) {
+                if(subs.hasOwnProperty()) {
+                    var s = subs[id];
+                    try {
+                        s.callback.call(s.context, user, count);
+                    } catch(e) {
+                        console.error(e);
+                    }
+                }
+            }
+        },
+
         /**
          * Subscribes to local user join events.
          *
          * @param callback Function to invoke
-         * @return dojo.Deferred which always notifies success
+         * @return Promise which always notifies success
          */
         subscribeLocalJoin: function(context, callback) {
-            var tok = dojo.connect(this, 'onLocalJoin', context, callback);
-            var def = new dojo.Deferred();
-            def._pbsToken = tok;
-            def.callback();
-            return def;
+            var tok = this._subscribe('localjoin', context, callback);
+            var promise = new Promise();
+            promise._cowebToken = tok;
+            promise.resolve();
+            return promise;
         },
     
         /**
          * Subscribes to remote existing user attendance events.
          *
          * @param callback Function to invoke
-         * @return dojo.Deferred which always notifies success
+         * @return Promise which always notifies success
          */    
         subscribeRemoteExisting: function(context, callback) {
-            var tok = dojo.connect(this, 'onRemoteExisting', context, callback);
-            var def = new dojo.Deferred();
-            def._pbsToken = tok;
-            def.callback();
-            return def;        
+            var tok = this._subscribe('remoteexisting', context, callback);
+            var promise = new Promise();
+            promise._cowebToken = tok;
+            promise.resolve();
+            return promise;        
         },
 
         /**
          * Subscribes to remote user join events.
          *
          * @param callback Function to invoke
-         * @return dojo.Deferred which always notifies success
+         * @return Promise which always notifies success
          */    
         subscribeRemoteJoin: function(context, callback) {
-            var tok = dojo.connect(this, 'onRemoteJoin', context, callback);
-            var def = new dojo.Deferred();
-            def._pbsToken = tok;
-            def.callback();
-            return def;        
+            var tok = this._subscribe('remotejoin', context, callback);
+            var promise = new Promise();
+            promise._cowebToken = tok;
+            promise.resolve();
+            return promise;        
         },
-    
+
         /**
          * Subscribes to remote user leave events.
          *
          * @param callback Function to invoke
-         * @return dojo.Deferred which always notifies success
+         * @return Promise which always notifies success
          */
         subscribeRemoteLeave: function(context, callback) {
-            var tok = dojo.connect(this, 'onRemoteLeave', context, callback);
-            var def = new dojo.Deferred();
-            def._pbsToken = tok;
-            def.callback();
-            return def;
+            var tok = this._subscribe('remoteleave', context, callback);
+            var promise = new Promise();
+            promise._cowebToken = tok;
+            promise.resolve();
+            return promise;
         },
-    
+
         /**
          * Unsubscribes any subscription created via this interface.
          *
-         * @param callback Function to invoke
-         * @param def dojo.Deferred returned by the method that created the
-         *   subscription
-         */    
-        unsubscribe: function(def) {
-            dojo.disconnect(def._pbsToken);
+         * @param promise Promise returned from subscribe method
+         */
+        unsubscribe: function(promise) {
+            var tok = promise._cowebToken;
+            if(tok) {
+                var segs = tok.split('.');
+                // set for event
+                var s = this._subs[segs[0]];
+                if(s) {
+                    // subscriber id
+                    delete s[segs[1]];
+                }
+            }
         },
 
         /**
@@ -89,35 +143,6 @@ coweb.ext.attendance = (function() {
         },
     
         /**
-         * Extension point. Called when the local user joins the session.
-         */
-        onLocalJoin: function(user, count) {
-            //console.debug('onLocalJoin', count);
-        },
-    
-        /**
-         * Extension point. Called when the local user joins the session to notify
-         * about remote users already in the session.
-         */
-        onRemoteExisting: function(users, count) {
-            //console.debug('onRemoteExisting', count);
-        },
-
-        /**
-         * Extension point. Called when a remote user joins the session.
-         */
-        onRemoteJoin: function(user, count) {
-            //console.debug('onRemoteJoin', count);
-        },
-    
-        /**
-         * Extension point. Called when a remote user leaves the session.
-         */
-        onRemoteLeave: function(user, count) {
-            //console.debug('onRemoteLeave', count);
-        },
-    
-        /**
          * Called when the application enters a conference.
          */
         _onLocalJoin: function(params) {
@@ -127,11 +152,11 @@ coweb.ext.attendance = (function() {
                 users.push(this._addUser(site, username));
             }
             // notify about all existing users all at once
-            this.onRemoteExisting(users, this.count);
+            this._notify('remoteexisting', users, this.count);
 
             var user = this._addUser(params.site, params.username);
             if(user) {
-                this.onLocalJoin(user, this.count);
+                this._notify('localjoin', user, this.count);
             }
         },
 
@@ -141,7 +166,7 @@ coweb.ext.attendance = (function() {
         _onRemoteJoin: function(params) {
             var user = this._addUser(params.site, params.username);
             if(user) {
-                this.onRemoteJoin(user, this.count);
+                this._notify('remotejoin', user, this.count);
             }
         },
     
@@ -151,7 +176,7 @@ coweb.ext.attendance = (function() {
         _onRemoteLeave: function(params) {
             var user = this._removeUser(params.site);
             if(user) {
-                this.onRemoteLeave(user, this.count);
+                this._notify('remoteleave', user, this.count);
             }
         },
 
@@ -193,8 +218,8 @@ coweb.ext.attendance = (function() {
 
     // connect to collab events
     var collab = coweb.initCollab({id : 'coweb-ext-attendance'});
-    collab.subscribeConferenceReady(obj, '_onLocalJoin');
-    collab.subscribeSiteJoin(obj, '_onRemoteJoin');
-    collab.subscribeSiteLeave(obj, '_onRemoteLeave');
-    return obj;
-})();
+    collab.subscribeConferenceReady(attendance, '_onLocalJoin');
+    collab.subscribeSiteJoin(attendance, '_onRemoteJoin');
+    collab.subscribeSiteLeave(attendance, '_onRemoteLeave');
+    return attendance;
+});
