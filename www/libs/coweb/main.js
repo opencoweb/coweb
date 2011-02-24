@@ -53,7 +53,13 @@ define([
             var collabInst = new CollabImpl();
             collabInst.init(params);
             return collabInst;
+        },
+        
+        reset: function() {
+            if(sessionInst) {
+                sessionInst.destroy();
+            }
+            sessionInst = null;
         }
     };
-
 });
