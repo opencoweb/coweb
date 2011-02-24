@@ -57,7 +57,7 @@ define([
         // don't send events if we're not updated yet
         if(this._state !== this.UPDATED) { return; }
         // @todo: performance
-        data = JSON.stringify(JSON.parse(data));
+        data = JSON.parse(JSON.stringify(data));
         // publish to server
         cometd.publish('/session/sync', {
             topic : topic, 
@@ -73,7 +73,7 @@ define([
         if(topic !== topics.END_STATE) {
             // hold onto state
             // @todo: performance
-            value = JSON.stringify(JSON.parse(value));
+            value = JSON.parse(JSON.stringify(value));
             state.push({topic: topic, value: value});
         } else {
             state = {
