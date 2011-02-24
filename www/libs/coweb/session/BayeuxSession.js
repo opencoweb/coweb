@@ -10,8 +10,9 @@ define([
     'coweb/util/Promise',
     'coweb/topics',
     'coweb/util/xhr',
+    'coweb/util/lang',
     'org/OpenAjax'
-], function(SessionBridge, Promise, topics, xhr, OpenAjax) {
+], function(SessionBridge, Promise, topics, xhr, lang, OpenAjax) {
     var BayeuxSession = function() {
         // vars set during runtime
         this._prepParams = null;
@@ -48,6 +49,7 @@ define([
 
         // cleanup on page unload, try to do it as early as possible so 
         // we can clean disconnect if possible
+        // @todo: get rid of this junk and cleanup properly on destroy
         var destroy = function() { self.destroy(); };
         var evt;
         if(this._bridge.supportsBeforeUnload) {
@@ -197,13 +199,11 @@ define([
         }
 
         // create a deferred result and hang onto its ref as part of the params
-        // @todo: performance
-        var json = JSON.stringify(params);
-        this._prepParams = JSON.parse(json);
+        this._prepParams = lang.clone(params);
         this._prepParams.deferred = new Promise();
 
         // store second copy of prep info for public access to avoid meddling
-        this._lastPrep = JSON.parse(json);
+        this._lastPrep = lang.clone(params);
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference

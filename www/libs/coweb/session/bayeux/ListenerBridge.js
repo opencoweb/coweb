@@ -8,8 +8,9 @@
 define([
     'coweb/session/bayeux/cometd',
     'coweb/util/Promise',
+    'coweb/util/lang',
     'coweb/topics'
-], function(cometd, Promise, topics) {
+], function(cometd, Promise, lang, topics) {
     var ListenerBridge = function(args) {
         // constants
         this.IDLE = 0;
@@ -56,8 +57,7 @@ define([
     proto.postSync = function(topic, data) {
         // don't send events if we're not updated yet
         if(this._state !== this.UPDATED) { return; }
-        // @todo: performance
-        data = JSON.parse(JSON.stringify(data));
+        data = lang.clone(data);
         // publish to server
         cometd.publish('/session/sync', {
             topic : topic, 
@@ -72,8 +72,7 @@ define([
         if(state === undefined) { return; }
         if(topic !== topics.END_STATE) {
             // hold onto state
-            // @todo: performance
-            value = JSON.parse(JSON.stringify(value));
+            value = lang.clone(value);
             state.push({topic: topic, value: value});
         } else {
             state = {
