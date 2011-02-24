@@ -110,9 +110,13 @@ define([
         var id = this.grid.store.getIdentity(item);
         // look through which rows are focused
         for(var site in this.focused) {
-            // add the css class to rows that are focused in remote grids only
-            if(this.focused[site] === id && site !== this.site) {
-                row.customClasses += ' focused';
+            if(this.focused.hasOwnProperty(site)) {
+                // add the css class to rows that are focused in remote grids
+                // but ignore local
+                site = Number(site);
+                if(this.focused[site] === id && site !== this.site) {
+                    row.customClasses += ' focused';
+                }
             }
         }
     };
@@ -154,4 +158,6 @@ define([
         this.focused[site] = value.id;
         this.grid.render();
     };
+    
+    return CoopGrid;
 });

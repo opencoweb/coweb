@@ -6,11 +6,12 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-dojo.provide('colist.CoopItemFileWriteStore');
-
-dojo.declare('colist.CoopItemFileWriteStore', null, {
+/*global define dojo*/
+define([
+    'coweb/main'
+], function(coweb) {
     // reference to a regular dojo.data.ItemFileWriteStore instance
-    constructor: function(args) {
+    var CoopItemFileWriteStore = function(args) {
         this.dataStore = args.dataStore;
         this.id = args.id;
         if(!this.dataStore || !this.id) {
@@ -44,7 +45,8 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
         // instance joins a session so it can bring itself up to the current 
         // state
         this.collab.subscribeStateResponse(this, 'onSetFullState');
-    },
+    };
+    var proto = CoopItemFileWriteStore.prototype;
     
     /**
      * Connects or disconnects the observer method on this instance to one
@@ -53,7 +55,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
      * @param connect True to connect, false to disconnect
      * @param type 'insert', 'update', or 'delete'
      */
-    _dsConnect: function(connect, type) {
+    proto._dsConnect = function(connect, type) {
         if(connect) {
             // get info about the data store and local functions
             var funcs = this.typeToFuncs[type];
@@ -67,7 +69,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
             // delete the handle
             this.dsHandles[type] = null;
         }
-    },
+    };
 
     /**
      * Serializes a flat item in the data store to a regular JS object with 
@@ -76,13 +78,13 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
      * @param item Item from the data store
      * @return row Object
      */
-    _itemToRow: function(item) {
+    proto._itemToRow = function(item) {
         var row = {};
         dojo.forEach(this.dataStore.getAttributes(item), function(attr) {
             row[attr] = this.dataStore.getValue(item, attr);
         }, this);
         return row;
-    },
+    };
     
     /**
      * Called when a remote instance of this widget is joining a session and
@@ -91,7 +93,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
      *
      * @param params Object with properties for the ready event (see doc)
      */
-    onGetFullState: function(token) {
+    proto.onGetFullState = function(token) {
         // collect all items
         var rows = [];
         this.dataStore.fetch({
@@ -102,7 +104,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
             }
         });
         this.collab.sendStateResponse(rows, token);
-    },
+    };
     
     /**
      * Called when this instance of the widget is joining a session and wants
@@ -111,7 +113,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
      *
      * @param rows Array of row objects to be inserted as items
      */
-    onSetFullState: function(rows) {
+    proto.onSetFullState = function(rows) {
         // stop listening to local insert events from the data store else
         // we'll end up echoing all of the insert back to others in the session
         // via our onLocalInsert callback
@@ -120,7 +122,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
         dojo.forEach(rows, this.dataStore.newItem, this.dataStore);
         // now resume listening for inserts
         this._dsConnect(true, 'insert');
-    },
+    };
     
     /**
      * Called when an attribute of an existing item in the local data store 
@@ -132,7 +134,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
      * @param oldValue Previous value of the attr
      * @param newValue New value of the attr
      */
-    onLocalUpdate: function(item, attr, oldValue, newValue) {
+    proto.onLocalUpdate = function(item, attr, oldValue, newValue) {
         // get all attribute values
         var row = this._itemToRow(item);
         // store whole row in case remote needs to reconstruct after delete
@@ -145,7 +147,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
 	    var id = this.dataStore.getIdentity(item);
 	    var name = 'change.'+id;
 	    this.collab.sendSync(name, value, 'update');
-    },
+    };
     
     /**
      * Called when a new item appears in the local data store. Sends the new
@@ -154,7 +156,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
      * @param item New item object
      * @param parentInfo Unused
      */
-    onLocalInsert: function(item, parentInfo) {
+    proto.onLocalInsert = function(item, parentInfo) {
         // get all attribute values
         var row = this._itemToRow(item);
         var value = {};
@@ -164,7 +166,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
 	    var id = this.dataStore.getIdentity(item);
 	    var name = 'change.'+id;
 	    this.collab.sendSync(name, value, 'insert');
-    },
+    };
     
     /**
      * Called when a item disappears from the local data store. Sends just the
@@ -172,7 +174,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
      *
      * @param item Deleted item
      */
-    onLocalDelete: function(item) {
+    proto.onLocalDelete = function(item) {
         // get all attribute values
         var value = {};
         value.action = 'delete';
@@ -180,7 +182,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
 	    var id = this.dataStore.getIdentity(item);
 	    var name = 'change.'+id;
 	    this.collab.sendSync(name, value, 'delete');
-    },
+    };
     
     /**
      * Called when a remote data store changes in some manner. Dispatches to
@@ -189,17 +191,17 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
      * @param topic Full sync topic including the id of the item that changed
      * @param value Item data sent by remote data store
      */
-    onRemoteChange: function(topic, value) {
+    proto.onRemoteChange = function(topic, value) {
         // retrieve the row id from the full topic
         var id = this.collab.getSyncNameFromTopic(topic).split('.')[1];
-        if(value.action == 'insert') {
+        if(value.action === 'insert') {
             this.onRemoteInsert(id, value);
-        } else if(value.action == 'update') {
+        } else if(value.action === 'update') {
             this.onRemoteUpdate(id, value);
-        } else if(value.action == 'delete') {
+        } else if(value.action === 'delete') {
             this.onRemoteDelete(id);
         }
-    },
+    };
     
     /**
      * Called when a new item appears in a remote data store. Creates an item
@@ -208,13 +210,13 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
      * @param id Identity assigned to the item in the creating data store
      * @param value Item data sent by remote data store
      */
-    onRemoteInsert: function(id, value) {
+    proto.onRemoteInsert = function(id, value) {
         // stop listening to local inserts
         this._dsConnect(false, 'insert');
         this.dataStore.newItem(value.row);
         // resume listening to local inserts
         this._dsConnect(true, 'insert');
-    },
+    };
     
     /**
      * Called when an item attribute changes value in a remote data store.
@@ -224,7 +226,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
      * @param id Identity of the item that changed
      * @param value Item data sent by remote data store
      */
-    onRemoteUpdate: function(id, value) {
+    proto.onRemoteUpdate = function(id, value) {
         // fetch the item by its id
         this.dataStore.fetchItemByIdentity({
             identity : id, 
@@ -238,7 +240,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
                 this._dsConnect(true, 'update');
             }
         });
-    },
+    };
     
     /**
      * Called when an item disappears from a remote data store. Removes the
@@ -246,7 +248,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
      *
      * @param id Identity of the item that was deleted
      */
-    onRemoteDelete: function(id) {
+    proto.onRemoteDelete = function(id) {
         // fetch the item by its id
         this.dataStore.fetchItemByIdentity({
             identity : id, 
@@ -259,5 +261,7 @@ dojo.declare('colist.CoopItemFileWriteStore', null, {
                 this._dsConnect(true, 'delete');
             }
         });
-    }
+    };
+
+    return CoopItemFileWriteStore;
 });

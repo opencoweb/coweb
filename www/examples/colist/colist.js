@@ -5,13 +5,17 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 /*global require*/
-require({baseUrl : '../../libs'}, [
+require({
+    paths : {
+        coweb : '../../libs/coweb',
+        org : '../../libs/org'
+    }
+}, [
     'coweb/main',
-    'CoopGrid'
-], function(coweb, CoopGrid) {
+    'CoopGrid',
+    'CoopItemFileWriteStore'
+], function(coweb, CoopGrid, CoopItemFileWriteStore) {
     // dojo.require('coweb.ext.ui.BusyDialog');
-    dojo.require('colist.CoopItemFileWriteStore');
-    dojo.require('colist.CoopGrid');
     dojo.require('dojox.grid.DataGrid');
     dojo.require('dojo.data.ItemFileWriteStore');
     dojo.require('dijit.form.Button');
@@ -20,6 +24,9 @@ require({baseUrl : '../../libs'}, [
 
     // have to wrap class decl in ready when using dojo xd loader
     dojo.ready(function() {
+        // parse declarative widgets
+        dojo.parser.parse();
+        
         /**
          * Adds a new row with default values to the local grid.
          */
@@ -64,7 +71,7 @@ require({baseUrl : '../../libs'}, [
         dojo.connect(removeButton, 'onClick', onRemoveRow);
         
         // get a session instance
-        var sess = coweb.initSession({adminUrl : djConfig.cowebAdminUrl});
+        var sess = coweb.initSession();
         // use the ext busy dialog to show progress joining/updating
         //coweb.ext.ui.createBusy(sess);
         // do the prep and autoJoin / autoUpdate

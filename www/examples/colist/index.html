@@ -12,19 +12,6 @@
       @import "../../libs/coweb/ext/ui/styles/claro/claro.css";
       @import "colist.css";
     </style>
-    <script>
-      var path = window.location.pathname.split('/');
-      path.pop();
-      path = path.join('/');
-      var djConfig = {
-          isDebug: false,
-          parseOnLoad: true,
-          modulePaths: {
-            'colist' : path
-          },
-          baseUrl : '../../libs/'
-      };
-    </script>
     <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></script>
     <script data-main="colist" src="../../libs/require.js"></script>
   </head>
