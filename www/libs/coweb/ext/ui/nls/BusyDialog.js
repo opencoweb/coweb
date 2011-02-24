@@ -1,3 +1,8 @@
+//
+// Busy dialog default locale labels.
+//
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+//
 {
     title : "Busy",
     cancel_button : "Cancel",
