@@ -62,13 +62,13 @@ define([
         if(meth) {
             meth(server, req, resp);
         } else {
-            BayeuxServer.onRequest.apply(this, arguments);
+            BayeuxServer.prototype.onRequest.apply(this, arguments);
         }
     };
     
     proto.onPrepareRequest = function(server, req, resp) {
         // default responds to prep request with success
-        resp.callback(server.prepResp);
+        resp.resolve(server.prepResp);
     };
     
     proto.onLoginRequest = function(server, req, resp) {

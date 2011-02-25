@@ -81,7 +81,7 @@ define([
         if(!req.args.body) {
             throw new Error(500);
         }
-        var msgs = lang.clone(req.args.body);
+        var msgs = JSON.parse(req.args.body);
         for(var i=0, l=msgs.length; i<l; i++) {
             var msg = msgs[i];
             var meth = msg.channel.replace(/\//g, '_');

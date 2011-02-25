@@ -101,7 +101,6 @@ define([
         // server side handling of prep
         server.onPrepareRequest = function(server, req, resp) {
             // check received data
-            console.log(req.args);
             equals(req.args.url, '/admin', 'server url check');
             var data = JSON.parse(req.args.body);
             equals(data.key, self.prepReq.key, 'server key check');
@@ -117,7 +116,7 @@ define([
         this.server.start();
     });
 
-    /*test('abort while preparing', 0, function() {
+    test('abort while preparing', 0, function() {
         var self = this;
         var server = this.server;
 
@@ -132,7 +131,7 @@ define([
         // server side handling of prep
         server.onPrepareRequest = function(server, req, respDef) {
             // respond to aborted request
-            respDef.callback(server.prepResp);
+            respDef.resolve(server.prepResp);
             // start again later to ensure client doesn't get the response
             setTimeout(start, 500);
         };
@@ -240,11 +239,12 @@ define([
         this.waitDisconnect = true;
     
         // listen for received state
-        dojo.forEach(this.collabs, function(collab, i) {
+        for(var i=0, l=this.collabs.length; i<l; i++) {
+            var collab = this.collabs[i];
             collab.subscribeStateResponse(function(state) {
                 equals(state, self.server.fullState[i].value, collab.id + ' state received');
             });
-        });
+        }
     
         this.session.prepareConference(this.autoPrepReq)
         .then(function(params) {
@@ -261,7 +261,7 @@ define([
         this.server.start();
     });
 
-    test('abort while joining', 0, function() {
+    /*test('abort while joining', 0, function() {
         var self = this; 
     
         this.session.prepareConference(this.autoPrepReq)
