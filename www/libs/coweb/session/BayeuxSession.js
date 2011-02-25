@@ -22,7 +22,7 @@ define([
         this._bridge = null;
         this._listener = null;
         this._destroying = false;
-        this._disconnectTok = null;
+        this._unloadToks = {};
         this._loginUrl = null;
         this._logoutUrl = null;
     };
@@ -34,7 +34,6 @@ define([
      * @param params Parameters given to the session factory function
      */
     proto.init = function(params, listenerImpl) {
-        var self = this;
         // store debug and strict compat check flags for later
         this._loginUrl = params.loginUrl;
         this._logoutUrl = params.logoutUrl;
@@ -48,19 +47,19 @@ define([
         });
 
         // cleanup on page unload, try to do it as early as possible so 
-        // we can clean disconnect if possible
-        // @todo: get rid of this junk and cleanup properly on destroy
+        // we can cleanly disconnect if possible
+        var self = this;
         var destroy = function() { self.destroy(); };
-        var evt;
-        if(this._bridge.supportsBeforeUnload) {
-            evt = 'onbeforeunload';
-        } else {
-            evt = 'onunload';
-        }
+        var tok;
         if(window.addEventListener) {
-            window.addEventListener(evt, destroy, false);
+            tok = window.addEventListener('onbeforeunload', destroy, false);
+            this._unloadToks.onbeforeunload = tok;
+            tok = window.addEventListener('onunload', destroy, false);
+            this._unloadToks.onunload = tok;
         } else if(window.attachEvent) {
-            window.attachEvent(evt, destroy);
+            window.attachEvent('onbeforeunload', destroy);
+            window.attachEvent('onunload', destroy);
+            this._unloadToks = destroy;
         }
     };
 
@@ -88,7 +87,15 @@ define([
         this._prepParams = null;
         this._lastPrep = null;
         this._bridge = null;
-        this._disconnectTok = null;
+        // remove unload listeners
+        if(window.addEventListener) {
+            window.removeEventListener(this._unloadToks.onbeforeunload);
+            window.removeEventListener(this._unloadToks.onunload);
+        } else {
+            window.detachEvent('onbeforeunload', this._unloadToks);
+            window.detachEvent('onunload', this._unloadToks);
+        }
+        this._unloadToks = null;
     };
 
     /**

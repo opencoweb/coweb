@@ -39,14 +39,6 @@ define([
         // info received from server
         this.prepResponse = null;
 
-        // determine when to schedule destruction based on browser unload
-        // event support, prefer onbeforeunload
-        // @todo: get rid of this junk
-        this.supportsBeforeUnload = (
-            document.body.onbeforeunload !== undefined &&
-            navigator.userAgent.search(/iPad|iPhone|iPod/) < 0
-        );
-
         // build listener bridge instance
         this._bridge = new ListenerBridge({
             debug: this._debug,
@@ -250,9 +242,6 @@ define([
     };
 
     proto.logout = function(async) {
-        // force sync logout if browser doesn't support onbeforeunload events
-        // @todo: this is badness
-        async = (this.supportsBeforeUnload) ? !!async : false;
         if(this._state < this.IDLE) { 
             // ignore if already disconnecting
             return;
