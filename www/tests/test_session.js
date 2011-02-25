@@ -7,11 +7,12 @@
 /*global define start equal deepEqual ok stop module*/
 define([
     'coweb/main',
+    'coweb/util/lang',
     'util',
     'mock/xhr',
     'mock/CowebServer',
     'org/OpenAjax'
-], function(coweb, util, xhr, CowebServer, OpenAjax) {    
+], function(coweb, lang, util, xhr, CowebServer, OpenAjax) {    
     var sessionModOpts = {
         setup: function() {
             this.waitDisconnect = false;
@@ -92,22 +93,22 @@ define([
         // client side prep
         this.session.prepareConference(this.prepReq)
         .then(function(info) {
-            var sinfo = dojo.clone(server.prepResp);
+            var sinfo = lang.clone(server.prepResp);
             deepEqual(info, sinfo, 'client session info check');
             start();
         });
     
         // server side handling of prep
-        server.onPrepareRequest = function(server, req, respDef) {
-            var ioArgs = req.ioArgs;
+        server.onPrepareRequest = function(server, req, resp) {
             // check received data
-            equals(ioArgs.url, '/admin', 'server url check');
-            var data = dojo.fromJson(ioArgs.args.postData);
+            console.log(req.args);
+            equals(req.args.url, '/admin', 'server url check');
+            var data = JSON.parse(req.args.body);
             equals(data.key, self.prepReq.key, 'server key check');
             equals(data.collab, self.prepReq.collab, 'server collab flag check');
         
             // respond to request
-            respDef.callback(server.prepResp);
+            resp.resolve(server.prepResp);
         };
 
         // wait while running 

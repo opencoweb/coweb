@@ -52,8 +52,7 @@ define([
     var proto = CowebServer.prototype;
     
     proto.onRequest = function(server, req, resp) {
-        var ioArgs = req.ioArgs;
-        var url = ioArgs.url;
+        var url = req.args.url;
         var meth = null;
         var map = {};
         map[this.adminUrl] = this.onPrepareRequest;
@@ -73,7 +72,7 @@ define([
     };
     
     proto.onLoginRequest = function(server, req, resp) {
-        var data = JSON.parse(req.ioArgs.args.postData);
+        var data = JSON.parse(req.args.body);
         if(data.username == server.username && data.password == server.password) {
             resp.resolve(server.loginResp);
         } else {

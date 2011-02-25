@@ -85,7 +85,8 @@ define([
             },
             body : JSON.stringify(data)
         };
-        xhr.send(args).then('_onPrepareResponse', '_onPrepareError', this);
+        var promise = xhr.send(args);
+        promise.then('_onPrepareResponse', '_onPrepareError', this);
         // change state to avoid duplicate prepares
         this._state = this.PREPARING;
         return this._prepDef;
@@ -98,8 +99,6 @@ define([
             var def = this._prepDef;
             this._prepDef = null;
             this.prepResponse = resp;
-            // merge the username into the info so we can give back one object
-            resp.info.username = resp.username;
             def.resolve(resp);
         }
         // @todo: cleanup?

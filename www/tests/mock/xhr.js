@@ -33,29 +33,23 @@ define([
 
         send: function(args) {
             var promise = new Promise();
-            // standard dojo ioargs structure
-            var ioArgs = {
-                args : args,
-                url : args.url,
-                xhr : {
-                    status : 0,
-                    statusText : 'simulated status response',
-                    responseText : 'simulated status response'
-                }
+            promise.args = args;
+            args.xhr = promise.xhr = {
+                status : 0,
+                statusText : '',
+                responseText : ''
             };
-            promise.ioArgs = ioArgs;
-            promise.xhr = ioArgs.xhr;
             // send to server instance
             this._sendToServer(promise);
             return promise;
         },
 
         _sendToServer: function(req) {
-            var server = this._servers[req.ioArgs.url];
+            var server = this._servers[req.args.url];
             if(server) {
                 server.queue(req);
             } else {
-                console.warn('no server registered for', req.ioArgs.url);
+                console.warn('no server registered for', req.args.url);
             }
         },    
     
@@ -66,7 +60,7 @@ define([
             this._hooked = xhr.send;
             var self = this;
             xhr.send = function() {
-                self.send.apply(self, arguments);
+                return self.send.apply(self, arguments);
             };
         },
     

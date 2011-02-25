@@ -25,8 +25,7 @@ define([
     };
 
     proto.setStatus = function(req, status) {
-        var xhr = req.ioArgs.xhr;
-        xhr.status = Number(status);
+        req.xhr.status = Number(status);
     };
 
     proto.queue = function(req) {
@@ -74,13 +73,15 @@ define([
         }
         var self = this;
         resp.then(function(val) {
-            setTimeout(function() { 
-                req.resolve(val);
+            setTimeout(function() {
+                req.args.xhr.responseText = JSON.stringify(val);
+                req.resolve(req.args);
                 self._pump();
             }, 0);
         }, function(err) {
             setTimeout(function() { 
-                req.fail(err); 
+                req.args.error = err;
+                req.fail(req.args); 
                 self._pump();
             }, 0);
         });

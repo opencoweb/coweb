@@ -77,12 +77,11 @@ define([
     var proto = BayeuxServer.prototype;
 
     proto.onRequest = function(server, req, resp) {
-        var ioArgs = req.ioArgs;
         var meth = null;
-        if(!ioArgs.args.postData) {
+        if(!req.args.body) {
             throw new Error(500);
         }
-        var msgs = lang.clone(ioArgs.args.postData);
+        var msgs = lang.clone(req.args.body);
         for(var i=0, l=msgs.length; i<l; i++) {
             var msg = msgs[i];
             var meth = msg.channel.replace(/\//g, '_');
