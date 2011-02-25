@@ -7,12 +7,13 @@
 /*global define start equal deepEqual ok stop module*/
 define([
     'coweb/main',
+    'coweb/topics',
     'coweb/util/lang',
     'util',
     'mock/xhr',
     'mock/CowebServer',
     'org/OpenAjax'
-], function(coweb, lang, util, xhr, CowebServer, OpenAjax) {    
+], function(coweb, topics, lang, util, xhr, CowebServer, OpenAjax) {    
     var sessionModOpts = {
         setup: function() {
             this.waitDisconnect = false;
@@ -241,9 +242,12 @@ define([
         // listen for received state
         for(var i=0, l=this.collabs.length; i<l; i++) {
             var collab = this.collabs[i];
-            collab.subscribeStateResponse(function(state) {
-                equals(state, self.server.fullState[i].value, collab.id + ' state received');
-            });
+            (function(i){
+                var target = self.server.fullState[i];
+                collab.subscribeStateResponse(function(state) {
+                    equals(state, target.value, collab.id + ' state received');
+                });
+            })(i);
         }
     
         this.session.prepareConference(this.autoPrepReq)
@@ -261,7 +265,7 @@ define([
         this.server.start();
     });
 
-    /*test('abort while joining', 0, function() {
+    test('abort while joining', 0, function() {
         var self = this; 
     
         this.session.prepareConference(this.autoPrepReq)
@@ -469,7 +473,9 @@ define([
         var self = this;
         this.waitDisconnect = true;
     
-        var prep = dojo.mixin({autoUpdate : false}, this.prepReq);
+        var prep = this.prepReq;
+        prep.autoJoin = false;
+        prep.autoUpdate = false;
         this.session.prepareConference(prep)
         .then(function(params) {
             equal(params.nextDef, undefined, 'auto join deferred check');
@@ -537,7 +543,7 @@ define([
         this.server.onMetaConnect = function(server, msg, resp) {
             if(updated) {
                 setTimeout(function() {
-                    server._lp.errback(new Error(0));
+                    server._lp.fail(new Error(0));
                 }, 1000);
             }
         }
@@ -612,7 +618,7 @@ define([
     
         // listen for busy notifications
         var expected = ['preparing', 'joining', 'updating', 'ready'];
-        this.hubSub(coweb.BUSY, function(topic, value) {
+        this.hubSub(topics.BUSY, function(topic, value) {
             var e = expected.shift();
             equals(value, e, 'busy state change check');
             if(!expected.length) {
@@ -635,7 +641,7 @@ define([
     
         // listen for busy notifications
         var expected = ['preparing', 'joining', 'updating', 'aborting', 'clean-disconnect'];
-        this.hubSub(coweb.BUSY, function(topic, value) {
+        this.hubSub(topics.BUSY, function(topic, value) {
             var e = expected.shift();
             equals(value, e, 'abort state change check');
             if(!expected.length) {
@@ -672,21 +678,22 @@ define([
             return params.nextDef;
         }).then(function() {
             self.session.leaveConference();
-        
             setTimeout(function() {
                 // stop processing on the old server
                 self.server.stop();
             
                 // reset the server, don't care about cruft there
-                self.server = new tests.MockCoweb();
-                tests.MockXhr.clearServers();
-                tests.MockXhr.addServer('/admin', self.server);
-                tests.MockXhr.addServer('/session/12345', self.server);
+                self.server = new CowebServer();
+                xhr.clearServers();
+                xhr.addServer('/admin', self.server);
+                xhr.addServer('/session/12345', self.server);
             
                 // go back in again
                 self.session.prepareConference(self.autoPrepReq)
                 .then(function(params) {
-                    var sinfo = dojo.clone(self.server.prepResp);
+                    var nextDef = params.nextDef;
+                    delete params.nextDef;
+                    var sinfo = lang.clone(self.server.prepResp);
                     deepEqual(params, sinfo, 'second entry prepare response check');
                     return params.nextDef;
                 }).then(function(params) {
@@ -705,5 +712,5 @@ define([
         stop(this.timeout*2);
         // start server processing
         this.server.start();
-    });*/
+    });
 });
