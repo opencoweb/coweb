@@ -24,11 +24,7 @@ define([
         this.cowebCollab = true;
 
         // initialize session API
-        this.sess = coweb.initSession({
-            adminUrl : this.adminUrl,
-            loginUrl : this.loginUrl,
-            logoutUrl : this.logoutUrl
-        });
+        this.sess = coweb.initSession();
         // initialize collab API
         this.collab = coweb.initCollab({id : id});
         this.collab.subscribeConferenceReady(this, 'onCollabReady');
@@ -78,9 +74,9 @@ define([
         //     coweb.ext.ui.createBusy(this.sess);
         // }
 
-        var params = {collab : !!this.conferenceCollab};
-        if(this.conferenceKey !== null) {
-            params.key = String(this.conferenceKey);
+        var params = {collab : !!this.cowebCollab};
+        if(this.cowebKey) {
+            params.key = String(this.cowebKey);
         }
         params.autoJoin = this.autoJoin;
         params.autoUpdate = this.autoUpdate;
