@@ -1,5 +1,5 @@
 //
-// Tracks session attendance.
+// Tracks session attendance by roster changes.
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
@@ -15,15 +15,10 @@ define([
         // total attendee count, read-only externally
         count : 0,
         // subscriptions
-        _subs : {
-            'localjoin' : {},
-            'remoteexisting' : {},
-            'remotejoin' : {},
-            'remoteleave' : {}
-        },
+        _subs : {},
         // next subscription id
         _subId : 0,
-        _subscribe : function(event, context, callback) {
+        _subscribe : function(context, callback) {
             if(callback === undefined) {
                 callback = context;
                 context = this;
@@ -34,20 +29,19 @@ define([
                     throw new Error('callback must be a function');
                 }
             }
-            var s = this._subs[event];
             var id = this._subId;
-            s[id] = {
+            this._subs[id] = {
                 context : context,
                 callback : callback
             };
             this._subId++;
-            return event+'.'+id;
+            return id;
         },
         
-        _notify : function(event, user, count) {
-            var subs = this._subs[event];
+        _notify : function(user, count) {
+            var subs = this._subs;
             for(var id in subs) {
-                if(subs.hasOwnProperty()) {
+                if(subs.hasOwnProperty(id)) {
                     var s = subs[id];
                     try {
                         s.callback.call(s.context, user, count);
@@ -59,55 +53,14 @@ define([
         },
 
         /**
-         * Subscribes to local user join events.
+         * Subscribes to roster change events.
          *
+         * @param context Context in which to invoke the callback
          * @param callback Function to invoke
          * @return Promise which always notifies success
          */
-        subscribeLocalJoin: function(context, callback) {
-            var tok = this._subscribe('localjoin', context, callback);
-            var promise = new Promise();
-            promise._cowebToken = tok;
-            promise.resolve();
-            return promise;
-        },
-    
-        /**
-         * Subscribes to remote existing user attendance events.
-         *
-         * @param callback Function to invoke
-         * @return Promise which always notifies success
-         */    
-        subscribeRemoteExisting: function(context, callback) {
-            var tok = this._subscribe('remoteexisting', context, callback);
-            var promise = new Promise();
-            promise._cowebToken = tok;
-            promise.resolve();
-            return promise;        
-        },
-
-        /**
-         * Subscribes to remote user join events.
-         *
-         * @param callback Function to invoke
-         * @return Promise which always notifies success
-         */    
-        subscribeRemoteJoin: function(context, callback) {
-            var tok = this._subscribe('remotejoin', context, callback);
-            var promise = new Promise();
-            promise._cowebToken = tok;
-            promise.resolve();
-            return promise;        
-        },
-
-        /**
-         * Subscribes to remote user leave events.
-         *
-         * @param callback Function to invoke
-         * @return Promise which always notifies success
-         */
-        subscribeRemoteLeave: function(context, callback) {
-            var tok = this._subscribe('remoteleave', context, callback);
+        subscribeChange: function(context, callback) {
+            var tok = this._subscribe(context, callback);
             var promise = new Promise();
             promise._cowebToken = tok;
             promise.resolve();
@@ -122,41 +75,37 @@ define([
         unsubscribe: function(promise) {
             var tok = promise._cowebToken;
             if(tok) {
-                var segs = tok.split('.');
-                // set for event
-                var s = this._subs[segs[0]];
-                if(s) {
-                    // subscriber id
-                    delete s[segs[1]];
-                }
+                delete this._subs[tok];
             }
         },
+        
+        /**
+         * Unsubscribes all listeners.
+         */
+         unsubscribeAll: function() {
+            for(var id in this._subs) {
+                if(this._subs.hasOwnProperty(id)) {
+                    delete this._subs[id];
+                }
+            }
+         },
 
         /**
-         * Gets the name of the user at the given site. If not found, returns
-         * undefined.
-         *
-         * @param site Integer site ID
-         */
-        getUserAtSite: function(site) {
-            return this.users[site];
-        },
-    
-        /**
-         * Called when the application enters a conference.
+         * Called when the application enters a session.
          */
         _onLocalJoin: function(params) {
             var users = [];
             for(var site in params.roster) {
                 var username = params.roster[site];
-                users.push(this._addUser(site, username));
+                users.push(this._addUser(site, username, false));
             }
             // notify about all existing users all at once
-            this._notify('remoteexisting', users, this.count);
+            this._notify(users, this.count);
 
-            var user = this._addUser(params.site, params.username);
+            var user = this._addUser(params.site, params.username, true);
             if(user) {
-                this._notify('localjoin', user, this.count);
+                // notify about local user
+                this._notify([user], this.count);
             }
         },
 
@@ -164,9 +113,9 @@ define([
          * Called when a remote app indicates it is fully joined to the conference.
          */
         _onRemoteJoin: function(params) {
-            var user = this._addUser(params.site, params.username);
+            var user = this._addUser(params.site, params.username, false);
             if(user) {
-                this._notify('remotejoin', user, this.count);
+                this._notify([user], this.count);
             }
         },
     
@@ -176,7 +125,7 @@ define([
         _onRemoteLeave: function(params) {
             var user = this._removeUser(params.site);
             if(user) {
-                this._notify('remoteleave', user, this.count);
+                this._notify([user], this.count);
             }
         },
 
@@ -187,13 +136,13 @@ define([
          * @param username Human readable string name of the user
          * @return User object
          */
-        _addUser: function(site, username) {
+        _addUser: function(site, username, local) {
             var user = this.users[site];
             // don't increment count or construct a user
             if(user) { return; }
             ++this.count;
             // build a user object
-            user = {site : site, username : username};
+            user = {site : Number(site), username : username, local : local};
             // store it
             this.users[site] = user;
             return user;
