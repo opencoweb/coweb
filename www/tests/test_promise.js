@@ -94,14 +94,14 @@ define([
         this.p.then(null, function(err) {
             equal(err, target);
         }).then(function(val) {
-           equal(val, target);
+            equal(val, target);
         });
         
         this.p.fail(target);
         this.p.then(null, function(err) {
             equal(err, target);
         }).then(function(val) {
-           equal(val, target);
+            equal(val, target);
         });
     });
     
