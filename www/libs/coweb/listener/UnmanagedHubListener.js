@@ -92,8 +92,14 @@ define([
      */
     proto.stop = function() {
         this._bridge = null;
-        if(this._syncTimer) {clearInterval(this._syncTimer);}
-        if(this._purgeTimer) {clearInterval(this._purgeTimer);}
+        if(this._syncTimer) {
+            clearInterval(this._syncTimer);
+            this._syncTimer = null;
+        }
+        if(this._purgeTimer) {
+            clearInterval(this._purgeTimer);
+            this._purgeTimer = null;
+        }
         this._unsubscribeHub();
     };
 
@@ -134,7 +140,7 @@ define([
      * Unsubscribe the listener from *all* Hub topics.
      */
     proto._unsubscribeHub = function() {
-        for(var i=0, l=this._conns; i < l; i++) {
+        for(var i=0, l=this._conns.length; i < l; i++) {
             OpenAjax.hub.unsubscribe(this._conns[i]);
         }
         this._conns = [];
@@ -293,11 +299,12 @@ define([
         };
 
         // post to client
-        var sent;
+        var sent, err;
         try {
             sent = this._bridge.postSync(topic, msg);
         } catch(x) {
             // ignore if can't post
+            err = x;
             sent = false;
             console.warn('UnmanagedHubListener: failed to send hub event ' + x.message);
         }
@@ -310,6 +317,9 @@ define([
             // we have to allow purges after sending even one event in 
             // case this site is the only one in the conf for now
             this._shouldPurge = true;
+        } else if(err) {
+            // re-raise error
+            throw err;
         }
     };
     
