@@ -29,6 +29,7 @@ define([
             ];
         },
         teardown: function() {
+            attendance.unsubscribeAll();
             for(var i=0, l=this._subs.length; i<l; i++) {
                 OpenAjax.hub.unsubscribe(this._subs[i]);
             }
