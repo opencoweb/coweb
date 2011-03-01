@@ -7,8 +7,9 @@
 define([
     'coweb/listener/UnmanagedHubListener',
     'org/OpenAjax',
-    'coweb/topics'
-], function(UnmanagedHubListener, OpenAjax, topics) {
+    'coweb/topics',
+    'coweb/util/lang'
+], function(UnmanagedHubListener, OpenAjax, topics, lang) {
     var modOpts = function(collab) {
         return {
             setup: function() {
@@ -48,24 +49,74 @@ define([
             4 : 'bob.watts'
         },
         syncTopic : topics.SYNC+'name.wid0',
+        outSyncMsg : {
+            value : 'abc',
+            type : 'insert',
+            position : 1
+        },
         inSyncMsg : {
             value : JSON.stringify('abc'),
             type : 'insert',
             position : 1,
             context : [0,0,0,0,0,0]
         },
-        outSyncMsg : {
-            value : 'abc',
+        inHubSyncMsg : {
+            position : 1,
             type : 'insert',
-            position : 1
+            value : 'abc',
+            site : 1,
+            error : false
         },
         serviceName : 'somebot',
         serviceParams : {
             a : 'b',
             c : 'd'
         },
-        serviceTopic : topics.SET_SERVICE+this.serviceName+'_0.wid4',
-        stateMsg : {}
+        serviceResponse : {
+            e : 'f',
+            g : 'h'
+        },
+        hubServiceResponse: {
+            position : 0,
+            type : null,
+            value : {
+                e : 'f',
+                g : 'h'
+            },
+            site : 0,
+            error : false
+        },
+        hubServiceError : {
+            position : 0,
+            type : null,
+            value : 'error message',
+            site : 0,
+            error : true
+        },
+        reqServiceTopic : topics.GET_SERVICE+'somebot_0.wid4',
+        respServiceTopic : topics.SET_SERVICE+'somebot_0.wid4',
+        pubServiceTopic : topics.SET_SERVICE+'somebot',
+        stateMsg : {},
+        stateRecipient : '123abc',
+        engineState : [
+            [
+                [0,0,0,0,0,0],
+                [0,0,0,0,0,0],
+                [0,0,0,0,0,0],
+                [0,0,0,0,0,0],
+                [0,0,0,0,0,0],
+                [0,0,0,0,0,0]
+            ], 
+            [], 
+            5, 
+            [0]
+        ],
+        engineSync : {
+            value : '',
+            type : 'update',
+            position : 0,
+            context :  [0,0,0,0,0,0]
+        }
     };
     targets.stateMsg[topics.SET_STATE+'wid1'] = [1,2,3];
     targets.stateMsg[topics.SET_STATE+'wid2'] = [4,5];
@@ -74,8 +125,12 @@ define([
     // mock bridge
     var bridge = {
         postSync: function(topic, msg) {
-            equal(topic, targets.syncTopic);
-            deepEqual(msg, targets.inSyncMsg);
+            if(topic === topics.ENGINE_SYNC) {
+                deepEqual(msg, targets.engineSync);
+            } else {
+                equal(topic, targets.syncTopic);
+                deepEqual(msg, targets.inSyncMsg);
+            }
             return true;
         },
         
@@ -92,15 +147,25 @@ define([
         },
         
         postServiceRequest: function(serviceName, params, topic) {
-            equal(serviceName, targets.serviceName);
-            deepEqual(params, targets.serviceParams);
-            equal(topic, targets.serviceTopic);
+            equal(serviceName, targets.serviceName, 'service request name');
+            deepEqual(params, targets.serviceParams, 'service request params');
+            equal(topic, targets.reqServiceTopic, 'service request topic');
         },
         
         postStateResponse: function(topic, state, token) {
-            // track all posted state
+            equal(token, targets.stateRecipient, 'posted state token');
+            if(topic === topics.ENGINE_STATE) {
+                deepEqual(state, targets.engineState, 'engine state');
+            } else if(topic === topics.END_STATE) {
+                equal(state, null, 'end state sentinel');
+            } else {
+                deepEqual(state, targets.stateMsg[topic], 'posted state');
+            }
+
         }
     };
+    
+    module('listener bootstrap', modOpts());
     
     test('start collab', 3, function() {
         var self = this;
@@ -118,8 +183,6 @@ define([
             username : targets.localUsername
         });
     });
-    
-    module('listener bootstrap', modOpts());
     
     test('start services only', 3, function() {
         var self = this;
@@ -152,46 +215,163 @@ define([
 
     module('listener', modOpts(true));
 
-    test('inbound sync', 2, function() {
+    test('inbound sync op', 3, function() {
+        // subscribe to sync
+        this.sub(targets.syncTopic, function(topic, msg) {
+            equal(topic, targets.syncTopic);
+            deepEqual(msg, targets.inHubSyncMsg);
+        });
+        // invoke inbound method
+        this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg, 1, 
+            'result');
+        // whitebox: ensure op engine processed event
+        deepEqual(this.listener._engine.cv.sites, [0,1,0,0,0,0]);
+    });
+
+    test('inbound sync no-op', 3, function() {
+        var inSyncMsg = lang.clone(targets.inSyncMsg),
+            inHubSyncMsg = lang.clone(targets.inHubSyncMsg);
+        inSyncMsg.type = null;
+        inHubSyncMsg.type = null;
+        
+        // subscribe to sync
+        this.sub(targets.syncTopic, function(topic, msg) {
+            equal(topic, targets.syncTopic);
+            deepEqual(msg, inHubSyncMsg);
+        });
+        // invoke inbound method
+        this.listener.syncInbound(targets.syncTopic, inSyncMsg, 1, 
+            'result');
+        // whitebox: ensure op engine did not process the event
+        deepEqual(this.listener._engine.cv.sites, [0,0,0,0,0,0]);
+    });
+    
+    test('outbound sync', 3, function() {
+        // publish sync for listener to receive and bridge to check
         OpenAjax.hub.publish(targets.syncTopic, targets.outSyncMsg);
+        // whitebox: ensure op engine processed the event
+        deepEqual(this.listener._engine.cv.sites, [0,0,0,0,0,1]);
     });
     
-    test('outbound sync', 1, function() {
+    test('inbound notice', 4, function() {
+        var join = {siteId: 3, username : 'pete.parkins'};
+        var leave = {siteId : 1, username : 'john.doe'};
+        this.sub(topics.SITE_JOIN, function(topic, msg) {
+            equal(msg.site, join.siteId);
+            equal(msg.username, join.username);
+        });
+        this.sub(topics.SITE_LEAVE, function(topic, msg) {
+            equal(msg.site, leave.siteId);
+            equal(msg.username, leave.username);
+        });
+        this.listener.noticeInbound('available', join);
+        this.listener.noticeInbound('unavailable', leave);
     });
     
-    test('inbound notice', 1, function() {
-        
+    test('inbound state request / response', 16, function() {
+        var self = this;
+        // subscribe to request
+        for(var key in targets.stateMsg) {
+            if(targets.stateMsg.hasOwnProperty(key)) {
+                (function(id) {
+                    self.sub(topics.GET_STATE, function(topic, msg) {
+                        equal(topic, topics.GET_STATE, 'get state topic');
+                        equal(msg, targets.stateRecipient, 'get state token');
+                        var resp = {
+                            state : targets.stateMsg[id],
+                            recipient : targets.stateRecipient
+                        };
+                        OpenAjax.hub.publish(id, resp);
+                    });
+                })(key);
+            }
+        }
+        this.listener.requestStateInbound(targets.stateRecipient);        
     });
     
-    test('inbound state request', 1, function() {
-        
-    });
-    
-    test('outbound state response', 1, function() {
-        
-    });
-    
-    test('inbound state response', 1, function() {
-        
+    test('inbound state response', 7, function() {
+        var self = this;
+        // subscribe to response
+        for(var key in targets.stateMsg) {
+            if(targets.stateMsg.hasOwnProperty(key)) {
+                (function(id) {
+                    self.sub(id, function(topic, msg) {
+                        equal(topic, id, 'set state topic');
+                        deepEqual(msg, targets.stateMsg[id]);
+                    });
+                })(key);
+                this.listener.stateInbound(key, targets.stateMsg[key]);
+            }
+        }
+        // make sure no exceptions on engine state
+        this.listener.stateInbound(topics.ENGINE_STATE, targets.engineState);
+        // whitebox: make sure engine state is set
+        deepEqual(this.listener._engine.getState(), targets.engineState);
     });
     
     test('outbound service subscribe', 1, function() {
-        
+        OpenAjax.hub.publish(topics.SUB_SERVICE+targets.serviceName, 
+            {service : targets.serviceName});
     });
 
     test('outbound service unsubscribe', 1, function() {
-        
+        OpenAjax.hub.publish(topics.UNSUB_SERVICE+targets.serviceName, 
+            {service : targets.serviceName});
     });
 
-    test('outbound service request', 1, function() {
-        
+    test('outbound service request', 3, function() {
+        OpenAjax.hub.publish(targets.reqServiceTopic, {
+            service : targets.serviceName,
+            topic : targets.reqServiceTopic,
+            params : targets.serviceParams
+        });
     });
 
-    test('outbound engine sync', 1, function() {
-        
+    test('inbound service publish', 2, function() {
+        this.sub(targets.pubServiceTopic, function(topic, msg) {
+            equal(topic, targets.pubServiceTopic, 'service publish topic');
+            deepEqual(msg, targets.hubServiceResponse, 'service publish value');
+        });
+        this.listener.syncInbound(targets.pubServiceTopic, 
+            targets.serviceResponse, 0, 'result');
+    });
+    
+    test('inbound service response', 2, function() {
+        this.sub(targets.respServiceTopic, function(topic, msg) {
+            equal(topic, targets.respServiceTopic, 'service response topic');
+            deepEqual(msg, targets.hubServiceResponse, 'service response value');
+        });
+        this.listener.syncInbound(targets.respServiceTopic, 
+            targets.serviceResponse, 0, 'result');
+    });
+    
+    test('inbound service error', 2, function() {
+        this.sub(targets.respServiceTopic, function(topic, msg) {
+            equal(topic, targets.respServiceTopic, 'service error topic');
+            deepEqual(msg, targets.hubServiceError, 'service error value');
+        });
+        this.listener.syncInbound(targets.respServiceTopic, 
+            targets.hubServiceError.value, 0, 'error');
+    });
+
+
+    test('outbound engine sync', 2, function() {
+        this.listener._shouldSync = true;
+        this.listener._engineSyncOutbound();
+        ok(!this.listener._shouldSync);
     });
 
     test('inbound engine sync', 1, function() {
-        
+        var target = [1,2,3,4,5,6];
+        this.listener._engineSyncInbound(2, target);
+        var cvt = this.listener._engine.cvt.getState();
+        deepEqual(cvt[2], target);
+    });
+    
+    test('engine purge', 2, function() {
+        this.listener._shouldPurge = true;
+        var size = this.listener._onPurgeEngine();
+        equal(size, 0);
+        ok(!this.listener._shouldPurge);
     });
 });

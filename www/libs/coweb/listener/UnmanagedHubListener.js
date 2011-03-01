@@ -306,7 +306,8 @@ define([
             // ignore if can't post
             err = x;
             sent = false;
-            console.warn('UnmanagedHubListener: failed to send hub event ' + x.message);
+            console.warn('UnmanagedHubListener: failed to send hub event ' + 
+                x.message);
         }
         if(sent && type !== null) {
             // add local event to engine, but only if it was really sent
@@ -318,7 +319,7 @@ define([
             // case this site is the only one in the conf for now
             this._shouldPurge = true;
         } else if(err) {
-            // re-raise error
+            // throw error back to the caller
             throw err;
         }
     };
@@ -328,12 +329,11 @@ define([
      * of the session about other clients. Converts the notice to a Hub event
      * and broadcasts it on the local Hub.
      *
-     * @param type String 'available', 'unavailable', and 'info'
-     * @param roster Object with {siteID : username, siteId : username ...}
+     * @param type String 'available', 'unavailable'
+     * @param roster Object with {site : int, username : string}
      */
     proto.noticeInbound = function(type, roster) {
         var topic, event = {};
-        var att, rosterArr = [];
 
         // build event object
         event.site = roster.siteId;
@@ -346,7 +346,9 @@ define([
             try {
                 this._engine.thawSite(event.site);
             } catch(e) {
-                console.warn('UnmanagedHubListener: failed to thaw site ' + event.site + ' ' + e.message);
+                console.warn('UnmanagedHubListener: failed to thaw site ' + 
+                    event.site + ' ' + e.message);
+                // @todo: op engine died, exit session?
             }
         } else if(type === 'unavailable') {
             // leaving user
@@ -356,7 +358,9 @@ define([
             try {
                 this._engine.freezeSite(event.site);
             } catch(x) {
-                console.warn('UnmanagedHubListener: failed to freeze site ' + event.site + ' ' + x.message);
+                console.warn('UnmanagedHubListener: failed to freeze site ' + 
+                    event.site + ' ' + x.message);
+                // @todo: op engine died, exit session?
             }
         }
 
@@ -365,7 +369,8 @@ define([
         try {
             OpenAjax.hub.publish(topic, event);
         } catch(z) {
-            console.warn('UnmanagedHubListener: failed to deliver incoming notice ' + z.message);
+            console.warn('UnmanagedHubListener: failed to deliver notice ' + 
+                z.message);
         }
         this._mutex = false;
     };
@@ -382,7 +387,8 @@ define([
         try {
             this._bridge.postServiceSubscribe(publisherData.service);
         } catch(e) {
-            console.warn('UnmanagedHubListener: failed to subscribe to service');
+            console.warn('UnmanagedHubListener: failed service subscribe ' + 
+                e.message);
         }    
     };
 
@@ -398,7 +404,8 @@ define([
         try {
             this._bridge.postServiceUnsubscribe(publisherData.service);
         } catch(e) {
-            console.warn('UnmanagedHubListener: failed to send unsub request ' + e.message);
+            console.warn('UnmanagedHubListener: failed service unsub ' + 
+                e.message);
         }
     };
 
@@ -410,13 +417,13 @@ define([
      * @param publisherData Object topic value
      */
     proto._onRequestServiceOutbound = function(topic, publisherData) {
-        //console.debug("UnmanagedHubListener._onGetService:", topic, publisherData);
+        // console.debug("UnmanagedHubListener._onRequestServiceOutbound:", topic, publisherData);
         try {
             this._bridge.postServiceRequest(publisherData.service,
                 publisherData.params, publisherData.topic);
         } catch(e) {
-            // ignore if can't post
-            console.warn('UnmanagedHubListener: failed to send unsub request ' + e.message);
+            console.warn('UnmanagedHubListener: failed service request ' + 
+                e.message);
         }
     };
 
@@ -439,11 +446,12 @@ define([
         } catch(e) {
             // @todo: really want to send error back to requester that this
             // site can't send state; for now, just log error and continue
-            console.warn('UnmanagedHubListener: failed collecting gadget state ' + e.message);
+            console.warn('UnmanagedHubListener: failed collecting state ' + 
+                e.message);
         }
 
         // NOTE: continuing here only works because we're synchronous...
-        // purge the operation engine to shrink the data sent as much as possible
+        // purge the operation engine to shrink the data sent
         var state;
         try {
             this._engine.purge();
@@ -452,15 +460,18 @@ define([
         } catch(x) {
             // @todo: really want to send error back to requester that this
             // site can't send state; for now, just log error and continue
-            console.warn('UnmanagedHubListener: failed collecting engine state ' + x.message);
+            console.warn('UnmanagedHubListener: failed collecting engine state ' 
+                + x.message);
         }
 
         try {
             // post engine state
-            this._bridge.postStateResponse(topics.ENGINE_STATE, state, recipient);
+            this._bridge.postStateResponse(topics.ENGINE_STATE, state, 
+                recipient);
         } catch(y) {
             // ignore if can't post
-            console.warn('UnmanagedHubListener: failed sending operation engine state ' + y.message);
+            console.warn('UnmanagedHubListener: failed sending engine state ' + 
+                y.message);
         }
 
         try {
@@ -468,7 +479,8 @@ define([
             this._bridge.postStateResponse(topics.END_STATE, null, recipient);
         } catch(z) {
             // ignore if can't post
-            console.warn('UnmanagedHubListener: failed sending end state ' + z.message);
+            console.warn('UnmanagedHubListener: failed sending end state ' + 
+                z.message);
         }
     };
 
@@ -500,7 +512,8 @@ define([
             this._bridge.postStateResponse(topic, msg, recipient);
         } catch(e) {
             // ignore if can't post
-            console.warn('UnmanagedHubListener: failed to send requested gadget state ' + e.message);
+            console.warn('UnmanagedHubListener: failed to send state ' + 
+                e.message);
         }
     };
 
@@ -520,8 +533,10 @@ define([
             try {
                 this._engine.setState(state);
             } catch(e) {
-                console.warn('UnmanagedHubListener: failed to process received engine state, ' + e.message);
-                //throw e;
+                console.warn('UnmanagedHubListener: failed to receive engine state ' + 
+                    e.message);
+                // @todo: engine dead, should exit session
+                throw e;
             }
         } else {
             // handle gadget state
@@ -531,7 +546,8 @@ define([
                 // publish state for a gadget to grab
                 OpenAjax.hub.publish(topic, state);
             } catch(x) {
-                console.warn('UnmanagedHubListener: failed handle received state, ' + x.message);
+                console.warn('UnmanagedHubListener: failed to initialize state ' + 
+                    x.message);
                 throw x;
             } finally {
                 this._mutex = false;
@@ -547,7 +563,7 @@ define([
      */
     proto._engineSyncOutbound = function() {
         if(!this._engine || !this._shouldSync) {return;}
-        //console.debug('UnmanagedHubListener._onSendEngineSync');
+        // console.debug('UnmanagedHubListener._engineSyncOutbound');
         // get engine context vector
         var cv = this._engine.copyContextVector();
         // JSON encode just the context for transmission
@@ -561,7 +577,8 @@ define([
             this._bridge.postSync(topics.ENGINE_SYNC, msg);
         } catch(e) {
             // ignore if can't post
-            console.warn('UnmanagedHubListener: failed to send engine sync ' + e.message);
+            console.warn('UnmanagedHubListener: failed to send engine sync ' + 
+                e.message);
             return;
         }
         this._shouldSync = false;
@@ -577,7 +594,8 @@ define([
         try {
             this._engine.pushSyncWithSites(site, sites);
         } catch(e) {
-            console.warn('UnmanagedHubListener: failed to push engine sync ' + site + ' ' + sites + ' ' + e.message);
+            console.warn('UnmanagedHubListener: failed to recv engine sync ' + 
+                site + ' ' + sites + ' ' + e.message);
         }
         // we've received remote info, allow purge
         this._shouldPurge = true;
@@ -590,21 +608,22 @@ define([
         if(!this._engine) {return;}
         if(this._shouldPurge) {
             var size = this._engine.getBufferSize();
-            //console.debug('UnmanagedHubListener._onPurgeEngine: size =', size);
-            var time = new Date();
+            //var time = new Date();
             try {
                 var mcv = this._engine.purge();
             } catch(e) {
-                console.warn('UnmanagedHubListener: failed to purge engine ' + e.message);
+                console.warn('UnmanagedHubListener: failed to purge engine ' + 
+                    e.message);
             }
-            time = new Date() - time;
-            size = this._engine.getBufferSize();
-            // console.debug('UnmanagedHubListener: completed engine purge: size =', 
+            //time = new Date() - time;
+            //size = this._engine.getBufferSize();
+            // console.debug('UnmanagedHubListener: purged size =', 
             // size, 'time =', time, 'mcv =', 
             // (mcv != null) ? mcv.toString() : 'null');
         }
         // reset flag
         this._shouldPurge = false;
+        return size;
     };
     
     return UnmanagedHubListener;
