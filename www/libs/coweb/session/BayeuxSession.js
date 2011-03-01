@@ -52,15 +52,13 @@ define([
         var destroy = function() { self.destroy(); };
         var tok;
         if(window.addEventListener) {
-            tok = window.addEventListener('onbeforeunload', destroy, false);
-            this._unloadToks.onbeforeunload = tok;
-            tok = window.addEventListener('onunload', destroy, false);
-            this._unloadToks.onunload = tok;
+            window.addEventListener('onbeforeunload', destroy, false);
+            window.addEventListener('onunload', destroy, false);
         } else if(window.attachEvent) {
             window.attachEvent('onbeforeunload', destroy);
             window.attachEvent('onunload', destroy);
-            this._unloadToks = destroy;
         }
+        this._unloadToks = destroy;
     };
 
     /**
@@ -81,9 +79,9 @@ define([
         this._lastPrep = null;
         this._bridge = null;
         // remove unload listeners
-        if(window.addEventListener) {
-            window.removeEventListener(this._unloadToks.onbeforeunload);
-            window.removeEventListener(this._unloadToks.onunload);
+        if(window.removeEventListener) {
+            window.removeEventListener('onbeforeunload', this._unloadToks, false);
+            window.removeEventListener('onunload', this._unloadToks, false);
         } else {
             window.detachEvent('onbeforeunload', this._unloadToks);
             window.detachEvent('onunload', this._unloadToks);
