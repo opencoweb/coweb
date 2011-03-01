@@ -69,16 +69,10 @@ define([
     proto.destroy = function() {
         // set destroying state to avoid incorrect notifications
         this._destroying = true;
-        if(this._bridge.getState() === this._bridge.UPDATED) {
-            // broadcast a final hub event indicating the client is now leaving
-            // the conference if it was ever fully joined to the conference
-            var value = {connected : true};
-            OpenAjax.hub.publish(topics.END, value);
-        }
         // do a logout to disconnect from the session
         this.leaveConference();
         // let listener shutdown gracefully
-        this._listener.destroy();
+        this._listener.stop();
         // cleanup the client
         this._bridge.destroy();
         // cleanup references
@@ -118,18 +112,13 @@ define([
      * Called by an application to leave a session or abort joining it.
      */    
     proto.leaveConference = function() {
-        var state = this._bridge.getState();
-        if(state === this._bridge.UPDATED) {
-            // broadcast a final hub event indicating the client is now leaving
-            // the conference
-            var value = {connected : true};
-            OpenAjax.hub.publish(topics.END, value);
-        } else {
-            OpenAjax.hub.publish(topics.BUSY, 'aborting');
-            this._prepParams = null;
-        }
-        
-        // instant success
+        // notify busy state change
+        OpenAjax.hub.publish(topics.BUSY, 'aborting');
+        // cleanup prep params
+        this._prepParams = null;
+        // let listener shutdown
+        this._listener.stop();
+        // promise unused in this impl, instantly resolved
         var promise = new Promise();
         promise.resolve();
         // do the session logout
@@ -354,14 +343,8 @@ define([
             // show an error in the busy dialog
             OpenAjax.hub.publish(topics.BUSY, tag);
         }
-        if(state === this._bridge.UPDATED) {
-            // broadcast a final hub event indicating the client is now leaving
-            // the conference if it was ever fully joined to the conference
-            var value = {connected : false};
-            OpenAjax.hub.publish(topics.END, value);
-        }
         // stop the hub listener from performing further actions
-        this._listener.stop();
+        this._listener.stop(true);
 
         // keep prep info if a promise is still waiting for notification
         if(this._prepParams && !this._prepParams.promise) {

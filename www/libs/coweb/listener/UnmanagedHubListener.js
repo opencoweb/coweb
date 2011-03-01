@@ -41,16 +41,6 @@ define([
     var proto = UnmanagedHubListener.prototype;
 
     /**
-     * Called on page unload to remove client references.
-     */
-    proto.destroy = function() {
-        this._bridge = null;
-        if(this._syncTimer) {clearInterval(this._syncTimer);}
-        if(this._purgeTimer) {clearInterval(this._purgeTimer);}
-        this._unsubscribeHub();
-    };
-    
-    /**
      * Starts listening for cooperative events on the OpenAjax hub to forward
      * to the session bridge instance.
      *
@@ -90,7 +80,19 @@ define([
      * Stops listening for cooperative events on the OpenAjax hub to forward
      * to the HubController.
      */
-    proto.stop = function() {
+    proto.stop = function(isDisconnected) {
+        if(this._bridge) {
+            // broadcast a final hub event indicating the client is now leaving
+            // the conference if it was ever fully joined to the conference
+            try {
+                var value = {connected : !isDisconnected};
+                console.log(value.connected);
+                OpenAjax.hub.publish(topics.END, value);
+            } catch(e) {
+                console.warn('UnmanagedHubListener: failed end session notice ' +
+                    e.message);
+            }
+        }
         this._bridge = null;
         if(this._syncTimer) {
             clearInterval(this._syncTimer);

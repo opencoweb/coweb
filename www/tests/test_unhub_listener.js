@@ -24,7 +24,7 @@ define([
                 this._subs = [];
             },
             teardown: function() {
-                this.listener.destroy();
+                this.listener.stop();
                 delete this.listener;
                 for(var i=0, l=this._subs.length; i<l; i++) {
                     OpenAjax.hub.unsubscribe(this._subs[i]);

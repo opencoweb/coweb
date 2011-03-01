@@ -265,14 +265,14 @@ define([
             this._updatePromise = null;
             try {
                 this._onServiceSessionJoinState(msg);
-                // note updated
-                promise.resolve();
             } catch(e) {
                 // note update failed
                 promise.fail(new Error('bad-application-state'));
             }
             // initialize the listener with the listener bridge reference
             this._listener.start(this, this._bridge.prepResponse);
+            // note updated
+            promise.resolve();
         } else {
             // unknown message, ignore
             console.warn('bayeux.ListenerBridge: unknown message ' + msg.channel);
@@ -287,7 +287,6 @@ define([
             try {
                 this._listener.stateInbound(item.topic, item.value);
             } catch(e1) {
-                console.warn('bayeux.ListenerBridge: application errored on received state');
                 throw e1;
             }
         }

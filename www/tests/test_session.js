@@ -447,7 +447,6 @@ define([
 
     test('abort after updating', 1, function() {
         var self = this;
-        this.waitDisconnect = true;
     
         // check notification of leaving conference
         this.collabs[0].subscribeConferenceEnd(function(params) {
