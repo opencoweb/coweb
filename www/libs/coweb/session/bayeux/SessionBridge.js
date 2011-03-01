@@ -24,7 +24,6 @@ define([
         this.UPDATED = 7;
 
         // init variables
-        this._listener = args.listener;
         this._debug = args.debug;
         this._adminUrl = args.adminUrl;
         this._state = this.IDLE;
@@ -42,7 +41,7 @@ define([
         // build listener bridge instance
         this._bridge = new ListenerBridge({
             debug: this._debug,
-            listener: this._listener,
+            listener: args.listener,
             bridge: this
         });
     };
@@ -53,7 +52,6 @@ define([
         this._prepPromise = null;
         this._joinPromise = null;
         this._updatePromise = null;
-        this._listener = null;
         if(this._state !== this.IDLE) {
             // force a disconnect
             this.disconnect();
