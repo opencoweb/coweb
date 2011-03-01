@@ -287,6 +287,8 @@ define([
             try {
                 this._listener.stateInbound(item.topic, item.value);
             } catch(e1) {
+                console.warn('bayeux.ListenerBridge: application errored on received state ' +
+                    e1.message);
                 throw e1;
             }
         }
@@ -297,7 +299,8 @@ define([
             try {
                 this[item.mtd](item.args);
             } catch(e2) {
-                console.warn('bayeux.ListenerBridge: application errored on queued event');
+                console.warn('bayeux.ListenerBridge: application errored on queued event ' +
+                    e2.message);
                 throw e2;
             }
         }
