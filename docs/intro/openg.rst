@@ -159,7 +159,6 @@ Inbound events
 
 Applications use the :func:`CollabInterface.subscribeSync` method to observe cooperative events from remote instances. The subscribed callback function  receives five parameters when invoked: `topic`, `value`, `type`, `position`, and `site`. The *meaning* of the first four correspond roughly with the event outbound event properties described above while the fifth, `site`, simply indicates where the even originated. The *data* stored in the `value` and `position` attributes, however, may differ from those set on the original outbound event. The operation engine transforms incoming events that are out-of-date by adjusting these two fields as needed to account for events already received.
 
-.. _openg-it
 .. rst-class:: openg-it 
 
 +------------------+--------+----------+----------+
