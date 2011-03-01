@@ -460,8 +460,8 @@ define([
         } catch(x) {
             // @todo: really want to send error back to requester that this
             // site can't send state; for now, just log error and continue
-            console.warn('UnmanagedHubListener: failed collecting engine state ' 
-                + x.message);
+            console.warn('UnmanagedHubListener: failed collecting engine state ' + 
+                x.message);
         }
 
         try {
@@ -606,8 +606,9 @@ define([
      */
     proto._onPurgeEngine = function() {
         if(!this._engine) {return;}
+        var size;
         if(this._shouldPurge) {
-            var size = this._engine.getBufferSize();
+            size = this._engine.getBufferSize();
             //var time = new Date();
             try {
                 var mcv = this._engine.purge();
