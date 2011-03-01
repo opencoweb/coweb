@@ -86,7 +86,6 @@ define([
             // the conference if it was ever fully joined to the conference
             try {
                 var value = {connected : !isDisconnected};
-                console.log(value.connected);
                 OpenAjax.hub.publish(topics.END, value);
             } catch(e) {
                 console.warn('UnmanagedHubListener: failed end session notice ' +
