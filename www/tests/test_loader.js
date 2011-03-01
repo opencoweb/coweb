@@ -37,10 +37,10 @@ define([
             equal(loader.collab.id, id);
         };
         loader.onSessionPrepared = function(params) {
-            var promise = params.nextDef
-            delete params.nextDef;
+            var promise = params.nextPromise;
+            delete params.nextPromise;
             deepEqual(params, self.server.prepResp);
-            params.nextDef = promise;
+            params.nextPromise = promise;
         };
         loader.onSessionJoined = function() {
             ok(true, 'joined');
@@ -82,7 +82,7 @@ define([
         };
         
         // server side handling of prep
-        this.server.onPrepareRequest = function(server, req, respDef) {
+        this.server.onPrepareRequest = function(server, req, respPromise) {
             throw new Error(403);
         };
 

@@ -63,7 +63,6 @@ define([
         }
     };
 
-
     /**
      * Called on page unload to disconnect properly.
      */
@@ -131,11 +130,11 @@ define([
         }
         
         // instant success
-        var def = new Promise();
-        def.resolve();
+        var promise = new Promise();
+        promise.resolve();
         // do the session logout
-        this._bridge.logout();
-        return def;
+        this._bridge.disconnect();
+        return promise;
     };
 
     /**
@@ -205,9 +204,9 @@ define([
             params.autoUpdate = true;
         }
 
-        // create a deferred result and hang onto its ref as part of the params
+        // create a promise and hang onto its ref as part of the params
         this._prepParams = lang.clone(params);
-        this._prepParams.deferred = new Promise();
+        this._prepParams.promise = new Promise();
 
         // store second copy of prep info for public access to avoid meddling
         this._lastPrep = lang.clone(params);
@@ -217,30 +216,30 @@ define([
         this._bridge.prepareConference(params.key, params.collab)
             .then('_onPrepared', '_onPrepareError', this);
         // start listening to disconnections
-        this._bridge.disconnectDef.then('_onDisconnected', null, this);
+        this._bridge.disconnectPromise.then('_onDisconnected', null, this);
 
         // show the busy dialog for the prepare phase
         OpenAjax.hub.publish(topics.BUSY, 'preparing');
 
-        // return deferred result
-        return this._prepParams.deferred;
+        // return promise
+        return this._prepParams.promise;
     };
     
     proto._onPrepared = function(params) {
         // store response
         this._prepParams.response = JSON.parse(JSON.stringify(params));
-        // pull out the deferred result
-        var def = this._prepParams.deferred;
+        // pull out the promise
+        var promise = this._prepParams.promise;
         // watch for errors during prep callback as indicators of failure to
         // configure an application
-        def.then(null, '_onAppPrepareError', this);
-        // if auto joining, build next def and pass with params
+        promise.then(null, '_onAppPrepareError', this);
+        // if auto joining, build next promise and pass with params
         if(this._prepParams.autoJoin) {
-            params.nextDef = new Promise();
+            params.nextPromise = new Promise();
         }
-        // inform all deferred listeners about success
+        // inform all promise listeners about success
         try {
-            def.resolve(params);
+            promise.resolve(params);
         } catch(e) {
             // in debug mode, the exception bubbles and we should invoke
             // the error handler manually
@@ -248,7 +247,7 @@ define([
             return;
         }
         if(this._prepParams.autoJoin) {
-            this.joinConference(params.nextDef);
+            this.joinConference(params.nextPromise);
         }
     };
 
@@ -258,15 +257,15 @@ define([
         OpenAjax.hub.publish(topics.BUSY, err.message);
 
         // invoke prepare error callback
-        var def = this._prepParams.deferred;
+        var promise = this._prepParams.promise;
         this._prepParams = null;
-        def.fail(err);
+        promise.fail(err);
     };
 
     /**
      * Called by an app to join a session.
      */
-    proto.joinConference = function(nextDef) {
+    proto.joinConference = function(nextPromise) {
         if(this._bridge.getState() !== this._bridge.PREPARED) {
             throw new Error('joinConference() not valid in current state');
         }
@@ -274,26 +273,26 @@ define([
         // switch busy dialog to joining state
         OpenAjax.hub.publish(topics.BUSY, 'joining');
 
-        // new deferred for join success / failure
-        this._prepParams.deferred = nextDef || new Promise();
+        // new promise for join success / failure
+        this._prepParams.promise = nextPromise || new Promise();
         this._bridge.joinConference().then('_onJoined', '_onJoinError', this);
-        return this._prepParams.deferred;
+        return this._prepParams.promise;
     };
 
     proto._onJoined = function() {
-        // pull out the deferred result
-        var def = this._prepParams.deferred;
+        // pull out the promise
+        var promise = this._prepParams.promise;
         // watch for errors during prep callback as indicators of failure to
         // configure an application
-        def.then(null, '_onAppPrepareError', this);
+        promise.then(null, '_onAppPrepareError', this);
         var params = {};
-        // if auto updating, build next def and pass with params
+        // if auto updating, build next promise and pass with params
         if(this._prepParams.autoUpdate) {
-            params.nextDef = new Promise();
+            params.nextPromise = new Promise();
         }
-        // inform all deferred listeners about success
+        // inform all promise listeners about success
         try {
-            def.resolve(params);
+            promise.resolve(params);
         } catch(e) {
             // in debug mode, the exception bubbles and we should invoke
             // the error handler manually
@@ -301,41 +300,41 @@ define([
             return;
         }
         if(this._prepParams.autoUpdate) {
-            this.updateInConference(params.nextDef);
+            this.updateInConference(params.nextPromise);
         }
     };
 
     proto._onJoinError = function(err) {
         // nothing to do, session controller goes back to idle
-        var def = this._prepParams.deferred;
+        var promise = this._prepParams.promise;
         this._prepParams = null;
-        def.fail(err);
+        promise.fail(err);
     };
     
     /**
      * Called by an application to update its state in a session.
      */
-    proto.updateInConference = function(nextDef) {
+    proto.updateInConference = function(nextPromise) {
         if(this._bridge.getState() !== this._bridge.JOINED) {
             throw new Error('updateInConference() not valid in current state');
         }
         // show the busy dialog for the update phase
         OpenAjax.hub.publish(topics.BUSY, 'updating');
 
-        // new deferred for join success / failure
-        this._prepParams.deferred = nextDef || new Promise();
+        // new promise for join success / failure
+        this._prepParams.promise = nextPromise || new Promise();
         this._bridge.updateInConference().then('_onUpdated', '_onUpdateError',
             this);
-        return this._prepParams.deferred;
+        return this._prepParams.promise;
     };
 
     proto._onUpdated = function() {
         var prepParams = this._prepParams;
         this._prepParams = null;
         // notify session interface of update success
-        var def = prepParams.deferred;
+        var promise = prepParams.promise;
         // notify of update success
-        def.resolve();
+        promise.resolve();
 
         // session is now updated in conference
         OpenAjax.hub.publish(topics.BUSY, 'ready');
@@ -343,13 +342,13 @@ define([
 
     proto._onUpdateError = function(err) {
         // nothing to do yet, session goes back to idle
-        var def = this._prepParams.deferred;
+        var promise = this._prepParams.promise;
         this._prepParams = null;
-        def.fail(err);
+        promise.fail(err);
     };
 
     proto._onDisconnected = function(result) {
-        // pull state and tag info about of deferred result
+        // pull state and tag info about of promise result
         var state = result.state, tag = result.tag;
         if(tag && !this._destroying) {
             // show an error in the busy dialog
@@ -364,8 +363,8 @@ define([
         // stop the hub listener from performing further actions
         this._listener.stop();
 
-        // keep prep info if a deferred is still waiting for notification
-        if(this._prepParams && !this._prepParams.deferred) {
+        // keep prep info if a promise is still waiting for notification
+        if(this._prepParams && !this._prepParams.promise) {
             this._prepParams = null;
         }
     };

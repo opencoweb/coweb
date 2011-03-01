@@ -45,8 +45,8 @@ define([
         this._privateRegex = /^\/service\/bot\/([^\/]*)\/response/;
         // private bot channel regex
         this._requestRegex = /^\/service\/bot\/([^\/]*)\/request/;
-        // update deferred
-        this._updateDef = null;
+        // update promise
+        this._updatePromise = null;
         // messages queued during update
         this._updateQueue = [];
         // initial roster, cleared after first read of it
@@ -143,7 +143,7 @@ define([
     };
     
     proto.initiateUpdate = function() {
-        this._updateDef = new Promise();
+        this._updatePromise = new Promise();
 
         // start listening for subscribe responses so we can track subscription
         // failures
@@ -169,7 +169,7 @@ define([
                 this, '_onServiceSessionJoin');
         });
         
-        return this._updateDef;
+        return this._updatePromise;
     };
     
     proto.getInitialRoster = function() {
@@ -261,15 +261,15 @@ define([
             this._roster = msg.data;
         } else if(suffix === 'state') {
             // handle state messages
-            var def = this._updateDef;
-            this._updateDef = null;
+            var promise = this._updatePromise;
+            this._updatePromise = null;
             try {
                 this._onServiceSessionJoinState(msg);
                 // note updated
-                def.resolve();
+                promise.resolve();
             } catch(e) {
                 // note update failed
-                def.fail(new Error('bad-application-state'));
+                promise.fail(new Error('bad-application-state'));
             }
             // initialize the listener with the listener bridge reference
             this._listener.start(this, this._bridge.prepResponse);

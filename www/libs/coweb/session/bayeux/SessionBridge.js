@@ -30,11 +30,11 @@ define([
         this._state = this.IDLE;
         this._connectToken = null;
         
-        // deferred for session sequence
-        this._prepDef = null;
-        this._joinDef = null;
-        this._updateDef = null;
-        this.disconnectDef = null;
+        // promises for session sequence
+        this._prepromise = null;
+        this._joinPromise = null;
+        this._updatePromise = null;
+        this.disconnectPromise = null;
 
         // info received from server
         this.prepResponse = null;
@@ -50,13 +50,13 @@ define([
     var proto = SessionBridge.prototype;
 
     proto.destroy = function() {
-        this._prepDef = null;
-        this._joinDef = null;
-        this._updateDef = null;
+        this._prepPromise = null;
+        this._joinPromise = null;
+        this._updatePromise = null;
         this._listener = null;
         if(this._state !== this.IDLE) {
-            // force a logout
-            this.logout();
+            // force a disconnect
+            this.disconnect();
         }
     };
 
@@ -69,10 +69,10 @@ define([
         if(this._state !== this.IDLE) {
             throw new Error(this.id + ': cannot prepare in non-idle state');
         }
-        // build new disconnect deferred
-        this.disconnectDef = new Promise();
-        // build new prepare deferred
-        this._prepDef = new Promise();
+        // build new disconnect promise
+        this.disconnectPromise = new Promise();
+        // build new prepare promise
+        this._prepPromise = new Promise();
         var data = {
             key : key,
             collab : collab
@@ -89,17 +89,17 @@ define([
         promise.then('_onPrepareResponse', '_onPrepareError', this);
         // change state to avoid duplicate prepares
         this._state = this.PREPARING;
-        return this._prepDef;
+        return this._prepPromise;
     };
 
     proto._onPrepareResponse = function(args) {
         var resp = JSON.parse(args.xhr.responseText);
         if(this._state === this.PREPARING) {
             this._state = this.PREPARED;
-            var def = this._prepDef;
-            this._prepDef = null;
+            var promise = this._prepPromise;
+            this._prepPromise = null;
             this.prepResponse = resp;
-            def.resolve(resp);
+            promise.resolve(resp);
         }
         // @todo: cleanup?
     };
@@ -107,14 +107,14 @@ define([
     proto._onPrepareError = function(args) {
         // go back to idle state
         this._state = this.IDLE;
-        var def = this._prepDef;
-        this._prepDef = null;
+        var promise = this._prepPromise;
+        this._prepPromise = null;
         var s = args.xhr.status;
         if(s === 403 || s === 401) {
             // need to auth
-            def.fail(new Error('not-allowed'));
+            promise.fail(new Error('not-allowed'));
         } else {
-            def.fail(new Error('server-unavailable'));
+            promise.fail(new Error('server-unavailable'));
         }
     };
 
@@ -123,7 +123,7 @@ define([
             throw new Error(this.id + ': cannot join in unprepared state');
         }
 
-        this._joinDef = new Promise();
+        this._joinPromise = new Promise();
         // register extension to include session id in ext        
         cometd.unregisterExtension('coweb');
         var args = {sessionid : this.prepResponse.sessionid};
@@ -140,7 +140,7 @@ define([
         cometd.addListener('/meta/disconnect', this, '_onSessionDisconnect');
         this._state = this.JOINING;
         cometd.handshake();
-        return this._joinDef;
+        return this._joinPromise;
     };
 
     proto._onSessionUnsuccessful = function(err) {
@@ -157,7 +157,7 @@ define([
             // unexpected server error
             this.onDisconnected(this._state, 'stream-error');
             // force a disconnect to avoid more communication
-            this.logout();
+            this.disconnect();
         } else if(err.xhr && this._state > this.IDLE) {
             // low level error
             var httpCode = err.xhr.status;
@@ -176,14 +176,14 @@ define([
             this._onDisconnected(this._state, tag);
             
             // force a local disconnect to avoid retries to a dead server
-            this.logout();
+            this.disconnect();
 
-            // notify join def if it happend during join
-            var def = this._joinDef || this._updateDef;
-            if(def) {
-                this._updateDef = null;
-                this._joinDef = null;
-                def.fail(new Error(tag));
+            // notify join promise if it happened during join
+            var promise = this._joinPromise || this._updatePromise;
+            if(promise) {
+                this._updatePromise = null;
+                this._joinPromise = null;
+                promise.fail(new Error(tag));
             }
         }
     };
@@ -191,9 +191,9 @@ define([
     proto._onSessionConnect = function(msg) {
         if(this._state === this.JOINING) {
             this._state = this.JOINED;
-            var def = this._joinDef;
-            this._joinDef = null;
-            def.resolve();
+            var promise = this._joinPromise;
+            this._joinPromise = null;
+            promise.resolve();
             
             // stop listening for connects after the first
             cometd.removeListener(this._connectToken);
@@ -215,32 +215,32 @@ define([
         }
         
         this._state = this.UPDATING;
-        this._updateDef = new Promise();
+        this._updatePromise = new Promise();
         this._bridge.initiateUpdate()
             .then('_onUpdateSuccess', '_onUpdateFailure', this);
-        return this._updateDef;
+        return this._updatePromise;
     };
     
     proto._onUpdateSuccess = function() {
         if(this._state === this.UPDATING) {
             this._state = this.UPDATED;
-            var def = this._updateDef;
-            this._updateDef = null;
-            def.resolve();
+            var promise = this._updatePromise;
+            this._updatePromise = null;
+            promise.resolve();
         }
     };
     
     proto._onUpdateFailure = function(err) {
         if(this._state === this.UPDATING) {
-            // do a logout to leave the session and go back to idle
-            this.logout();
-            var def = this._updateDef;
-            this._updateDef = null;
-            def.fail(err);
+            // do a disconnect to leave the session and go back to idle
+            this.disconnect();
+            var promise = this._updatePromise;
+            this._updatePromise = null;
+            promise.fail(err);
         }
     };
 
-    proto.logout = function(async) {
+    proto.disconnect = function(async) {
         if(this._state < this.IDLE) { 
             // ignore if already disconnecting
             return;
@@ -252,7 +252,7 @@ define([
         this._state = this.DISCONNECTING;
         cometd.disconnect(!async);
         if(this._state !== this.IDLE) {
-            // logout bombed, server must be dead; invoke callback manually
+            // disconnect bombed, server must be dead; invoke callback manually
             this._onDisconnected(this._state, 'clean-disconnect');
         }
     };
@@ -260,8 +260,8 @@ define([
     proto._onDisconnected = function(state, tag) {
         // console.debug('onDisconnected state:', state, 'tag:', tag);
         this._state = this.IDLE;
-        // notify disconnect deferred
-        this.disconnectDef.resolve({
+        // notify disconnect promise
+        this.disconnectPromise.resolve({
             state : state,
             tag : tag
         });

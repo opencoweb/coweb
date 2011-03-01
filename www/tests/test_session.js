@@ -130,10 +130,10 @@ define([
             ok(false, 'aborted prepare errored');
         });
     
-        // server side handling of prep
-        server.onPrepareRequest = function(server, req, respDef) {
+        // server side handling of prepare
+        server.onPrepareRequest = function(server, req, respPromise) {
             // respond to aborted request
-            respDef.resolve(server.prepResp);
+            respPromise.resolve(server.prepResp);
             // start again later to ensure client doesn't get the response
             setTimeout(start, 500);
         };
@@ -160,7 +160,7 @@ define([
         });
     
         // server side handling of prep
-        server.onPrepareRequest = function(server, req, respDef) {
+        server.onPrepareRequest = function(server, req, respPromise) {
             throw new Error(403);
         };
 
@@ -184,7 +184,7 @@ define([
         });
     
         // server side handling of prep
-        server.onPrepareRequest = function(server, req, respDef) {
+        server.onPrepareRequest = function(server, req, respPromise) {
             throw new Error(0);
         };
 
@@ -202,9 +202,9 @@ define([
     
         this.session.prepareConference(this.autoPrepReq)
         .then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(start);
 
         // server side
@@ -254,10 +254,10 @@ define([
         this.session.prepareConference(this.autoPrepReq)
         .then(function(params) {
             // prep done
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function(params) {
             // join done
-            return params.nextDef;
+            return params.nextPromise;
         }).then(start);
 
         // wait while running
@@ -271,9 +271,9 @@ define([
     
         this.session.prepareConference(this.autoPrepReq)
         .then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function() {
             ok(false, 'join succeeded after abort');
         }, function() {
@@ -399,7 +399,7 @@ define([
             // immediately join after prepare
             return self.session.joinConference();
         }).then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function() {
             ok(false, 'update succeeded during server error');
         }, function(err) {
@@ -431,7 +431,7 @@ define([
         .then(function() {
             return self.session.joinConference();
         }).then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function() {
             ok(false, 'update succeeded after bad state');
         }, function(err) {
@@ -459,7 +459,7 @@ define([
         .then(function() {
             return self.session.joinConference();
         }).then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function() {
             self.session.leaveConference();
         });
@@ -479,10 +479,10 @@ define([
         prep.autoUpdate = false;
         this.session.prepareConference(prep)
         .then(function(params) {
-            equal(params.nextDef, undefined, 'auto join deferred check');
+            equal(params.nextPromise, undefined, 'auto join promise check');
             return self.session.joinConference();
         }).then(function(params) {
-            equal(params.nextDef, undefined, 'auto update deferred check');
+            equal(params.nextPromise, undefined, 'auto update promise check');
             return self.session.updateInConference();
         }).then(function(params) {
             equal(params, undefined, 'post-update check');
@@ -509,7 +509,7 @@ define([
         .then(function() {
             return self.session.joinConference();
         }).then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function() {
             self.session.leaveConference();
         });
@@ -590,17 +590,17 @@ define([
 
         this.session.prepareConference(this.autoPrepReq)
         .then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function() {
             // logout after update succeeds
             self.session.logout(true);
         });
     
-        this.server.onLogoutRequest = function(server, req, respDef) {
+        this.server.onLogoutRequest = function(server, req, respPromise) {
             ok(req, 'logout check');
-            respDef.callback();
+            respPromise.callback();
         }
         this.server.onMetaDisconnect = function(server, msg, resp) {
             start();
@@ -674,9 +674,9 @@ define([
         
         this.session.prepareConference(this.autoPrepReq)
         .then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function(params) {
-            return params.nextDef;
+            return params.nextPromise;
         }).then(function() {
             self.session.leaveConference();
             setTimeout(function() {
@@ -692,14 +692,14 @@ define([
                 // go back in again
                 self.session.prepareConference(self.autoPrepReq)
                 .then(function(params) {
-                    var nextDef = params.nextDef;
-                    delete params.nextDef;
+                    var nextPromise = params.nextPromise;
+                    delete params.nextPromise;
                     var sinfo = lang.clone(self.server.prepResp);
                     deepEqual(params, sinfo, 'second entry prepare response check');
-                    return params.nextDef;
+                    return params.nextPromise;
                 }).then(function(params) {
                     ok(params, 'second entry join response check');
-                    return params.nextDef;
+                    return params.nextPromise;
                 }).then(function() {
                     ok(true, 'second entry update response check');
                     start();

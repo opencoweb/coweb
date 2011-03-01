@@ -7,11 +7,12 @@
 //
 /*global define*/
 define([
+    'require',
     'coweb/main'
-], function(coweb) {
+], function(require, coweb) {
     var SimpleLoader = function(id) {
-        // use built-in busy dialog?
-        this.showBusy = true;
+        // load and show busy indicator
+        this.busyIndicator = null;
         // prepare the session after run?
         this.autoPrepare = true;
         // join after prepare?
