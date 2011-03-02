@@ -5,7 +5,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-/*global define start equal deepEqual ok stop module*/
+/*global test define start equal equals deepEqual ok stop module*/
 define([
     'coweb/main',
     'coweb/topics',
@@ -233,11 +233,12 @@ define([
         // use default prep response
         // confirm all session join subscriptions
         this.server.onMetaSubscribe = function(server, msg, resp) {
+            var t;
             if(server.joinTopics.length) {
-                var t = server.joinTopics.shift();
+                t = server.joinTopics.shift();
                 equals(msg.subscription, t, 'subscribed to join channel');
             } else if(server.updaterTopics.length) {
-                var t = server.updaterTopics.shift();
+                t = server.updaterTopics.shift();
                 equals(msg.subscription, t, 'subscribed to updater channel');        
             } else {
                 ok(false, 'extra subscription detected');
@@ -270,7 +271,7 @@ define([
                 collab.subscribeStateResponse(function(state) {
                     equals(state, target.value, collab.id + ' state received');
                 });
-            })(i);
+            }(i));
         }
     
         this.session.prepareConference(this.autoPrepReq)
@@ -306,7 +307,7 @@ define([
         // use default prep response
         // abort the client in the middle of the subscribes
         this.server.onMetaSubscribe = function(server, msg, resp) {
-            if(msg.subscription == server.joinTopics[1]) {
+            if(msg.subscription === server.joinTopics[1]) {
                 // sudden client abort
                 self.session.leaveConference();
                 // start again later to ensure client doesn't get the response
@@ -324,7 +325,7 @@ define([
         try {
             this.session.joinConference();
         } catch(e) {
-            ok(e, 'invalid join without prepare')
+            ok(e, 'invalid join without prepare');
         }
     });
 
@@ -406,7 +407,7 @@ define([
         try {
             this.session.updateInConference();
         } catch(e) {
-            ok(e, 'invalid update without prepare')
+            ok(e, 'invalid update without prepare');
         }
     });
 
@@ -579,7 +580,7 @@ define([
         var updated = false;
         this.server.onMetaSubscribe = function(server, msg, resp) {
             orig.apply(server, arguments);
-            if(msg.subscription == server.updaterTopics[0]) {
+            if(msg.subscription === server.updaterTopics[0]) {
                 updated = true;
             }
         };
@@ -589,7 +590,7 @@ define([
                     server._lp.fail(new Error(0));
                 }, 1000);
             }
-        }
+        };
 
         // wait while running
         stop(this.timeout);
@@ -643,10 +644,10 @@ define([
         this.server.onLogoutRequest = function(server, req, respPromise) {
             ok(req, 'logout check');
             respPromise.callback();
-        }
+        };
         this.server.onMetaDisconnect = function(server, msg, resp) {
             start();
-        }
+        };
 
         // wait while running
         stop(this.timeout);
