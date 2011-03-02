@@ -3,6 +3,7 @@ Open Cooperative Web Framework
 ==============================
 
 :Homepage: http://opencoweb.org
+:Project page: http://dojofoundation.org/projects/opencoweb
 :Code: https://github.com/opencoweb/coweb
 :Documentation: http://opencoweb.org/ocwdocs
 :User group: https://groups.google.com/group/opencoweb
@@ -60,7 +61,7 @@ See the LICENSE file for details.
 Contributing
 ============
 
-The Open Cooperative Web Framework is a Dojo Foundation project, and as such follows the `contribution directives of the Dojo Foundation <http://dojofoundation.org/about/contribute/>`_. Please read them if you wish to contribute. If you agree to their terms, feel free to fork our code and send us pull requests on GitHub.
+The Open Cooperative Web Framework is a `Dojo Foundation project <http://dojofoundation.org/projects/opencoweb/>`_, and as such follows the `contribution directives of the Dojo Foundation <http://dojofoundation.org/about/contribute/>`_. Please read them if you wish to contribute. If you agree to their terms, feel free to fork our code and send us pull requests on GitHub.
 
 Credits
 =======

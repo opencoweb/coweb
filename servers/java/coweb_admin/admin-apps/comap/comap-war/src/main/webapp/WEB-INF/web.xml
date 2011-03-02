@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+    version="2.5">
+    <display-name>
+      Comap 
+    </display-name>
+    <context-param>
+        <param-name>description</param-name>
+        <param-value>coweb admin comap demo</param-value>
+    </context-param>
+    <context-param>
+        <param-name>appurl</param-name>
+        <param-value>/comap</param-value>
+    </context-param>
+    <context-param>
+        <param-name>thumbnailurl</param-name>
+        <param-value>/comap/thumbnail.png</param-value>
+    </context-param>
+    <servlet>
+        <servlet-name>cometd</servlet-name>
+        <servlet-class>org.cometd.server.CometdServlet</servlet-class>
+        <init-param>
+            <param-name>logLevel</param-name>
+            <param-value>0</param-value>
+        </init-param>
+        <init-param>
+            <param-name>timeout</param-name>
+            <param-value>30000</param-value>
+        </init-param>
+        <init-param>
+            <param-name>jsonDebug</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <!--async-supported>true</async-supported-->
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>cometd</servlet-name>
+        <url-pattern>/cometd/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>admin</servlet-name>
+        <servlet-class>org.coweb.servlet.AdminServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>admin</servlet-name>
+        <url-pattern>/admin/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ApplicationServlet</servlet-name>
+        <servlet-class>org.coweb.admin.rs.ApplicationServlet</servlet-class>
+        <load-on-startup>3</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApplicationServlet</servlet-name>
+        <url-pattern>/cowebadmin/*</url-pattern>
+    </servlet-mapping>
+
+    <!--ejb-ref>
+        <ejb-ref-name>ejb/AdminBean</ejb-ref-name>
+        <ejb-ref-type>Session</ejb-ref-type>
+        <remote>org.coweb.admin.bean.Admin</remote>
+    </ejb-ref-->
+
+    <ejb-local-ref>
+        <ejb-ref-name>ejb/AdminBean</ejb-ref-name>
+        <ejb-ref-type>Session</ejb-ref-type>
+        <local>org.coweb.admin.bean.AdminLocal</local>
+    </ejb-local-ref>
+
+    <!-- SECURITY CONSTRAINT -->
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Comap</web-resource-name>
+            <url-pattern>/*</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>POST</http-method>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>cowebusers</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>ApplicationServlet</web-resource-name>
+            <url-pattern>/cowebadmin/*</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>POST</http-method>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>cowebadmins</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
+    
+
+    <!-- LOGIN CONFIGURATION -->
+    
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>coweb</realm-name>
+    </login-config>
+    
+</web-app>
