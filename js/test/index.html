@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="http://code.jquery.com/qunit/git/qunit.js"></script>
-    <script src="../libs/require.js"></script>
+    <script src="../lib/require.js"></script>
     <script type="text/javascript">
     // don't run until requirejs says run
     QUnit.config.autostart = false;
@@ -15,8 +15,8 @@
     require({
       baseUrl : '.',
       paths : {
-        'coweb' : '../libs/coweb',
-        'org' : '../libs/org'
+        'coweb' : '../lib/coweb',
+        'org' : '../lib/org'
       }
     }, [
       'test_openg_trans',

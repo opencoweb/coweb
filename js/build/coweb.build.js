@@ -6,8 +6,8 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 //
 ({
-    baseUrl: "../libs",
-    dir: "coweb-build",
+    baseUrl: "../lib/",
+    dir: "../release/coweb-latest",
     modules: [
         {
             name: "coweb/main",
