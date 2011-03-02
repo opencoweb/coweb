@@ -198,6 +198,24 @@ define([
         this.server.start();
     });
 
+    test('app error while preparing', 1, function() {
+        var self = this;
+        this.session.prepareConference(this.prepReq)
+        .then(function() {
+            throw new Error('simulate app error during prepare');
+        }).then(function() {
+            ok(false, 'success after prepare error');
+        }, function(err) {
+            ok(err, 'error raised after prepare error');
+            start();
+        });
+
+        // wait while running
+        stop(this.timeout);
+        // start server processing
+        this.server.start();
+    });
+
     test('join empty conference', 4, function() {
         var self = this;
     
@@ -357,6 +375,26 @@ define([
         server.onMetaHandshake = function(server, msg, resp) {
             throw new Error(404);
         };
+
+        // wait while running
+        stop(this.timeout);
+        // start server processing
+        this.server.start();
+    });
+
+    test('app error while joining', 1, function() {
+        var self = this;
+        this.session.prepareConference(this.prepReq)
+        .then(function() {
+            return self.session.joinConference();
+        }).then(function() {
+            throw new Error('simulate app error during join');
+        }).then(function() {
+            ok(false, 'success after join error');
+        }, function(err) {
+            ok(err, 'error raised after join error');
+            start();
+        });
 
         // wait while running
         stop(this.timeout);

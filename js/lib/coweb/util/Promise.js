@@ -12,7 +12,7 @@ define(function() {
         var currListener, lastListener, result, errored, fulfilled;
         
         var notifyListeners = function() {
-            var func, rv, nextVal, ptr;
+            var func, rv, nextVal, ptr, unexpectedError = false;
             var success = function(ptr) {
                 var promise = ptr.promise;
                 return function(val) {
@@ -51,6 +51,7 @@ define(function() {
                         }
                         // some registered function failed
                         ptr.promise.fail(e);
+                        unexpectedError = true;
                     }
                 } else {
                     // no registered function for notification
@@ -61,6 +62,7 @@ define(function() {
                     }
                 }
             }
+            return unexpectedError;
         };
 
         this.then = function(callback, errback, context) {
@@ -103,7 +105,7 @@ define(function() {
             }
             fulfilled = true;
             result = value;
-            notifyListeners();
+            return notifyListeners();
         };
 
         this.fail = function(err) {
@@ -113,7 +115,7 @@ define(function() {
             fulfilled = true;
             errored = true;
             result = err;
-            notifyListeners();
+            return notifyListeners();
         };
     };
 

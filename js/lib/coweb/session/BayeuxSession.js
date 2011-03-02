@@ -62,7 +62,7 @@ define([
     };
 
     /**
-     * Called on page unload to disconnect properly.
+     * Called on page unload to attempt a clean disconnect.
      */
     proto.destroy = function() {
         // set destroying state to avoid incorrect notifications
@@ -110,8 +110,11 @@ define([
      * Called by an application to leave a session or abort joining it.
      */    
     proto.leaveConference = function() {
-        // notify busy state change
-        OpenAjax.hub.publish(topics.BUSY, 'aborting');
+        var state = this._bridge.getState();
+        if(state !== this._bridge.UPDATED) {
+            // notify busy state change
+            OpenAjax.hub.publish(topics.BUSY, 'aborting');
+        }
         // cleanup prep params
         this._prepParams = null;
         // let listener shutdown
@@ -222,23 +225,15 @@ define([
         this._prepParams.response = JSON.parse(JSON.stringify(params));
         // pull out the promise
         var promise = this._prepParams.promise;
-        // watch for errors during prep callback as indicators of failure to
-        // configure an application
-        promise.then(null, '_onAppPrepareError', this);
         // if auto joining, build next promise and pass with params
         if(this._prepParams.autoJoin) {
             params.nextPromise = new Promise();
         }
         // inform all promise listeners about success
-        try {
-            promise.resolve(params);
-        } catch(e) {
-            // in debug mode, the exception bubbles and we should invoke
-            // the error handler manually
-            this._onAppPrepareError(e);
-            return;
-        }
-        if(this._prepParams.autoJoin) {
+        var appError = promise.resolve(params);
+        if(this._prepParams.autoJoin && !appError) {
+            // continue auto join, but only if app did not throw an unexpected
+            // error in one of its promise listeners
             this.joinConference(params.nextPromise);
         }
     };
@@ -274,30 +269,22 @@ define([
     proto._onJoined = function() {
         // pull out the promise
         var promise = this._prepParams.promise;
-        // watch for errors during prep callback as indicators of failure to
-        // configure an application
-        promise.then(null, '_onAppPrepareError', this);
         var params = {};
         // if auto updating, build next promise and pass with params
         if(this._prepParams.autoUpdate) {
             params.nextPromise = new Promise();
         }
         // inform all promise listeners about success
-        try {
-            promise.resolve(params);
-        } catch(e) {
-            // in debug mode, the exception bubbles and we should invoke
-            // the error handler manually
-            this._onAppPrepareError(e);
-            return;
-        }
-        if(this._prepParams.autoUpdate) {
+        var appError = promise.resolve(params);
+        if(this._prepParams.autoUpdate && !appError) {
+            // continue auto join, but only if app did not throw an unexpected
+            // error in one of its promise listeners
             this.updateInConference(params.nextPromise);
         }
     };
 
     proto._onJoinError = function(err) {
-        // nothing to do, session controller goes back to idle
+        // nothing to do, session goes back to idle
         var promise = this._prepParams.promise;
         this._prepParams = null;
         promise.fail(err);
@@ -353,18 +340,6 @@ define([
         if(this._prepParams && !this._prepParams.promise) {
             this._prepParams = null;
         }
-    };
-    
-    /**
-     * Called by JS when an exception occurs in the application's successful
-     * conference prepare callback. Disconnects and notifies busy.
-     */
-    proto._onAppPrepareError = function(err) {
-        console.error(err.message);
-        // force a logout to get back to the idle state
-        this.leaveConference();
-        // notify about error state
-        OpenAjax.hub.publish(topics.BUSY, 'bad-application-state');
     };
 
     return BayeuxSession;

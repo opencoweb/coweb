@@ -3,7 +3,7 @@
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 //
-/*global define module test raises equal deepEqual*/
+/*global define module test raises equal deepEqual ok*/
 define([
     'coweb/util/Promise'
 ], function(Promise) {
@@ -25,10 +25,11 @@ define([
         raises(this.p.fail);
     });
 
-    test('resolve listeners', 10, function() {
+    test('resolve listeners', 11, function() {
         var target = {a : 'a', b : 'b'},
             chainVal = 'ignored',
-            chainErr = new Error('ignored');
+            chainErr = new Error('ignored'),
+            errored;
 
         this.p.then(function(val) {
             deepEqual(val, target);
@@ -57,7 +58,8 @@ define([
             deepEqual(val, target);
         });
         
-        this.p.resolve(target);
+        errored = this.p.resolve(target);
+        ok(errored, 'listener threw error');
         this.p.then(function(val) {
             equal(val, target);
         }).then(function(val) {
@@ -65,10 +67,11 @@ define([
         });
     });
 
-    test('fail listeners', 10, function() {
+    test('fail listeners', 11, function() {
         var target = new Error('target error'),
             chainVal = 'ignored',
-            chainErr = new Error('ignored');
+            chainErr = new Error('ignored'),
+            errored;
 
         this.p.then(null, function(err) {
             equal(err, target);
@@ -97,7 +100,8 @@ define([
             equal(val, target);
         });
         
-        this.p.fail(target);
+        errored = this.p.fail(target);
+        ok(errored, 'listener threw error');
         this.p.then(null, function(err) {
             equal(err, target);
         }).then(function(val) {
