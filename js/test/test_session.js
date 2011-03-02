@@ -661,14 +661,14 @@ define([
     
         // listen for busy notifications
         var expected = ['preparing', 'joining', 'updating', 'ready'];
-        this.hubSub(topics.BUSY, function(topic, value) {
+        this.session.onStatusChange = function(value) {
             var e = expected.shift();
             equals(value, e, 'busy state change check');
             if(!expected.length) {
-                // start tests again after a delay to ensure no more events coming
+            // start tests again after a delay to ensure no more events coming
                 setTimeout(start, 1000);
             }
-        });
+        };
 
         // do prep and join
         this.session.prepareConference(this.autoPrepReq);
@@ -684,14 +684,14 @@ define([
     
         // listen for busy notifications
         var expected = ['preparing', 'joining', 'updating', 'aborting', 'clean-disconnect'];
-        this.hubSub(topics.BUSY, function(topic, value) {
+        this.session.onStatusChange = function(value) {
             var e = expected.shift();
-            equals(value, e, 'abort state change check');
+            equals(value, e, 'busy state change check');
             if(!expected.length) {
-                // start tests again after a delay to ensure no more events coming
+            // start tests again after a delay to ensure no more events coming
                 setTimeout(start, 1000);
             }
-        });
+        };
 
         // do prep and join
         this.session.prepareConference(this.autoPrepReq);

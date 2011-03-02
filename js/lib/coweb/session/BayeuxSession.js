@@ -10,9 +10,8 @@ define([
     'coweb/util/Promise',
     'coweb/topics',
     'coweb/util/xhr',
-    'coweb/util/lang',
-    'org/OpenAjax'
-], function(SessionBridge, Promise, topics, xhr, lang, OpenAjax) {
+    'coweb/util/lang'
+], function(SessionBridge, Promise, topics, xhr, lang) {
     var BayeuxSession = function() {
         // vars set during runtime
         this._prepParams = null;
@@ -67,6 +66,8 @@ define([
     proto.destroy = function() {
         // set destroying state to avoid incorrect notifications
         this._destroying = true;
+        // don't notify any more status changes
+        this.onStatusChange = function() {};
         // do a logout to disconnect from the session
         this.leaveConference();
         // let listener shutdown gracefully
@@ -113,7 +114,7 @@ define([
         var state = this._bridge.getState();
         if(state !== this._bridge.UPDATED) {
             // notify busy state change
-            OpenAjax.hub.publish(topics.BUSY, 'aborting');
+            this.onStatusChange('aborting');
         }
         // cleanup prep params
         this._prepParams = null;
@@ -214,7 +215,7 @@ define([
         this._bridge.disconnectPromise.then('_onDisconnected', null, this);
 
         // show the busy dialog for the prepare phase
-        OpenAjax.hub.publish(topics.BUSY, 'preparing');
+        this.onStatusChange('preparing');
 
         // return promise
         return this._prepParams.promise;
@@ -241,7 +242,7 @@ define([
     proto._onPrepareError = function(err) {
         // notify busy dialog of error; no disconnect at this stage because 
         // we're not using cometd yet
-        OpenAjax.hub.publish(topics.BUSY, err.message);
+        this.onStatusChange(err.message);
 
         // invoke prepare error callback
         var promise = this._prepParams.promise;
@@ -258,7 +259,7 @@ define([
         }
 
         // switch busy dialog to joining state
-        OpenAjax.hub.publish(topics.BUSY, 'joining');
+        this.onStatusChange('joining');
 
         // new promise for join success / failure
         this._prepParams.promise = nextPromise || new Promise();
@@ -298,7 +299,7 @@ define([
             throw new Error('updateInConference() not valid in current state');
         }
         // show the busy dialog for the update phase
-        OpenAjax.hub.publish(topics.BUSY, 'updating');
+        this.onStatusChange('updating');
 
         // new promise for join success / failure
         this._prepParams.promise = nextPromise || new Promise();
@@ -316,7 +317,7 @@ define([
         promise.resolve();
 
         // session is now updated in conference
-        OpenAjax.hub.publish(topics.BUSY, 'ready');
+        this.onStatusChange('ready');
     };
 
     proto._onUpdateError = function(err) {
@@ -331,7 +332,7 @@ define([
         var state = result.state, tag = result.tag;
         if(tag && !this._destroying) {
             // show an error in the busy dialog
-            OpenAjax.hub.publish(topics.BUSY, tag);
+            this.onStatusChange(tag);
         }
         // stop the hub listener from performing further actions
         this._listener.stop(true);
@@ -340,6 +341,10 @@ define([
         if(this._prepParams && !this._prepParams.promise) {
             this._prepParams = null;
         }
+    };
+
+    proto.onStatusChange = function(state) {
+        // extension point
     };
 
     return BayeuxSession;
