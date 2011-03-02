@@ -186,8 +186,13 @@ define([
             }            
         }
         
+        if(params.autoJoin === undefined) {
+            // auto join by default
+            params.autoJoin = true;
+        }
+        
         if(params.autoUpdate === undefined) {
-            // backward compat, auto update by default
+            // auto update by default
             params.autoUpdate = true;
         }
 

@@ -19,9 +19,13 @@ define([
         setup: function() {
             this.waitDisconnect = false;
             this.timeout = 5000;
-            this.prepReq = {key : 10, collab : true};
+            this.prepReq = {
+                key : 10, 
+                collab : true, 
+                autoJoin : false, 
+                autoUpdate: false
+            };
             this.autoPrepReq = {
-                autoJoin : true,
                 key : this.prepReq.key,
                 collab : this.prepReq.collab
             };
@@ -399,7 +403,7 @@ define([
             // immediately join after prepare
             return self.session.joinConference();
         }).then(function(params) {
-            return params.nextPromise;
+            return self.session.updateInConference();
         }).then(function() {
             ok(false, 'update succeeded during server error');
         }, function(err) {
@@ -431,7 +435,7 @@ define([
         .then(function() {
             return self.session.joinConference();
         }).then(function(params) {
-            return params.nextPromise;
+            return self.session.updateInConference();
         }).then(function() {
             ok(false, 'update succeeded after bad state');
         }, function(err) {
@@ -459,7 +463,7 @@ define([
         .then(function() {
             return self.session.joinConference();
         }).then(function(params) {
-            return params.nextPromise;
+            return self.session.updateInConference();
         }).then(function() {
             self.session.leaveConference();
         });
@@ -509,7 +513,7 @@ define([
         .then(function() {
             return self.session.joinConference();
         }).then(function(params) {
-            return params.nextPromise;
+            return self.session.updateInConference();
         }).then(function() {
             self.session.leaveConference();
         });
