@@ -19,25 +19,15 @@ class DevInstall(setup_emptyenv.EmptyInstall):
         subprocess.call([paths.pip, 'install', '-e', '.'])
 
     def install_coweb(self, paths):
-        # run setup_js.sh pointing to home_dir/www
-        if subprocess.call(['scripts/setup_js.sh', paths.www]):
+        # run setup_js.sh
+        if subprocess.call(['../../js/setup_js.sh', paths.www]):
             raise RuntimeError('could not install JS dependencies')
-        # symlink www/libs/coweb into home_dir/www/libs
-        libs = os.path.abspath('../../www/libs/')
-        os.symlink(os.path.join(libs, 'coweb'), os.path.join(paths.www, 'libs', 'coweb'))
-        # symlink examples into home_dir/www
-        src = os.path.abspath('../../www/examples/')
-        os.symlink(src, os.path.join(paths.www, 'examples'))
+        # symlink js/lib into home_dir/www/lib
+        lib = os.path.abspath('../../js/lib/')
+        os.symlink(os.path.join(lib, 'coweb'), os.path.join(paths.www, 'lib'))
         # symlink tests into home_dir/www
-        src = os.path.abspath('../../www/tests/')
-        os.symlink(src, os.path.join(paths.www, 'tests'))
-        # symlink bots into home_dir/bots
-        bots = os.path.abspath('bots')
-        try:
-            os.remove(paths.bots)
-        except OSError:
-            pass
-        os.symlink(bots, paths.bots)
+        src = os.path.abspath('../../js/test/')
+        os.symlink(src, os.path.join(paths.www, 'test'))
 
 if __name__ == '__main__':
     inst = DevInstall()

@@ -10,6 +10,7 @@ import virtualenv
 import os
 import shutil
 import subprocess
+import setup
 
 class Bag(object): pass
 
@@ -19,14 +20,9 @@ class EmptyInstall(object):
         subprocess.call([paths.pip, 'install', '-r', 'requirements.txt'])
 
     def install_coweb(self, paths):
-        # run setup_js.sh pointing to home_dir/www
-        if subprocess.call(['scripts/setup_js.sh', paths.www]):
-            raise RuntimeError('could not install JS dependencies')
-        # copy www/libs/coweb into home_dir/www/libs
-        shutil.copytree('../../www/libs/coweb', os.path.join(paths.www, 'libs', 'coweb'))
-        shutil.copy('../../www/libs/coweb.js', os.path.join(paths.www, 'libs'))
-        # copy bots into home_dir/bots
-        shutil.copytree('bots', paths.bots)
+        # copy js/release/coweb-VERSION to home_dir/www/lib
+        shutil.copytree('../../js/release/coweb-%s' % setup.VERSION, 
+            os.path.join(paths.www, 'lib'))
     
     def after_install(self, options, home_dir):
         # paths
@@ -44,8 +40,9 @@ class EmptyInstall(object):
         # clean out old www, bots
         shutil.rmtree(paths.www, True)
         shutil.rmtree(paths.bots, True)
-        # make www/libs in home_dir
-        os.makedirs(os.path.join(paths.www, 'libs'))
+        # make home_dir/bots and home_dir/www
+        os.makedirs(paths.www)
+        os.makedirs(paths.bots)
 
         # delegate coweb install
         self.install_coweb(paths)
