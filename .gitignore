@@ -9,4 +9,5 @@ servers/python/build
 js/tmp
 js/lib/require.js
 js/lib/org
+js/release/coweb-latest
 target/
