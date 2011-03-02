@@ -11,36 +11,9 @@
     <name>OpenCoweb :: JavaScript</name>
     <packaging>war</packaging>
 
-    <repositories>
-        <repository>
-            <id>cometd-repo</id>
-            <name>cometd repo</name>
-            <url>https://oss.sonatype.org/content/groups/public</url>
-        </repository>
-    </repositories>
-
     <build>
         <defaultGoal>install</defaultGoal>
         <plugins>
-            <plugin>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <overlays>
-                        <overlay />
-                        <overlay>
-                            <groupId>org.cometd.javascript</groupId>
-                            <artifactId>cometd-javascript-dojo</artifactId>
-                            <type>war</type>
-                            <targetPath>js</targetPath>
-                            <excludes>
-                                <exclude>META-INF/**</exclude>
-                                <exclude>WEB-INF/**</exclude>
-                                <!--exclude>WEB-INF/web.xml</exclude-->
-                            </excludes>
-                        </overlay>
-                    </overlays>
-                </configuration>
-            </plugin>
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -48,8 +21,12 @@
                         <phase>compile</phase>
                         <configuration>
                             <tasks>
-                                <copy todir="target/coweb_javascript/js">
-                                    <fileset dir="../../../www/libs" />
+                                <copy todir="target/coweb_javascript/">
+                                    <fileset dir="../../../js/release/coweb-latest">
+                                        <exclude name="**/require.js" />
+                                        <exclude name="**/require/**" />
+                                        <exclude name="**/build.txt" />
+                                    </fileset>
                                 </copy>
                             </tasks>
                         </configuration>
@@ -62,13 +39,4 @@
         </plugins>
         <finalName>coweb_javascript</finalName>
     </build>
-            
-    <dependencies>
-        <dependency>
-            <groupId>org.cometd.javascript</groupId>
-            <artifactId>cometd-javascript-dojo</artifactId>
-            <version>${cometd.version}</version>
-            <type>war</type>
-        </dependency>
-    </dependencies>
 </project>
