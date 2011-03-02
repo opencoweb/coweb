@@ -1,13 +1,12 @@
 *.py[co]
-*.gz
 *.class
 *.war
 *.jar
 *egg-info*
-*.zip
 .DS_Store
 docs/_build
 servers/python/build
-www/build/coweb-build
-require.js
+js/tmp
+js/lib/require.js
+js/lib/org
 target/

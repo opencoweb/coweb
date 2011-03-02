@@ -6,12 +6,12 @@ directory for framework development purposes.
 Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
-import setup_emptyenv
+import setup_env
 import os
 import shutil
 import subprocess
 
-class DevInstall(setup_emptyenv.EmptyInstall):
+class DevInstall(setup_env.EmptyInstall):
     def install_prereqs(self, paths):
         # install latest tornado from git
         subprocess.call([paths.pip, 'install', '-e', 'git+https://github.com/facebook/tornado.git#egg=Tornado'])
@@ -24,11 +24,11 @@ class DevInstall(setup_emptyenv.EmptyInstall):
             raise RuntimeError('could not install JS dependencies')
         # symlink js/lib into home_dir/www/lib
         lib = os.path.abspath('../../js/lib/')
-        os.symlink(os.path.join(lib, 'coweb'), os.path.join(paths.www, 'lib'))
+        os.symlink(lib, os.path.join(paths.www, 'lib'))
         # symlink tests into home_dir/www
         src = os.path.abspath('../../js/test/')
         os.symlink(src, os.path.join(paths.www, 'test'))
 
 if __name__ == '__main__':
     inst = DevInstall()
-    setup_emptyenv.run(inst)
+    setup_env.run(inst)

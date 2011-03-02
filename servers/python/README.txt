@@ -4,7 +4,7 @@ Quick Install
 To install the coweb server dependencies and minified coweb JavaScript into a virtualenv, do the following. These steps assume you have virtualenv 1.5.1 or higher installed:
 
    cd servers/python
-   ./setup_emptyenv.py /env/path
+   ./setup_env.py /env/path
    source /env/path/bin/activate
    run_server.py
 
