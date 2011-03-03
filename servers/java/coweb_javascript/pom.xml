@@ -23,8 +23,6 @@
                             <tasks>
                                 <copy todir="target/coweb_javascript/">
                                     <fileset dir="../../../js/release/coweb-latest">
-                                        <exclude name="**/require.js" />
-                                        <exclude name="**/require/**" />
                                         <exclude name="**/build.txt" />
                                     </fileset>
                                 </copy>
