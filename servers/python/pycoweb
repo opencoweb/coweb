@@ -52,12 +52,6 @@ def deploy(options, args):
     options.verbose = True
     container(options, ['container', script])
 
-    # fix the http static path and bot dir in the template
-    lines = file(script, 'r').readlines()
-    lines.insert(32, "        self.httpStaticPath = '../www'\n")
-    lines.insert(57, "        self.cowebBotLocalPaths[0] = '../bots'\n")
-    file(script, 'w').write(''.join(lines))
-            
     print 'deploy: created deployment directories at %s' % outPath
 
 def container(options, args):
@@ -67,10 +61,12 @@ def container(options, args):
         print outPath, 'exists, use --force to replace'
         sys.exit(1)
     modulePath = os.path.abspath(os.path.dirname(coweb.__file__))
-    if options.verbose:
-        tmplPath = os.path.join(modulePath, 'scripts', 'verbose.tmpl')        
-    else:
+    if options.template == 'verbose':
+        tmplPath = os.path.join(modulePath, 'scripts', 'verbose.tmpl')
+    elif options.template == 'simple':
         tmplPath = os.path.join(modulePath, 'scripts', 'simple.tmpl')
+    else:
+        tmplPath = options.template
     with file(tmplPath) as f:
         text = f.read()
     # generate a secret key for signing cookies
@@ -87,6 +83,8 @@ def run():
                   help='do not deploy coweb JavaScript (default: False)')
     parser.add_option('-v', dest='verbose', action='store_true', default=False,
                   help='init a verbose coweb container script with comments (default: False)')
+    parser.add_option('-t', dest='template', type="str", default='verbose',
+                  help='template to use for the coweb container script [verbose*, simple, <custom>]')
     parser.add_option('-f', '--force', dest='force', action='store_true', default=False,
                   help='overwrite an existing file or folder (default: False)')
     (options, args) = parser.parse_args()
