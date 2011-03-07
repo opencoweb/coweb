@@ -12,14 +12,19 @@ import uuid
 import string
 import shutil
 
+class SetupError(Exception): pass
+
 def deploy(options, args):
     '''
     Creates a new coweb app container script named run_server and configures it
-    pointing at relative directories
-    the apps can live.
+    pointing at relative directories where apps can live.
     '''
+    try:
+        outPath = os.path.abspath(args[1])
+    except IndexError:
+        raise SetupError('missing: destination path')
+
     # paths
-    outPath = os.path.abspath(args[1])
     www = os.path.join(outPath, 'www')
     lib = os.path.join(www, 'lib')
     bots = os.path.join(outPath, 'bots')
@@ -30,8 +35,8 @@ def deploy(options, args):
 
     if os.path.isdir(www) or os.path.isdir(bots) or os.path.isfile(script):
         if not options.force:
-            print outPath, 'deployment exists, use --force to overwrite'
-            sys.exit(1)
+            raise SetupError('error: %s exists, use --force to overwrite' % 
+                outPath)
 
     # create new paths
     shutil.rmtree(www, True)
@@ -56,10 +61,15 @@ def deploy(options, args):
 
 def container(options, args):
     '''Creates an coweb app container script.'''
-    outPath = os.path.abspath(args[1])
+    try:
+        outPath = os.path.abspath(args[1])
+    except IndexError:
+        raise SetupError('missing: destination path')
+
     if os.path.isfile(outPath) and not options.force:
-        print outPath, 'exists, use --force to replace'
-        sys.exit(1)
+        raise SetupError('error: %s exists, use --force to overwrite' % 
+                outPath)
+
     modulePath = os.path.abspath(os.path.dirname(coweb.__file__))
     if options.template == 'verbose':
         tmplPath = os.path.join(modulePath, 'scripts', 'verbose.tmpl')
@@ -94,7 +104,11 @@ def run():
     except (KeyError, IndexError):
         parser.print_usage()
         sys.exit(255)
-    func(options, args)
+    try:
+        func(options, args)
+    except SetupError, e:
+        print e
+        sys.exit(1)
 
 if __name__ == '__main__':
     run()

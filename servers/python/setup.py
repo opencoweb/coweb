@@ -19,6 +19,9 @@ for d, sd, fs in os.walk(srcDir):
         sd = d[len(srcDir)+1:]
         path = os.path.join(shareDir, sd)
         cowebJSFiles.append((path, [os.path.join(d, fn)]))
+if not len(cowebJSFiles):
+    # stable release missing, abort install
+    raise RuntimeError('js/release/coweb-%s not found' % VERSION)
 
 setup(name='OpenCoweb',
     version=VERSION,
