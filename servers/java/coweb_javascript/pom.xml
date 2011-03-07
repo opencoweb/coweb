@@ -8,7 +8,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>coweb_javascript</artifactId>
-    <name>OpenCoweb :: JavaScript</name>
+    <name>OpenCoweb :: Java :: JavaScript</name>
     <packaging>war</packaging>
 
     <build>
@@ -21,8 +21,8 @@
                         <phase>compile</phase>
                         <configuration>
                             <tasks>
-                                <copy todir="target/coweb_javascript/">
-                                    <fileset dir="../../../js/release/coweb-latest">
+                                <copy todir="target/coweb_javascript">
+                                    <fileset dir="../../../js/release/coweb-0.4">
                                         <exclude name="**/build.txt" />
                                     </fileset>
                                 </copy>
