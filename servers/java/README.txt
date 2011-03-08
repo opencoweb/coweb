@@ -1,23 +1,34 @@
-Modules
-    coweb-bots Contains interfaces for building your own bot.
-    coweb-server Coweb server infrastructure.
-    coweb-javascript Contains all the coweb javascript including dojo.
-    coweb-archetype Maven architype for creating your own coweb webapp.
-                    includes dojo, cometd jars and js, coweb jars and js
-                    and jetty jars required by cometd.
+Quick Install
+=============
 
-Build Instructions.
+1. Install the coweb modules into your local maven repository.
 
-1. mvn install 
+   cd servers/java
+   mvn install
 
-    This will put all the coweb modules in your local maven repository
+2. Generate your own coweb application from an archetype.
 
-2. Start your own coweb application.
+   cd /path/to/my/project
+   mvn archetype:generate 
+      -DarchetypeGroupId=org.coweb 
+      -DarchetypeArtifactId=coweb-archetype
+   
+3. Change the defaults for the generated project as desired.
 
-    mvn archetype:create \
-    -DgroupId=<your groupId> \
-    -DartifactId=<your artifactId> \
-    -DcowebVersion=<current version> \
-    -DarchetypeVersion=<current version> \
-    -DarchetypeGroupId=org.coweb \
-    -DarchetypeArtifactId=coweb-archetype
+Maven Modules
+=============
+
+coweb-admin
+   Optional coweb session administration. (in development)
+
+coweb-archetype 
+   Archetype for creating your own coweb webapp.
+   
+coweb-bots
+   Contains interfaces for building your own bot.
+
+coweb-javascript
+   Contains the latest stable release copy of the coweb framework JavaScript.
+
+coweb-server 
+   Coweb server infrastructure.

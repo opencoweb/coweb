@@ -1,19 +1,17 @@
+#set($dollar = '$')
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>${groupId}</groupId>
     <artifactId>${artifactId}</artifactId>
-    <packaging>war</packaging>
     <version>${version}</version>
+    <packaging>war</packaging>
 
     <properties>
-        <jettyVersion>7.1.5.v20100705</jettyVersion>
-        <jetty-plugin-version>${jettyVersion}</jetty-plugin-version>
-        <cometdVersion>2.1.0</cometdVersion>
-        <cowebVersion>0.4</cowebVersion>
+        <coweb-version>${cowebVersion}</coweb-version>
     </properties>
-    
+
     <build>
         <defaultGoal>install</defaultGoal>
         <plugins>
@@ -24,22 +22,10 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
-            <plugin>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <overlays>
-                        <overlay />
-                        <overlay>
-                            <groupId>org.coweb</groupId>
-                            <artifactId>coweb-javascript</artifactId>
-                        </overlay>
-                    </overlays>
-                </configuration>
-            </plugin>
+
             <plugin>
                 <groupId>org.mortbay.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>${jettyVersion}</version>
                 <configuration>
                     <scanIntervalSeconds>10</scanIntervalSeconds>
                     <webAppConfig>
@@ -47,53 +33,44 @@
                     </webAppConfig>
                 </configuration>
             </plugin>
+            
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <overlays>
+                        <overlay>
+                            <groupId>org.coweb</groupId>
+                            <artifactId>coweb-javascript</artifactId>
+                            <type>war</type>
+                            <excludes>
+                                <exclude>META-INF/**</exclude>
+                                <exclude>WEB-INF/**</exclude>
+                            </excludes>
+                            <targetPath>coweb-lib</targetPath>
+                        </overlay>
+                    </overlays>
+                </configuration>
+            </plugin>
         </plugins>
+        <finalName>${artifactId}</finalName>
     </build>
 
     <dependencies>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.coweb</groupId>
             <artifactId>coweb-bots</artifactId>
-            <version>${cowebVersion}</version>
+            <version>${coweb-version}</version>
         </dependency>
         <dependency>
             <groupId>org.coweb</groupId>
             <artifactId>coweb-server</artifactId>
-            <version>${cowebVersion}</version>
+            <version>${coweb-version}</version>
         </dependency>
         <dependency>
             <groupId>org.coweb</groupId>
             <artifactId>coweb-javascript</artifactId>
-            <version>${cowebVersion}</version>
+            <version>${coweb-version}</version>
             <type>war</type>
         </dependency>
-        <dependency>
-            <groupId>org.cometd.java</groupId>
-            <artifactId>bayeux-api</artifactId>
-            <version>${cometdVersion}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.cometd.java</groupId>
-            <artifactId>cometd-java-server</artifactId>
-            <version>${cometdVersion}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlets</artifactId>
-            <version>${jettyVersion}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>jetty-client</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
     </dependencies>
-
 </project>

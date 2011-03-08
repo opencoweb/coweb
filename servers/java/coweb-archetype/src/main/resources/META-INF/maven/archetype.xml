@@ -4,5 +4,6 @@
     <resources>
         <resource>src/main/webapp/WEB-INF/web.xml</resource>
         <resource>src/main/webapp/index.html</resource>
+        <resource>src/main/webapp/main.js</resource>
     </resources>
 </archetype>
