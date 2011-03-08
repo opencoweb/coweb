@@ -91,12 +91,12 @@ define([
         this.prepareMetadata = info;
         // notify the extension point; let exceptions bubble
         this.onSessionPrepared(info);
-        return info.nextDef;
+        return info.nextPromise;
     };
     
     proto._onSessionJoined = function(info) {
         this.onSessionJoined();
-        return info.nextDef;
+        return info.nextPromise;
     };
     
     proto._onSessionUpdated = function(info) {
