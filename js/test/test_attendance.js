@@ -36,7 +36,7 @@ define([
         }
     });
     
-    test('initial roster', 14, function() {
+    test('initial roster', 20, function() {
         var self = this,
             events = 0,
             local = {
@@ -44,7 +44,8 @@ define([
                 username : 'bill.smith',
                 local : true
             },
-            cb = function(users, count) {
+            cb = function(type, users, count) {
+                equal(type, 'join');
                 if(events < 3) {
                     equal(count, 3);
                     deepEqual(users, self.targetRoster);
@@ -56,9 +57,9 @@ define([
             },
             obj = {
                 sentinel : 'sentinel',
-                cb : function(users, count) {
+                cb : function(type, users, count) {
                     ok(this.sentinel, 'sentinel');
-                    cb(users, count);
+                    cb(type, users, count);
                 }
             };
 
@@ -73,22 +74,23 @@ define([
         });
     });
     
-    test('remote join', 7, function() {
+    test('remote join', 10, function() {
         var self = this,
             target = {
                 site : 4,
                 username : 'bill.smith',
                 local : false
             },
-            cb = function(users, count) {
+            cb = function(type, users, count) {
+                equal(type, 'join');
                 equal(count, 4);
                 deepEqual(users[0], target);
             },
             obj = {
                 sentinel : 'sentinel',
-                cb : function(users, count) {
+                cb : function(type, users, count) {
                     ok(this.sentinel, 'sentinel');
-                    cb(users, count);
+                    cb(type, users, count);
                 }
             };
 
@@ -108,18 +110,19 @@ define([
         });
     });
     
-    test('remote leave', 7, function() {
+    test('remote leave', 10, function() {
         var self = this,
             target = this.targetRoster[0],
-            cb = function(users, count) {
+            cb = function(type, users, count) {
+                equal(type, 'leave');
                 equal(count, 2);
                 deepEqual(users[0], target);
             },
             obj = {
                 sentinel : 'sentinel',
-                cb : function(users, count) {
+                cb : function(type, users, count) {
                     ok(this.sentinel, 'sentinel');
-                    cb(users, count);
+                    cb(type, users, count);
                 }
             };
 

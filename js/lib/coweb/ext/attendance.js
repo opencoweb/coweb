@@ -47,13 +47,13 @@ define([
          * Notifies subscribed listeners of a change.
          * @private
          */
-        _notify : function(user, count) {
+        _notify : function(type, user, count) {
             var subs = this._subs;
             for(var id in subs) {
                 if(subs.hasOwnProperty(id)) {
                     var s = subs[id];
                     try {
-                        s.callback.call(s.context, user, count);
+                        s.callback.call(s.context, type, user, count);
                     } catch(e) {
                         console.error(e);
                     }
@@ -113,12 +113,12 @@ define([
                 users.push(this._addUser(site, username, false));
             }
             // notify about all existing users all at once
-            this._notify(users, this.count);
+            this._notify('join', users, this.count);
 
             var user = this._addUser(params.site, params.username, true);
             if(user) {
                 // notify about local user
-                this._notify([user], this.count);
+                this._notify('join', [user], this.count);
             }
         },
 
@@ -129,7 +129,7 @@ define([
         _onRemoteJoin: function(params) {
             var user = this._addUser(params.site, params.username, false);
             if(user) {
-                this._notify([user], this.count);
+                this._notify('join', [user], this.count);
             }
         },
     
@@ -140,7 +140,7 @@ define([
         _onRemoteLeave: function(params) {
             var user = this._removeUser(params.site);
             if(user) {
-                this._notify([user], this.count);
+                this._notify('leave', [user], this.count);
             }
         },
 
