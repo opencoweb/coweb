@@ -7,9 +7,7 @@ A web application creates :class:`CollabInterface` instances to send and receive
 
 The use of the collaboration API has the following requirements:
 
-#. The web application must include the OpenAjax Hub v1.0.
-#. The application must include Dojo 1.5 or higher.
-#. The application must :func:`dojo.require` the `coweb` module.
+#. The application must use an AMD loader to import the the `coweb/main` module.
 #. The application must use the :doc:`session API <session>` to join, prepare, and update in a session before sending events using the collaboration API.
 
 Initializing a collaboration instance
@@ -32,9 +30,9 @@ Using a collaboration instance
 
    Encapsulates the collaboration APIs for web application use. A web application should use the :func:`coweb.initCollab` factory function instead of instantiating this object directly.
    
-   .. note:: In typical Dojo fashion, all `subscribe*` methods in this interface can take a callback function as a parameter or, as a convenience, a context plus a callback method. If a context is specified, the provided callback is invoked with `this` bound to the context. Note that the doc below lists both parameters, but only explains the required callback.
+   .. note:: All `subscribe*` methods in this interface can take a callback function as a parameter or, as a convenience, a context plus a callback method. If a context is specified, the provided callback is invoked with `this` bound to the context. Note that the doc below lists both parameters, but only explains the required callback.
 
-.. function:: CollabInterface.subscribeConferenceReady(contextOrCallback [, boundCallback])
+.. function:: CollabInterface.subscribeReady(contextOrCallback [, boundCallback])
    
    A web application calls this method to subscribe to the event fired when the local :class:`SessionInterface` has finished preparing, joining, and updating in a session.
    
@@ -51,7 +49,7 @@ Using a collaboration instance
 
    :returns: object (token for :func:`CollabInterface.unsubscribe`)
    
-.. function:: CollabInterface.subscribeConferenceEnd(contextOrCallback [, boundCallback])
+.. function:: CollabInterface.subscribeEnd(contextOrCallback [, boundCallback])
    
    A web application calls this method to subscribe to the event fired when the local application is leaving or has left a session. The callback executes only if the application received the ready callback (i.e., it was updated in the session).
    

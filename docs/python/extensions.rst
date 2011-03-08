@@ -74,8 +74,8 @@ Controlling session access
       The coweb server calls this method when a coweb application attempts to prepare a session.
       
       :param str username: Authenticated username of the requestor
-      :param str key: Key identifying the session from :js:func:`SessionInterface.prepareConference`.
-      :param bool collab: Flag from :js:func:`SessionInterface.prepareConference` set to true if requesting a session supporting cooperative events, false if requesting a session supporting service bot calls only
+      :param str key: Key identifying the session from :js:func:`SessionInterface.prepare`.
+      :param bool collab: Flag from :js:func:`SessionInterface.prepare` set to true if requesting a session supporting cooperative events, false if requesting a session supporting service bot calls only
       :return: Dictionary of name/value pairs to include in the response to the application
       :rtype: dict
       :raise: tornado.web.HTTPError to deny session preparation request

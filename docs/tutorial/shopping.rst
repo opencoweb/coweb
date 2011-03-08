@@ -365,7 +365,7 @@ Add the following code to the bottom of the :file:`dojo.ready` callback.
    coweb.ext.ui.createBusy(sess);
    // do the prep and autoJoin / autoUpdate
    var prep = {collab: true, autoJoin : true, autoUpdate: true};
-   sess.prepareConference(prep);
+   sess.prepare(prep);
 
 This code initializes the :class:`SessionInterface` and points it at the proper admin REST URL. The URL differs from the default `/admin` on the Java server, so it reads the preferred URL from the :attr:`djConfig` object in the :file:`index.html` file for the application. The next link creates an instance of the optional dialog widget that reports progress as a session attempts to prepare, join, and update itself in a coweb session. After these setup steps, the code uses the :class:`SessionInterface` to initiate the session join process.
 

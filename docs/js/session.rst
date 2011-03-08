@@ -7,9 +7,7 @@ A web application creates one :class:`SessionInterface` instance per browser doc
 
 The use of the session API has the following requirements:
 
-#. The web application must include the OpenAjax Hub v1.0.
-#. The application must include Dojo 1.5 or higher.
-#. The application must :func:`dojo.require` the `coweb` module.
+#. The application must use an AMD loader to import the the `coweb/main` module.
 
 Initializing the session instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,26 +37,26 @@ Using the session instance
 
    A web application calls this method to get the version number of the coweb framework.
 
-   :returns: dojo.Deferred
+   :returns: Promise
    :callback: Invoked with the version string in dotted notation x.x
    :errback: Unused
 
 .. function:: SessionInterface.getConferenceParams()
 
-   A web application calls this method to get the last arguments passed to :func:`SessionInterface.prepareConference`. The arguments include any values inferred by the framework such as defaults.
+   A web application calls this method to get the last arguments passed to :func:`SessionInterface.prepare`. The arguments include any values inferred by the framework such as defaults.
 
    :returns: object
 
-.. function:: SessionInterface.joinConference()
+.. function:: SessionInterface.join()
 
-      A web application calls this method to join a session after receiving a callback from :func:`SessionInterface.prepareConference`. If the application invoked :func:`SessionInterface.prepareConference` with `autoJoin` set to true, the framework automatically invokes this method upon the callback.
+      A web application calls this method to join a session after receiving a callback from :func:`SessionInterface.prepare`. If the application invoked :func:`SessionInterface.prepare` with `autoJoin` set to true, the framework automatically invokes this method upon the callback.
 
    :throws Error: If invoked before preparing the session or after joining a session
-   :returns: dojo.Deferred
+   :returns: Promise
    :callback: Invoked on successful preparation with an object having these attributes:
 
-      nextDef (dojo.Deferred)
-         Deferred for the automatic call to :func:`SessionInterface.updateInConference` if `autoUpdate` was true. Useful for call chaining.
+      nextPromise (Promise)
+         Deferred for the automatic call to :func:`SessionInterface.update` if `autoUpdate` was true. Useful for call chaining.
 
    :errback: Invoked on failed preparation with a string error tag of `not-allowed` if the user needs to authenticate, `session-unavailable` if the session ended before joining, or `server-unavailable`
 
@@ -72,7 +70,7 @@ Using the session instance
    :param string username: Username to authenticate
    :param string password: Password for the user
    :throws Error: If invoked after starting the prepare-join-update procedure
-   :returns: dojo.Deferred (from dojo.xhrPost)
+   :returns: :class:`Promise`
    :callback: Invoked on successful login
    :errback: Invoked on failed login
 
@@ -80,7 +78,7 @@ Using the session instance
 
    A web application calls this method to leave a session while or after entering it.
 
-   :returns: dojo.Deferred
+   :returns: Promise
    :callback: Invoked on successful exit
    :errback: Invoked on failed exit
 
@@ -88,11 +86,11 @@ Using the session instance
 
    A web application calls this method to contact the configured logout URL on the coweb server. This method is for application convenience. The application can choose to remove authentication credentials in any other server-supported manner.
 
-   :returns: dojo.Deferred (from dojo.xhrPost)
+   :returns: :class:`Promise`
    :callback: Invoked on successful logout
    :errback: Invoked on failed logout
 
-.. function:: SessionInterface.prepareConference([args])
+.. function:: SessionInterface.prepare([args])
    
    A web application calls this method to request access to a session before attempting to join it.
    
@@ -100,20 +98,20 @@ Using the session instance
 
    :param string key: Key uniquely identifying the session to join. If undefined, tries to read the argument `cowebkey` from the page URL to use instead. If the argument is undefined, uses the (domain, port, path, arguments) tuple of the current page as the key. 
    :param bool collab: True to request a session supporting cooperative events, false to request a session supporting service bot messages only
-   :param bool autoJoin: True to automatically join a session after successfully preparing it, false to require an explicit application call to :func:`SessionInterface.joinConference`.
+   :param bool autoJoin: True to automatically join a session after successfully preparing it, false to require an explicit application call to :func:`SessionInterface.join`.
    :param bool autoUpdate: True to automatically update application state in a session after successfully joining it, false to require an explicit application call to :func:`SessionInterface.updateInSession`.
    :throws Error: If invoked after preparing a session
-   :returns: dojo.Deferred
+   :returns: Promise
    :callback: Invoked on successful preparation with an object having these attributes:
 
       collab (bool)
          If the session was prepared as collaborative or not. May or may not match what was requested.
       key (string)
-         Session key passed to :func:`SessionInterface.prepareConference`
+         Session key passed to :func:`SessionInterface.prepare`
       info (object)
          Arbitrary name/value pairs included by a coweb server extension point
-      nextDef (dojo.Deferred)
-         Deferred for the automatic call to :func:`SessionInterface.joinConference` if `autoJoin` was true. Useful for call chaining.
+      nextPromise (Promise)
+         Deferred for the automatic call to :func:`SessionInterface.join` if `autoJoin` was true. Useful for call chaining.
       username (string)
          Name of the authenticated user
       sessionurl (string)
@@ -123,12 +121,12 @@ Using the session instance
 
    :errback: Invoked on failed preparation with a string error tag of `not-allowed` if the user needs to authenticate or `server-unavailable`
 
-.. function:: SessionInterface.updateInConference()
+.. function:: SessionInterface.update()
 
-      A web application calls this method to update its local state after receiving a callback from :func:`SessionInterface.joinConference`. If the application invoked :func:`SessionInterface.prepareConference` with `autoUpdate` set to true, the framework automatically invokes this method upon the callback.
+      A web application calls this method to update its local state after receiving a callback from :func:`SessionInterface.join`. If the application invoked :func:`SessionInterface.prepare` with `autoUpdate` set to true, the framework automatically invokes this method upon the callback.
 
    :throws Error: If invoked before joining a session or after updating in a session
-   :returns: dojo.Deferred
+   :returns: Promise
    :callback: Invoked on successful update with no parameters
    :errback: Invoked on failed preparation with a string error tag of `bad-application-state` if the update fails.
 
@@ -180,7 +178,7 @@ Assume an application wants to enter a session without delay.
    var sess = coweb.initSession();
    // collaborative session desired, join automatically after prepare
    var params = {collab: true, autoJoin : true};
-   sess.prepareConference(params).then(null,
+   sess.prepare(params).then(null,
       function(err) {
          // handle any error cases
       }
@@ -197,11 +195,11 @@ Imagine an application wants to configure its UI based on the prepare response b
    var sess = coweb.initSession();
    // collaborative session desired, join automatically after prepare
    var params = {collab: true, autoJoin : false};
-   sess.prepareConference(params).then(
+   sess.prepare(params).then(
       function(info) {
          // app does some work (e.g., shows session info in its UI)
          // at some later point, app continues process by joining
-         return sess.joinConference();
+         return sess.join();
       }
    ).then(null,
       function(err) {
