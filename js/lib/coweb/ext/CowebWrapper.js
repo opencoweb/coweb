@@ -8,6 +8,11 @@
 define([
     'coweb/main'
 ], function(coweb) {
+    /**
+     * @constructor
+     * @param {String} id Unique id to assign to the CollabInterface instance
+     * in this wrapper. Attempts to use this.widget.id if not specified.
+     */
     var CowebWrapper = function(id) {
         // widget to wrap
         this.widget = null;
@@ -22,19 +27,43 @@ define([
     };
     var proto = CowebWrapper.prototype;
 
+    /**
+     * Unsubscribes all callbacks from the CollabInterface instance. Should be
+     * invoked on widget destruction.
+     */
     proto.uninitialize = function() {
         // invoke this to unsubscribe on widget destruction
         this.collab.unsubscribeAll();
     };
     
+    /**
+     * Invoked when the CollabInterface reports the application is ready for
+     * cooperation in the session.
+     *
+     * @param {Object} info Session information
+     */
     proto.onReady = function(info) {
         // override to handle session ready
     };
     
+    /**
+     * Invoked when the CollabInterface receives a request for this widget's
+     * full state. The implementation should invoke 
+     * this.collab.sendStateResponse.
+     *
+     * @param {String} token Token to include in the state response call
+     */
     proto.onStateRequest = function(token) {
         // override and invoke this.collab.sendStateResponse
     };
     
+    /**
+     * Invoked when the CollabInterface receives a copy of the shared state
+     * state of this widget. The implementation should set the widget to this
+     * state.
+     *
+     * @param {any} state Widget state
+     */    
     proto.onStateResponse = function(state) {
         // override to apply state
     };

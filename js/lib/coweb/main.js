@@ -20,7 +20,6 @@ cowebConfig = {
     logoutUrl : cowebConfig.logoutUrl || '/logout'    
 };
 
-// @todo: is this build tool friendly?
 define([
     'coweb/topics',
     cowebConfig.sessionImpl,
@@ -34,6 +33,13 @@ define([
     // factory interface
     return {
         VERSION : '0.4',
+
+        /**
+         * Get the singleton cowebConfig.sessionImpl implementation of 
+         * SessionInterface.
+         *
+         * @return SessionInterface
+         */
         initSession : function() {
             if(sessionInst) {
                 // return singleton session instance
@@ -48,6 +54,12 @@ define([
             return sessionInst;
         },
 
+        /**
+         * Get an instance of cowebConfig.collabImpl, the configured 
+         * implementation of CollaborationInterface.
+         *
+         * @param {Object} params Configuration parameters
+         */
         initCollab: function(params) {
             params = params || {};
             var collabInst = new CollabImpl();
@@ -55,6 +67,9 @@ define([
             return collabInst;
         },
         
+        /**
+         * Destroys the SessionInterface singleton.
+         */
         reset: function() {
             if(sessionInst) {
                 sessionInst.destroy();

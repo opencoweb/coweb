@@ -16,6 +16,19 @@ define(['coweb/util/Promise'], function(Promise) {
     };
 
     return {
+        /**
+         * Do an XHR request. The function extends the passed args with:
+         * - xhr: The browser XMLHttpRequest object
+         *
+         * @param {Object} args Args for the XHR
+         * - url: Target url
+         * - sync: True to send synchronously (default: false)
+         * - method: POST, GET, etc.
+         * - body: Body of the request
+         * - headers: Key/value HTTP headers
+         * @return Promise to resolve or fail on XHR completion with the 
+         * extended args as the value
+         */
         send: function(args) {
             // build a promise
             var promise = new Promise();

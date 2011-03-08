@@ -7,10 +7,19 @@
 //
 /*global define*/
 define(function() {
+    /**
+     * @class Promise
+     * @constructor
+     */
     var Promise = function() {
         // immutable properties
         var currListener, lastListener, result, errored, fulfilled;
-        
+
+        /**
+         * Notify all listeners of the promise of success or failure.
+         * 
+         * @return True if any listener throw an uncaught error
+         */
         var notifyListeners = function() {
             var func, rv, nextVal, ptr, unexpectedError = false;
             var success = function(ptr) {
@@ -65,6 +74,16 @@ define(function() {
             return unexpectedError;
         };
 
+        /**
+         * Register listener(s) for promise resolution or failure.
+         *
+         * @param {Function} callback Invoked on resolution
+         * @param {Function} errback Invoke on failure
+         * @param {Object} context Optional context in which callback or 
+         * errback is called
+         * @return New promise of this promise's callback / errback resolution
+         * or failure  
+         */
         this.then = function(callback, errback, context) {
             if(callback && typeof callback !== 'function') {
                 callback = context[callback];
@@ -99,6 +118,12 @@ define(function() {
             return listener.promise;
         };
 
+        /**
+         * Resolve the promise.
+         *
+         * @param {any} value Any value
+         * @return True if any listener threw an uncaught error
+         */
         this.resolve = function(value) {
             if(fulfilled) {
                 throw new Error('promise already resolved');
@@ -108,6 +133,12 @@ define(function() {
             return notifyListeners();
         };
 
+        /**
+         * Fail the promise.
+         *
+         * @param {Error} err Error object
+         * @return True if any listener threw an uncaught error
+         */
         this.fail = function(err) {
             if(fulfilled) {
                 throw new Error('promise already resolved');

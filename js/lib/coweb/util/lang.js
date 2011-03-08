@@ -6,7 +6,14 @@
 /*global define*/
 define(function() {
     return {
-        // @todo: performance
+        /**
+         * Make an independent clone of a simple object.
+         *
+         * @todo review for performance
+         * 
+         * @param {Object} obj Object with simple properties
+         * @return Clone of the object
+         */
         clone : function(obj) {
             return JSON.parse(JSON.stringify(obj))
         }

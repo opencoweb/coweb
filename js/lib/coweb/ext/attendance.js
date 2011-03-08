@@ -18,6 +18,11 @@ define([
         _subs : {},
         // next subscription id
         _subId : 0,
+        
+        /**
+         * Subscribe for attendance changes.
+         * @private
+         */
         _subscribe : function(context, callback) {
             if(callback === undefined) {
                 callback = context;
@@ -37,7 +42,11 @@ define([
             this._subId++;
             return id;
         },
-        
+
+        /**
+         * Notifies subscribed listeners of a change.
+         * @private
+         */
         _notify : function(user, count) {
             var subs = this._subs;
             for(var id in subs) {
@@ -55,9 +64,12 @@ define([
         /**
          * Subscribes to roster change events.
          *
-         * @param context Context in which to invoke the callback
-         * @param callback Function to invoke
-         * @return Promise which always notifies success
+         * @param {Object|Function} Context in which to invoke the callback or
+         * the callback itself
+         * @param {Function|undefined} callback Function to invoke if context
+         * specified
+         * @return Promise which always notifies success because this impl is
+         * synchronous
          */
         subscribeChange: function(context, callback) {
             var tok = this._subscribe(context, callback);
@@ -70,7 +82,7 @@ define([
         /**
          * Unsubscribes any subscription created via this interface.
          *
-         * @param promise Promise returned from subscribe method
+         * @param {Promise} promise Promise returned from subscribe method
          */
         unsubscribe: function(promise) {
             var tok = promise._cowebToken;
@@ -91,7 +103,8 @@ define([
          },
 
         /**
-         * Called when the application enters a session.
+         * Called when the local application is ready in the session.
+         * @private
          */
         _onLocalJoin: function(params) {
             var users = [];
@@ -110,7 +123,8 @@ define([
         },
 
         /**
-         * Called when a remote app indicates it is fully joined to the conference.
+         * Called when a remote application is ready in the session.
+         * @private
          */
         _onRemoteJoin: function(params) {
             var user = this._addUser(params.site, params.username, false);
@@ -120,7 +134,8 @@ define([
         },
     
         /**
-         * Called when this app sees a remote app leave the conference.
+         * Called when a remote application leaves the session.
+         * @private
          */
         _onRemoteLeave: function(params) {
             var user = this._removeUser(params.site);
@@ -131,10 +146,7 @@ define([
 
         /**
          * Add a new user to track.
-         *
-         * @param site Unique site integer of the user
-         * @param username Human readable string name of the user
-         * @return User object
+         * @private
          */
         _addUser: function(site, username, local) {
             var user = this.users[site];
@@ -150,9 +162,7 @@ define([
 
         /**
          * Stop tracking a user.
-         *
-         * @param site Unique site integer of the user
-         * @return User object
+         * @private
          */
         _removeUser: function(site) {
             // get the user

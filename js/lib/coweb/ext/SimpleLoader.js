@@ -1,6 +1,7 @@
 //
 // Wraps the use of the session API in a class with declarative options and
-// callback methods to override.
+// callback methods to override. An alternative to using the promise-based
+// API for those that prefer classes and callbacks.
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
@@ -10,9 +11,12 @@ define([
     'require',
     'coweb/main'
 ], function(require, coweb) {
+    /**
+     * @constructor
+     * @param {any} id id Unique id to assign to the CollabInterface instance
+     * in this loader.
+     */
     var SimpleLoader = function(id) {
-        // load and show busy indicator
-        this.busyIndicator = null;
         // prepare the session after run?
         this.autoPrepare = true;
         // join after prepare?
@@ -68,13 +72,6 @@ define([
     };
 
     proto.prepare = function() {
-        // @todo: decide what to do with busy
-        // if(this.showBusy) {
-        //     // use the built-in busy dialog
-        //     dojo.require('coweb.ext.ui.BusyDialog');
-        //     coweb.ext.ui.createBusy(this.sess);
-        // }
-
         var params = {collab : !!this.cowebCollab};
         if(this.cowebKey) {
             params.key = String(this.cowebKey);
