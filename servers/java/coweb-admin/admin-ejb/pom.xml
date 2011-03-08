@@ -7,7 +7,7 @@
     <name>OpenCoweb :: Java :: Admin :: Ejb</name>
     <parent>
         <groupId>org.coweb.admin</groupId>
-        <artifactId>coweb_admin</artifactId>
+        <artifactId>coweb-admin</artifactId>
         <version>0.4</version>
     </parent>
    <dependencies>

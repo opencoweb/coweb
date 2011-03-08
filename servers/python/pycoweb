@@ -26,7 +26,7 @@ def deploy(options, args):
 
     # paths
     www = os.path.join(outPath, 'www')
-    lib = os.path.join(www, 'lib')
+    lib = os.path.join(www, 'coweb-lib')
     bots = os.path.join(outPath, 'bots')
     bin = os.path.join(outPath, 'bin')
     script = os.path.join(bin, 'run_server.py')

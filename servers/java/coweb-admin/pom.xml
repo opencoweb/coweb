@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.coweb.admin</groupId>
     <version>0.4</version>
-    <artifactId>coweb_admin</artifactId>
+    <artifactId>coweb-admin</artifactId>
     <packaging>pom</packaging>
     <name>OpenCoweb :: Java :: Admin</name>
     <modules>

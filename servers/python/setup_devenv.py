@@ -29,9 +29,9 @@ def after_install(options, home_dir):
     # run setup_js.sh
     if subprocess.call(['../../js/setup_js.sh']):
         raise RuntimeError('could not install JS dependencies')
-    # symlink js/lib into home_dir/www/lib
+    # symlink js/lib into home_dir/www/coweb-lib
     lib = os.path.abspath('../../js/lib/')
-    os.symlink(lib, os.path.join(www, 'lib'))
+    os.symlink(lib, os.path.join(www, 'coweb-lib'))
     # symlink tests into home_dir/www
     src = os.path.abspath('../../js/test/')
     os.symlink(src, os.path.join(www, 'test'))

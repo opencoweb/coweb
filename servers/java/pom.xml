@@ -7,7 +7,7 @@
     <packaging>pom</packaging>
     <name>OpenCoweb</name>
     <url>http://opencoweb.org</url>
-    <description>OpenCoweb Project</description>
+    <description>Open Cooperative Web Framework</description>
     <inceptionYear>2011</inceptionYear>
     <organization>
         <name>The Dojo Foundation</name>
@@ -23,11 +23,11 @@
     </properties>
 
     <modules>
-        <module>coweb_bots</module>
-        <module>coweb_server</module>
-        <module>coweb_javascript</module>
-        <module>coweb_archetype</module>
-        <module>coweb_admin</module>
+        <module>coweb-bots</module>
+        <module>coweb-server</module>
+        <module>coweb-javascript</module>
+        <module>coweb-archetype</module>
+        <module>coweb-admin</module>
     </modules>
 
     <build>

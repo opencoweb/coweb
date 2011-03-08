@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>coweb_admin</artifactId>
+        <artifactId>coweb-admin</artifactId>
         <groupId>org.coweb.admin</groupId>
         <version>0.4</version>
     </parent>

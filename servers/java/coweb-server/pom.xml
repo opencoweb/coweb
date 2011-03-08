@@ -7,7 +7,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>coweb_server</artifactId>
+    <artifactId>coweb-server</artifactId>
     <name>OpenCoweb :: Java :: Server</name>
 
     <repositories>
@@ -21,7 +21,7 @@
     <dependencies>
         <dependency>
             <groupId>org.coweb</groupId>
-            <artifactId>coweb_bots</artifactId>
+            <artifactId>coweb-bots</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
