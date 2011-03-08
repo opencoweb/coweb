@@ -21,7 +21,7 @@
                         <phase>compile</phase>
                         <configuration>
                             <tasks>
-                                <copy todir="target/coweb-javascript/coweb-lib">
+                                <copy todir="target/coweb-javascript">
                                     <fileset dir="../../../js/release/coweb-0.4">
                                         <exclude name="**/build.txt" />
                                     </fileset>
