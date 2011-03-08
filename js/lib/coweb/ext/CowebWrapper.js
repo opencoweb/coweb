@@ -21,7 +21,7 @@ define([
         // init collab interface
         this.collab = coweb.initCollab({id : this.id});
         // listen to ready and full state events
-        this.collab.subscribeConferenceReady(this, 'onReady');
+        this.collab.subscribeReady(this, 'onReady');
         this.collab.subscribeStateRequest(this, 'onStateRequest');
         this.collab.subscribeStateResponse(this, 'onStateRequest');
     };

@@ -69,7 +69,7 @@ define([
         // don't notify any more status changes
         this.onStatusChange = function() {};
         // do a logout to disconnect from the session
-        this.leaveConference();
+        this.leave();
         // let listener shutdown gracefully
         this._listener.stop();
         // cleanup the client
@@ -100,7 +100,7 @@ define([
     };
     
     /**
-     * Gets a reference to the parameters last given to prepareConference().
+     * Gets a reference to the parameters last given to prepare().
      * Includes any values automatically filled in for missing attributes.
      */
     proto.getConferenceParams = function() {
@@ -110,7 +110,7 @@ define([
     /**
      * Called by an application to leave a session or abort joining it.
      */    
-    proto.leaveConference = function() {
+    proto.leave = function() {
         var state = this._bridge.getState();
         if(state !== this._bridge.UPDATED) {
             // notify busy state change
@@ -152,7 +152,7 @@ define([
      */
     proto.logout = function() {
         // leave the session
-        this.leaveConference();
+        this.leave();
         // contact credential server to remove creds
         var p = new Promise();
         var args = {
@@ -165,9 +165,9 @@ define([
     /**
      * Called by an app to prepare a session.
      */
-    proto.prepareConference = function(params) {
+    proto.prepare = function(params) {
         if(this._bridge.getState() !== this._bridge.IDLE) {
-            throw new Error('prepareConference() not valid in current state');
+            throw new Error('prepare() not valid in current state');
         }
 
         // get url params
@@ -209,7 +209,7 @@ define([
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
-        this._bridge.prepareConference(params.key, params.collab)
+        this._bridge.prepare(params.key, params.collab)
             .then('_onPrepared', '_onPrepareError', this);
         // start listening to disconnections
         this._bridge.disconnectPromise.then('_onDisconnected', null, this);
@@ -235,7 +235,7 @@ define([
         if(this._prepParams.autoJoin && !appError) {
             // continue auto join, but only if app did not throw an unexpected
             // error in one of its promise listeners
-            this.joinConference(params.nextPromise);
+            this.join(params.nextPromise);
         }
     };
 
@@ -253,9 +253,9 @@ define([
     /**
      * Called by an app to join a session.
      */
-    proto.joinConference = function(nextPromise) {
+    proto.join = function(nextPromise) {
         if(this._bridge.getState() !== this._bridge.PREPARED) {
-            throw new Error('joinConference() not valid in current state');
+            throw new Error('join() not valid in current state');
         }
 
         // switch busy dialog to joining state
@@ -263,7 +263,7 @@ define([
 
         // new promise for join success / failure
         this._prepParams.promise = nextPromise || new Promise();
-        this._bridge.joinConference().then('_onJoined', '_onJoinError', this);
+        this._bridge.join().then('_onJoined', '_onJoinError', this);
         return this._prepParams.promise;
     };
 
@@ -280,7 +280,7 @@ define([
         if(this._prepParams.autoUpdate && !appError) {
             // continue auto join, but only if app did not throw an unexpected
             // error in one of its promise listeners
-            this.updateInConference(params.nextPromise);
+            this.update(params.nextPromise);
         }
     };
 
@@ -294,16 +294,16 @@ define([
     /**
      * Called by an application to update its state in a session.
      */
-    proto.updateInConference = function(nextPromise) {
+    proto.update = function(nextPromise) {
         if(this._bridge.getState() !== this._bridge.JOINED) {
-            throw new Error('updateInConference() not valid in current state');
+            throw new Error('update() not valid in current state');
         }
         // show the busy dialog for the update phase
         this.onStatusChange('updating');
 
         // new promise for join success / failure
         this._prepParams.promise = nextPromise || new Promise();
-        this._bridge.updateInConference().then('_onUpdated', '_onUpdateError',
+        this._bridge.update().then('_onUpdated', '_onUpdateError',
             this);
         return this._prepParams.promise;
     };

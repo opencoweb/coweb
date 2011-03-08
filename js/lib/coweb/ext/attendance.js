@@ -177,7 +177,7 @@ define([
 
     // connect to collab events
     var collab = coweb.initCollab({id : 'coweb-ext-attendance'});
-    collab.subscribeConferenceReady(attendance, '_onLocalJoin');
+    collab.subscribeReady(attendance, '_onLocalJoin');
     collab.subscribeSiteJoin(attendance, '_onRemoteJoin');
     collab.subscribeSiteLeave(attendance, '_onRemoteLeave');
     return attendance;

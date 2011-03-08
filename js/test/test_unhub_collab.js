@@ -56,12 +56,12 @@ define([
                 }
             };
         
-        this.collab.subscribeConferenceReady(cb);
-        this.collab.subscribeConferenceReady(obj, obj.cb);
-        this.collab.subscribeConferenceReady(obj, 'cb');
-        raises(this.collab.subscribeConferenceReady, 'bad function');
+        this.collab.subscribeReady(cb);
+        this.collab.subscribeReady(obj, obj.cb);
+        this.collab.subscribeReady(obj, 'cb');
+        raises(this.collab.subscribeReady, 'bad function');
         try {
-            this.collab.subscribeConferenceReady(obj, 'foo');
+            this.collab.subscribeReady(obj, 'foo');
         } catch(e) {
             ok(true, 'bad function');
         }
@@ -81,12 +81,12 @@ define([
                 }
             };
         
-        this.collab.subscribeConferenceEnd(cb);
-        this.collab.subscribeConferenceEnd(obj, obj.cb);
-        this.collab.subscribeConferenceEnd(obj, 'cb');
-        raises(this.collab.subscribeConferenceEnd, 'bad function');
+        this.collab.subscribeEnd(cb);
+        this.collab.subscribeEnd(obj, obj.cb);
+        this.collab.subscribeEnd(obj, 'cb');
+        raises(this.collab.subscribeEnd, 'bad function');
         try {
-            this.collab.subscribeConferenceEnd(obj, 'foo');
+            this.collab.subscribeEnd(obj, 'foo');
         } catch(e) {
             ok(true, 'bad function');
         }

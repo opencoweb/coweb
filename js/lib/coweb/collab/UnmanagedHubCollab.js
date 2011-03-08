@@ -37,7 +37,7 @@ define([
      * @param callback Function to invoke
      * @return Promise which always notifies success
      */
-    proto.subscribeConferenceReady = function(context, callback) {
+    proto.subscribeReady = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;
@@ -65,7 +65,7 @@ define([
      * @param callback Function to invoke
      * @return Promise which always notifies success
      */
-    proto.subscribeConferenceEnd = function(context, callback) {
+    proto.subscribeEnd = function(context, callback) {
         if(callback === undefined) {
             callback = context;
             context = this;

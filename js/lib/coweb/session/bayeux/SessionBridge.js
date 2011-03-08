@@ -62,7 +62,7 @@ define([
         return this._state;
     };
 
-    proto.prepareConference = function(key, collab) {
+    proto.prepare = function(key, collab) {
         // make sure we're idle
         if(this._state !== this.IDLE) {
             throw new Error(this.id + ': cannot prepare in non-idle state');
@@ -116,7 +116,7 @@ define([
         }
     };
 
-    proto.joinConference = function() {
+    proto.join = function() {
         if(this._state !== this.PREPARED) {
             throw new Error(this.id + ': cannot join in unprepared state');
         }
@@ -207,7 +207,7 @@ define([
         }
     };
     
-    proto.updateInConference = function() {
+    proto.update = function() {
         if(this._state !== this.JOINED) {
             throw new Error(this.id + ': cannot update in unjoined state');
         }

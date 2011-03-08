@@ -88,16 +88,15 @@ define([
     });
 
     test('abort before preparing', 1, function() {
-        this.session.leaveConference();
+        this.session.leave();
         equals(this.session.getConferenceParams(), null, 'client prep params check');
     });
 
     test('prepare conference', 4, function() {
         var self = this;
         var server = this.server;
-    
         // client side prep
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function(info) {
             var sinfo = lang.clone(server.prepResp);
             deepEqual(info, sinfo, 'client session info check');
@@ -127,7 +126,7 @@ define([
         var server = this.server;
 
         // client side prep
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function(info) {
             ok(false, 'aborted prepare succeeded');
         }, function(err) {
@@ -143,7 +142,7 @@ define([
         };
     
         // abort the request immediately
-        this.session.leaveConference();
+        this.session.leave();
         // wait while running
         stop(this.timeout);
         // start server processing    
@@ -155,7 +154,7 @@ define([
         var server = this.server;
 
         // client side prep
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function(info) {
             ok(false, 'unauthorized prepare succeeded');
         }, function(err) {
@@ -179,7 +178,7 @@ define([
         var server = this.server;
     
         // client side prep
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function(info) {
             ok(false, 'prepare succeeded during server error');
         }, function(err) {
@@ -200,7 +199,7 @@ define([
 
     test('app error while preparing', 1, function() {
         var self = this;
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function() {
             throw new Error('simulate app error during prepare');
         }).then(function() {
@@ -222,7 +221,7 @@ define([
         // we want to wait for a disconnect in the teardown
         this.waitDisconnect = true;
     
-        this.session.prepareConference(this.autoPrepReq)
+        this.session.prepare(this.autoPrepReq)
         .then(function(params) {
             return params.nextPromise;
         }).then(function(params) {
@@ -274,7 +273,7 @@ define([
             }(i));
         }
     
-        this.session.prepareConference(this.autoPrepReq)
+        this.session.prepare(this.autoPrepReq)
         .then(function(params) {
             // prep done
             return params.nextPromise;
@@ -292,7 +291,7 @@ define([
     test('abort while joining', 0, function() {
         var self = this; 
     
-        this.session.prepareConference(this.autoPrepReq)
+        this.session.prepare(this.autoPrepReq)
         .then(function(params) {
             return params.nextPromise;
         }).then(function(params) {
@@ -309,7 +308,7 @@ define([
         this.server.onMetaSubscribe = function(server, msg, resp) {
             if(msg.subscription === server.joinTopics[1]) {
                 // sudden client abort
-                self.session.leaveConference();
+                self.session.leave();
                 // start again later to ensure client doesn't get the response
                 setTimeout(start, 1000);
             }
@@ -323,7 +322,7 @@ define([
 
     test('join without prepare', 1, function() {
         try {
-            this.session.joinConference();
+            this.session.join();
         } catch(e) {
             ok(e, 'invalid join without prepare');
         }
@@ -334,10 +333,10 @@ define([
         var server = this.server;
 
         // client side prep
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function(info) {
             // immediately join after prepare
-            return self.session.joinConference();
+            return self.session.join();
         }).then(function() {
             ok(false, 'unauthorized join succeeded');
         }, function(err) {
@@ -361,10 +360,10 @@ define([
         var server = this.server;
 
         // client side prep
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function(info) {
             // immediately join after prepare
-            return self.session.joinConference();
+            return self.session.join();
         }).then(function() {
             ok(false, 'join during server error succeeded');
         }, function(err) {
@@ -385,9 +384,9 @@ define([
 
     test('app error while joining', 1, function() {
         var self = this;
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function() {
-            return self.session.joinConference();
+            return self.session.join();
         }).then(function() {
             throw new Error('simulate app error during join');
         }).then(function() {
@@ -405,7 +404,7 @@ define([
 
     test('update without prepare', 1, function() {
         try {
-            this.session.updateInConference();
+            this.session.update();
         } catch(e) {
             ok(e, 'invalid update without prepare');
         }
@@ -415,11 +414,11 @@ define([
         var self = this;
 
         // client side prep
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function(params) {
             // update without joining
             try {
-                self.session.updateInConference();
+                self.session.update();
             } catch(e) {
                 start();
                 return;
@@ -437,12 +436,12 @@ define([
         var server = this.server;
     
         // client side prep
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function(params) {
             // immediately join after prepare
-            return self.session.joinConference();
+            return self.session.join();
         }).then(function(params) {
-            return self.session.updateInConference();
+            return self.session.update();
         }).then(function() {
             ok(false, 'update succeeded during server error');
         }, function(err) {
@@ -470,11 +469,11 @@ define([
             throw new Error('app error during update');
         });
 
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function() {
-            return self.session.joinConference();
+            return self.session.join();
         }).then(function(params) {
-            return self.session.updateInConference();
+            return self.session.update();
         }).then(function() {
             ok(false, 'update succeeded after bad state');
         }, function(err) {
@@ -493,18 +492,18 @@ define([
         this.waitDisconnect = true;
     
         // check notification of leaving conference
-        this.collabs[0].subscribeConferenceEnd(function(params) {
+        this.collabs[0].subscribeEnd(function(params) {
             ok(params.connected, 'conference end event check');
             start();
         });
     
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function() {
-            return self.session.joinConference();
+            return self.session.join();
         }).then(function(params) {
-            return self.session.updateInConference();
+            return self.session.update();
         }).then(function() {
-            self.session.leaveConference();
+            self.session.leave();
         });
 
         // wait while running
@@ -520,13 +519,13 @@ define([
         var prep = this.prepReq;
         prep.autoJoin = false;
         prep.autoUpdate = false;
-        this.session.prepareConference(prep)
+        this.session.prepare(prep)
         .then(function(params) {
             equal(params.nextPromise, undefined, 'auto join promise check');
-            return self.session.joinConference();
+            return self.session.join();
         }).then(function(params) {
             equal(params.nextPromise, undefined, 'auto update promise check');
-            return self.session.updateInConference();
+            return self.session.update();
         }).then(function(params) {
             equal(params, undefined, 'post-update check');
             start();
@@ -543,18 +542,18 @@ define([
         this.waitDisconnect = true;
     
         // check notification of leaving conference
-        this.collabs[0].subscribeConferenceEnd(function(params) {
+        this.collabs[0].subscribeEnd(function(params) {
             ok(params.connected, 'conference end event check');
             start();
         });
     
-        this.session.prepareConference(this.prepReq)
+        this.session.prepare(this.prepReq)
         .then(function() {
-            return self.session.joinConference();
+            return self.session.join();
         }).then(function(params) {
-            return self.session.updateInConference();
+            return self.session.update();
         }).then(function() {
-            self.session.leaveConference();
+            self.session.leave();
         });
 
         // wait while running
@@ -567,13 +566,13 @@ define([
         var self = this;
     
         // check notification of leaving conference
-        this.collabs[0].subscribeConferenceEnd(function(params) {
+        this.collabs[0].subscribeEnd(function(params) {
             ok(!params.connected, 'conference end event check');
             start();
         });
     
         // get all the way into the session
-        this.session.prepareConference(this.autoPrepReq);
+        this.session.prepare(this.autoPrepReq);
     
         // kill the server after the update completes
         var orig = this.server.onMetaSubscribe;
@@ -631,7 +630,7 @@ define([
     test('permanent logout', 1, function() {
         var self = this;
 
-        this.session.prepareConference(this.autoPrepReq)
+        this.session.prepare(this.autoPrepReq)
         .then(function(params) {
             return params.nextPromise;
         }).then(function(params) {
@@ -672,7 +671,7 @@ define([
         };
 
         // do prep and join
-        this.session.prepareConference(this.autoPrepReq);
+        this.session.prepare(this.autoPrepReq);
         
         // wait while running
         stop(this.timeout);
@@ -695,12 +694,12 @@ define([
         };
 
         // do prep and join
-        this.session.prepareConference(this.autoPrepReq);
+        this.session.prepare(this.autoPrepReq);
 
         // abort the client in the middle of the subscribes
         this.server.onMetaSubscribe = function(server, msg, resp) {
             // sudden client abort
-            self.session.leaveConference();
+            self.session.leave();
             // don't do it again
             server.onMetaSubscribe = function() {};
         };
@@ -715,13 +714,13 @@ define([
         var self = this;
         this.waitDisconnect = true;
         
-        this.session.prepareConference(this.autoPrepReq)
+        this.session.prepare(this.autoPrepReq)
         .then(function(params) {
             return params.nextPromise;
         }).then(function(params) {
             return params.nextPromise;
         }).then(function() {
-            self.session.leaveConference();
+            self.session.leave();
             setTimeout(function() {
                 // stop processing on the old server
                 self.server.stop();
@@ -733,7 +732,7 @@ define([
                 xhr.addServer('/session/12345', self.server);
             
                 // go back in again
-                self.session.prepareConference(self.autoPrepReq)
+                self.session.prepare(self.autoPrepReq)
                 .then(function(params) {
                     var nextPromise = params.nextPromise;
                     delete params.nextPromise;

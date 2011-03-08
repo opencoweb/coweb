@@ -32,7 +32,7 @@ define([
         this.sess = coweb.initSession();
         // initialize collab API
         this.collab = coweb.initCollab({id : id});
-        this.collab.subscribeConferenceReady(this, 'onCollabReady');
+        this.collab.subscribeReady(this, 'onCollabReady');
         // place to hang onto the session metadata that comes back from server
         this.prepareMetadata = null;
     };
@@ -80,7 +80,7 @@ define([
         params.autoUpdate = this.autoUpdate;
         
         // invoke prepare chain
-        this.sess.prepareConference(params)
+        this.sess.prepare(params)
         .then('_onSessionPrepared', null, this)
         .then('_onSessionJoined', null, this)
         .then('_onSessionUpdated', 'onSessionFailed', this);
