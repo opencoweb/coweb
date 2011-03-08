@@ -106,7 +106,7 @@ A web application can load the the `coweb/ext/attendance` module as a convenient
 .. note:: 
 
    The tracker makes no attempt to determine attendance before its initialization. If an application is going to use the tracker, the app must import the tracker module and subscribe to its notifications before attempting to join a session.
-   
+
 .. attribute:: attendance.users
 
    Read-only object representing the roster of users that have joined and updated to the shared session state. Object property name is the site ID of the user and the value is his/her authenticated username.
