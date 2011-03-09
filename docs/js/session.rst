@@ -7,23 +7,16 @@ A web application creates one :class:`SessionInterface` instance per browser doc
 
 The use of the session API has the following requirements:
 
-#. The application must use an AMD loader to import the the `coweb/main` module.
+#. If the application needs a custom :data:`cowebConfig`, the configuration must be defined before before loading any coweb module.
+#. The application must use an `AMD`_ loader to import the the `coweb/main` module.
 
-Initializing the session instance
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Initializing the session singleton
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. function:: coweb.initSession([params])
+.. function:: coweb.initSession()
 
-   A web application or its runtime environment calls this method once to get a reference to a :class:`SessionInterface` instance. The factory selects the best available implementation of the session interface based on availability and browser capabilities.
-
-   All parameters to this function are optional. When given, they are passed as name/value properties on a single `params` object.
-
-   :param bool debug: Dictates whether the session implementation will log additional debugging information (true) or not (false). Defaults to false.
-   :param string adminUrl: URL to contact with session preparation requests. Defaults to `/admin`.
-   :param string loginUrl: URL to contact with requests for authentication with the coweb server. Defaults to `/login`.
-   :param string logoutUrl: URL to contact with requests to deauthorize a user with the coweb server. Defaults to `/logout`.
-   :param string listenerImpl:  Package and class name as a dotted string indicating the session implementation under `coweb.listener` to use. If undefined, the session factory determines the best implementation available.
-   :param string sessionImpl: Package and class name as a dotted string indicating the session implementation under `coweb.session` to use. If undefined, the session factory determines the best implementation available.
+   A web application or its runtime environment calls this method to get a reference to a :class:`SessionInterface` singleton. The :data:`cowebConfig` dictates the implementation of the :class:`SessionInterface` used and its configuration. Repeat calls to this method return the same singleton instance.
+   
    :returns: :class:`SessionInterface`
 
 Using the session instance
@@ -33,15 +26,7 @@ Using the session instance
 
    Singleton encapsulating the session APIs for web application use. A web application should use the :func:`coweb.initSession` factory function instead of instantiating this object directly.
 
-.. function:: SessionInterface.getVersion()
-
-   A web application calls this method to get the version number of the coweb framework.
-
-   :returns: Promise
-   :callback: Invoked with the version string in dotted notation x.x
-   :errback: Unused
-
-.. function:: SessionInterface.getConferenceParams()
+.. function:: SessionInterface.getLastPrepare()
 
    A web application calls this method to get the last arguments passed to :func:`SessionInterface.prepare`. The arguments include any values inferred by the framework such as defaults.
 
@@ -74,7 +59,7 @@ Using the session instance
    :callback: Invoked on successful login
    :errback: Invoked on failed login
 
-.. function:: SessionInterface.leaveConference()
+.. function:: SessionInterface.leave()
 
    A web application calls this method to leave a session while or after entering it.
 
@@ -90,77 +75,74 @@ Using the session instance
    :callback: Invoked on successful logout
    :errback: Invoked on failed logout
 
+.. function:: SessionInterface.onStatusChange(status)
+
+   A :class:`SessionInterface` invokes this method when its session status changes. A web application can override or hook (e.g., `dojo.connect`) this method to advise the user of the change in session status (e.g., show a busy dialog).
+   
+   A web application should not take programmatic action based on these notices: their sequencing with respect to the internal state of :class:`SessionInterface` is not well-defined. For example, an application should not watch for `joining` in order to invoke :func:`SessionInterface.update`. Instead, the application should use the :class:`Promise` returned by :func:`SessionInterface.join`.
+
+   :param string topic: One of the following status strings
+
+      preparing
+         Now preparing the session
+      joining
+         Now joining the session
+      updating
+         Now updating the local application state in the session
+      ready
+         Now ready for cooperative interaction in the session
+      aborting
+         Now aborting the prepare, join, and update process
+      stream-error
+         Now disconnected from the session because of a server or communication error
+      server-unavailable
+         Now disconnected from the session because the server is unreachable
+      server-unavailable
+         Now disconnected from the session because the session is unreachable
+      bad-application-state
+         Now disconnected from the session because the local application raised an error during the update phase
+      clean-disconnect
+         Now disconnected from the session because of an expected disconnect
+
 .. function:: SessionInterface.prepare([args])
    
    A web application calls this method to request access to a session before attempting to join it.
    
-   All parameters to this function are optional. When given, they are passed as name/value properties on a single `params` object.
+   All parameters to this function are optional. When given, they are passed as name/value properties on a single `args` object.
 
    :param string key: Key uniquely identifying the session to join. If undefined, tries to read the argument `cowebkey` from the page URL to use instead. If the argument is undefined, uses the (domain, port, path, arguments) tuple of the current page as the key. 
-   :param bool collab: True to request a session supporting cooperative events, false to request a session supporting service bot messages only
-   :param bool autoJoin: True to automatically join a session after successfully preparing it, false to require an explicit application call to :func:`SessionInterface.join`.
-   :param bool autoUpdate: True to automatically update application state in a session after successfully joining it, false to require an explicit application call to :func:`SessionInterface.updateInSession`.
+   :param bool collab: True to request a session supporting cooperative events, false to request a session supporting service bot messages only. Defaults to `true`.
+   :param bool autoJoin: True to automatically join a session after successfully preparing it, false to require an explicit application call to :func:`SessionInterface.join`. Defaults to `true`.
+   :param bool autoUpdate: True to automatically update application state in a session after successfully joining it, false to require an explicit application call to :func:`SessionInterface.updateInSession`. Defaults to `true`.
    :throws Error: If invoked after preparing a session
    :returns: Promise
    :callback: Invoked on successful preparation with an object having these attributes:
 
       collab (bool)
-         If the session was prepared as collaborative or not. May or may not match what was requested.
+         If the server created a collaborative session or not. May or may not match what was requested.
       key (string)
-         Session key passed to :func:`SessionInterface.prepare`
+         Session key passed to :func:`SessionInterface.prepare` or determined from the page URL
       info (object)
          Arbitrary name/value pairs included by a coweb server extension point
       nextPromise (Promise)
-         Deferred for the automatic call to :func:`SessionInterface.join` if `autoJoin` was true. Useful for call chaining.
+         :class:`Promise` for the automatic call to :func:`SessionInterface.join` if `autoJoin` was true. Useful for call chaining.
       username (string)
          Name of the authenticated user
       sessionurl (string)
-         URL to contact to join the session
+         URL :class:`SessionInterface.join` will contact to join the session
       sessionid (string)
-         Unique session identifier
+         Unique session identifier assigned by the coweb server
 
    :errback: Invoked on failed preparation with a string error tag of `not-allowed` if the user needs to authenticate or `server-unavailable`
 
 .. function:: SessionInterface.update()
 
-      A web application calls this method to update its local state after receiving a callback from :func:`SessionInterface.join`. If the application invoked :func:`SessionInterface.prepare` with `autoUpdate` set to true, the framework automatically invokes this method upon the callback.
+   A web application calls this method to update its local state after receiving a callback from :func:`SessionInterface.join`. If the application invoked :func:`SessionInterface.prepare` with `autoUpdate` set to true, the framework automatically invokes this method upon the callback.
 
    :throws Error: If invoked before joining a session or after updating in a session
    :returns: Promise
    :callback: Invoked on successful update with no parameters
    :errback: Invoked on failed preparation with a string error tag of `bad-application-state` if the update fails.
-
-.. _session-states:
-
-Session busy states
-~~~~~~~~~~~~~~~~~~~
-
-The session API publishes status topics on the |oaa hub| as it progresses through the phases of preparing, joining, and updating in a session. It also publishes topics when errors or disconnections occur during a session. These topics exist to aid the creation of user interface notices informing the user of their status with respect to a session.
-
-.. data:: coweb.BUSY
-
-   A web application can subscribe to this topic using  `OpenAjax.hub.subscribe`_ to receive session status change notifications. The value the callback receives is one of the following:
-
-   preparing
-      Now preparing the session
-   joining
-      Now joining the session
-   updating
-      Now updating the local application state in the session
-   ready
-      Now ready for cooperative interaction in the session
-   aborting
-      Now aborting the prepare, join, and update process
-   stream-error
-      Now disconnected from the session because of a server or communication error
-   server-unavailable
-      Now disconnected from the session because the server is unreachable
-   server-unavailable
-      Now disconnected from the session because the session is unreachable
-   bad-application-state
-      Now disconnected from the session because the local application raised an error during the update phase
-   clean-disconnect
-      Now disconnected from the session because of an expected disconnect
 
 Use cases
 ~~~~~~~~~
@@ -176,8 +158,7 @@ Assume an application wants to enter a session without delay.
 
    // get session interface
    var sess = coweb.initSession();
-   // collaborative session desired, join automatically after prepare
-   var params = {collab: true, autoJoin : true};
+   // use defaults, collaborative session, join and update automatically
    sess.prepare(params).then(null,
       function(err) {
          // handle any error cases
@@ -193,9 +174,8 @@ Imagine an application wants to configure its UI based on the prepare response b
 
    // get session interface
    var sess = coweb.initSession();
-   // collaborative session desired, join automatically after prepare
-   var params = {collab: true, autoJoin : false};
-   sess.prepare(params).then(
+   // use defaults to prepare
+   sess.prepare().then(
       function(info) {
          // app does some work (e.g., shows session info in its UI)
          // at some later point, app continues process by joining
@@ -218,7 +198,7 @@ Say an application wants to collection credentials from a user before attempting
    var sess = coweb.initSession();
    // assume username / password vars contain info collected via a form or 
    // some other means
-   sess.login({username : username, password : password}).then(
+   sess.login(username, password).then(
       function() {
          // do the prep
       },

@@ -7,20 +7,20 @@ A web application creates :class:`CollabInterface` instances to send and receive
 
 The use of the collaboration API has the following requirements:
 
-#. The application must use an AMD loader to import the the `coweb/main` module.
+#. If the application needs a custom :data:`cowebConfig`, the configuration must be defined before before loading any coweb module.
+#. The application must use an `AMD`_ loader to import the the `coweb/main` module.
 #. The application must use the :doc:`session API <session>` to join, prepare, and update in a session before sending events using the collaboration API.
 
 Initializing a collaboration instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. function:: coweb.initCollab([params])
+.. function:: coweb.initCollab([args])
 
    A web application or its runtime environment calls this method to get a reference to a :class:`CollabInterface` instance. The factory selects the best available implementation of the collaboration interface based on availability and browser capabilities.
 
-   All parameters to this function are passed as name/value properties on a single `params` object. Only the `id` parameter is required.
+   All parameters to this function are passed as name/value properties on a single `args` object. Only the `id` parameter is required.
 
-   :param string id: Unique identifier to assign to this instance. Will only send messages to and receive messages from remote instances with the same ID.
-   :param string wrapperImpl: Package and class name as a dotted string indicating the session implementation under `coweb.collab` to use. If undefined, the session factory determines the best implementation available.
+   :param string id: Unique identifier to assign to this instance. Will only send messages to and receive messages from remote instances with the same ID.  Useful for separating and possibly sandboxing cooperative events from individual application widgets.
    :returns: :class:`CollabInterface`
 
 Using a collaboration instance

@@ -9,14 +9,14 @@ A Java coweb server instance typically consists of an admin servlet acting as a 
 The generation of deployment descriptors for new coweb applications requires:
 
 #. The installation of the coweb Maven modules.
-#. The use of the Maven :file:`coweb_archetype`.
+#. The use of the Maven :file:`coweb-archetype`.
 
 Both of these requirements are satisfied by the various Maven build scripts included in the source distribution and documented under :doc:`/tutorial/install`.
 
 Generating a deployment descriptor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To generate a deployment descriptor for a new coweb project, use the Maven `coweb_archetype` as described in the :ref:`maven-archetype` section.
+To generate a deployment descriptor for a new coweb project, use the Maven `coweb-archetype` as described in the :ref:`maven-archetype` section.
 
 This archetype produces a deployment descriptor under :file:`src/main/webapp/WEB-INF.web.xml` in the project directory. The generated file configures one `org.coweb.servlet.AdminServlet`_ and one `org.cometd.server.CometdServlet`_ managing any number of independent sessions.
 

@@ -14,8 +14,8 @@ The Java setup currently relies on `Apache Maven`_ 2.2.1 or higher for builds. M
 
 .. _maven-install:
 
-Build the coweb JARs
-####################
+Install the coweb modules
+#########################
 
 Start by building the and installing the coweb modules in your local Maven repository. Maven automatically downloads all the necessary dependencies.
 
@@ -49,27 +49,32 @@ After populating the project, you can package it and deploy it using Maven.
 .. sourcecode:: console
 
    $ cd myproject
-   $ mvn package
+   $ mvn clean package
    $ mvn jetty:deploy-war
+
+By default, the `jetty:deploy-war` command makes your application accessible at http://localhost:8080/. Modify the :file:`web.xml` file created by the archetype, repackage your application, and redeploy it make changes to these, and other, defaults. See the Java documentation section about :doc:`/python/` for details.
+
+Deploy the cowebx demos
+#######################
+
+The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb example applications running at http://demos.opencoweb.org. Follow these instructions if you want to deploy the cowebx demos on your own Java server.
 
 Python setup
 ~~~~~~~~~~~~
 
-The |coweb API| includes a Python cooperative web server implementation based on `Tornado`_. The Python server requires Python 2.6 or 2.7 which ship with or easily installable on most \*nix/BSD operating systems.
+The |coweb API| includes a Python cooperative web server implementation based on `Tornado`_. The Python server requires Python 2.6 or 2.7 which ship with or are easily installable on most \*nix/BSD operating systems.
 
-The Python setup currently relies on `virtualenv`_ 1.5.1 or higher. Make sure you have it installed before continuing.
+Create a new coweb virtualenv
+#############################
 
-.. sourcecode:: console
+If you want to create a virtualenv containing all the pre-requisites needed to develop and/or deploy your own coweb application, do the following:
+
+#. Install `virtualenv`_ 1.5.1 or higher.
+
+   .. sourcecode:: console
    
-   $ sudo pip install virtualenv       # run this ...
-   $ sudo easy_install virtualenv      # or this
-
-.. _empty-virtualenv:
-
-Install an empty coweb virtualenv
-#################################
-
-If you want to create a virtualenv containing all the pre-requisites needed to develop your own coweb application, do the following:
+      $ sudo pip install virtualenv       # run this ...
+      $ sudo easy_install virtualenv      # or this
 
 #. Create a virtual environment to host your coweb server.
 
@@ -83,7 +88,7 @@ If you want to create a virtualenv containing all the pre-requisites needed to d
       
       $ source /desired/project/path/bin/activate
 
-#. Use `pip` to install `Tornado_` and the :py:mod:`coweb` package in the virtual environment.
+#. Use `pip` to install :py:mod:`coweb` package and its dependencies in the virtual environment.
 
    .. sourcecode:: console
    
@@ -110,7 +115,9 @@ Install using distutils
 
 You can manually run the distutils :file:`setup.py` to install the Python `coweb` package in your system :file:`site-packages`. If you take this approach, you must resolve dependencies yourself (e.g., `Tornado`_). Otherwise, the steps are the same sans use of virtualenv.
 
-Configuring server instances
-############################
+Deploy the cowebx demos
+#######################
 
-You can configure Python server instances by modifying the application container script produced by :file:`pycoweb deploy`. See the Python section about :doc:`/python/container` for details.
+The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb example applications running at http://demos.opencoweb.org. Follow these instructions if you want to deploy the cowebx demos on your own Python server.
+
+.. todo:: write
