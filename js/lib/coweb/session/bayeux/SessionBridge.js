@@ -30,7 +30,7 @@ define([
         this._connectToken = null;
         
         // promises for session sequence
-        this._prepromise = null;
+        this._prepPromise = null;
         this._joinPromise = null;
         this._updatePromise = null;
         this.disconnectPromise = null;
