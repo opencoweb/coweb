@@ -54,7 +54,7 @@ define([
         this._updatePromise = null;
         if(this._state !== this.IDLE) {
             // force a disconnect
-            this.disconnect();
+            this.disconnect(true);
         }
     };
 
@@ -238,17 +238,17 @@ define([
         }
     };
 
-    proto.disconnect = function(async) {
+    proto.disconnect = function(sync) {
         if(this._state < this.IDLE) { 
             // ignore if already disconnecting
             return;
         } else if(this._state === this.IDLE) {
             // do the disconnect without any tracking
-            cometd.disconnect(!async);
+            cometd.disconnect(sync);
             return;
         }
         this._state = this.DISCONNECTING;
-        cometd.disconnect(!async);
+        cometd.disconnect(sync);
         if(this._state !== this.IDLE) {
             // disconnect bombed, server must be dead; invoke callback manually
             this._onDisconnected(this._state, 'clean-disconnect');

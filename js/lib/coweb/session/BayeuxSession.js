@@ -49,27 +49,27 @@ define([
         // we can cleanly disconnect if possible
         var self = this;
         var destroy = function() { self.destroy(); };
-        var tok;
+        this._unloader = destroy;
         if(window.addEventListener) {
-            window.addEventListener('onbeforeunload', destroy, false);
-            window.addEventListener('onunload', destroy, false);
+            window.addEventListener('beforeunload', destroy, true);
+            window.addEventListener('unload', destroy, true);
         } else if(window.attachEvent) {
             window.attachEvent('onbeforeunload', destroy);
             window.attachEvent('onunload', destroy);
         }
-        this._unloadToks = destroy;
+       
     };
 
     /**
      * Called on page unload to attempt a clean disconnect.
      */
     proto.destroy = function() {
+        // don't double destroy
+        if(this._destroying) {return;}
         // set destroying state to avoid incorrect notifications
         this._destroying = true;
         // don't notify any more status changes
         this.onStatusChange = function() {};
-        // do a logout to disconnect from the session
-        this.leave();
         // let listener shutdown gracefully
         this._listener.stop();
         // cleanup the client
@@ -81,13 +81,13 @@ define([
         this._bridge = null;
         // remove unload listeners
         if(window.removeEventListener) {
-            window.removeEventListener('onbeforeunload', this._unloadToks, false);
-            window.removeEventListener('onunload', this._unloadToks, false);
+            window.removeEventListener('beforeunload', this._unloader, true);
+            window.removeEventListener('unload', this._unloader, true);
         } else {
-            window.detachEvent('onbeforeunload', this._unloadToks);
-            window.detachEvent('onunload', this._unloadToks);
+            window.detachEvent('onbeforeunload', this._unloader);
+            window.detachEvent('onunload', this._unloader);
         }
-        this._unloadToks = null;
+        this._unloader = null;
     };
 
     /**
