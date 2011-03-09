@@ -115,13 +115,13 @@ A web application can load the the `coweb/ext/attendance` module as a convenient
 
    A web application calls this method to subscribe to a notification that the attendance of the session changed in some way.
    
-   :param function callback: Callback invoked when the attendance interface receives the event. The callback receives three parameters:
+   :param function callback: Callback invoked when the attendance interface receives the event. Receives an object having these properties:
    
-      type
+      type (string)
          String `join` or `leave` indicating the kind of user status change
-      users
+      users (object[])
          Array of :ref:`attendee information objects <ext-attendee-obj>` representing the users that changed state
-      count
+      count (number)
          Integer number of users in the session now
    
    :return: :class:`Promise` notification of subscription success or failure

@@ -105,27 +105,20 @@ Using a collaboration instance
    A web application calls this method to subscribe to cooperative events sent by remote application instances in a session. The callback never fires for events sent by any local :class:`CollabInterface` instance. The callback always fires after received events are processed and potentially transformed by the local coweb operation engine. The changes made by the operation engine are transparent to the application.
 
    :param string name: Name identifying which application property to monitor for changes
-   :param function callback: Invoked when another application instance stops participating in a session. Receives the following five, separate parameters:
+   :param function callback: Invoked when another application instance stops participating in a session. Receives an object having these properties:
    
-      topic (string)
-         Full topic name including the name of the application property which changed value. To obtain the property name alone, use :func:`CollabInterface.getSyncNameFromTopic`.
+      name (string)
+         Name of the application property which changed value
       value (object)
          New property value
-      type (string)
-         Type of event corresponding to the operations supported by the operation engine: `update`, `insert`, `delete`, or `null`.
+      type (string | null)
+         Type of event corresponding to the operations supported by the operation engine: `update`, `insert`, `delete`, or `null`
       position (int)
          Position of the value change in a collection of values supporting insertion and deletion
       site (int)
          Site identifier assigned to application instance where the event originated
 
    :returns: object (token for :func:`CollabInterface.unsubscribe`)
-
-.. function:: CollabInterface.getSyncNameFromTopic(topic)
-
-   A web application calls this method to obtain the name of the application property effected by a cooperative web event given the full topic string received by a :func:`CollabInterface.subscribeSync` callback.
-
-   :param string topic: A full string topic to parse 
-   :returns: String name provided to the remote invocation of :func:`CollabInterface.sendSync` that triggered the callback. If the topic parameter is not in the correct form, the return value is an unknown string.
 
 .. function:: CollabInterface.subscribeStateRequest(contextOrCallback [, boundCallback])
 
@@ -154,7 +147,7 @@ Using a collaboration instance
    A web application calls this method to subscribe to data published by a service bot.
 
    :param string service: Name of the service
-   :param function callback: Invoked when this application instance receives data published by the server bot. The function receives the following two parameters:
+   :param function callback: Invoked when this application instance receives data published by the server bot. Receives an object having these properties:
    
       value (object)
          Arbitrary, JSON-decoded data published by the service
@@ -170,7 +163,7 @@ Using a collaboration instance
    
    :param string service: Name of the service
    :param object params: Arbitrary name/value pairs to send to the service bot. Must be JSON-encodable.
-   :param function callback: Invoked when this application instance receives data published by the server bot. The function receives the following two parameters:
+   :param function callback: Invoked when this application instance receives data published by the server bot. Receives an object having these properties:
 
       value (object)
          Arbitrary, JSON-decoded data from the service

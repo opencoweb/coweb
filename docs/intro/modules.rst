@@ -21,7 +21,7 @@ The current implementation of the coweb framework has code modules roughly split
 JavaScript
 ~~~~~~~~~~
 
-The JavaScript, client-side portion of the framework appears under :file:`js/lib/` in the source tree. All JS files under this folder are in :term:`Asynchronous Module Definition` (AMD) format.
+The JavaScript, client-side portion of the framework appears under :file:`js/lib/` in the source tree. All JS files under this folder are in `Asynchronous Module Definition`_ (AMD) format.
 
 ::
 
