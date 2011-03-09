@@ -98,12 +98,12 @@ define([
     proto.isDebug = function() {
         return this._debug;
     };
-    
+
     /**
      * Gets a reference to the parameters last given to prepare().
      * Includes any values automatically filled in for missing attributes.
      */
-    proto.getConferenceParams = function() {
+    proto.getLastPrepare = function() {
         return this._lastPrep;
     };
 
@@ -169,6 +169,7 @@ define([
         if(this._bridge.getState() !== this._bridge.IDLE) {
             throw new Error('prepare() not valid in current state');
         }
+        params = params || {};
 
         // get url params
         var urlParams = {};
@@ -177,6 +178,11 @@ define([
         for(var i=0, l=searchSegs.length; i<l; i++) {
             var tmp = searchSegs[i].split('=');
             urlParams[decodeURIComponent(tmp[0])] = decodeURIComponent(tmp[1]);
+        }
+        
+        if(params.collab === undefined) {
+            // default to using a collaborative session
+            params.collab = true;
         }
 
         if(params.key === undefined) {

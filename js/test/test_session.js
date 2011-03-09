@@ -89,7 +89,7 @@ define([
 
     test('abort before preparing', 1, function() {
         this.session.leave();
-        equals(this.session.getConferenceParams(), null, 'client prep params check');
+        equals(this.session.getLastPrepare(), null, 'client prep params check');
     });
 
     test('prepare conference', 4, function() {
