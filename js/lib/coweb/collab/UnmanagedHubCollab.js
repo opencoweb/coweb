@@ -198,8 +198,9 @@ define([
         var topic = topics.SYNC+name+'.'+this.id;
         var tok = OpenAjax.hub.subscribe(topic, function(tp, params) {
             if(!this._mutex) {
-                callback.call(context, tp, params.value, params.type, 
-                    params.position, params.site);
+                params.name = name;
+                params.topic = tp;
+                callback.call(context, params);
             }
         }, this);
         this._tokens[tok] = null;
@@ -207,18 +208,6 @@ define([
         def._cowebToken = tok;
         def.resolve();
         return def;
-    };
-    
-    /**
-     * Gets the application-defined state name from the full topic name sent by
-     * sendSync and received by a subscribeSync callback.
-     *
-     * @param topic String response topic coweb.sync.**
-     * @return String state name
-     */
-    proto.getSyncNameFromTopic = function(topic) {
-         return topic.substring(topics.SYNC.length, 
-             topic.length-this.id.length-1);
     };
     
     /**
@@ -418,7 +407,7 @@ define([
         var hubToken = subData.hubToken;
         // invoke the real callback
         try {
-            subData.callback.call(subData.context, params.value, params.error);
+            subData.callback.call(subData.context, params);
         } finally {
             if(subData.type === 'get') {
                 // unsubscribe from hub

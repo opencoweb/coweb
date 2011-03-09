@@ -143,7 +143,7 @@ define([
         OpenAjax.hub.publish(topics.SITE_LEAVE, target);
     });
         
-    test('subscribe sync', 20, function() {
+    test('subscribe sync', 23, function() {
         var name = 'a.b.c',
             target = {
                 topic : topics.SYNC+name+'.'+this.collab.id, 
@@ -152,12 +152,13 @@ define([
                 position : 1,
                 site : 10
             },
-            cb = function(topic, val, type, pos, site) {
-                equal(topic, target.topic);
-                equal(val, target.value);
-                equal(type, target.type);
-                equal(pos, target.position);
-                equal(site, target.site);
+            cb = function(args) {
+                equal(args.topic, target.topic, 'topic check');
+                equal(args.value, target.value, 'value check');
+                equal(args.type, target.type, 'type check');
+                equal(args.position, target.position, 'position check');
+                equal(args.site, target.site, 'site check');
+                equal(args.name, name, 'name check');
             },
             obj = {
                 sentinel : 'sentinel',
@@ -208,19 +209,6 @@ define([
         // cleanup on teardown
         this._subs.push(tok);
         this.collab.sendSync(name, target.value);
-    });
-    
-    test('get sync name', 1, function() {
-        var name = 'a.b.c',
-            target = {
-                topic : topics.SYNC+name+'.'+this.collab.id
-            },
-            cb = function(topic) {
-                equal(this.collab.getSyncNameFromTopic(topic), name);
-            };
-        
-        this.collab.subscribeSync(name, this, cb);
-        OpenAjax.hub.publish(target.topic, target);
     });
     
     test('subscribe state request', 7, function() {
@@ -303,15 +291,15 @@ define([
                 },
                 error : false
             },
-            cb = function(value, error) {
-                deepEqual(value, pubTarget.value);
-                equal(error, pubTarget.error);
+            cb = function(args) {
+                deepEqual(args.value, pubTarget.value);
+                equal(args.error, pubTarget.error);
             },
             obj = {
                 sentinel : 'sentinel',
-                cb : function(value, error) {
+                cb : function(args) {
                     equal(this.sentinel, 'sentinel');
-                    cb(value, error);
+                    cb(args);
                 }
             };
         // listen for publishes upon subscribe
@@ -351,15 +339,15 @@ define([
                 },
                 error : false
             },
-            cb = function(value, error) {
-                deepEqual(value, respTarget.value);
-                equal(error, respTarget.error);
+            cb = function(args) {
+                deepEqual(args.value, respTarget.value);
+                equal(args.error, respTarget.error);
             },
             obj = {
                 sentinel : 'sentinel',
-                cb : function(value, error) {
+                cb : function(args) {
                     equal(this.sentinel, 'sentinel');
-                    cb(value, error);
+                    cb(args);
                 }
             };
         // listen for publishes upon subscribe
