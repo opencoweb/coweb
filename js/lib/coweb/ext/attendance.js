@@ -47,13 +47,15 @@ define([
          * Notifies subscribed listeners of a change.
          * @private
          */
-        _notify : function(type, user, count) {
+        _notify : function(type, users, count) {
             var subs = this._subs;
             for(var id in subs) {
                 if(subs.hasOwnProperty(id)) {
                     var s = subs[id];
+                    // bundle to stay api consistent
+                    var args = {type : type, users : users, count : count};
                     try {
-                        s.callback.call(s.context, type, user, count);
+                        s.callback.call(s.context, args);
                     } catch(e) {
                         console.error(e);
                     }
