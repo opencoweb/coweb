@@ -196,9 +196,13 @@ define([
             }
         }
         var topic = topics.SYNC+name+'.'+this.id;
+        var ls = topics.SYNC.length,
+            le = this.id.length+1;
         var tok = OpenAjax.hub.subscribe(topic, function(tp, params) {
             if(!this._mutex) {
-                params.name = name;
+                // compute the actual event name, not what was registered
+                // because it may have had wildcards
+                params.name = tp.substring(ls, tp.length-le);
                 params.topic = tp;
                 callback.call(context, params);
             }
@@ -406,8 +410,9 @@ define([
     proto._cowebServiceResponse = function(topic, params, subData) {
         var hubToken = subData.hubToken;
         // invoke the real callback
+        var args = {value : params.value, error: params.error};
         try {
-            subData.callback.call(subData.context, params);
+            subData.callback.call(subData.context, args);
         } finally {
             if(subData.type === 'get') {
                 // unsubscribe from hub
