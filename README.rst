@@ -56,7 +56,9 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 
-See the LICENSE file for details.
+See the LICENSE file for the terms of the OpenCoweb dual BSD/AFL license.
+
+Packaged builds of the OpenCoweb JavaScript framework located in coweb/js/release include third-party code that is not covered under the OpenCoweb License. See the NOTICES file for details of these dependencies.
 
 Contributing
 ============
