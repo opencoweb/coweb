@@ -230,18 +230,18 @@ define([
     proto._onPrepared = function(params) {
         // store response
         this._prepParams.response = JSON.parse(JSON.stringify(params));
-        // pull out the promise
-        var promise = this._prepParams.promise;
-        // if auto joining, build next promise and pass with params
+        // attach phase to response
+        this._prepParams.response.phase = 'prepare';
+
         if(this._prepParams.autoJoin) {
-            params.nextPromise = new Promise();
-        }
-        // inform all promise listeners about success
-        var appError = promise.resolve(params);
-        if(this._prepParams.autoJoin && !appError) {
-            // continue auto join, but only if app did not throw an unexpected
-            // error in one of its promise listeners
-            this.join(params.nextPromise);
+            // continue to join without resolving promise
+            this.join();
+        } else {
+            // pull out the promise
+            var promise = this._prepParams.promise;
+            this._prepParams.promise = null;
+            // resolve the promise and let the app dictate what comes next
+            promise.resolve(this._prepParams.response);
         }
     };
 
@@ -259,34 +259,34 @@ define([
     /**
      * Called by an app to join a session.
      */
-    proto.join = function(nextPromise) {
+    proto.join = function() {
         if(this._bridge.getState() !== this._bridge.PREPARED) {
             throw new Error('join() not valid in current state');
         }
 
-        // switch busy dialog to joining state
+        // indicate joining status
         this.onStatusChange('joining');
+        // attach phase to response
+        this._prepParams.response.phase = 'join';
 
-        // new promise for join success / failure
-        this._prepParams.promise = nextPromise || new Promise();
+        if(!this._prepParams.promise) {
+            // new promise for join if prepare was resolved
+            this._prepParams.promise = new Promise();
+        }
         this._bridge.join().then('_onJoined', '_onJoinError', this);
         return this._prepParams.promise;
     };
 
     proto._onJoined = function() {
-        // pull out the promise
-        var promise = this._prepParams.promise;
-        var params = {};
-        // if auto updating, build next promise and pass with params
         if(this._prepParams.autoUpdate) {
-            params.nextPromise = new Promise();
-        }
-        // inform all promise listeners about success
-        var appError = promise.resolve(params);
-        if(this._prepParams.autoUpdate && !appError) {
-            // continue auto join, but only if app did not throw an unexpected
-            // error in one of its promise listeners
-            this.update(params.nextPromise);
+            // continue to update without resolving promise
+            this.update();
+        } else {
+            // pull out the promise
+            var promise = this._prepParams.promise;
+            this._prepParams.promise = null;
+            // resolve the promise and let the app dictate what comes next
+            promise.resolve(this._prepParams.response);
         }
     };
 
@@ -304,13 +304,17 @@ define([
         if(this._bridge.getState() !== this._bridge.JOINED) {
             throw new Error('update() not valid in current state');
         }
-        // show the busy dialog for the update phase
-        this.onStatusChange('updating');
 
-        // new promise for join success / failure
-        this._prepParams.promise = nextPromise || new Promise();
-        this._bridge.update().then('_onUpdated', '_onUpdateError',
-            this);
+        // indicate updating status
+        this.onStatusChange('updating');
+        // attach phase to response
+        this._prepParams.response.phase = 'update';
+
+        if(!this._prepParams.promise) {
+            // new promise for update if prepare+join was resolved
+            this._prepParams.promise = new Promise();
+        }
+        this._bridge.update().then('_onUpdated', '_onUpdateError', this);
         return this._prepParams.promise;
     };
 
@@ -319,8 +323,9 @@ define([
         this._prepParams = null;
         // notify session interface of update success
         var promise = prepParams.promise;
+        var response = prepParams.response;
         // notify of update success
-        promise.resolve();
+        promise.resolve(response);
 
         // session is now updated in conference
         this.onStatusChange('ready');

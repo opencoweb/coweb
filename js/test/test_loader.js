@@ -28,7 +28,7 @@ define([
         }
     });
 
-    test('loader success', 4, function() {
+    test('loader success', 5, function() {
         var self = this,
             id = 'test';
 
@@ -36,17 +36,18 @@ define([
         loader.onRun = function() {
             equal(loader.collab.id, id);
         };
-        loader.onSessionPrepared = function(params) {
-            var promise = params.nextPromise;
-            delete params.nextPromise;
-            deepEqual(params, self.server.prepResp);
-            params.nextPromise = promise;
+        loader.onSessionPrepared = function(info) {
+            // pull out phase
+            var phase = info.phase;
+            delete info.phase; 
+            deepEqual(info, self.server.prepResp);
+            equal(phase, 'prepare');
         };
-        loader.onSessionJoined = function() {
-            ok(true, 'joined');
+        loader.onSessionJoined = function(info) {
+            equal(info.phase, 'join');
         };
-        loader.onSessionUpdated = function() {
-            ok(true, 'updated');
+        loader.onSessionUpdated = function(info) {
+            equal(info.phase, 'update');
             start();
         };
         loader.onSessionFailed = function() {
@@ -66,7 +67,7 @@ define([
         loader.onRun = function() {
             ok(true, 'running');
         };
-        loader.onSessionPrepared = function(params) {
+        loader.onSessionPrepared = function() {
             ok(false, 'unexpected prepared');
         };
         loader.onSessionJoined = function() {
@@ -76,11 +77,11 @@ define([
             ok(false, 'unexpected update');
             start();
         };
-        loader.onSessionFailed = function() {
-            ok(true, 'session failed');
+        loader.onSessionFailed = function(err) {
+            ok(err, 'session failed');
             start();
         };
-        
+
         // server side handling of prep
         this.server.onPrepareRequest = function(server, req, respPromise) {
             throw new Error(403);

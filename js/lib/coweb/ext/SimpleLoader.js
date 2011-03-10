@@ -17,12 +17,6 @@ define([
      * in this loader.
      */
     var SimpleLoader = function(id) {
-        // prepare the session after run?
-        this.autoPrepare = true;
-        // join after prepare?
-        this.autoJoin = true;
-        // update after join?
-        this.autoUpdate = true;
         // hard coded conference key to use
         this.cowebKey = undefined;
         // is the conference collaborative or standalone (bots only)?
@@ -42,9 +36,7 @@ define([
         // invoke initial extension point
         this.onRun();
         // attempt to prepare immediately
-        if(this.autoPrepare) {
-            this.prepare();
-        }
+        this.prepare();
     };
 
     proto.onRun = function() {
@@ -76,8 +68,10 @@ define([
         if(this.cowebKey) {
             params.key = String(this.cowebKey);
         }
-        params.autoJoin = this.autoJoin;
-        params.autoUpdate = this.autoUpdate;
+        // loader will do the join and update to ensure all callbacks
+        // are invoked
+        params.autoJoin = false;
+        params.autoUpdate = false;
         
         // invoke prepare chain
         this.sess.prepare(params)
@@ -91,16 +85,19 @@ define([
         this.prepareMetadata = info;
         // notify the extension point; let exceptions bubble
         this.onSessionPrepared(info);
-        return info.nextPromise;
+        // do the join
+        return this.sess.join();
     };
     
     proto._onSessionJoined = function(info) {
-        this.onSessionJoined();
-        return info.nextPromise;
+        // notify the extension point; let exceptions bubble
+        this.onSessionJoined(info);
+        // do the update
+        return this.sess.update();
     };
     
     proto._onSessionUpdated = function(info) {
-        this.onSessionUpdated();
+        this.onSessionUpdated(info);
     };
     
     return SimpleLoader;

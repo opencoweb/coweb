@@ -92,14 +92,16 @@ define([
         equals(this.session.getLastPrepare(), null, 'client prep params check');
     });
 
-    test('prepare conference', 4, function() {
+    test('prepare conference', 5, function() {
         var self = this;
         var server = this.server;
         // client side prep
         this.session.prepare(this.prepReq)
         .then(function(info) {
-            var sinfo = lang.clone(server.prepResp);
-            deepEqual(info, sinfo, 'client session info check');
+            var phase = info.phase;
+            delete info.phase;
+            deepEqual(info, server.prepResp, 'client session info check');
+            equal(phase, 'prepare', 'phase check');
             start();
         });
     
@@ -221,12 +223,7 @@ define([
         // we want to wait for a disconnect in the teardown
         this.waitDisconnect = true;
     
-        this.session.prepare(this.autoPrepReq)
-        .then(function(params) {
-            return params.nextPromise;
-        }).then(function(params) {
-            return params.nextPromise;
-        }).then(start);
+        this.session.prepare(this.autoPrepReq).then(start);
 
         // server side
         // use default prep response
@@ -273,14 +270,7 @@ define([
             }(i));
         }
     
-        this.session.prepare(this.autoPrepReq)
-        .then(function(params) {
-            // prep done
-            return params.nextPromise;
-        }).then(function(params) {
-            // join done
-            return params.nextPromise;
-        }).then(start);
+        this.session.prepare(this.autoPrepReq).then(start);
 
         // wait while running
         stop(this.timeout);
@@ -292,11 +282,7 @@ define([
         var self = this; 
     
         this.session.prepare(this.autoPrepReq)
-        .then(function(params) {
-            return params.nextPromise;
-        }).then(function(params) {
-            return params.nextPromise;
-        }).then(function() {
+        .then(function() {
             ok(false, 'join succeeded after abort');
         }, function() {
             ok(false, 'join errored after abort');
@@ -512,22 +498,92 @@ define([
         this.server.start();
     });
 
-    test('manual prepare, join, update', 3, function() {
+    test('manual prepare, join, update', 6, function() {
         var self = this;
         this.waitDisconnect = true;
-    
+
+        var server = this.server;
+        var prep = this.prepReq;
+        this.session.prepare(prep)
+        .then(function(info) {
+            var phase = info.phase;
+            delete info.phase;
+            deepEqual(info, server.prepResp, 'client prepare info check');
+            equal(phase, 'prepare');
+            return self.session.join();
+        }).then(function(info) {
+            var phase = info.phase;
+            delete info.phase;
+            deepEqual(info, server.prepResp, 'client join info check');
+            equal(phase, 'join');
+            return self.session.update();
+        }).then(function(info) {
+            var phase = info.phase;
+            delete info.phase;
+            deepEqual(info, server.prepResp, 'client update info check');
+            equal(phase, 'update');
+            start();
+        });
+
+        // wait while running
+        stop(this.timeout);
+        // start server processing
+        this.server.start();
+    });
+
+    test('manual prepare, update', 4, function() {
+        var self = this;
+        this.waitDisconnect = true;
+        var server = this.server;
+        var prep = this.prepReq;
+        prep.autoJoin = true;
+        prep.autoUpdate = false;
+        
+        this.session.prepare(prep)
+        .then(function(info) {
+            // completed auto-join
+            var phase = info.phase;
+            delete info.phase;
+            deepEqual(info, server.prepResp, 'client join info check');
+            equal(phase, 'join');
+            return self.session.update();
+        }).then(function(info) {
+            // completed manual update
+            var phase = info.phase;
+            delete info.phase;
+            deepEqual(info, server.prepResp, 'client update info check');
+            equal(phase, 'update');
+            start();
+        });
+
+        // wait while running
+        stop(this.timeout);
+        // start server processing
+        this.server.start();
+    });
+
+    test('manual prepare, join', 4, function() {
+        var self = this;
+        this.waitDisconnect = true;
+        var server = this.server;
         var prep = this.prepReq;
         prep.autoJoin = false;
-        prep.autoUpdate = false;
+        prep.autoUpdate = true;
+
         this.session.prepare(prep)
-        .then(function(params) {
-            equal(params.nextPromise, undefined, 'auto join promise check');
+        .then(function(info) {
+            // completed manual prepare
+            var phase = info.phase;
+            delete info.phase;
+            deepEqual(info, server.prepResp, 'client prepare info check');
+            equal(phase, 'prepare');
             return self.session.join();
-        }).then(function(params) {
-            equal(params.nextPromise, undefined, 'auto update promise check');
-            return self.session.update();
-        }).then(function(params) {
-            equal(params, undefined, 'post-update check');
+        }).then(function(info) {
+            // completed auto-update
+            var phase = info.phase;
+            delete info.phase;
+            deepEqual(info, server.prepResp, 'client update info check');
+            equal(phase, 'update');
             start();
         });
 
@@ -710,40 +766,61 @@ define([
         this.server.start();
     });
 
-    test('reuse session interface', 3, function() {
+    test('reuse session interface', 12, function() {
         var self = this;
         this.waitDisconnect = true;
+        var server = this.server;
         
-        this.session.prepare(this.autoPrepReq)
-        .then(function(params) {
-            return params.nextPromise;
-        }).then(function(params) {
-            return params.nextPromise;
-        }).then(function() {
+        this.session.prepare(this.prepReq)
+        .then(function(info) {
+            var phase = info.phase;
+            delete info.phase;
+            deepEqual(info, server.prepResp, 'first try prepare info check');
+            equal(phase, 'prepare');
+            return self.session.join();
+        }).then(function(info) {
+            var phase = info.phase;
+            delete info.phase;
+            deepEqual(info, server.prepResp, 'first try join info check');
+            equal(phase, 'join');
+            return self.session.update();
+        }).then(function(info) {
+            var phase = info.phase;
+            delete info.phase;
+            deepEqual(info, server.prepResp, 'first try update info check');
+            equal(phase, 'update');
+
+            // leave after updating
             self.session.leave();
             setTimeout(function() {
                 // stop processing on the old server
                 self.server.stop();
             
                 // reset the server, don't care about cruft there
-                self.server = new CowebServer();
+                server = self.server = new CowebServer();
                 xhr.clearServers();
                 xhr.addServer('/admin', self.server);
                 xhr.addServer('/session/12345', self.server);
             
                 // go back in again
-                self.session.prepare(self.autoPrepReq)
-                .then(function(params) {
-                    var nextPromise = params.nextPromise;
-                    delete params.nextPromise;
-                    var sinfo = lang.clone(self.server.prepResp);
-                    deepEqual(params, sinfo, 'second entry prepare response check');
-                    return params.nextPromise;
-                }).then(function(params) {
-                    ok(params, 'second entry join response check');
-                    return params.nextPromise;
-                }).then(function() {
-                    ok(true, 'second entry update response check');
+                self.session.prepare(self.prepReq)
+                .then(function(info) {
+                    var phase = info.phase;
+                    delete info.phase;
+                    deepEqual(info, server.prepResp, 'second try prepare info check');
+                    equal(phase, 'prepare');
+                    return self.session.join();
+                }).then(function(info) {
+                    var phase = info.phase;
+                    delete info.phase;
+                    deepEqual(info, server.prepResp, 'second try join info check');
+                    equal(phase, 'join');
+                    return self.session.update();
+                }).then(function(info) {
+                    var phase = info.phase;
+                    delete info.phase;
+                    deepEqual(info, server.prepResp, 'second try update info check');
+                    equal(phase, 'update');
                     start();
                 });
             
