@@ -26,9 +26,9 @@ The current implementation of the framework is based on open web technologies su
 Getting Started
 ===============
 
-Start by viewing the framework documentation online at http://opencoweb.org/ocwdocs. It includes tutorials on how to setup a coweb server and write your first cooperative web application. 
-
-Send mail to the coweb users group or join us on IRC if you're having trouble.
+1. Download the latest stable release from https://github.com/opencoweb/coweb/downloads.
+2. Read the the framework documentation online at http://opencoweb.org/ocwdocs. It includes tutorials on how to setup a coweb server and write your first cooperative web application. 
+3. Send mail to the coweb users group or join us on IRC if you're having trouble.
 
 Status and Support
 ==================
