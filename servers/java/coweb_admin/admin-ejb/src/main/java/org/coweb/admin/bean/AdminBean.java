@@ -69,12 +69,22 @@ public class AdminBean implements Admin, AdminLocal {
 
     public boolean createSession(String appTitle,
     		String sessionTitle,
-    		String description) {
+    		String description,
+    		Map<String, Integer> aclsDict) {
     	System.out.println("AdminBean::createSession");
     	String username = ctx.getCallerPrincipal().getName();
     	System.out.println("username = " + username + " appTitle = " + appTitle);
     	System.out.println("sessionTitle = " + sessionTitle + " description = " + description);
-        return db.createSession(username, appTitle, sessionTitle, description);
+        int sessionId = db.createSession(username, appTitle, sessionTitle, description);
+        
+        if(sessionId == -1)
+        	return false;
+        
+        if(aclsDict != null && !aclsDict.isEmpty()) {
+        	return db.setSessionAcls(sessionId, aclsDict);
+        }
+        
+        return true;
     }
 
    

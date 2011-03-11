@@ -175,7 +175,8 @@ public class ApplicationServlet extends HttpServlet {
 				
 				if(!cowebAdmin.createSession(name,
 						(String)args.get("title"),
-						(String)args.get("description"))) {
+						(String)args.get("description"),
+						(Map<String, Integer>)args.get("aclsDict"))) {
 					throw new ServletException("Error Creating Session");
 				}
 			}

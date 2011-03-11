@@ -22,7 +22,8 @@ public interface Admin {
 
     public boolean createSession(String appTitle,
     		String sessionTitle,
-    		String description);
+    		String description,
+    		Map<String, Integer> aclsDict);
 
     public SessionAcls getSessionAclsForUser(String username, String sessionid);
     
