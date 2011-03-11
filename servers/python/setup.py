@@ -6,9 +6,25 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
 from distutils.core import setup
+import os
+
+VERSION = '0.4'
+
+# collect js release as data files
+cowebJSFiles = []
+shareDir = 'share/coweb/js/coweb-%s' % VERSION
+srcDir = os.path.join(os.environ['PWD'], '../../js/release/coweb-%s' % VERSION)
+for d, sd, fs in os.walk(srcDir):
+    for fn in fs:
+        sd = d[len(srcDir)+1:]
+        path = os.path.join(shareDir, sd)
+        cowebJSFiles.append((path, [os.path.join(d, fn)]))
+if not len(cowebJSFiles):
+    # stable release missing, abort install
+    raise RuntimeError('js/release/coweb-%s not found' % VERSION)
 
 setup(name='OpenCoweb',
-    version='0.4',
+    version=VERSION,
     description='Tornado-based Python server for the Open Cooperative Web Framework',
     url='http://github.com/opencoweb',
     license='New BSD License / Academic Free License',
@@ -27,11 +43,12 @@ setup(name='OpenCoweb',
         'coweb.session',
         'coweb.session',
     ],
+    data_files = cowebJSFiles,
     package_data={
         'coweb': [
             'scripts/*.tmpl', 
             'templates/*.html'
         ]
     },
-    scripts=['scripts/pycoweb']
+    scripts=['pycoweb']
 )

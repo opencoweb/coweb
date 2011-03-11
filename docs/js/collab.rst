@@ -7,22 +7,20 @@ A web application creates :class:`CollabInterface` instances to send and receive
 
 The use of the collaboration API has the following requirements:
 
-#. The web application must include the OpenAjax Hub v1.0.
-#. The application must include Dojo 1.5 or higher.
-#. The application must :func:`dojo.require` the `coweb` module.
+#. If the application needs a custom :data:`cowebConfig`, the configuration must be defined before before loading any coweb module.
+#. The application must use an `AMD`_ loader to import the the `coweb/main` module.
 #. The application must use the :doc:`session API <session>` to join, prepare, and update in a session before sending events using the collaboration API.
 
 Initializing a collaboration instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. function:: coweb.initCollab([params])
+.. function:: coweb.initCollab([args])
 
    A web application or its runtime environment calls this method to get a reference to a :class:`CollabInterface` instance. The factory selects the best available implementation of the collaboration interface based on availability and browser capabilities.
 
-   All parameters to this function are passed as name/value properties on a single `params` object. Only the `id` parameter is required.
+   All parameters to this function are passed as name/value properties on a single `args` object. Only the `id` parameter is required.
 
-   :param string id: Unique identifier to assign to this instance. Will only send messages to and receive messages from remote instances with the same ID.
-   :param string wrapperImpl: Package and class name as a dotted string indicating the session implementation under `coweb.collab` to use. If undefined, the session factory determines the best implementation available.
+   :param string id: Unique identifier to assign to this instance. Will only send messages to and receive messages from remote instances with the same ID.  Useful for separating and possibly sandboxing cooperative events from individual application widgets.
    :returns: :class:`CollabInterface`
 
 Using a collaboration instance
@@ -32,9 +30,9 @@ Using a collaboration instance
 
    Encapsulates the collaboration APIs for web application use. A web application should use the :func:`coweb.initCollab` factory function instead of instantiating this object directly.
    
-   .. note:: In typical Dojo fashion, all `subscribe*` methods in this interface can take a callback function as a parameter or, as a convenience, a context plus a callback method. If a context is specified, the provided callback is invoked with `this` bound to the context. Note that the doc below lists both parameters, but only explains the required callback.
+   .. note:: All `subscribe*` methods in this interface can take a callback function as a parameter or, as a convenience, a context plus a callback method. If a context is specified, the provided callback is invoked with `this` bound to the context. Note that the doc below lists both parameters, but only explains the required callback.
 
-.. function:: CollabInterface.subscribeConferenceReady(contextOrCallback [, boundCallback])
+.. function:: CollabInterface.subscribeReady(contextOrCallback [, boundCallback])
    
    A web application calls this method to subscribe to the event fired when the local :class:`SessionInterface` has finished preparing, joining, and updating in a session.
    
@@ -51,7 +49,7 @@ Using a collaboration instance
 
    :returns: object (token for :func:`CollabInterface.unsubscribe`)
    
-.. function:: CollabInterface.subscribeConferenceEnd(contextOrCallback [, boundCallback])
+.. function:: CollabInterface.subscribeEnd(contextOrCallback [, boundCallback])
    
    A web application calls this method to subscribe to the event fired when the local application is leaving or has left a session. The callback executes only if the application received the ready callback (i.e., it was updated in the session).
    
@@ -107,27 +105,20 @@ Using a collaboration instance
    A web application calls this method to subscribe to cooperative events sent by remote application instances in a session. The callback never fires for events sent by any local :class:`CollabInterface` instance. The callback always fires after received events are processed and potentially transformed by the local coweb operation engine. The changes made by the operation engine are transparent to the application.
 
    :param string name: Name identifying which application property to monitor for changes
-   :param function callback: Invoked when another application instance stops participating in a session. Receives the following five, separate parameters:
+   :param function callback: Invoked when another application instance stops participating in a session. Receives an object having these properties:
    
-      topic (string)
-         Full topic name including the name of the application property which changed value. To obtain the property name alone, use :func:`CollabInterface.getSyncNameFromTopic`.
+      name (string)
+         Name of the application property which changed value
       value (object)
          New property value
-      type (string)
-         Type of event corresponding to the operations supported by the operation engine: `update`, `insert`, `delete`, or `null`.
+      type (string | null)
+         Type of event corresponding to the operations supported by the operation engine: `update`, `insert`, `delete`, or `null`
       position (int)
          Position of the value change in a collection of values supporting insertion and deletion
       site (int)
          Site identifier assigned to application instance where the event originated
 
    :returns: object (token for :func:`CollabInterface.unsubscribe`)
-
-.. function:: CollabInterface.getSyncNameFromTopic(topic)
-
-   A web application calls this method to obtain the name of the application property effected by a cooperative web event given the full topic string received by a :func:`CollabInterface.subscribeSync` callback.
-
-   :param string topic: A full string topic to parse 
-   :returns: String name provided to the remote invocation of :func:`CollabInterface.sendSync` that triggered the callback. If the topic parameter is not in the correct form, the return value is an unknown string.
 
 .. function:: CollabInterface.subscribeStateRequest(contextOrCallback [, boundCallback])
 
@@ -156,7 +147,7 @@ Using a collaboration instance
    A web application calls this method to subscribe to data published by a service bot.
 
    :param string service: Name of the service
-   :param function callback: Invoked when this application instance receives data published by the server bot. The function receives the following two parameters:
+   :param function callback: Invoked when this application instance receives data published by the server bot. Receives an object having these properties:
    
       value (object)
          Arbitrary, JSON-decoded data published by the service
@@ -172,7 +163,7 @@ Using a collaboration instance
    
    :param string service: Name of the service
    :param object params: Arbitrary name/value pairs to send to the service bot. Must be JSON-encodable.
-   :param function callback: Invoked when this application instance receives data published by the server bot. The function receives the following two parameters:
+   :param function callback: Invoked when this application instance receives data published by the server bot. Receives an object having these properties:
 
       value (object)
          Arbitrary, JSON-decoded data from the service

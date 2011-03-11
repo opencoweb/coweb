@@ -26,21 +26,23 @@ The current implementation of the framework is based on open web technologies su
 Getting Started
 ===============
 
-Start by viewing the framework documentation online at http://opencoweb.org/ocwdocs. It includes tutorials on how to setup a coweb server and write your first cooperative web application. 
-
-Send mail to the coweb users group or join us on IRC if you're having trouble.
+1. Download the latest stable release from https://github.com/opencoweb/coweb/downloads.
+2. Read the the framework documentation online at http://opencoweb.org/ocwdocs. It includes tutorials on how to setup a coweb server and write your first cooperative web application. 
+3. Send mail to the coweb users group or join us on IRC if you're having trouble.
 
 Status and Support
 ==================
 
 This is an initial code drop. You can grab the framework and start using it, but expect a bumpy ride in the near future. We're working hard on documentation and fixes to get to a stable v1.0. For more details, please refer to the issue tracker on GitHub.
 
-Currently, the core components of the coweb framework should work in the following browsers.
+**NOTE** The master branch is now working toward a v0.4 release which includes a total restructuring of the JavaScript code in AMD format and moves the coweb examples to the http://github.com/opencoweb/cowebx repository. Be aware the rendered docs at http://opencoweb.org/ocwdocs from the last stable release (v0.3) do not match what is currently in the master branch. Both will be updated when v0.4 is final.
+
+Currently, the JavaScript portions of the coweb framework should work in the following browsers.
 
 * Firefox 3.5+
 * Safari 4+
 * Chrome 5+
-* IE7+
+* IE8+
 * Opera 10.50+
 * Mobile Safari on iOS 4+
 * Android Browser 1.6+
@@ -56,7 +58,9 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 
-See the LICENSE file for details.
+See the LICENSE file for the terms of the OpenCoweb dual BSD/AFL license.
+
+Packaged builds of the OpenCoweb JavaScript framework located in coweb/js/release include third-party code that is not covered under the OpenCoweb License. See the NOTICES file for details of these dependencies.
 
 Contributing
 ============

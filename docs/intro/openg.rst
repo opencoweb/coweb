@@ -1,7 +1,7 @@
 .. include:: /replace.rst
 
-Cooperation, concurrency, and conflict
---------------------------------------
+Cooperation, concurrency, conflict, and convergence
+---------------------------------------------------
 
 The heart of the |coweb api| is its support for cooperative interactions: allowing any number of users to make and see application changes in real-time. For example, one particular :term:`cooperative web application` might support the cooperative editing of a shopping list. While one user is adding items to the list, another user might fill in quantities to purchase, while yet another might enter the cost of each item. Meanwhile, any number of other users might be watching the list develop or making corrections where needed. Every user sees the edits of the other users in real-time and can make his or her own changes at any time. Coweb applications accomplish this level of interactivity by sending and listening for :term:`cooperative events`.
 

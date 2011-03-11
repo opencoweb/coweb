@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+'''
+Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
+'''
+import sys
+import os.path
+import optparse
+import stat
+import coweb
+import uuid
+import string
+import shutil
+
+class SetupError(Exception): pass
+
+def deploy(options, args):
+    '''
+    Creates a new coweb app container script named run_server and configures it
+    pointing at relative directories where apps can live.
+    '''
+    try:
+        outPath = os.path.abspath(args[1])
+    except IndexError:
+        raise SetupError('missing: destination path')
+
+    # paths
+    www = os.path.join(outPath, 'www')
+    lib = os.path.join(www, 'coweb-lib')
+    bots = os.path.join(outPath, 'bots')
+    bin = os.path.join(outPath, 'bin')
+    script = os.path.join(bin, 'run_server.py')
+    js = os.path.join(sys.prefix, 'share', 'coweb', 'js', 'coweb-%s' % 
+        coweb.VERSION)
+
+    if os.path.isdir(www) or os.path.isdir(bots) or os.path.isfile(script):
+        if not options.force:
+            raise SetupError('error: %s exists, use --force to overwrite' % 
+                outPath)
+
+    # create new paths
+    shutil.rmtree(www, True)
+    shutil.rmtree(bots, True)
+    os.makedirs(www)
+    os.makedirs(bots)
+    try:
+        os.makedirs(bin)
+    except OSError:
+        # already exists in virtualenvs
+        pass
+
+    # copy coweb-js into place
+    if not options.nojs:
+        shutil.copytree(js, lib)
+
+    # write configured run_server.py in home_dir/bin
+    options.verbose = True
+    container(options, ['container', script])
+
+    print 'deploy: created deployment directories at %s' % outPath
+
+def container(options, args):
+    '''Creates an coweb app container script.'''
+    try:
+        outPath = os.path.abspath(args[1])
+    except IndexError:
+        raise SetupError('missing: destination path')
+
+    if os.path.isfile(outPath) and not options.force:
+        raise SetupError('error: %s exists, use --force to overwrite' % 
+                outPath)
+
+    modulePath = os.path.abspath(os.path.dirname(coweb.__file__))
+    if options.template == 'verbose':
+        tmplPath = os.path.join(modulePath, 'scripts', 'verbose.tmpl')
+    elif options.template == 'simple':
+        tmplPath = os.path.join(modulePath, 'scripts', 'simple.tmpl')
+    else:
+        tmplPath = options.template
+    with file(tmplPath) as f:
+        text = f.read()
+    # generate a secret key for signing cookies
+    tmpl = string.Template(text)
+    text = tmpl.substitute({'webSecretKey' : uuid.uuid4().hex})
+    with file(outPath, 'w') as f:
+        f.write(text)
+        os.fchmod(f.fileno(), stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP)
+    print 'container: created coweb app script at %s' % outPath
+
+def run():
+    parser = optparse.OptionParser('usage: %prog <deploy|container> [options] <PATH>')
+    parser.add_option('--no-js', dest='nojs', action='store_true', default=False,
+                  help='do not deploy coweb JavaScript (default: False)')
+    parser.add_option('-v', dest='verbose', action='store_true', default=False,
+                  help='init a verbose coweb container script with comments (default: False)')
+    parser.add_option('-t', dest='template', type="str", default='verbose',
+                  help='template to use for the coweb container script [verbose*, simple, <custom>]')
+    parser.add_option('-f', '--force', dest='force', action='store_true', default=False,
+                  help='overwrite an existing file or folder (default: False)')
+    (options, args) = parser.parse_args()
+
+    try:
+        func = globals()[args[0]]
+    except (KeyError, IndexError):
+        parser.print_usage()
+        sys.exit(255)
+    try:
+        func(options, args)
+    except SetupError, e:
+        print e
+        sys.exit(1)
+
+if __name__ == '__main__':
+    run()

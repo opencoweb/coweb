@@ -11,45 +11,40 @@ The current implementation of the coweb framework has code modules roughly split
    servers/
       java/       # Java server coweb modules
       python/     # Python server coweb packages
-   www/
-      examples/   # Coweb demos
-      libs/
-         coweb/   # JavaScript coweb modules
-         coweb.js
-      tests/      # JavaScript coweb tests
+   js/
+      build/      # Build profiles for the coweb JavaScript
+      lib/
+         coweb/   # JavaScript coweb modules and dependencies
+      release/    # Stable, minified builds of the coweb JavaScript modules
+      test/       # JavaScript coweb tests
 
 JavaScript
 ~~~~~~~~~~
 
-The JavaScript, client-side portion of the framework appears under :file:`www/libs` in the source tree. All JS files under this folder are currently Dojo modules to be loaded using :func:`dojo.require`.
+The JavaScript, client-side portion of the framework appears under :file:`js/lib/` in the source tree. All JS files under this folder are in `Asynchronous Module Definition`_ (AMD) format.
 
 ::
-   
-   coweb.js       # Top-level factory functions
+
    coweb/
-      collab/     # CollabInterface implementations
-      collab.js
+      main.js     # Top-level factory functions
+      topics.js   # Constant topic names
+      collab/     # CollabInterface implementations (send/recv coweb events)
       ext/        # Optional components
       jsoe/       # Operation engine
-      layers/     # Dojo build profiles
-      listener/   # HubListener implementations
-      listener.js
-      session/    # SessionInterface implementations
-      session.js
-      topics.js   # Constant topic names
+      listener/   # ListenerInterface implementations (JS to protocol bridge)
+      session/    # SessionInterface implementations (join/leave meetings)
 
 Java
 ~~~~
 
-A Java implementation of a coweb server lives under :file:`servers/java`. The server code is split across a couple Maven modules separating bot interfaces from the messaging server. Convenience modules containing the coweb JavaScript and the Dojo Toolkit, and the coweb demos reside here as well.
+A Java implementation of a coweb server lives under :file:`servers/java`. The server code is split across Maven modules separating bot interfaces from the messaging server. Convenience modules containing the coweb JavaScript and defining a coweb application archetype reside here as well.
 
 ::
 
-   coweb_archetype/     # Maven archetype for creating a new coweb app
-   coweb_bots/          # Builds a JAR module with interfaces for writing bots
-   coweb_example/       # Builds a WAR with the coweb demos
-   coweb_javascript/    # Builds a WAR containing all the Dojo / coweb JS
-   coweb_server/        # Builds a JAR module with the coweb server infrastructure 
+   coweb-archetype/     # Maven archetype for creating a new coweb app
+   coweb-bots/          # Builds a JAR module with interfaces for writing bots
+   coweb-javascript/    # Builds a WAR containing the latest stable coweb JS
+   coweb-server/        # Builds a JAR module with the coweb server infrastructure 
 
 Python
 ~~~~~~
@@ -58,7 +53,6 @@ A Python implementation of a coweb server lives under :file:`servers/python`. Th
 
 ::
 
-   bots/                # Example Python bots
    coweb/
       access/           # Interface and impl for access control
       auth/             # Interface and impl for auth methods
@@ -67,7 +61,5 @@ A Python implementation of a coweb server lives under :file:`servers/python`. Th
       service/
          launcher/      # Interface and impl for bot launchers
          manager/       # Interface and impl for bot transports and managers
-   setup.py             
-   setup_demoenv.py     # Creates a virtualenv containing the coweb demos
-   setup_emptyenv.py    # Creates a virtualenv for a new coweb app
-   setup_devenv.py      # Creates a virtualenv for dev on the coweb framework
+   pycoweb              # Coweb application container deploy script
+   setup.py             # Distutils install script

@@ -1,8 +1,0 @@
-{
-    "name" : "Echo Test Service",
-    "description" : "Echoes whatever is sent to it to all subscribers",
-    "author" : "Peter Parente",
-    "version" : "1.0",
-    "service" : "echo",
-    "execute" : "python echo.py"
-}

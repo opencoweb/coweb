@@ -32,7 +32,7 @@ class AppContainer(object):
         self.containerPath = os.path.abspath(os.path.dirname(sys.argv[0]))
         self.modulePath = os.path.abspath(os.path.dirname(coweb.__file__))
         self.httpPort = 9000 if options.port is None else options.port
-        self.httpStaticPath = './www'
+        self.httpStaticPath = '../www'
         
         # default paths and coweb options
         self.webSecretKey = None
@@ -42,7 +42,7 @@ class AppContainer(object):
         self.webAdminUrl = self.webRoot + 'admin'
         self.webSessionRoot = self.webRoot + 'session/'
         self.cowebIdleTimeout = 30
-        self.cowebBotLocalPaths = ['bots']
+        self.cowebBotLocalPaths = ['../bots']
         
         # default manager classes
         self.authClass = PublicAuth

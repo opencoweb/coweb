@@ -28,8 +28,8 @@ Controlling session access
       The coweb server calls this method when a coweb application attempts to prepare a session.
       
       :param username: Authenticated username of the requestor
-      :param key: Key identifying the session from :js:func:`SessionInterface.prepareConference`.
-      :param collab: Flag from :js:func:`SessionInterface.prepareConference` set to true if requesting a session supporting cooperative events, false if requesting a session supporting service bot calls only
+      :param key: Key identifying the session from :js:func:`SessionInterface.prepare`.
+      :param collab: Flag from :js:func:`SessionInterface.prepare` set to true if requesting a session supporting cooperative events, false if requesting a session supporting service bot calls only
       :return: True to allow preparation to continue, false to deny
             
    .. method:: canInvokeServiceRequest(String username, String sessionid, String serviceName) -> boolean
@@ -65,8 +65,8 @@ Controlling session access
       The base class implementation of :meth:`canHandshake` calls this method when a coweb application attempts to join a session.
 
       :param username: Authenticated username of the requestor
-      :param key: Key identifying the session from :js:func:`SessionInterface.prepareConference`.
-      :param collab: Flag from :js:func:`SessionInterface.prepareConference` set to true if requesting a session supporting cooperative events, false if requesting a session supporting service bot calls only
+      :param key: Key identifying the session from :js:func:`SessionInterface.prepare`.
+      :param collab: Flag from :js:func:`SessionInterface.prepare` set to true if requesting a session supporting cooperative events, false if requesting a session supporting service bot calls only
       :return: True to allow the join, false to deny
       
       .. versionchanged:: 0.3

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OpenCoweb JS tests</title>
+    <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="http://code.jquery.com/qunit/git/qunit.js"></script>
+    <script src="../coweb-lib/require.js"></script>
+    <script type="text/javascript">
+    // don't run until requirejs says run
+    QUnit.config.autostart = false;
+
+    // load all test modules
+    require({
+      baseUrl : '.',
+      paths : {
+        'coweb' : '../coweb-lib/coweb',
+        'org' : '../coweb-lib/org'
+      }
+    }, [
+      'test_openg_trans',
+      'test_openg_puzzles',
+      'test_openg_gc',
+      //'test_openg_random'
+      'test_xhr',
+      'test_promise',
+      'test_attendance',
+      'test_loader',
+      'test_unhub_collab',
+      'test_unhub_listener',
+      'test_session'
+    ], function() {
+        // start qunit
+        require.ready(start);
+    });
+    </script>
+  </head>
+  <body>
+    <h1 id="qunit-header">OpenCoweb JS tests</h1>
+	  <h2 id="qunit-banner"></h2>
+	  <div id="qunit-testrunner-toolbar"></div>
+	  <h2 id="qunit-userAgent"></h2>
+	  <ol id="qunit-tests"></ol>
+  </body>
+</html>

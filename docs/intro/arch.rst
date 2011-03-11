@@ -14,7 +14,7 @@ Server
 Service
    The server-side components that enable external, programmatic participants in sessions (i.e., bots) 
 
-The coweb framework currently has a JavaScript client layer implemented as a set of `Dojo`_ modules using portions of `Dojo Base`_ and `CometD`_. The framework has both Java and Python server layer implementations with the former relying on CometD's Java implementation and the latter built on Facebook's `Tornado`_ server. Bayeux serves as the wire format for communication between client and server  Both server implementations support services that run within the server process and offer extension points for external services to participate in sessions.
+The coweb framework currently has a JavaScript client layer implemented as a set of components in `Asynchronous Module Definition`_ (AMD) format. The framework has both Java and Python server layer implementations with the former relying on CometD's Java implementation and the latter built on Facebook's `Tornado`_ server. Bayeux serves as the wire format for communication between client and server  Both server implementations support services that run within the server process and offer extension points for external services to participate in sessions.
 
 .. figure:: /images/arch.png
    :alt: Diagram of components and connections in the coweb framework at runtime.

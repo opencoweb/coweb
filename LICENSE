@@ -1,12 +1,16 @@
-The Cooperative Web Framework, herein referred to as opencoweb, is available
-under *either* the terms of the modified BSD license *or* the Academic Free
-License version 2.1. As a recipient of opencoweb, you may choose which license
-to receive this code under (except as noted in per-module LICENSE files). Some
-modules may not be the copyright of the Dojo Foundation. These modules contain
-explicit declarations of copyright in both the LICENSE files in the
-directories in which they reside and in the code itself. No external
+The Open Cooperative Web Framework, herein referred to as OpenCoweb, is
+available under *either* the terms of the modified BSD license *or* the
+Academic Free License version 2.1. As a recipient of OpenCoweb, you may choose
+which license to receive this code under (except as noted in per-module LICENSE
+files). Some modules may not be the copyright of the Dojo Foundation. These
+modules contain explicit declarations of copyright in both the LICENSE files in
+the directories in which they reside and in the code itself. No external
 contributions are allowed under licenses which are fundamentally incompatible
-with the AFL or BSD licenses that opencoweb is distributed under.
+with the AFL or BSD licenses that OpenCoweb is distributed under.
+
+The Program may include third party code that is not covered under the
+OpenCoweb License. These third party dependencies can be found in the Program's
+NOTICES file.
 
 The text of the AFL and BSD licenses is reproduced below. 
 

@@ -1,4 +1,4 @@
-.. |coweb api| replace:: Open Cooperative Web Framework
+.. |coweb api| replace:: OpenCoweb Framework
 .. |oaa hub| replace:: OpenAjax Hub
 
 .. _Dojo: http://dojotoolkit.org
@@ -11,6 +11,8 @@
 .. _virtualenv: http://pypi.python.org/pypi/virtualenv
 .. _Google CDN: http://code.google.com/apis/libraries/devguide.html#dojo
 .. _Apache Maven: http://maven.apache.org/
+.. _Asynchronous Module Definition: http://wiki.commonjs.org/wiki/Modules/AsynchronousDefinition
+.. _AMD: http://wiki.commonjs.org/wiki/Modules/AsynchronousDefinition
 
 .. _OpenAjax.hub.subscribe: http://www.openajax.org/member/wiki/OpenAjax_Hub_1.0_Specification_PublishSubscribe#OpenAjax.hub.subscribe.28name.2C_callback.2C_scope.2C_subscriberData.2C_filter.29
 
