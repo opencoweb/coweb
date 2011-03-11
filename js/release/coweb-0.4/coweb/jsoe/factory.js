@@ -1,0 +1,1 @@
+define(function(){var a={};return{createHistoryKey:function(a,b){return a+","+b},registerOperationForType:function(b,c){a[b]=c},createOperationFromType:function(b,c){var d=a[b];return new d(c)},createOperationFromState:function(b){var c=a[b[0]];return new c({state:b})}}})
