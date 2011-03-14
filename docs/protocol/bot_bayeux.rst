@@ -1,3 +1,4 @@
+.. reviewed 0.4
 .. include:: /replace.rst
 
 Bot services over Bayeux
