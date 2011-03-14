@@ -28,7 +28,19 @@ define([
 ], function(topics, SessionImpl, ListenerImpl, CollabImpl) {
     // session and listener instance singletons
     var sessionInst = null,
-        listenerInst = null;
+        listenerInst = null,
+        noop;
+
+    // define a dummy console for error logging if not provided
+    if(typeof console === 'undefined') {
+        noop = function() {};
+        console = {};
+        console.error = 
+        console.warn = 
+        console.log = 
+        console.info = 
+        console.debug = noop;
+    }
 
     // factory interface
     return {
