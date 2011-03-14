@@ -55,7 +55,7 @@ define(function() {
                             ptr.promise.resolve(nextVal);
                         }
                     } catch(e) {
-                        if(console && console.error) {
+                        if(typeof console !== 'undefined' && console.error) {
                             console.error(e, func);
                         }
                         // some registered function failed
