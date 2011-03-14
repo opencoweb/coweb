@@ -52,7 +52,7 @@ define([
 
     test('POST success', 3, function() {
         var args = {
-            url : 'echo.php',
+            url : 'mock/echo.php',
             method : 'POST',
             body : JSON.stringify({
                 key : 123,
