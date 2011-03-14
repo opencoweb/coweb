@@ -38,11 +38,7 @@ Using the session instance
 
    :throws Error: If invoked before preparing the session or after joining a session
    :returns: Promise
-   :callback: Invoked on successful preparation with an object having these attributes:
-
-      nextPromise (Promise)
-         Deferred for the automatic call to :func:`SessionInterface.update` if `autoUpdate` was true. Useful for call chaining.
-
+   :callback: Invoked on successful preparation with the same session information object received by :func:`SessionInterface.prepare`.
    :errback: Invoked on failed preparation with a string error tag of `not-allowed` if the user needs to authenticate, `session-unavailable` if the session ended before joining, or `server-unavailable`
 
    :callback: Invoked on successful join
@@ -111,14 +107,14 @@ Using the session instance
    All parameters to this function are optional. When given, they are passed as name/value properties on a single `args` object.
 
    :param string key: Key uniquely identifying the session to join. If undefined, tries to read the argument `cowebkey` from the page URL to use instead. If the argument is undefined, uses the (domain, port, path, arguments) tuple of the current page as the key. 
-   :param bool collab: True to request a session supporting cooperative events, false to request a session supporting service bot messages only. Defaults to `true`.
-   :param bool autoJoin: True to automatically join a session after successfully preparing it, false to require an explicit application call to :func:`SessionInterface.join`. Defaults to `true`.
-   :param bool autoUpdate: True to automatically update application state in a session after successfully joining it, false to require an explicit application call to :func:`SessionInterface.updateInSession`. Defaults to `true`.
+   :param boolean collab: True to request a session supporting cooperative events, false to request a session supporting service bot messages only. Defaults to `true`.
+   :param boolean autoJoin: True to automatically join a session after successfully preparing it, false to require an explicit application call to :func:`SessionInterface.join`. Defaults to `true`.
+   :param boolean autoUpdate: True to automatically update application state in a session after successfully joining it, false to require an explicit application call to :func:`SessionInterface.updateInSession`. Defaults to `true`.
    :throws Error: If invoked after preparing a session
    :returns: Promise
    :callback: Invoked on successful preparation with an object having these attributes:
 
-      collab (bool)
+      collab (boolean)
          If the server created a collaborative session or not. May or may not match what was requested.
       key (string)
          Session key passed to :func:`SessionInterface.prepare` or determined from the page URL
@@ -141,7 +137,7 @@ Using the session instance
 
    :throws Error: If invoked before joining a session or after updating in a session
    :returns: Promise
-   :callback: Invoked on successful update with no parameters
+   :callback: Invoked on successful preparation with the same session information object received by :func:`SessionInterface.prepare`.
    :errback: Invoked on failed preparation with a string error tag of `bad-application-state` if the update fails.
 
 Use cases
@@ -159,11 +155,11 @@ Assume an application wants to enter a session without delay.
    // get session interface
    var sess = coweb.initSession();
    // use defaults, collaborative session, join and update automatically
-   sess.prepare(params).then(null,
-      function(err) {
-         // handle any error cases
-      }
-   );
+   sess.prepare().then(function(info) {
+      // invoked after prepare, join, and update complete
+   }, function(err) {
+      // invoked on any error during the sequence
+   });
 
 Application acts on session info before joining
 ###############################################
@@ -175,17 +171,18 @@ Imagine an application wants to configure its UI based on the prepare response b
    // get session interface
    var sess = coweb.initSession();
    // use defaults to prepare
-   sess.prepare().then(
-      function(info) {
-         // app does some work (e.g., shows session info in its UI)
-         // at some later point, app continues process by joining
-         return sess.join();
-      }
-   ).then(null,
-      function(err) {
-         // handle any error cases
-      }   
-   );
+   sess.prepare({autoJoin : false}).then(function(info) {
+      // invoked after prepare completes
+      // app can do work here (e.g., shows session info in its UI)
+      // then app can continue with join
+      return sess.join();
+   }, function(err) {
+      // invoked on any error during prepare
+   }).then(function() {
+      // invoked after join and update complete
+   }, function(err) {
+      // invoked on any error during join or update
+   });
 
 Application does its own authentication
 #######################################
@@ -198,14 +195,11 @@ Say an application wants to collection credentials from a user before attempting
    var sess = coweb.initSession();
    // assume username / password vars contain info collected via a form or 
    // some other means
-   sess.login(username, password).then(
-      function() {
-         // do the prep
-      },
-      function() {
-         // auth failed, prompt again
-      }
-   );
+   sess.login(username, password).then(function() {
+      // do the prep
+   }, function(err) {
+      // auth failed, prompt again
+   });
 
 .. seealso::
 
