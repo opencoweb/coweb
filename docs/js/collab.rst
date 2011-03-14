@@ -98,9 +98,9 @@ Using a collaboration instance
    :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
    :errback: Invoked on unsuccessful subscription
 
-.. function:: CollabInterface.sendSync(name, value, [type='update', position=0])
+.. function:: CollabInterface.sendSync(name, value [, type='update', position=0])
 
-   A web application calls this method to send a cooperative web event to all other application instances in a session.
+   A web application calls this method to send a cooperative event to all other application instances in a session. See the section about :doc:`/intro/openg` for information about how to set these parameters to ensure convergence across remote application instances.
 
    :param string name: Name identifying which application property changed
    :param object value: New property value. Must be JSON-encodable.
@@ -112,7 +112,7 @@ Using a collaboration instance
 
 .. function:: CollabInterface.subscribeSync(name, contextOrCallback [, boundCallback])
 
-   A web application calls this method to subscribe to cooperative events sent by remote application instances in a session. The callback never fires for events sent by any local :class:`CollabInterface` instance. The callback always fires after received events are processed and potentially transformed by the local coweb operation engine. The changes made by the operation engine are transparent to the application.
+   A web application calls this method to subscribe to cooperative events sent by remote application instances in a session. The callback never fires for events sent by any local :class:`CollabInterface` instance. The callback always fires after received events are processed and potentially transformed by the local coweb operation engine. The changes made by the operation engine are transparent to the application. See the :doc:`/intro/openg` section for details.
 
    :param string name: Name identifying which application property to monitor for changes
    :param function callback: Invoked when another application instance stops participating in a session. Receives an object having these properties:
@@ -151,7 +151,7 @@ Using a collaboration instance
 
 .. function:: CollabInterface.subscribeStateResponse(contextOrCallback [, boundCallback])
 
-   A web application calls this method to subscribe to full state responses while attempting to update in a session.
+   A web application calls this method to subscribe to full state responses while attempting to update itself to the current session state upon entering a session.
 
    :param function callback: Invoked when this application instance receives a copy of the shared session state from the coweb server so that the local instance can update itself before participating in the session. Receives an object with arbitrary property names and values corresponding to those sent by a remote call to :func:`CollabInterface.sendStateResponse`.
    :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
