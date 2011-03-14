@@ -209,8 +209,5 @@ Say an application wants to collection credentials from a user before attempting
 
 .. seealso::
 
-   :doc:`extra`
-      Documentation of optional components that simplify the use of the session API in common cases.
-
    :doc:`/tutorial/shopping`
       Tutorial detailing the use of the session API to create a cooperative shopping list.

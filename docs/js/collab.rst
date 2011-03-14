@@ -349,8 +349,5 @@ The :class:`CollabInterface` automatically unregisters the response callback aft
 
 .. seealso::
 
-   :doc:`/intro/openg`
-      Documentation of how the coweb operation engine uses the metadata included in calls to :func:`CollabInterface.sendSync` to resolve conflicting, simultaneous changes.
-
    :doc:`/tutorial/shopping`
       Tutorial detailing the use of the collaboration API to create a cooperative shopping list.
