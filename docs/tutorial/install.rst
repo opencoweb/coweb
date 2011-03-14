@@ -52,12 +52,30 @@ After populating the project, you can package it and deploy it using Maven.
    $ mvn clean package
    $ mvn jetty:deploy-war
 
-By default, the `jetty:deploy-war` command makes your application accessible at http://localhost:8080/. Modify the :file:`web.xml` file created by the archetype, repackage your application, and redeploy it make changes to these, and other, defaults. See the Java documentation section about :doc:`/python/` for details.
+By default, the `jetty:deploy-war` command makes your application accessible at http://localhost:8080/. Specify the `-Djetty.port=PORT` option on the command line to run on a different port.
+
+Modify the :file:`web.xml` file created by the archetype, repackage your application, and redeploy it make changes to defaults. See the Java documentation section about :doc:`/java/deploy` for details.
 
 Deploy the cowebx demos
 #######################
 
-The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb example applications running at http://demos.opencoweb.org. Follow these instructions if you want to deploy the cowebx demos on your own Java server.
+The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb example applications running at http://demos.opencoweb.org. Follow these instructions if you want to deploy the cowebx demos on your own Java server after using Maven to install the coweb modules as described above.
+
+#. Clone a copy of the cowebx git repository or download a snapshot of it from https://github.com/opencoweb/cowebx/tarball/master.
+#. Use Maven to package and install the `cowebx` submodules.
+
+   .. sourcecode:: console
+   
+      $ cd cowebx
+      $ mvn install
+
+#. Use Maven to run `cowebx-apps`.
+
+   .. sourcecode:: console
+   
+      $ mvn jetty:deploy-war
+      
+#. Visit http://localhost:8080/cowebx-apps in your browser to view the list of demos.
 
 Python setup
 ~~~~~~~~~~~~
@@ -118,6 +136,29 @@ You can manually run the distutils :file:`setup.py` to install the Python `coweb
 Deploy the cowebx demos
 #######################
 
-The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb example applications running at http://demos.opencoweb.org. Follow these instructions if you want to deploy the cowebx demos on your own Python server.
+The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb example applications running at http://demos.opencoweb.org. Follow these instructions if you want to deploy the cowebx demos on your own Python server after installing the :py:mod:`coweb` Python package as described above.
 
-.. todo:: write
+#. Clone a copy of the cowebx git repository or download a snapshot of it from https://github.com/opencoweb/cowebx/tarball/master.
+#. If you installed the :py:mod:`coweb` package in a virtual environment, activate that environment. Otherwise, skip this step.
+
+   .. sourcecode:: console
+   
+      $ source /desired/project/path/bin/activate
+
+#. Use the :file:`setup.py` script to deploy the demos and a server container script to run them.
+
+   .. sourcecode:: console
+   
+      $ cd cowebx/apps
+      $ python setup.py deploy /desired/project/path --force
+
+   .. note:: This command will overwrite any :file:`run_server` script that already exists in :file:`/desired/project/path/bin` (e.g., if you ran :file:`pycoweb` previously to seed an empty application in the virtualenv).
+
+#. Execute the generated coweb application container script to start the server.
+
+   .. sourcecode:: console
+
+      $ run_server.py
+      $ deactivate      # to leave the virtualenv after quitting the server
+
+#. Visit http://localhost:8080/cowebx-apps/index.html in your browser to view the list of demos.
