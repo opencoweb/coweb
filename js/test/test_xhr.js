@@ -52,7 +52,7 @@ define([
 
     test('POST success', 3, function() {
         var args = {
-            url : '/admin',
+            url : 'echo.php',
             method : 'POST',
             body : JSON.stringify({
                 key : 123,
@@ -68,16 +68,17 @@ define([
             start();
         });
     });
-    
+
     test('POST failure', 1, function() {
         var args = {
-            url : 'target.json',
+            url : 'badtarget',
             method : 'POST',
             body : JSON.stringify(target)
         };
         stop(this.timeout);
         xhr.send(args).then(null, function(args) {
-            ok(args.xhr.status, 405);
+            var status = args.xhr.status;
+            ok(status === 404 || status === 405, 'status: '+status);
             start();
         });
     });
