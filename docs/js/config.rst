@@ -50,7 +50,110 @@ As noted in :doc:`concepts`, the JavaScript portions of the |coweb api| follow t
 #. After the DOM load event, the application initializes the :class:`SessionInterface` singleton and uses it to prepare the session.
 #. When the :class:`SessionInterface` finishes preparing, joining, and updating, all :class:`CollabInterface.subscribeReady` callbacks fire.
 
-Basic application template
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example application template
+############################
 
-.. todo:: write
+A template for a coweb application having a couple of cooperative widgets follows and a non-default `admin` URL follows. The application uses RequireJS as its AMD loader. It assumes all of its AMD resources reside under :file:`lib/` and its subfolders.
+
+For a more complete example, revisit the tutorial about :doc:`/tutorial/shopping`.
+
+index.html
+++++++++++
+
+.. sourcecode:: html
+
+   <!DOCTYPE html>
+   <html>
+     <head>
+       <meta charset="utf-8" />
+       <title>My Cooperative Web Application</title>
+       <script data-main="app-main" src="lib/require.js"></script>
+     </head>
+     <body>
+     </body>
+   </html>
+
+app-main.js
++++++++++++
+
+RequireJS loads this script after it loads because of the `data-main` attribute on its script tag. It is relative to the page that included RequireJS, not the path in which RequireJS resides.
+
+.. sourcecode:: javascript
+
+   // e.g., server has admin in same path as application, not default /admin
+   var cowebConfig = {
+      adminUrl : './admin'
+   };
+
+   require([
+      'coweb/main',
+      'app-widgets/widget1',
+      'app-widgets/widget2'
+   ], function(coweb, widget1, Widget2) {
+      // instantiate the widget class
+      var w = new Widget2('widget2');
+      
+      // wait for window onload
+      require.ready(function() {
+         // initialize the session instance
+         var session = coweb.initSession();
+         // do the session prepare
+         session.prepare().then(function() {
+            // prepare success, widget ready callbacks invoked after this
+         }, function() {
+            // prepare failure
+         });
+      });
+   });
+
+lib/app-widgets/widget1.js
+++++++++++++++++++++++++++
+
+This widget module has no public interface and is totally self-contained.
+
+.. sourcecode:: javascript
+
+   define(['coweb/main'], function(coweb) {
+      // internal widget state
+      var state = {};
+      // widget CollabInterface instance
+      var collab = coweb.initCollab({id : 'widget1'});
+
+      collab.subscribeReady(function(info) {
+         // called when the widget can start sending/receiving coweb events
+      });
+      collab.subscribeStateRequest(function(token) {
+         // called when a remote instance with the same id requests full state
+         collab.sendStateResponse(state, token);
+      });
+      collab.subscribeStateResponse(function(state) {
+         // called when this instance receives a copy of the shared state from
+         // a remote instance with the same id
+      });
+   });
+
+lib/app-widgets/widget2.js
+++++++++++++++++++++++++++
+
+This widget module defines a class which the importer must instantiate.
+
+.. sourcecode:: javascript
+
+   define(['coweb/main'], function(coweb) {
+      var Widget = function(id) {
+         // widget CollabInterface instance
+         this.collab = coweb.initCollab({id : id});
+         // subscribe methods for callbacks
+         this.collab.subscribeReady(this, 'onReady');
+         // subscribeStateRequest, subscribeStateResponse, etc. like widget1
+      };
+
+      Widget.prototype.onReady = function() {
+         // similar to widget #1
+      };
+      
+      // onStateRequest, onStateResponse, etc. like widget1
+      
+      // return the Widget class
+      return Widget;
+   });
