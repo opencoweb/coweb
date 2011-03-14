@@ -54,7 +54,6 @@ def deploy(options, args):
         shutil.copytree(js, lib)
 
     # write configured run_server.py in home_dir/bin
-    options.verbose = True
     container(options, ['container', script])
 
     print 'deploy: created deployment directories at %s' % outPath
@@ -91,8 +90,6 @@ def run():
     parser = optparse.OptionParser('usage: %prog <deploy|container> [options] <PATH>')
     parser.add_option('--no-js', dest='nojs', action='store_true', default=False,
                   help='do not deploy coweb JavaScript (default: False)')
-    parser.add_option('-v', dest='verbose', action='store_true', default=False,
-                  help='init a verbose coweb container script with comments (default: False)')
     parser.add_option('-t', dest='template', type="str", default='verbose',
                   help='template to use for the coweb container script [verbose*, simple, <custom>]')
     parser.add_option('-f', '--force', dest='force', action='store_true', default=False,
