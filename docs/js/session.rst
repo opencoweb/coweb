@@ -1,4 +1,4 @@
-.. reviewed 0.3
+.. reviewed 0.4
 .. include:: /replace.rst
 
 Session preparation and joining
@@ -35,7 +35,7 @@ Using the session instance
 
 .. function:: SessionInterface.join()
 
-      A web application calls this method to join a session after receiving a callback from :func:`SessionInterface.prepare`. If the application invoked :func:`SessionInterface.prepare` with `autoJoin` set to true, the framework automatically invokes this method upon the callback.
+      A web application calls this method to join a session after receiving a callback from :func:`SessionInterface.prepare`. If the application invoked :func:`SessionInterface.prepare` with `autoJoin` set to true, the framework automatically invokes this method upon the prepare callback.
 
    :throws Error: If invoked before preparing the session or after joining a session
    :returns: Promise
@@ -74,7 +74,7 @@ Using the session instance
 
 .. function:: SessionInterface.onStatusChange(status)
 
-   A :class:`SessionInterface` invokes this method when its session status changes. A web application can override or hook (e.g., `dojo.connect`) this method to advise the user of the change in session status (e.g., show a busy dialog).
+   A :class:`SessionInterface` invokes this method when its session status changes. A web application can override or hook (e.g., `dojo.connect`) this method to advise the user of the change in session status (e.g., show a modal busy dialog while joining to prevent user interaction before cooperation is possible).
    
    A web application should not take programmatic action based on these notices: their sequencing with respect to the internal state of :class:`SessionInterface` is not well-defined. For example, an application should not watch for `joining` in order to invoke :func:`SessionInterface.update`. Instead, the application should use the :class:`Promise` returned by :func:`SessionInterface.join`.
 
@@ -134,7 +134,7 @@ Using the session instance
 
 .. function:: SessionInterface.update()
 
-   A web application calls this method to update its local state after receiving a callback from :func:`SessionInterface.join`. If the application invoked :func:`SessionInterface.prepare` with `autoUpdate` set to true, the framework automatically invokes this method upon the callback.
+   A web application calls this method to update its local state after receiving a callback from :func:`SessionInterface.join`. If the application invoked :func:`SessionInterface.prepare` with `autoUpdate` set to true, the framework automatically invokes this method upon the join callback.
 
    :throws Error: If invoked before joining a session or after updating in a session
    :returns: Promise
@@ -165,7 +165,7 @@ Assume an application wants to enter a session without delay.
 Application acts on session info before joining
 ###############################################
 
-Imagine an application wants to configure its UI based on the prepare response before joining the session.
+Imagine an application wants to configure its UI based on the session information returned in the response to the prepare request before joining the session.
 
 .. sourcecode:: javascript
 
@@ -197,7 +197,8 @@ Say an application wants to collection credentials from a user before attempting
    // assume username / password vars contain info collected via a form or 
    // some other means
    sess.login(username, password).then(function() {
-      // do the prep
+      // invoke session prepare now; callback/errback omitted
+      sess.prepare();
    }, function(err) {
       // auth failed, prompt again
    });
