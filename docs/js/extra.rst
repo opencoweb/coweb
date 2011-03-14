@@ -71,47 +71,19 @@ A web application can load the `coweb/ext/SimpleLoader` module as an alternative
 
 .. class:: SimpleLoader
    
-   Allows subclasses to control :class:`SessionInterface` options and receive deferred :class:`SessionInterface` notifications by overriding instance attributes and methods respectively.
-   
-.. attribute:: SimpleLoader.showBusy
-
-   A web application can set this attribute to true to load and initialize the optional :ref:`session busy dialog <ext-busy-dialog>`. Defaults to false which also avoids loading the module.
-
-.. attribute:: SimpleLoader.autoPrepare
-
-   A web application can set this attribute to true to automatically prepare the session after :func:`SimpleLoader.onRun` or false if it will invoke :func:`SimpleLoader.prepare` explicitly. Defaults to true.
-
-.. attribute:: SimpleLoader.autoJoin
-
-   A web application can set this attribute to control the equivalent parameter to :func:`SessionInterface.prepare`. Defaults to true.
-
-.. attribute:: SimpleLoader.autoUpdate
-
-   A web application can set this attribute to control the equivalent parameter to :func:`SessionInterface.prepare`. Defaults to true.
-
-.. attribute:: SimpleLoader.adminUrl
-
-   A web application can set this attribute to control the equivalent parameter to :func:`coweb.initSession`. Defaults to undefined.
+   Allows subclasses to control :class:`SessionInterface` options and receive :class:`SessionInterface` notifications by overriding instance attributes and methods respectively.
 
 .. attribute:: SimpleLoader.collab
 
    A web application can use this instance of :class:`CollabInterface` for its own purposes. By default, the :func:`onCollabReady` callback is subscribed to to a notification on instance.
 
-.. attribute:: SimpleLoader.conferenceCollab
+.. attribute:: SimpleLoader.cowebCollab
 
    A web application can set this attribute to control the `collab` parameter to :func:`SessionInterface.prepare`. Defaults to true.
 
-.. attribute:: SimpleLoader.conferenceKey
+.. attribute:: SimpleLoader.cowebKey
 
    A web application can set this attribute to control the `key` parameter to :func:`SessionInterface.prepare`. Defaults to undefined.
-
-.. attribute:: SimpleLoader.loginUrl
-
-   A web application can set this attribute to control the equivalent parameter to :func:`coweb.initSession`. Defaults to undefined.
-
-.. attribute:: SimpleLoader.logoutUrl
-
-   A web application can set this attribute to control the equivalent parameter to :func:`coweb.initSession`. Defaults to undefined.
 
 .. attribute:: SimpleLoader.sess
 
@@ -125,30 +97,24 @@ A web application can load the `coweb/ext/SimpleLoader` module as an alternative
 
    A web application can override this callback to perform some actions after invoking :func:`SimpleLoader.run` and before :func:`SimpleLoader.prepare`.
 
-.. function:: SimpleLoader.onSessionFailed()
+.. function:: SimpleLoader.onSessionFailed(err)
 
-   A web application can override this callback subscribed via the :func:`SessionInterface.update` deferred. The callback fires if a failure occurs during any of the prepare, join, or update phases.
+   A web application can override this callback to receive notification of an error during any phase of joining the session: prepare, join, or update.
 
-.. function:: SimpleLoader.onSessionJoined()
+   :param Error err: Error raised
 
-   A web application can override this callback subscribed via the :func:`SessionInterface.join` deferred. The callback fires automatically only if :attr:`SimpleLoader.autoJoin` is true.
+.. function:: SimpleLoader.onSessionJoined(info)
 
-   If :attr:`SimpleLoader.autoUpdate` is false, the application must invoke `this.sess.update` after receiving this callback.
+   A web application can override this callback subscribed via the :func:`SessionInterface.join` promise.
 
 .. function:: SimpleLoader.onSessionPrepared(info)
 
-   A web application can override this callback subscribed via the :func:`SessionInterface.prepare` deferred.
+   A web application can override this callback subscribed via the :func:`SessionInterface.prepare` promise.
 
-   If :attr:`SimpleLoader.autoJoin` is false, the application must invoke `this.sess.join` after receiving this callback.
+.. function:: SimpleLoader.onSessionUpdated(info)
 
-.. function:: SimpleLoader.onSessionUpdated()
-
-   A web application can override this callback subscribed via the :func:`SessionInterface.update` deferred. The callback fires automatically only if :attr:`SimpleLoader.autoUpdate` is true.
-
-.. function:: SimpleLoader.prepare()
-
-   A web application must invoke this method in or after :func:`SimpleLoader.onRun` if :attr:`SimpleLoader.autoPrepare` is false. The method invokes :func:`SessionInterface.prepare` with parameters configured by this loader instance.
-
+   A web application can override this callback subscribed via the :func:`SessionInterface.update` promise.
+   
 .. function:: SimpleLoader.run()
 
    A web application must invoke this method to start the loader running.
