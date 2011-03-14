@@ -4,7 +4,7 @@
 Collaboration and services
 --------------------------
 
-A web application creates :class:`CollabInterface` instances to send and receive cooperative web events or communicate with session services. The application can create multiple instances to help segregate messages for its components if desire (e.g., widget to widget messaging).
+A web application creates :class:`CollabInterface` instances to send and receive cooperative web events or communicate with session services. The application can create multiple instances to help segregate messages for its components if desired (e.g., widget to widget messaging) or use a single instance for all cooperative event traffic.
 
 The use of the collaboration API has the following requirements:
 
@@ -36,6 +36,8 @@ Using a collaboration instance
 .. function:: CollabInterface.subscribeReady(contextOrCallback [, boundCallback])
    
    A web application calls this method to subscribe to the event fired when the local :class:`SessionInterface` has finished preparing, joining, and updating in a session.
+   
+   .. note:: The subscribed callback does **not** fire if the application has already prepared, joined, and updated itself in a session. Ready subscriptions should be made before the application invokes :class:`SessionInterface.prepare` or 
    
    :param function callback: Invoked when the application is ready to participate in the session. Receives an object having these properties:
    
