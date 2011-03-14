@@ -1,3 +1,4 @@
+.. reviewed 0.3
 .. include:: /replace.rst
 
 Creating a cooperative shopping list
