@@ -46,7 +46,7 @@
                                 <exclude>META-INF/**</exclude>
                                 <exclude>WEB-INF/**</exclude>
                             </excludes>
-                            <targetPath>coweb-lib</targetPath>
+                            <targetPath>lib</targetPath>
                         </overlay>
                     </overlays>
                 </configuration>

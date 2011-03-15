@@ -24,14 +24,22 @@ def after_install(options, home_dir):
     subprocess.check_call([pip, 'install', '-e', '.'])
 
     # create an empty deployment
-    subprocess.check_call([pycoweb, 'deploy', home_dir, '-v', '--no-js', '--force'])
+    subprocess.check_call([pycoweb, 'deploy', home_dir, '--no-js', '--force'])
 
     # run setup_js.sh
     if subprocess.call(['../../js/setup_js.sh']):
         raise RuntimeError('could not install JS dependencies')
-    # symlink js/lib into home_dir/www/coweb-lib
-    lib = os.path.abspath('../../js/lib/')
-    os.symlink(lib, os.path.join(www, 'coweb-lib'))
+    try:
+        os.makedirs(os.path.join(www, 'lib'))
+    except OSError:
+        pass
+    # symlink js/lib/*coweb into home_dir/www/lib/*
+    lib = os.path.abspath('../../js/lib/org')
+    os.symlink(lib, os.path.join(www, 'lib/org'))
+    lib = os.path.abspath('../../js/lib/coweb')
+    os.symlink(lib, os.path.join(www, 'lib/coweb'))
+    lib = os.path.abspath('../../js/lib/require.js')
+    os.symlink(lib, os.path.join(www, 'lib/require.js'))
     # symlink tests into home_dir/www
     src = os.path.abspath('../../js/test/')
     os.symlink(src, os.path.join(www, 'test'))

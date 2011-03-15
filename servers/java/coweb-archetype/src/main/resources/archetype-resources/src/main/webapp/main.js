@@ -9,16 +9,7 @@ var cowebConfig = {
     adminUrl : './admin'
 };
 
-require({
-    // assumes the coweb module is under coweb-lib
-    paths : {
-        coweb : 'coweb-lib/coweb',
-        org : 'coweb-lib/org'
-    }
-}, [
-    'coweb/main'
-], function(coweb) {
-    
+require({moduleUrl : 'lib'}, ['coweb/main'], function(coweb) {
     // do application setup here
     
     require.ready(function() {
