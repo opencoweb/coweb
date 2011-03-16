@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<archetype-descriptor name="cometd-archetype-dojo-jetty7">
+<archetype-descriptor
+	xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0 http://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd"
+    name="coweb-archetype">
     <requiredProperties>
+        <requiredProperty key="artifactId" />
+		<requiredProperty key="groupId" />
         <requiredProperty key="cowebVersion">
-            <defaultValue>0.4</defaultValue>
-        </requiredProperty>
-        <requiredProperty key="jettyVersion">
-            <defaultValue>7.1.5.v20100705</defaultValue>
-        </requiredProperty>
-        <requiredProperty key="cometdVersion">
-            <defaultValue>2.1.0.beta2</defaultValue>
+            <defaultValue>${coweb-version}</defaultValue>
         </requiredProperty>
     </requiredProperties>
 
@@ -24,12 +24,8 @@
             <includes>
                 <include>**/*.jsp</include>
                 <include>**/*.xml</include>
-            </includes>
-        </fileSet>
-        <fileSet encoding="UTF-8">
-            <directory>src/main/webapp</directory>
-            <includes>
                 <include>**/*.js</include>
+                <include>**/*.html</include>
             </includes>
         </fileSet>
     </fileSets>

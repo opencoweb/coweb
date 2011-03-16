@@ -1,48 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <artifactId>coweb-admin</artifactId>
-    <groupId>org.opencoweb</groupId>
-    <version>0.4</version>
-  </parent>
-  <groupId>org.opencoweb</groupId>
-  <artifactId>admin-client</artifactId>
-  <version>0.4</version>
-  <packaging>jar</packaging>
-  <name>OpenCoweb :: Java :: Admin :: Client</name>
-  <dependencies>
-    <dependency>
-      <groupId>org.opencoweb</groupId>
-      <artifactId>admin-common</artifactId>
-      <version>${version}</version>
-    </dependency>
-    <dependency>
-        <groupId>javax</groupId>
-        <artifactId>javaee-api</artifactId>
-        <version>6.0</version>
-        <scope>provided</scope>
-    </dependency>
-    <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>servlet-api</artifactId>
-        <version>2.5</version>
-        <scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.apache.wink</groupId>
-    	<artifactId>wink-json4j</artifactId>
-    	<version>1.1.2-incubating</version>
-    	<type>jar</type>
-    	<scope>compile</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.opencoweb</groupId>
-    	<artifactId>coweb-server</artifactId>
-    	<version>${version}</version>
-    	<type>jar</type>
-    	<scope>provided</scope>
-    </dependency>
-  </dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>org.opencoweb</groupId>
+        <artifactId>coweb-admin</artifactId>
+        <version>0.4</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>admin-client</artifactId>
+    <packaging>jar</packaging>
+    <name>OpenCoweb :: Java :: Admin :: Client</name>
+
+    <dependencies>
+        <dependency>
+          <groupId>org.opencoweb</groupId>
+          <artifactId>admin-common</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>6.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+        	<groupId>org.apache.wink</groupId>
+        	<artifactId>wink-json4j</artifactId>
+        	<version>1.1.2-incubating</version>
+        	<type>jar</type>
+        	<scope>compile</scope>
+        </dependency>
+        <dependency>
+        	<groupId>org.opencoweb</groupId>
+        	<artifactId>coweb-server</artifactId>
+        	<version>${project.version}</version>
+        	<type>jar</type>
+        	<scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>

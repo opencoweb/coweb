@@ -7,6 +7,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
+    <groupId>org.opencoweb</groupId>
     <artifactId>coweb-archetype</artifactId>
     <packaging>maven-archetype</packaging>
     <name>OpenCoweb :: Java :: Archetype</name>
@@ -28,11 +29,11 @@
         </plugins>
         <resources>
             <resource>
-                <directory>src/main/resources</directory>
+                <directory>${basedir}/src/main/resources</directory>
                 <filtering>false</filtering>
             </resource>
             <resource>
-                <directory>src/main/resources</directory>
+                <directory>${basedir}/src/main/resources</directory>
                 <includes>
                     <include>**/archetype-metadata.xml</include>
                 </includes>

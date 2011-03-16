@@ -8,7 +8,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>coweb-bots</artifactId>
+    <groupId>org.opencoweb</groupId>
     <packaging>jar</packaging>
     <name>OpenCoweb :: Java :: Bots</name>
-
 </project>
