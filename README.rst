@@ -30,18 +30,27 @@ Getting Started
 2. Read the the framework documentation online at http://opencoweb.org/ocwdocs. It includes tutorials on how to setup a coweb server and write your first cooperative web application. 
 3. Send mail to the coweb users group or join us on IRC if you're having trouble.
 
-Status and Support
-==================
-
-This is an initial code drop. You can grab the framework and start using it, but expect a bumpy ride in the near future. We're working hard on documentation and fixes to get to a stable v1.0. For more details, please refer to the issue tracker on GitHub.
+Status
+======
 
 **NOTE** The master branch is now working toward a v0.4 release which includes a total restructuring of the JavaScript code in AMD format and moves the coweb examples to the http://github.com/opencoweb/cowebx repository. Be aware the rendered docs at http://opencoweb.org/ocwdocs from the last stable release (v0.3) do not match what is currently in the master branch. Both will be updated when v0.4 is final.
+
+Tagged revisions in the *master* branch are our stable releases. The docs at  http://opencoweb.org/ocwdocs match the latest stable release.
+
+The *opencoweb/coweb/master* branch on GitHub contains the framework code progressing toward the next stable release. We increment the version number in the code immediately after tagging a stable release so it reflects our next intended stable version.
+
+The *opencoweb/cowebx/master* branch on GitHub contains example applications and widgets using the framework. We do not plan to make stable releases of the examples. Instead we will attempt to keep them working with all versions of the framework version 0.4 or higher.
+
+All APIs are subject to change until we hit a v1.0 milestone.
+
+Support
+=======
 
 Currently, the JavaScript portions of the coweb framework should work in the following browsers.
 
 * Firefox 3.5+
 * Safari 4+
-* Chrome 5+
+* Chrome
 * IE8+
 * Opera 10.50+
 * Mobile Safari on iOS 4+
