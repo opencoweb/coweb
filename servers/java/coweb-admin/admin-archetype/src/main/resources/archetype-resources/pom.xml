@@ -33,7 +33,7 @@
                     <overlays>
                         <overlay />
                         <overlay>
-                            <groupId>org.coweb</groupId>
+                            <groupId>org.opencoweb</groupId>
                             <artifactId>coweb-javascript</artifactId>
                         </overlay>
                     </overlays>
@@ -50,27 +50,27 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.coweb.admin</groupId>
+            <groupId>org.opencoweb</groupId>
             <artifactId>admin-common</artifactId>
             <version>${cowebVersion}</version>
         </dependency>
         <dependency>
-            <groupId>org.coweb.admin</groupId>
+            <groupId>org.opencoweb</groupId>
             <artifactId>admin-client</artifactId>
             <version>${cowebVersion}</version>
         </dependency>
         <dependency>
-            <groupId>org.coweb</groupId>
+            <groupId>org.opencoweb</groupId>
             <artifactId>coweb-bots</artifactId>
             <version>${cowebVersion}</version>
         </dependency>
         <dependency>
-            <groupId>org.coweb</groupId>
+            <groupId>org.opencoweb</groupId>
             <artifactId>coweb-server</artifactId>
             <version>${cowebVersion}</version>
         </dependency>
         <dependency>
-            <groupId>org.coweb</groupId>
+            <groupId>org.opencoweb</groupId>
             <artifactId>coweb-javascript</artifactId>
             <version>${cowebVersion}</version>
             <type>war</type>

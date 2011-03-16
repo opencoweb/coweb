@@ -42,7 +42,7 @@ Java
    
       $ cd /desired/project/path
       $ mvn archetype:generate 
-         -DarchetypeGroupId=org.coweb 
+         -DarchetypeGroupId=org.opencoweb 
          -DarchetypeArtifactId=coweb-archetype
 
 #. Run the application using `mvn jetty:run-war` or deploy it into your servlet container.

@@ -4,17 +4,17 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>coweb-admin</artifactId>
-    <groupId>org.coweb.admin</groupId>
+    <groupId>org.opencoweb</groupId>
     <version>0.4</version>
   </parent>
-  <groupId>org.coweb.admin</groupId>
+  <groupId>org.opencoweb</groupId>
   <artifactId>admin-client</artifactId>
   <version>0.4</version>
   <packaging>jar</packaging>
   <name>OpenCoweb :: Java :: Admin :: Client</name>
   <dependencies>
     <dependency>
-      <groupId>org.coweb.admin</groupId>
+      <groupId>org.opencoweb</groupId>
       <artifactId>admin-common</artifactId>
       <version>${version}</version>
     </dependency>
@@ -38,7 +38,7 @@
     	<scope>compile</scope>
     </dependency>
     <dependency>
-    	<groupId>org.coweb</groupId>
+    	<groupId>org.opencoweb</groupId>
     	<artifactId>coweb-server</artifactId>
     	<version>${version}</version>
     	<type>jar</type>

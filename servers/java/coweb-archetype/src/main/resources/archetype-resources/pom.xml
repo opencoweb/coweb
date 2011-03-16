@@ -39,7 +39,7 @@
                 <configuration>
                     <overlays>
                         <overlay>
-                            <groupId>org.coweb</groupId>
+                            <groupId>org.opencoweb</groupId>
                             <artifactId>coweb-javascript</artifactId>
                             <type>war</type>
                             <excludes>
@@ -57,17 +57,17 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.coweb</groupId>
+            <groupId>org.opencoweb</groupId>
             <artifactId>coweb-bots</artifactId>
             <version>${coweb-version}</version>
         </dependency>
         <dependency>
-            <groupId>org.coweb</groupId>
+            <groupId>org.opencoweb</groupId>
             <artifactId>coweb-server</artifactId>
             <version>${coweb-version}</version>
         </dependency>
         <dependency>
-            <groupId>org.coweb</groupId>
+            <groupId>org.opencoweb</groupId>
             <artifactId>coweb-javascript</artifactId>
             <version>${coweb-version}</version>
             <type>war</type>

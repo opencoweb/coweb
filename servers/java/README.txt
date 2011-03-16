@@ -10,7 +10,7 @@ Quick Install
 
    cd /path/to/my/project
    mvn archetype:generate 
-      -DarchetypeGroupId=org.coweb 
+      -DarchetypeGroupId=org.opencoweb 
       -DarchetypeArtifactId=coweb-archetype
    
 3. Change the defaults for the generated project as desired.

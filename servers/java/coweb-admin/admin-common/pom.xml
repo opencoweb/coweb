@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>coweb-admin</artifactId>
-        <groupId>org.coweb.admin</groupId>
+        <groupId>org.opencoweb</groupId>
         <version>0.4</version>
     </parent>
     <packaging>jar</packaging>
-    <groupId>org.coweb.admin</groupId>
+    <groupId>org.opencoweb</groupId>
     <artifactId>admin-common</artifactId>
     <version>0.4</version>
     <name>OpenCoweb :: Java :: Admin :: Common</name>

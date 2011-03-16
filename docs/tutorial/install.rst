@@ -40,7 +40,7 @@ Once the coweb modules are installed in your local repository, you can initializ
 
    $ cd /desired/project/path
    $ mvn archetype:generate 
-      -DarchetypeGroupId=org.coweb 
+      -DarchetypeGroupId=org.opencoweb 
       -DarchetypeArtifactId=coweb-archetype
 
 Enter your desired groupId (e.g., `com.acme`) and artifactId (e.g., `myproject`) when prompted. Confirm the defaults unless you wish to choose an older / newer version of the coweb server to use.

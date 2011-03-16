@@ -1,12 +1,12 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.coweb.admin</groupId>
+    <groupId>org.opencoweb</groupId>
     <artifactId>admin-ejb</artifactId>
     <packaging>ejb</packaging>
     <version>0.4</version>
     <name>OpenCoweb :: Java :: Admin :: Ejb</name>
     <parent>
-        <groupId>org.coweb.admin</groupId>
+        <groupId>org.opencoweb</groupId>
         <artifactId>coweb-admin</artifactId>
         <version>0.4</version>
     </parent>
@@ -18,7 +18,7 @@
            <scope>provided</scope>
        </dependency>
        <dependency>
-           <groupId>org.coweb.admin</groupId>
+           <groupId>org.opencoweb</groupId>
            <artifactId>admin-common</artifactId>
            <version>0.4</version>
            <scope>provided</scope>
