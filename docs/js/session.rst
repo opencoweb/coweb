@@ -135,9 +135,11 @@ Using the session instance
    A web application calls this method to update its local state after receiving a callback from :func:`SessionInterface.join`. If the application invoked :func:`SessionInterface.prepare` with `autoUpdate` set to true, the framework automatically invokes this method upon the join callback.
 
    :throws Error: If invoked before joining a session or after updating in a session
-   :class:`Promise`
+   :returns: :class:`Promise`
    :callback: Invoked on successful preparation with the same session information object received by :func:`SessionInterface.prepare`.
    :errback: Invoked on failed preparation with a string error tag of `bad-application-state` if the update fails.
+
+.. _session-use-cases:
 
 Use cases
 ~~~~~~~~~
