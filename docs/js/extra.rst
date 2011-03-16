@@ -120,7 +120,40 @@ A web application can load the `coweb/ext/SimpleLoader` module as an alternative
 
    A web application must invoke this method to start the loader running.
 
-Making widget cooperative
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Making widgets cooperative
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. todo:: write
+A web application can load the `coweb/ext/CowebWrapper` module and use the class it exports as a wrapper around existing widgets. The wrapper provides the basis for making a widget cooperation-aware.
+
+.. class:: CowebWrapper(args)
+
+   Initializes a :class:`CollabInterface` instance and subscribes to the minimum callbacks necessary to coweb enable a wrapped widget. An application subclasses this class to implement the wrapper callbacks plus additional ones it needs to make the widget cooperative (e.g., :func:`CollabInterface.subscribeSync`).
+   
+   All parameters to this constructor are passed as name/value properties on a single `args` object.
+
+   :param string id: Unique identifier to assign to the :class:`CollabInterface` instance. If left undefined, the instance attempts to use `widget.id` instead.
+   :param object widget: Widget to wrap
+
+.. attribute:: CowebWrapper.id
+
+   String identifier assigned to the :class:`CollabInterface`.
+
+.. attribute:: CowebWrapper.widget
+
+   Widget object to wrap for coweb events.
+
+.. attribute:: CowebWrapper.collab
+
+   :class:`CollabInterface` instance for this widget wrapper.
+
+.. function:: CowebWrapper.onReady(info)
+
+   An application subclass overrides this method to handle notification of :func:`CollabInterface.subscribeReady`.
+
+.. function:: CowebWrapper.onStateRequest(token)
+
+   An application subclass overrides this method to handle notification of :func:`CollabInterface.subscribeStateRequest`. The wrapper implementation should respond with the current, full state of the widget using :func:`CollabInterface.sendStateResponse`.
+
+.. function:: CowebWrapper.onStateResponse(state)
+
+   An application subclass overrides this method to handle notification of :func:`CollabInterface.subscribeStateResponse`. The wrapper implementation should apply the received state to the wrapped widget.

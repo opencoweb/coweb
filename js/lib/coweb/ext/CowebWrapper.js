@@ -10,14 +10,15 @@ define([
 ], function(coweb) {
     /**
      * @constructor
-     * @param {String} id Unique id to assign to the CollabInterface instance
-     * in this wrapper. Attempts to use this.widget.id if not specified.
+     * @param {Object} args Arguments bundle accepting
+     * - {String} id Unique identifier of this wrapper / widget
+     * - {Object} widget Widget to wrap
      */
-    var CowebWrapper = function(id) {
+    var CowebWrapper = function(args) {
         // widget to wrap
-        this.widget = null;
+        this.widget = args.widget;
         // id of this instance
-        this.id = this.id || this.widget.id;
+        this.id = args.id || this.widget.id;
         // init collab interface
         this.collab = coweb.initCollab({id : this.id});
         // listen to ready and full state events
