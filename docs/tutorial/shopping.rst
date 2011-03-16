@@ -1,3 +1,4 @@
+.. reviewed 0.3
 .. include:: /replace.rst
 
 Creating a cooperative shopping list
@@ -40,13 +41,9 @@ Java
    .. sourcecode:: console
    
       $ cd /desired/project/path
-      $ mvn archetype:create \
-         -DgroupId=<your groupId> \
-         -DartifactId=mycolist \
-         -DcowebVersion=0.4 \
-         -DarchetypeVersion=0.4 \
-         -DarchetypeGroupId=org.coweb \
-         -DarchetypeArtifactId=coweb_archetype
+      $ mvn archetype:generate 
+         -DarchetypeGroupId=org.opencoweb 
+         -DarchetypeArtifactId=coweb-archetype
 
 #. Run the application using `mvn jetty:run-war` or deploy it into your servlet container.
 

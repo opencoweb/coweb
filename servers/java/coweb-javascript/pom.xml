@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>org.coweb</groupId>
+        <groupId>org.opencoweb</groupId>
         <artifactId>coweb-java</artifactId>
         <version>0.4</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>coweb-javascript</artifactId>
+    <groupId>org.opencoweb</groupId>
     <name>OpenCoweb :: Java :: JavaScript</name>
     <packaging>war</packaging>
 
@@ -22,7 +23,7 @@
                         <configuration>
                             <tasks>
                                 <copy todir="target/coweb-javascript">
-                                    <fileset dir="../../../js/release/coweb-0.4">
+                                    <fileset dir="../../../js/release/coweb-${project.version}">
                                         <exclude name="**/build.txt" />
                                     </fileset>
                                 </copy>

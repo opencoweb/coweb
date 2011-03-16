@@ -1,16 +1,18 @@
-<project>
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>org.coweb.admin</groupId>
-    <artifactId>admin-ejb</artifactId>
-    <packaging>ejb</packaging>
-    <version>0.4</version>
-    <name>OpenCoweb :: Java :: Admin :: Ejb</name>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <parent>
-        <groupId>org.coweb.admin</groupId>
+        <groupId>org.opencoweb</groupId>
         <artifactId>coweb-admin</artifactId>
         <version>0.4</version>
     </parent>
-   <dependencies>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>admin-ejb</artifactId>
+    <packaging>ejb</packaging>
+    <name>OpenCoweb :: Java :: Admin :: Ejb</name>
+
+    <dependencies>
        <dependency>
            <groupId>javax</groupId>
            <artifactId>javaee-api</artifactId>
@@ -18,12 +20,13 @@
            <scope>provided</scope>
        </dependency>
        <dependency>
-           <groupId>org.coweb.admin</groupId>
+           <groupId>org.opencoweb</groupId>
            <artifactId>admin-common</artifactId>
-           <version>0.4</version>
+           <version>${project.version}</version>
            <scope>provided</scope>
        </dependency>
    </dependencies>
+
    <build>
        <plugins>
            <plugin>

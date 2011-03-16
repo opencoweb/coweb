@@ -43,15 +43,15 @@ define([
         // extension point
     };
 
-    proto.onSessionPrepared = function(params) {
+    proto.onSessionPrepared = function(info) {
         // extension point
     };
 
-    proto.onSessionJoined = function() {
+    proto.onSessionJoined = function(info) {
         // extension point
     };
     
-    proto.onSessionUpdated = function() {
+    proto.onSessionUpdated = function(info) {
         // extension point 
     };
     

@@ -1,3 +1,4 @@
+.. reviewed 0.4
 .. include:: /replace.rst
 
 Code organization
@@ -10,7 +11,7 @@ The current implementation of the coweb framework has code modules roughly split
    docs/          # Sphinx documentation source
    servers/
       java/       # Java server coweb modules
-      python/     # Python server coweb packages
+      python/     # Python server coweb package
    js/
       build/      # Build profiles for the coweb JavaScript
       lib/

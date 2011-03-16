@@ -16,7 +16,9 @@
         <defaultGoal>install</defaultGoal>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
@@ -39,14 +41,14 @@
                 <configuration>
                     <overlays>
                         <overlay>
-                            <groupId>org.coweb</groupId>
+                            <groupId>org.opencoweb</groupId>
                             <artifactId>coweb-javascript</artifactId>
                             <type>war</type>
                             <excludes>
                                 <exclude>META-INF/**</exclude>
                                 <exclude>WEB-INF/**</exclude>
                             </excludes>
-                            <targetPath>coweb-lib</targetPath>
+                            <targetPath>lib</targetPath>
                         </overlay>
                     </overlays>
                 </configuration>
@@ -57,17 +59,17 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.coweb</groupId>
+            <groupId>org.opencoweb</groupId>
             <artifactId>coweb-bots</artifactId>
             <version>${coweb-version}</version>
         </dependency>
         <dependency>
-            <groupId>org.coweb</groupId>
+            <groupId>org.opencoweb</groupId>
             <artifactId>coweb-server</artifactId>
             <version>${coweb-version}</version>
         </dependency>
         <dependency>
-            <groupId>org.coweb</groupId>
+            <groupId>org.opencoweb</groupId>
             <artifactId>coweb-javascript</artifactId>
             <version>${coweb-version}</version>
             <type>war</type>

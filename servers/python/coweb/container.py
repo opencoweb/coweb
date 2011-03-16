@@ -20,11 +20,11 @@ class AppContainer(object):
     classes dictating the operation of the coweb server. Generate a subclass
     with full documentation using:
     
-    pycoweb init -v -o my_start_script
+    pycoweb container my_start_script
     
     or with minimal info:
     
-    pycoweb init -o my_simple_script
+    pycoweb container my_simple_script -t simple
     '''
     webRoot = '/'
     def __init__(self, options):

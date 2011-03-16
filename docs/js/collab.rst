@@ -1,9 +1,10 @@
+.. reviewed 0.4
 .. include:: /replace.rst
 
 Collaboration and services
 --------------------------
 
-A web application creates :class:`CollabInterface` instances to send and receive cooperative web events or communicate with session services. The application can create multiple instances to help segregate messages for its components if desire (e.g., widget to widget messaging).
+A web application creates :class:`CollabInterface` instances to send and receive cooperative web events or communicate with session services. The application can create multiple instances to help segregate messages for its components if desired (e.g., widget to widget messaging) or use a single instance for all cooperative event traffic.
 
 The use of the collaboration API has the following requirements:
 
@@ -16,7 +17,7 @@ Initializing a collaboration instance
 
 .. function:: coweb.initCollab([args])
 
-   A web application or its runtime environment calls this method to get a reference to a :class:`CollabInterface` instance. The factory selects the best available implementation of the collaboration interface based on availability and browser capabilities.
+   A web application or its runtime environment calls this method to get a reference to a :class:`CollabInterface` instance. The :data:`cowebConfig` dictates the implementation of the :class:`CollabInterface` used and its configuration.
 
    All parameters to this function are passed as name/value properties on a single `args` object. Only the `id` parameter is required.
 
@@ -36,6 +37,8 @@ Using a collaboration instance
    
    A web application calls this method to subscribe to the event fired when the local :class:`SessionInterface` has finished preparing, joining, and updating in a session.
    
+   .. note:: The subscribed callback does **not** fire if the application has already prepared, joined, and updated itself in a session. Ready subscriptions should be made before the application invokes :class:`SessionInterface.prepare` or 
+   
    :param function callback: Invoked when the application is ready to participate in the session. Receives an object having these properties:
    
       site (int)
@@ -47,7 +50,9 @@ Using a collaboration instance
       roster (object)
          Roster of all users currently participating in the session, minus the local user. The object has integer site IDs as keys paired with string usernames.
 
-   :returns: object (token for :func:`CollabInterface.unsubscribe`)
+   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
+   :errback: Invoked on unsuccessful subscription
    
 .. function:: CollabInterface.subscribeEnd(contextOrCallback [, boundCallback])
    
@@ -55,10 +60,13 @@ Using a collaboration instance
    
    :param function callback: Invoked when the application is leaving or has left the session. Receives an object having these properties:
    
-      connected (bool)
+      connected (boolean)
          True if the application is still in the session at the time the callback is invoked or false if not
 
-   :returns: object (token for :func:`CollabInterface.unsubscribe`)
+   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
+   :errback: Invoked on unsuccessful subscription
+
 
 .. function:: CollabInterface.subscribeSiteJoin(contextOrCallback [, boundCallback])
 
@@ -72,7 +80,9 @@ Using a collaboration instance
       username (string)
          Authenticated name of the remote user
 
-   :returns: object (token for :func:`CollabInterface.unsubscribe`)
+   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
+   :errback: Invoked on unsuccessful subscription
 
 .. function:: CollabInterface.subscribeSiteLeave(contextOrCallback [, boundCallback])
 
@@ -86,11 +96,13 @@ Using a collaboration instance
       username (string)
          Authenticated name of the remote user
 
-   :returns: object (token for :func:`CollabInterface.unsubscribe`)
+   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
+   :errback: Invoked on unsuccessful subscription
 
-.. function:: CollabInterface.sendSync(name, value, [type='update', position=0])
+.. function:: CollabInterface.sendSync(name, value [, type='update', position=0])
 
-   A web application calls this method to send a cooperative web event to all other application instances in a session.
+   A web application calls this method to send a cooperative event to all other application instances in a session. See the section about :doc:`/intro/openg` for information about how to set these parameters to ensure convergence across remote application instances.
 
    :param string name: Name identifying which application property changed
    :param object value: New property value. Must be JSON-encodable.
@@ -102,7 +114,7 @@ Using a collaboration instance
 
 .. function:: CollabInterface.subscribeSync(name, contextOrCallback [, boundCallback])
 
-   A web application calls this method to subscribe to cooperative events sent by remote application instances in a session. The callback never fires for events sent by any local :class:`CollabInterface` instance. The callback always fires after received events are processed and potentially transformed by the local coweb operation engine. The changes made by the operation engine are transparent to the application.
+   A web application calls this method to subscribe to cooperative events sent by remote application instances in a session. The callback never fires for events sent by any local :class:`CollabInterface` instance. The callback always fires after received events are processed and potentially transformed by the local coweb operation engine. The changes made by the operation engine are transparent to the application. See the :doc:`/intro/openg` section for details.
 
    :param string name: Name identifying which application property to monitor for changes
    :param function callback: Invoked when another application instance stops participating in a session. Receives an object having these properties:
@@ -118,14 +130,18 @@ Using a collaboration instance
       site (int)
          Site identifier assigned to application instance where the event originated
 
-   :returns: object (token for :func:`CollabInterface.unsubscribe`)
+   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
+   :errback: Invoked on unsuccessful subscription
 
 .. function:: CollabInterface.subscribeStateRequest(contextOrCallback [, boundCallback])
 
    A web application calls this method to subscribe to the requests for full application state by joining application instances. If the application instance does not service this request in timely manner, it risks being removed from the session by the coweb server.
 
    :param function callback: Invoked when the coweb server contacts this application instance for a copy of the shared session state in order to update a joining instance. Receives an opaque token that must be included in the requisite call to :func:`CollabInterface.sendStateResponse`.
-   :returns: object (token for :func:`CollabInterface.unsubscribe`)
+   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
+   :errback: Invoked on unsuccessful subscription
 
 .. function:: CollabInterface.sendStateResponse(state, token)
 
@@ -137,10 +153,12 @@ Using a collaboration instance
 
 .. function:: CollabInterface.subscribeStateResponse(contextOrCallback [, boundCallback])
 
-   A web application calls this method to subscribe to full state responses while attempting to update in a session.
+   A web application calls this method to subscribe to full state responses while attempting to update itself to the current session state upon entering a session.
 
    :param function callback: Invoked when this application instance receives a copy of the shared session state from the coweb server so that the local instance can update itself before participating in the session. Receives an object with arbitrary property names and values corresponding to those sent by a remote call to :func:`CollabInterface.sendStateResponse`.
-   :returns: object (token for :func:`CollabInterface.unsubscribe`)
+   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
+   :errback: Invoked on unsuccessful subscription
 
 .. function:: CollabInterface.subscribeService(service, contextOrCallback [, boundCallback])
 
@@ -152,10 +170,12 @@ Using a collaboration instance
       value (object)
          Arbitrary, JSON-decoded data published by the service
 
-      error (bool)
+      error (boolean)
          True if the subscription to the service failed and the value is an error tag describing the issue. False if the value is actual data from the service.
 
-   :returns: object (token for :func:`CollabInterface.unsubscribe`)
+   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
+   :errback: Invoked on unsuccessful subscription
 
 .. function:: CollabInterface.postService(service, params, contextOrCallback [, boundCallback])
 
@@ -168,10 +188,12 @@ Using a collaboration instance
       value (object)
          Arbitrary, JSON-decoded data from the service
 
-      error (bool)
+      error (boolean)
          True if the request to the service failed and the value is an error tag describing the issue. False if the value is actual data from the service.
 
-   :returns: object (token for :func:`CollabInterface.unsubscribe`)
+   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
+   :errback: Invoked on unsuccessful subscription
 
 .. function:: CollabInterface.unsubscribe(token)
 
@@ -199,12 +221,12 @@ Assume an application wants to display peripheral popups as users join and leave
    function onParticipantJoin(site) {
       showPopup('A new participant joined!');
    }
-   var t1 = collab.subscribeConferenceJoin(onParticipantJoin);
+   var t1 = collab.subscribeJoin(onParticipantJoin);
   
    function onParticipantLeave(site) {
       showPopup('A participant left!');
    }
-   var t2 = collab.subscribeConferenceLeave(onParticipantLeave);
+   var t2 = collab.subscribeLeave(onParticipantLeave);
 
 Later, the user decides to disable these notifications. The application unsubscribes its callbacks to prevent further popups.
 
@@ -240,16 +262,16 @@ The application listens for remote changes to the list by registering a function
 
 .. sourcecode:: javascript
 
-   function onGroceryListChange(topic, value, type, pos, site) {
-      if(type == 'update') {
+   function onGroceryListChange(event) {
+      if(event.type == 'update') {
          // rename an item at position 'pos' in the list to name 'value'
-         renameListItem(value, pos);
-      } else if(type == 'insert') {
+         renameListItem(event.value, event.position);
+      } else if(event.type == 'insert') {
          // insert a new item with name 'value' at position 'pos'
-         addListItem(value, pos);
-      } else if(type == 'delete') {
+         addListItem(event.value, event.position);
+      } else if(event.type == 'delete') {
          // remove an existing item at position 'pos'
-         removeListItem(pos);
+         removeListItem(event.position);
       }
    }
    collab.subscribeSync('grocery', onGroceryListChange);
@@ -271,10 +293,10 @@ The application listens for remote user status changes by registering a function
 
 .. sourcecode:: javascript
 
-   function onUserStatusChange(topic, value, type, pos, site) {
-      if(type == null) {
+   function onUserStatusChange(event) {
+      if(event.type === null) {
          // show the new status 'value' for the user at site 'site'
-         showStatus(value, site);
+         showStatus(event.value, event.site);
       }
    }
    collab.subscribeSync('user.status', onUserStatusChange);
@@ -348,9 +370,6 @@ Say the same application that subscribed to sensor values now wants to tell the 
 The :class:`CollabInterface` automatically unregisters the response callback after the first response from the service. If all went well, the :func:`onTemperatureData` subscribed to the service should receive info about the requested sensors the next time the bot publishes information.
 
 .. seealso::
-
-   :doc:`/intro/openg`
-      Documentation of how the coweb operation engine uses the metadata included in calls to :func:`CollabInterface.sendSync` to resolve conflicting, simultaneous changes.
 
    :doc:`/tutorial/shopping`
       Tutorial detailing the use of the collaboration API to create a cooperative shopping list.
