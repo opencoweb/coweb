@@ -50,7 +50,7 @@ Using a collaboration instance
       roster (object)
          Roster of all users currently participating in the session, minus the local user. The object has integer site IDs as keys paired with string usernames.
 
-   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :returns: :class:`Promise` (token for :func:`CollabInterface.unsubscribe`)
    :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
    :errback: Invoked on unsuccessful subscription
    
@@ -63,7 +63,7 @@ Using a collaboration instance
       connected (boolean)
          True if the application is still in the session at the time the callback is invoked or false if not
 
-   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :returns: :class:`Promise` (token for :func:`CollabInterface.unsubscribe`)
    :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
    :errback: Invoked on unsuccessful subscription
 
@@ -80,7 +80,7 @@ Using a collaboration instance
       username (string)
          Authenticated name of the remote user
 
-   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :returns: :class:`Promise` (token for :func:`CollabInterface.unsubscribe`)
    :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
    :errback: Invoked on unsuccessful subscription
 
@@ -96,7 +96,7 @@ Using a collaboration instance
       username (string)
          Authenticated name of the remote user
 
-   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :returns: :class:`Promise` (token for :func:`CollabInterface.unsubscribe`)
    :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
    :errback: Invoked on unsuccessful subscription
 
@@ -130,7 +130,7 @@ Using a collaboration instance
       site (int)
          Site identifier assigned to application instance where the event originated
 
-   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :returns: :class:`Promise` (token for :func:`CollabInterface.unsubscribe`)
    :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
    :errback: Invoked on unsuccessful subscription
 
@@ -139,7 +139,7 @@ Using a collaboration instance
    A web application calls this method to subscribe to the requests for full application state by joining application instances. If the application instance does not service this request in timely manner, it risks being removed from the session by the coweb server.
 
    :param function callback: Invoked when the coweb server contacts this application instance for a copy of the shared session state in order to update a joining instance. Receives an opaque token that must be included in the requisite call to :func:`CollabInterface.sendStateResponse`.
-   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :returns: :class:`Promise` (token for :func:`CollabInterface.unsubscribe`)
    :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
    :errback: Invoked on unsuccessful subscription
 
@@ -156,7 +156,7 @@ Using a collaboration instance
    A web application calls this method to subscribe to full state responses while attempting to update itself to the current session state upon entering a session.
 
    :param function callback: Invoked when this application instance receives a copy of the shared session state from the coweb server so that the local instance can update itself before participating in the session. Receives an object with arbitrary property names and values corresponding to those sent by a remote call to :func:`CollabInterface.sendStateResponse`.
-   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :returns: :class:`Promise` (token for :func:`CollabInterface.unsubscribe`)
    :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
    :errback: Invoked on unsuccessful subscription
 
@@ -173,7 +173,7 @@ Using a collaboration instance
       error (boolean)
          True if the subscription to the service failed and the value is an error tag describing the issue. False if the value is actual data from the service.
 
-   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :returns: :class:`Promise` (token for :func:`CollabInterface.unsubscribe`)
    :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
    :errback: Invoked on unsuccessful subscription
 
@@ -191,7 +191,7 @@ Using a collaboration instance
       error (boolean)
          True if the request to the service failed and the value is an error tag describing the issue. False if the value is actual data from the service.
 
-   :returns: Promise (token for :func:`CollabInterface.unsubscribe`)
+   :returns: :class:`Promise` (token for :func:`CollabInterface.unsubscribe`)
    :callback: Invoked on successful local subscription. Default :class:`UnmanagedHubCollab` implementation always succeeds.
    :errback: Invoked on unsuccessful subscription
 

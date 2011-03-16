@@ -13,6 +13,10 @@
 .. _Apache Maven: http://maven.apache.org/
 .. _Asynchronous Module Definition: http://wiki.commonjs.org/wiki/Modules/AsynchronousDefinition
 .. _AMD: http://wiki.commonjs.org/wiki/Modules/AsynchronousDefinition
+.. _CommonJS: http://www.commonjs.org/
+.. _RequireJS: http://requirejs.org/
+.. _promise: http://wiki.commonjs.org/wiki/Promises
+.. _Promises\/A CommonJS proposal: http://wiki.commonjs.org/wiki/Promises/A
 
 .. _OpenAjax.hub.subscribe: http://www.openajax.org/member/wiki/OpenAjax_Hub_1.0_Specification_PublishSubscribe#OpenAjax.hub.subscribe.28name.2C_callback.2C_scope.2C_subscriberData.2C_filter.29
 

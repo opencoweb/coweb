@@ -1,8 +1,8 @@
 .. reviewed 0.4
 .. include:: /replace.rst
 
-Configuration and module load
------------------------------
+Configuration and load
+----------------------
 
 A web application can configure the various implementations of the JavaScript API components used and URLs contacted for login, logout, and session preparation. If the application wishes to deviate from the default configuration, it must define a :data:`cowebConfig` object of its own **before** importing the `coweb/main` module. After loading that module, both the web application and the framework should consider the :data:`cowebConfig` read-only.
 
@@ -53,7 +53,7 @@ As noted in :doc:`concepts`, the JavaScript portions of the |coweb api| follow t
 Example application template
 ############################
 
-A template for a coweb application having a couple of cooperative widgets follows and a non-default `admin` URL follows. The application uses RequireJS as its AMD loader. It assumes all of its AMD resources reside under :file:`lib/` and its subfolders.
+A template for a coweb application having a couple of cooperative widgets follows and a non-default `admin` URL follows. The application uses `RequireJS`_ as its AMD loader. It assumes all of its AMD resources reside under :file:`lib/` and its subfolders.
 
 For a more complete example, revisit the tutorial about :doc:`/tutorial/shopping`.
 
