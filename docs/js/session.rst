@@ -39,11 +39,8 @@ Using the session instance
 
    :throws Error: If invoked before preparing the session or after joining a session
    :returns: :class:`Promise`
-   :callback: Invoked on successful preparation with the same session information object received by :func:`SessionInterface.prepare`.
+   :callback: Invoked after successful join if the `autoUpdate` flag to :func:`SessionInterface.prepare` was false. Otherwise, invoked after the update completes. Receives an object with the same properties documented for :func:`SessionInterface.prepare`.
    :errback: Invoked on failed preparation with a string error tag of `not-allowed` if the user needs to authenticate, `session-unavailable` if the session ended before joining, or `server-unavailable`
-
-   :callback: Invoked on successful join
-   :errback: Invoked on failed join
 
 .. function:: SessionInterface.login(username, password)
    
@@ -113,7 +110,7 @@ Using the session instance
    :param boolean autoUpdate: True to automatically update application state in a session after successfully joining it, false to require an explicit application call to :func:`SessionInterface.updateInSession`. Defaults to `true`.
    :throws Error: If invoked after preparing a session
    :returns: :class:`Promise`
-   :callback: Invoked on successful preparation with an object having these attributes:
+   :callback: Invoked after successful preparation if `autoJoin` is false. Otherwise, invoked after the last auto action completes. Receives an object with the following properties:
 
       collab (boolean)
          If the server created a collaborative session or not. May or may not match what was requested.
@@ -127,6 +124,8 @@ Using the session instance
          URL :class:`SessionInterface.join` will contact to join the session
       sessionid (string)
          Unique session identifier assigned by the coweb server
+      phase (string)
+         One of `prepare`, `join`, or `update` indicating which action resolved the promise
 
    :errback: Invoked on failed preparation with a string error tag of `not-allowed` if the user needs to authenticate or `server-unavailable`
 
@@ -136,7 +135,7 @@ Using the session instance
 
    :throws Error: If invoked before joining a session or after updating in a session
    :returns: :class:`Promise`
-   :callback: Invoked on successful preparation with the same session information object received by :func:`SessionInterface.prepare`.
+   :callback: Invoked after successful update. Receives an object with the same properties documented for :func:`SessionInterface.prepare`.
    :errback: Invoked on failed preparation with a string error tag of `bad-application-state` if the update fails.
 
 .. _session-use-cases:
