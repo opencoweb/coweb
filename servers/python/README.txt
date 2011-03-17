@@ -15,6 +15,6 @@ To install the coweb server dependencies and minified coweb JavaScript into a vi
    # start the server
    /some/path/bin/run_server.py
 
-Place your coweb application in /some/path/www and visit http://localhost:9000/www/ in your browser. Edit /some/path/bin/run_server.py to customize the server settings.
+Place your coweb application in /some/path/www and visit http://localhost:8080/www/ in your browser. Edit /some/path/bin/run_server.py to customize the server settings.
 
 For more information, see http://opencoweb.org/ocwdocs/.

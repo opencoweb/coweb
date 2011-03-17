@@ -31,7 +31,7 @@ class AppContainer(object):
         self.appSettings = {'debug' : options.debug}
         self.containerPath = os.path.abspath(os.path.dirname(sys.argv[0]))
         self.modulePath = os.path.abspath(os.path.dirname(coweb.__file__))
-        self.httpPort = 9000 if options.port is None else options.port
+        self.httpPort = 8080 if options.port is None else options.port
         self.httpStaticPath = '../www'
         
         # default paths and coweb options

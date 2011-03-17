@@ -121,7 +121,7 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
 
    .. attribute:: httpPort
    
-      Integer port number on which the coweb server listens. Defaults to `9000` and is overridden by any :option:`coweb_app.py --port` command line argument.
+      Integer port number on which the coweb server listens. Defaults to `8080` and is overridden by any :option:`coweb_app.py --port` command line argument.
    
    .. attribute:: httpStaticPath
    
