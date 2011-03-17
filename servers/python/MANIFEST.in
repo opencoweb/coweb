@@ -1,0 +1,6 @@
+include README
+include LICENSE
+include NOTICES
+include pycoweb
+recursive-include coweb *.py *.tmpl
+recursive-include js *

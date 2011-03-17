@@ -11,3 +11,6 @@ js/lib/require.js
 js/lib/org
 js/release/coweb-latest
 target/
+servers/python/MANIFEST
+servers/python/dist
+servers/python/build
