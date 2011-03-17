@@ -54,7 +54,6 @@
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>${artifactId}</finalName>
     </build>
 
     <dependencies>
