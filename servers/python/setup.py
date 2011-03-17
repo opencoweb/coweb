@@ -8,6 +8,8 @@ Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 from distutils.core import setup
 import sys
 import os
+import shutil
+import subprocess
 
 VERSION = '0.4'
 
@@ -22,6 +24,8 @@ elif os.path.isdir(srcDir):
         except OSError:
             pass
         srcDir = 'js'
+        # package the main README
+        shutil.copy('../../README.rst', 'README')
 else:
     raise RuntimeError('missing: js framework release v%s' % VERSION)
 
@@ -74,3 +78,4 @@ if isSDist:
         os.remove('js')
     except OSError:
         pass
+    subprocess.call(['git', 'checkout', 'README'])
