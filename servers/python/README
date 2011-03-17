@@ -9,7 +9,7 @@ To install the coweb server dependencies and minified coweb JavaScript into a vi
    # activate it
    source /some/path/bin/activate
    # use pip to install coweb package and dependencies
-   pip install -r requirements.txt
+   pip install .
    # deploy a coweb server container and js libs
    pycoweb deploy /some/path
    # start the server

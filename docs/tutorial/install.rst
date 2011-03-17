@@ -114,7 +114,7 @@ If you want to create a virtualenv containing all the pre-requisites needed to d
    .. sourcecode:: console
    
       $ cd servers/python
-      $ pip install -r requirements.txt
+      $ pip install .
 
 #. Use the `pycoweb` command to create a new coweb deployment in the virtual environment root.
 
@@ -152,10 +152,10 @@ The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb e
 
    .. sourcecode:: console
    
-      $ cd cowebx/apps
+      $ cd cowebx/cowebx-apps
       $ python setup.py deploy /desired/project/path --force
 
-   .. note:: This command will overwrite any :file:`run_server` script that already exists in :file:`/desired/project/path/bin` (e.g., if you ran :file:`pycoweb` previously to seed an empty application in the virtualenv).
+   .. note:: This command will overwrite any :file:`run_server.py` script that already exists in :file:`/desired/project/path/bin` (e.g., if you ran :file:`pycoweb` previously to seed an empty application in the virtualenv).
 
 #. Execute the generated coweb application container script to start the server.
 
