@@ -12,9 +12,7 @@
     <name>OpenCoweb :: Java :: Admin</name>
 
     <modules>
-        <module>admin-ejb</module>
-        <module>admin-common</module>
-        <module>admin-client</module>
         <module>admin-archetype</module>
+        <module>admin-jar</module>
   	</modules>
 </project>
