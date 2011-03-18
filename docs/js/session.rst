@@ -1,8 +1,8 @@
 .. reviewed 0.4
 .. include:: /replace.rst
 
-Session preparation and joining
--------------------------------
+Session preparation and join
+----------------------------
 
 A web application creates one :class:`SessionInterface` instance per browser document frame to control authentication, session preparation, session joining, and session exiting operations against a coweb server. The application receives callbacks from the :class:`SessionInterface` as these operations progress, succeed, or fail.
 
@@ -38,12 +38,9 @@ Using the session instance
       A web application calls this method to join a session after receiving a callback from :func:`SessionInterface.prepare`. If the application invoked :func:`SessionInterface.prepare` with `autoJoin` set to true, the framework automatically invokes this method upon the prepare callback.
 
    :throws Error: If invoked before preparing the session or after joining a session
-   :returns: Promise
-   :callback: Invoked on successful preparation with the same session information object received by :func:`SessionInterface.prepare`.
+   :returns: :class:`Promise`
+   :callback: Invoked after successful join if the `autoUpdate` flag to :func:`SessionInterface.prepare` was false. Otherwise, invoked after the update completes. Receives an object with the same properties documented for :func:`SessionInterface.prepare`.
    :errback: Invoked on failed preparation with a string error tag of `not-allowed` if the user needs to authenticate, `session-unavailable` if the session ended before joining, or `server-unavailable`
-
-   :callback: Invoked on successful join
-   :errback: Invoked on failed join
 
 .. function:: SessionInterface.login(username, password)
    
@@ -60,7 +57,7 @@ Using the session instance
 
    A web application calls this method to leave a session while or after entering it.
 
-   :returns: Promise
+   :returns: :class:`Promise`
    :callback: Invoked on successful exit
    :errback: Invoked on failed exit
 
@@ -112,8 +109,8 @@ Using the session instance
    :param boolean autoJoin: True to automatically join a session after successfully preparing it, false to require an explicit application call to :func:`SessionInterface.join`. Defaults to `true`.
    :param boolean autoUpdate: True to automatically update application state in a session after successfully joining it, false to require an explicit application call to :func:`SessionInterface.updateInSession`. Defaults to `true`.
    :throws Error: If invoked after preparing a session
-   :returns: Promise
-   :callback: Invoked on successful preparation with an object having these attributes:
+   :returns: :class:`Promise`
+   :callback: Invoked after successful preparation if `autoJoin` is false. Otherwise, invoked after the last auto action completes. Receives an object with the following properties:
 
       collab (boolean)
          If the server created a collaborative session or not. May or may not match what was requested.
@@ -121,14 +118,14 @@ Using the session instance
          Session key passed to :func:`SessionInterface.prepare` or determined from the page URL
       info (object)
          Arbitrary name/value pairs included by a coweb server extension point
-      nextPromise (Promise)
-         :class:`Promise` for the automatic call to :func:`SessionInterface.join` if `autoJoin` was true. Useful for call chaining.
       username (string)
          Name of the authenticated user
       sessionurl (string)
          URL :class:`SessionInterface.join` will contact to join the session
       sessionid (string)
          Unique session identifier assigned by the coweb server
+      phase (string)
+         One of `prepare`, `join`, or `update` indicating which action resolved the promise
 
    :errback: Invoked on failed preparation with a string error tag of `not-allowed` if the user needs to authenticate or `server-unavailable`
 
@@ -137,9 +134,11 @@ Using the session instance
    A web application calls this method to update its local state after receiving a callback from :func:`SessionInterface.join`. If the application invoked :func:`SessionInterface.prepare` with `autoUpdate` set to true, the framework automatically invokes this method upon the join callback.
 
    :throws Error: If invoked before joining a session or after updating in a session
-   :returns: Promise
-   :callback: Invoked on successful preparation with the same session information object received by :func:`SessionInterface.prepare`.
+   :returns: :class:`Promise`
+   :callback: Invoked after successful update. Receives an object with the same properties documented for :func:`SessionInterface.prepare`.
    :errback: Invoked on failed preparation with a string error tag of `bad-application-state` if the update fails.
+
+.. _session-use-cases:
 
 Use cases
 ~~~~~~~~~

@@ -6,14 +6,32 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
 from distutils.core import setup
+import sys
 import os
+import shutil
+import subprocess
 
 VERSION = '0.4'
+
+isSDist = len(sys.argv) > 1 and sys.argv[1] == 'sdist'
+srcDir = os.path.join(os.environ['PWD'], '../../js/release/coweb-%s' % VERSION)
+if os.path.isdir('js') or os.path.islink('js'):
+    srcDir = 'js'
+elif os.path.isdir(srcDir):
+    if isSDist:
+        try:
+            os.symlink(srcDir, 'js')
+        except OSError:
+            pass
+        srcDir = 'js'
+        # package the main README
+        shutil.copy('../../README.rst', 'README')
+else:
+    raise RuntimeError('missing: js framework release v%s' % VERSION)
 
 # collect js release as data files
 cowebJSFiles = []
 shareDir = 'share/coweb/js/coweb-%s' % VERSION
-srcDir = os.path.join(os.environ['PWD'], '../../js/release/coweb-%s' % VERSION)
 for d, sd, fs in os.walk(srcDir):
     for fn in fs:
         sd = d[len(srcDir)+1:]
@@ -26,8 +44,9 @@ if not len(cowebJSFiles):
 setup(name='OpenCoweb',
     version=VERSION,
     description='Tornado-based Python server for the Open Cooperative Web Framework',
-    url='http://github.com/opencoweb',
+    url='http://opencoweb.org',
     license='New BSD License / Academic Free License',
+    maintainer='Dojo Foundation',
     packages=[
         'coweb',
         'coweb.access', 
@@ -50,5 +69,13 @@ setup(name='OpenCoweb',
             'templates/*.html'
         ]
     },
-    scripts=['pycoweb']
+    scripts=['pycoweb'],
+    install_requires=['tornado>=1.1'],
 )
+
+if isSDist:
+    try:
+        os.remove('js')
+    except OSError:
+        pass
+    subprocess.call(['git', 'checkout', 'README'])

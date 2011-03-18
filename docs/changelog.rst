@@ -1,4 +1,4 @@
-.. reviewed 0.3
+.. reviewed 0.4
 .. include:: /replace.rst
 
 Changelog

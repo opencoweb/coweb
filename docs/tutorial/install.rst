@@ -83,7 +83,7 @@ Python setup
 
 The |coweb API| includes a Python cooperative web server implementation based on `Tornado`_. The Python server requires Python 2.6 or 2.7 which ship with or are easily installable on most \*nix/BSD operating systems.
 
-.. _empty-virtualenv:
+.. _virtualenv-install:
 
 Create a new coweb virtualenv
 #############################
@@ -109,14 +109,14 @@ If you want to create a virtualenv containing all the pre-requisites needed to d
       
       $ source /desired/project/path/bin/activate
 
-#. Use `pip` to install :py:mod:`coweb` package and its dependencies in the virtual environment.
+#. Use :file:`pip` to install :py:mod:`coweb` package and its dependencies in the virtual environment.
 
    .. sourcecode:: console
    
       $ cd servers/python
-      $ pip install -r requirements.txt
+      $ pip install .
 
-#. Use the `pycoweb` command to create a new coweb deployment in the virtual environment root.
+#. Use the :file:`pycoweb` command to create a new coweb deployment in the virtual environment root.
 
    .. sourcecode:: console
    
@@ -129,12 +129,14 @@ If you want to create a virtualenv containing all the pre-requisites needed to d
       $ run_server.py
       $ deactivate      # to leave the virtualenv after quitting the server
 
-By default, the script makes the contents of :file:`/desired/project/path/www` accessible at http://localhost:9000/www. Modify the :file:`/desired/project/pathbin/run_server.py` script and restart the server to make changes to these, and other, defaults. See the Python documentation section about :doc:`/python/container` for details.
+By default, the script makes the contents of :file:`/desired/project/path/www` accessible at http://localhost:8080/www. Modify the :file:`/desired/project/pathbin/run_server.py` script and restart the server to make changes to these, and other, defaults. See the Python documentation section about :doc:`/python/container` for details.
+
+.. _distutils-install:
 
 Install using distutils
 #######################
 
-You can manually run the distutils :file:`setup.py` to install the Python `coweb` package in your system :file:`site-packages`. If you take this approach, you must resolve dependencies yourself (e.g., `Tornado`_). Otherwise, the steps are the same sans use of virtualenv.
+You can manually run the distutils :file:`setup.py` to install the Python `coweb` package in your system :file:`site-packages` or the active virtualenv. If you take this approach, you must resolve dependencies yourself (e.g., `Tornado`_). Otherwise, the steps are the same sans use of pip.
 
 Deploy the cowebx demos
 #######################
@@ -152,10 +154,10 @@ The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb e
 
    .. sourcecode:: console
    
-      $ cd cowebx/apps
+      $ cd cowebx/cowebx-apps
       $ python setup.py deploy /desired/project/path --force
 
-   .. note:: This command will overwrite any :file:`run_server` script that already exists in :file:`/desired/project/path/bin` (e.g., if you ran :file:`pycoweb` previously to seed an empty application in the virtualenv).
+   .. note:: This command will overwrite any :file:`run_server.py` script that already exists in :file:`/desired/project/path/bin` (e.g., if you ran :file:`pycoweb` previously to seed an empty application in the virtualenv).
 
 #. Execute the generated coweb application container script to start the server.
 

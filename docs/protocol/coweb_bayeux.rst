@@ -10,6 +10,8 @@ The following sections detail the procedure a cooperative web application must f
 
 The message examples below show complete HTTP headers assuming use of Bayeux over XHR long-polling connections. In other uses of Bayeux (e.g., over WebSocket), the HTTP headers may be absent but the message bodies remain the same.
 
+.. _proto-session-prepare:
+
 Session preparation
 ~~~~~~~~~~~~~~~~~~~
 
@@ -73,6 +75,8 @@ The response HTTP status should be any appropriate HTTP error for programmatic u
       "collab" : true/false,
       "error" : "error tag"
    }
+
+.. _proto-session-join:
 
 Session joining
 ~~~~~~~~~~~~~~~
@@ -142,6 +146,8 @@ The server must send the first client to join a session an empty state message i
       "channel" : "/service/session/join/state",
       "data" : null
    }]
+
+.. _proto-session-update:
 
 Server contacts updater for state
 #################################
