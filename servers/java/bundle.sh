@@ -1,6 +1,12 @@
 #!/bin/bash
 OPWD=$PWD
-mvn -Dgpg.passphrase=$1 clean source:jar javadoc:jar install gpg:sign
+read -s -p "GPG password: " KEYPASS
+echo
+mvn -DperformRelease=true -Dgpg.passphrase=$KEYPASS -Dmaven.artifact.gpg.keyname=9B71B7C5 clean source:jar javadoc:jar verify
+if [[ $? != 0 ]]; then
+    exit $?
+fi
+rm bundles/*
 mkdir bundles
 MODULES="
 .
