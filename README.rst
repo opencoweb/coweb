@@ -33,8 +33,6 @@ Getting Started
 Status
 ======
 
-**NOTE** The master branch is now working toward a v0.4 release which includes a total restructuring of the JavaScript code in AMD format and moves the coweb examples to the http://github.com/opencoweb/cowebx repository. Be aware the rendered docs at http://opencoweb.org/ocwdocs from the last stable release (v0.3) do not match what is currently in the master branch. Both will be updated when v0.4 is final.
-
 Tagged revisions in the *master* branch are our stable releases. The docs at  http://opencoweb.org/ocwdocs match the latest stable release.
 
 The *opencoweb/coweb/master* branch on GitHub contains the framework code progressing toward the next stable release. We increment the version number in the code immediately after tagging a stable release so it reflects our next intended stable version.
