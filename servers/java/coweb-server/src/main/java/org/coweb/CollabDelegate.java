@@ -177,7 +177,7 @@ public class CollabDelegate extends DefaultDelegate {
 		}
 	}
 	
-	private void sendRosterAvailable(ServerSession serverSession) {
+	private void sendRosterAvailable(ServerSession client) {
         //System.out.println("CollabSessionHandler::sendRosterAvailable");
         /* create channel */
         BayeuxServer server = this.sessionManager.getBayeux();
@@ -199,8 +199,8 @@ public class CollabDelegate extends DefaultDelegate {
 
 		ServerSession from = this.sessionManager.getServerSession();
 		
-		Integer siteId = (Integer)serverSession.getAttribute("siteid");
-        String username = (String)serverSession.getAttribute("username");
+		Integer siteId = (Integer)client.getAttribute("siteid");
+        String username = (String)client.getAttribute("username");
 
 		Map<String, Object> data = new HashMap<String,Object>();
         data.put("siteId", siteId);
@@ -212,17 +212,37 @@ public class CollabDelegate extends DefaultDelegate {
 	}
 	
 	private void sendRosterUnavailable(ServerSession client) {
-		ServerSession from = this.sessionManager.getServerSession();
-		String channel = "/session/roster/unavailable";
+	    //System.out.println("CollabSessionHandler::sendRosterAvailable");
+        /* create channel */
+        BayeuxServer server = this.sessionManager.getBayeux();
+		ServerChannel.Initializer initializer = new ServerChannel.Initializer()
+        {
+            @Override
+            public void configureChannel(ConfigurableServerChannel channel)
+            {
+                channel.setPersistent(true);
+            }
+        };
+        
+        server.createIfAbsent("/session/roster/unavailable", initializer);
+        ServerChannel channel = server.getChannel("/session/roster/unavailable");
+        if(channel == null) {
+            //System.out.println("channel is null shit");
+            return;
+        }
 
+		ServerSession from = this.sessionManager.getServerSession();
+		
 		Integer siteId = (Integer)client.getAttribute("siteid");
         String username = (String)client.getAttribute("username");
-		
+
 		Map<String, Object> data = new HashMap<String,Object>();
         data.put("siteId", siteId);
         data.put("username", username);
+
+        //System.out.println(data);
 		
-		client.deliver(from, channel, data, null);
+		channel.publish(from, data, null);
 	}
 	
 	public String toString() {
