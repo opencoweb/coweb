@@ -68,7 +68,7 @@ define([
          *
          * @param {Object|Function} Context in which to invoke the callback or
          * the callback itself
-         * @param {Function|undefined} callback Function to invoke if context
+         * @param {Function|String} callback Function to invoke if context
          * specified
          * @return Promise which always notifies success because this impl is
          * synchronous
@@ -111,8 +111,10 @@ define([
         _onLocalJoin: function(params) {
             var users = [];
             for(var site in params.roster) {
-                var username = params.roster[site];
-                users.push(this._addUser(site, username, false));
+                if(params.roster.hasOwnProperty(site)) {
+                    var username = params.roster[site];
+                    users.push(this._addUser(site, username, false));
+                }
             }
             // notify about all existing users all at once
             this._notify('join', users, this.count);

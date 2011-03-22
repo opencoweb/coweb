@@ -10,9 +10,9 @@ define([
 ], function(coweb) {
     /**
      * @constructor
-     * @param {Object} args Arguments bundle accepting
-     * - {String} id Unique identifier of this wrapper / widget
-     * - {Object} widget Widget to wrap
+     * @param {String} [args.id=args.widget.id] Unique identifier of this 
+     * wrapper / widget
+     * @param {Object} args.widget Widget to wrap
      */
     var CowebWrapper = function(args) {
         // widget to wrap

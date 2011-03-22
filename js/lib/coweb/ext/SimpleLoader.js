@@ -13,8 +13,8 @@ define([
 ], function(require, coweb) {
     /**
      * @constructor
-     * @param {any} id id Unique id to assign to the CollabInterface instance
-     * in this loader.
+     * @param {String} id Unique id to assign to the CollabInterface instance
+     * in this loader
      */
     var SimpleLoader = function(id) {
         // hard coded conference key to use
@@ -32,6 +32,9 @@ define([
     };
     var proto = SimpleLoader.prototype;
 
+    /**
+     * Starts the loader sequence.
+     */
     proto.run = function() {
         // invoke initial extension point
         this.onRun();
@@ -39,30 +42,63 @@ define([
         this.prepare();
     };
 
+    /**
+     * Override to perform work when the loader starts running.
+     */
     proto.onRun = function() {
         // extension point
     };
 
+    /**
+     * Override to handle successful session preparation.
+     *
+     * @param {Object} info Session information from SessionInterface.prepare
+     */
     proto.onSessionPrepared = function(info) {
         // extension point
     };
 
+    /**
+     * Override to handle successful session joining.
+     *
+     * @param {Object} info Session information from SessionInterface.join
+     */
     proto.onSessionJoined = function(info) {
         // extension point
     };
-    
+
+    /**
+     * Override to handle successful application updating within the session.
+     *
+     * @param {Object} info Session information from SessionInterface.update
+     */
     proto.onSessionUpdated = function(info) {
         // extension point 
     };
-    
+
+    /**
+     * Override to handle any failure while preparing, joining, or updating
+     * in the session.
+     *
+     * @param {Error} err Error object
+     */
     proto.onSessionFailed = function(err) {
         // extension point
     };
     
+    /**
+     * Override to handle the CollaborationInterface.subscribeReady callback.
+     *
+     * @param {Object} info Roster info from the callback
+     */
     proto.onCollabReady = function(info) {
         // extension point
     };
 
+    /**
+     * Initiates the prepare, join, and update sequence with empty callbacks
+     * subscribed to receive notification in each phase.
+     */
     proto.prepare = function() {
         var params = {collab : !!this.cowebCollab};
         if(this.cowebKey) {
@@ -80,6 +116,11 @@ define([
         .then('_onSessionUpdated', 'onSessionFailed', this);
     };
 
+    /**
+     * Invokes onSessionPrepared and then SessionInterface.join. 
+     *
+     * @private
+     */
     proto._onSessionPrepared = function(info) {
         // store metadata for later app access
         this.prepareMetadata = info;
@@ -88,7 +129,12 @@ define([
         // do the join
         return this.sess.join();
     };
-    
+
+    /**
+     * Invokes onSessionJoined and then SessionInterface.update. 
+     *
+     * @private
+     */
     proto._onSessionJoined = function(info) {
         // notify the extension point; let exceptions bubble
         this.onSessionJoined(info);
@@ -96,6 +142,11 @@ define([
         return this.sess.update();
     };
     
+    /**
+     * Invokes onSessionUpdated.
+     * 
+     * @private
+     */
     proto._onSessionUpdated = function(info) {
         this.onSessionUpdated(info);
     };

@@ -1,7 +1,5 @@
 //
 // Unmanaged OpenAjax Hub implementation of the ListenerInterface.
-// 
-// @todo: doc cleanup throughout
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
@@ -16,6 +14,9 @@ define([
     var SYNC_INTERVAL = 10000;
     var PURGE_INTERVAL = 10000;
     
+    /**
+     * @constructor
+     */
     var UnmanagedHubListener = function() {
         // make sure we don't listen to our own messages
         this._mutex = false;
@@ -41,11 +42,11 @@ define([
     var proto = UnmanagedHubListener.prototype;
 
     /**
-     * Starts listening for cooperative events on the OpenAjax hub to forward
-     * to the session bridge instance.
+     * Starts listening for cooperative events on the OpenAjax Hub to forward
+     * to the session.
      *
-     * @param bridge Reference to the ListenerBridge
-     * @param prepResponse Preparation response from the admin
+     * @param {Object} bridge Session interface for the listener
+     * @param {Object} prepResponse Prepare response from the coweb server
      */
     proto.start = function(bridge, prepResponse) {
         this._bridge = bridge;
@@ -77,8 +78,11 @@ define([
     };
 
     /**
-     * Stops listening for cooperative events on the OpenAjax hub to forward
-     * to the HubController.
+     * Stops listening for cooperative events on the OpenAjax Hub to forward
+     * to the session. Sends notification that the app is leaving the session.
+     *
+     * @param {Boolean} isDisconnected True if already disconnected from the
+     * session or false if still connected
      */
     proto.stop = function(isDisconnected) {
         if(this._bridge) {
@@ -105,11 +109,12 @@ define([
     };
 
     /**
-     * Called by the initm ethod to subscribe to service bot, state, and sync
+     * Called by the init method to subscribe to service bot, state, and sync
      * topics. Only subscribes to state and sync topics if collab is true.
      * 
-     * @param collab True to enable state and sync topics, false to listen to
-     *   subscription events only
+     * @private
+     * @param {Boolean} collab True to enable state and sync topics, false to 
+     * listen to service events only
      */
     proto._subscribeHub = function(collab) {
         var conn;
@@ -138,7 +143,9 @@ define([
     };
 
     /**
-     * Unsubscribe the listener from *all* Hub topics.
+     * Unsubscribe this listener from all Hub topics.
+     *
+     * @private
      */
     proto._unsubscribeHub = function() {
         for(var i=0, l=this._conns.length; i < l; i++) {
@@ -148,10 +155,10 @@ define([
     };
 
     /**
-     * Called by the client to set a unique ID for this site in the active 
-     * conference. Used to initialize the op engine.
+     * Called by the session to set the unique ID for this site in the active 
+     * session. Used to initialize the op engine.
      *
-     * @param id Unique integer ID for this site in the current conference
+     * @param {Number} id Unique integer ID for this site in the session
      */
     proto.setSiteID = function(id) {
         //console.debug('UnmanagedHubListener.setSiteID', id);
@@ -161,16 +168,16 @@ define([
     };
 
     /**
-     * Called by the ListenerBridge when a coweb event is received from a 
-     * remote app or service bot. Processes the data in the local operation
-     * engine if required before placing the data on the local Hub. Takes
-     * special action for site join, site leave, and engine sync topics.
+     * Called by the session when a coweb event is received from a remote app
+     * or service bot. Processes the data in the local operation engine if 
+     * required before publishing it on the local Hub. Takes special action for
+     * engine sync topics to ensure the op engine remains in a valid state.
      *
-     * @param topic String topic name (topics.SYNC.**)
-     * @param msg Operation object associated with topic
-     * @param site Unique integer ID of the originating site in the conference
-     * @param msgType String 'result' for data or 'error' for service error, 
-     *   nothing to do with operation type packed in the message
+     * @param {String} topic Topic name (topics.SYNC.**)
+     * @param {Object} msg Received cooperative event or error message
+     * @param {Number} site Unique integer ID of the sending site
+     * @param {String} msgType String 'result' for data or 'error' for 
+     * error message
      */
     proto.syncInbound = function(topic, msg, site, msgType) {
         //console.debug("UnmanagedHubListener.syncInbound:", topic, msg, site);        
@@ -252,12 +259,13 @@ define([
     };
 
     /**
-     * Called to receive a incremental state change from the local Hub. 
-     * Processes the data in the local operation engine if required before 
-     * handing the data to the client for transmission.
+     * Called when an CollabInterface publishes a cooperative event on the 
+     * local Hub. Processes the data in the local operation engine if required 
+     * before forwarding it to the session.
      * 
-     * @param topic String topic name (topics.SYNC.**)
-     * @param publisherData Object topic value
+     * @private
+     * @param {String} topic Topic name (topics.SYNC.**)
+     * @param {Object} publisherData Cooperative event to send
      */
     proto._syncOutbound = function(topic, publisherData) {
         // if the mutex is held, we're broadcasting and shouldn't be 
@@ -326,12 +334,13 @@ define([
     };
     
     /**
-     * Called by the local client when a notice is received from the moderator
-     * of the session about other clients. Converts the notice to a Hub event
-     * and broadcasts it on the local Hub.
+     * Called by the session when a roster notice arrives. Converts the notice 
+     * to a Hub event and broadcasts it on the local Hub. Updates the sites
+     * tracked by the op engine.
      *
-     * @param type String 'available', 'unavailable'
-     * @param roster Object with {site : int, username : string}
+     * @param {String} type 'available', 'unavailable'
+     * @param {Number} roster.site Integer site ID affected
+     * @param {String} roster.username Authenticated username at the site
      */
     proto.noticeInbound = function(type, roster) {
         var topic, event = {};
@@ -377,11 +386,12 @@ define([
     };
 
     /**
-     * Called to receive a service subscription request from the local Hub
-     * and to post it to the client for transmission.
+     * Called when a CollabInterface instance subscribes to a service.
+     * Forwards the request to the session.
      * 
-     * @param topic String topic name (topics.SUB_SERVICE.**)
-     * @param publisherData Object topic value
+     * @private
+     * @param {String} topic Topic name (topics.SUB_SERVICE.**)
+     * @param {Object} publisherData Object topic value
      */
     proto._onSubServiceOutbound = function(topic, publisherData) {
         //console.debug("UnmanagedHubListener._onSubServiceOutbound:", topic, publisherData);
@@ -393,12 +403,14 @@ define([
         }    
     };
 
+
     /**
-     * Called to receive a service unsubscribe request from the local Hub
-     * and to post it to the client for transmission.
+     * Called when a CollabInterface instance unsubscribes from a service.
+     * Forwards the request to the session.
      * 
-     * @param topic String topic name (topics.UNSUB_SERVICE.**)
-     * @param publisherData Object topic value
+     * @private
+     * @param {String} topic Topic name (topics.UNSUB_SERVICE.**)
+     * @param {Object} publisherData Object topic value
      */
     proto._onUnsubServiceOutbound = function(topic, publisherData) {
         //console.debug("UnmanagedHubListener._onUnsubServiceOutbound:", topic, publisherData);
@@ -411,11 +423,12 @@ define([
     };
 
     /**
-     * Called to receive a service get request from the local Hub
-     * and to post it to the client for transmission.
+     * Called when a CollabInterface instance posts a request to a service.
+     * Forwards the request to the session.
      * 
-     * @param topic String topic name (topics.GET_SERVICE.**)
-     * @param publisherData Object topic value
+     * @private
+     * @param {String} topic Topic name (topics.GET_SERVICE.**)
+     * @param {Object} publisherData Object topic value
      */
     proto._onRequestServiceOutbound = function(topic, publisherData) {
         // console.debug("UnmanagedHubListener._onRequestServiceOutbound:", topic, publisherData);
@@ -429,14 +442,15 @@ define([
     };
 
     /**
-     * Called by the local client to request full state from all gadgets on
-     * the page via the local Hub (topics.GET_STATE) and collects state 
-     * directly from the operationengine (topics.ENGINE_STATE). Sends an 
-     * end state sentinel after requesting gadget state and collecting engine 
-     * state (topics.END_STATE).
+     * Called by the session to retrieve the full state of the local 
+     * application to seed a new app instance joining the session. Broadcasts
+     * a request for state on the local Hub (topics.GET_STATE) and collects 
+     * state directly from the op engine (topics.ENGINE_STATE). Sends an 
+     * end state (topics.END_STATE) sentinel after publishing all requests as 
+     * this impl of the Hub is synchronous.
      *
-     * @param recipient Opaque value that all responders should provide with
-     *   state data to distinguish concurrent requests for state
+     * @param {String} recipient Token that all responses with application 
+     * state must include to pair with the original request
      */
     proto.requestStateInbound = function(recipient) {
         //console.debug("UnmanagedHubListener.requestState:", recipient);
@@ -486,12 +500,13 @@ define([
     };
 
     /**
-     * Called to receive full state from a gadget in response to a previous
-     * state request from the client. Forwards the state to the client.
+     * Called when a CollabInterface instance responds with a portion of the
+     * current application state. Forwards the state to the session.
      *
-     * @param topic String topic name (topics.SET_STATE)
-     * @param publisherData Object with the opaque recipient value and the
-     *   state of the gadget to be sent to the recipient
+     * @private
+     * @param {String} topic Topic name (topics.SET_STATE)
+     * @param {Object} publisherData.state Arbitrary app state
+     * @param {Object} publisherData.token Token from the state request
      */
     proto._stateOutbound = function(topic, publisherData) {
         //console.debug('UnmanagedHubListener._onState', topic);
@@ -519,13 +534,12 @@ define([
     };
 
     /**
-     * Called by the local client to foward state received from another
-     * client to gadgets on this page via the Hub or to provide operation
-     * engine state directly to the local engine instance.
+     * Called by the session to foward state received from a remote application
+     * instance to initialize the local app. Broadcasts received app state on
+     * the local Hub and passes op engine state directly to the local instance.
      *
-     * @param topic String topic name (topics.ENGINE_STATE,
-     *   topics.SET_STATE)
-     * @param state Object state value
+     * @param {String} topic Topic name (topics.ENGINE_STATE, topics.SET_STATE)
+     * @param {Object} state Arbitrary state
      */
     proto.stateInbound = function(topic, state) {
         //console.debug('UnmanagedHubListener.broadcastState', topic);
@@ -557,10 +571,9 @@ define([
     };
 
     /**
-     * Called on a timer to send an engine context vector to other participants
-     * (topics.ENGINE_SYNC). Always fires, even if there are no changes
-     * to the op engine state so that the moderator knows this client is still
-     * alive.
+     * Called on a timer to send the local op engine context vector to other
+     * participants (topics.ENGINE_SYNC) if the local op engine processed
+     * received events since since the last time the timer fired.
      */
     proto._engineSyncOutbound = function() {
         if(!this._engine || !this._shouldSync) {return;}
@@ -586,8 +599,10 @@ define([
     };
     
     /**
-     * Called when the listener receives a sync event from a remote engine
-     * (topics.ENGINE_SYNC).
+     * Called when the listener receives a context vector from a remote op
+     * engine (topics.ENGINE_SYNC). Integrates the context vector into context
+     * vector table of the local engine. Sets a flag saying the local op engine
+     * should run garbage collection over its history. 
      */
     proto._engineSyncInbound = function(site, sites) {
         //console.debug('UnmanagedHubListener._onRecvEngineSync: site =', site, 'cv =', sites);
@@ -603,7 +618,9 @@ define([
     };
 
     /**
-     * Called on a timer to purge the local engine history buffer.
+     * Called on a timer to purge the local op engine history buffer if the
+     * op engine received a remote event or context vector since the last time
+     * the timer fired.
      */
     proto._onPurgeEngine = function() {
         if(!this._engine) {return;}

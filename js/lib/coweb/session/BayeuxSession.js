@@ -12,6 +12,9 @@ define([
     'coweb/util/xhr',
     'coweb/util/lang'
 ], function(SessionBridge, Promise, topics, xhr, lang) {
+    /**
+     * @constructor
+     */
     var BayeuxSession = function() {
         // vars set during runtime
         this._prepParams = null;
@@ -28,9 +31,10 @@ define([
     var proto = BayeuxSession.prototype;
 
     /**
-     * Stores parameters.
+     * Stores coweb configuration info and the ListenerInterface impl to use.
      *
-     * @param params Parameters given to the session factory function
+     * @param {Object} params cowebConfig object
+     * @param {Object} listenerImpl ListenerInterface implementation
      */
     proto.init = function(params, listenerImpl) {
         // store debug and strict compat check flags for later
@@ -61,7 +65,8 @@ define([
     };
 
     /**
-     * Called on page unload to attempt a clean disconnect.
+     * Destroys this instance with proper cleanup. Allows creation of another
+     * session singleton on the page.
      */
     proto.destroy = function() {
         // don't double destroy
@@ -93,7 +98,7 @@ define([
     /**
      * Gets if the session was initialized for debugging or not.
      *
-     * @return True if debugging, false if not
+     * @returns {Boolean} True if debugging, false if not
      */
     proto.isDebug = function() {
         return this._debug;
@@ -102,13 +107,18 @@ define([
     /**
      * Gets a reference to the parameters last given to prepare().
      * Includes any values automatically filled in for missing attributes.
+     *
+     * @returns {Object} Last prepare configuration
      */
     proto.getLastPrepare = function() {
         return this._lastPrep;
     };
 
     /**
-     * Called by an application to leave a session or abort joining it.
+     * Called by an application to leave a session or abort attempting to enter
+     * it.
+     *
+     * @returns {Promise} Promise resolved immediately in this impl
      */    
     proto.leave = function() {
         var state = this._bridge.getState();
@@ -129,7 +139,12 @@ define([
     };
 
     /**
-     * Called by an app to optionally authenticate with the server.
+     * Called by an app to optionally authenticate with the server. POSTs
+     * JSON encoded username and password to the cowebConfig.loginUrl.
+     *
+     * @param {String} username
+     * @param {String} password
+     * @returns {Promise} Promise resolved upon POST success or failure
      */
     proto.login = function(username, password) {
         if(this._bridge.getState() !== this._bridge.IDLE) {
@@ -148,7 +163,10 @@ define([
     };
 
     /**
-     * Called by an app to optionally logout from the server.
+     * Called by an app to optionally logout from the server. GETs the 
+     * cowebConfig.logoutUrl.
+     *
+     * @returns {Promise} Promise resolved upon GET success or failure
      */
     proto.logout = function() {
         // leave the session
@@ -163,7 +181,11 @@ define([
     };
 
     /**
-     * Called by an app to prepare a session.
+     * Called by an app to prepare a coweb session.
+     *
+     * @param {Object} Session preparation options
+     * @returns {Promise} Promise resolved when the last phase (prepare, join,
+     * update) set to automatically run completes or fails
      */
     proto.prepare = function(params) {
         if(this._bridge.getState() !== this._bridge.IDLE) {
@@ -227,6 +249,9 @@ define([
         return this._prepParams.promise;
     };
     
+    /**
+     * @private
+     */
     proto._onPrepared = function(params) {
         // store response
         this._prepParams.response = JSON.parse(JSON.stringify(params));
@@ -245,6 +270,9 @@ define([
         }
     };
 
+    /**
+     * @private
+     */
     proto._onPrepareError = function(err) {
         // notify busy dialog of error; no disconnect at this stage because 
         // we're not using cometd yet
@@ -257,7 +285,9 @@ define([
     };
 
     /**
-     * Called by an app to join a session.
+     * Called by an app to join the prepared session.
+     * @returns {Promise} Promise resolved when the last phase (prepare, join,
+     * update) set to automatically run completes or fails
      */
     proto.join = function() {
         if(this._bridge.getState() !== this._bridge.PREPARED) {
@@ -277,6 +307,9 @@ define([
         return this._prepParams.promise;
     };
 
+    /**
+     * @private
+     */
     proto._onJoined = function() {
         if(this._prepParams.autoUpdate) {
             // continue to update without resolving promise
@@ -290,6 +323,9 @@ define([
         }
     };
 
+    /**
+     * @private
+     */
     proto._onJoinError = function(err) {
         // nothing to do, session goes back to idle
         var promise = this._prepParams.promise;
@@ -298,7 +334,10 @@ define([
     };
     
     /**
-     * Called by an application to update its state in a session.
+     * Called by an application to update its state in the joined session.
+     *
+     * @returns {Promise} Promise resolved when the last phase (prepare, join,
+     * update) set to automatically run completes or fails
      */
     proto.update = function(nextPromise) {
         if(this._bridge.getState() !== this._bridge.JOINED) {
@@ -318,6 +357,9 @@ define([
         return this._prepParams.promise;
     };
 
+    /**
+     * @private
+     */
     proto._onUpdated = function() {
         var prepParams = this._prepParams;
         this._prepParams = null;
@@ -331,6 +373,9 @@ define([
         this.onStatusChange('ready');
     };
 
+    /**
+     * @private
+     */
     proto._onUpdateError = function(err) {
         // nothing to do yet, session goes back to idle
         var promise = this._prepParams.promise;
@@ -338,6 +383,9 @@ define([
         promise.fail(err);
     };
 
+    /**
+     * @private
+     */
     proto._onDisconnected = function(result) {
         // pull state and tag info about of promise result
         var state = result.state, tag = result.tag;
@@ -354,7 +402,13 @@ define([
         }
     };
 
-    proto.onStatusChange = function(state) {
+    /**
+     * Called when the session status changes (e.g., preparing -> joining).
+     * To be overridden by an application to monitor status changes.
+     * 
+     * @param {String} status Name of the current status
+     */
+    proto.onStatusChange = function(status) {
         // extension point
     };
 

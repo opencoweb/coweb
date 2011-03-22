@@ -10,6 +10,9 @@ define([
     'coweb/util/Promise',
     'org/OpenAjax'
 ], function(topics, Promise, OpenAjax) {
+    /**
+     * @constructor
+     */
     var UnmanagedHubCollab = function() {
         this._mutex = false;
         this._serviceId = 0;
@@ -22,7 +25,7 @@ define([
     /**
      * Stores the collaboration instance ID.
      *
-     * @param params Parameter given to the collab wrapper factory function
+     * @param {String} params.id Unique identifier of this wrapper / widget
      */    
     proto.init = function(params) {
         if(!params || params.id === undefined) {
@@ -32,10 +35,14 @@ define([
     };
     
     /**
-     * Subscribes to conference ready notifications coweb.site.ready.
+     * Subscribes to session ready notifications coweb.site.ready.
      *
-     * @param callback Function to invoke
-     * @return Promise which always notifies success
+     * @param {Object|Function} context Context in which to invoke the callback
+     * or the callback itself
+     * @param {Function|String} callback Function to invoke if context
+     * specified
+     * @returns {Promise} Always notifies success because this impl is
+     * synchronous
      */
     proto.subscribeReady = function(context, callback) {
         if(callback === undefined) {
@@ -60,10 +67,14 @@ define([
     };
 
     /**
-     * Subscribes to conference ready notifications coweb.site.end.
+     * Subscribes to session end notifications coweb.site.end.
      *
-     * @param callback Function to invoke
-     * @return Promise which always notifies success
+     * @param {Object|Function} context Context in which to invoke the callback
+     * or the callback itself
+     * @param {Function|String} callback Function to invoke if context
+     * specified
+     * @returns {Promise} Always notifies success because this impl is
+     * synchronous
      */
     proto.subscribeEnd = function(context, callback) {
         if(callback === undefined) {
@@ -90,8 +101,12 @@ define([
     /**
      * Subscribes to site joining notifications coweb.site.join.
      *
-     * @param callback Function to invoke
-     * @return Promise which always notifies success
+     * @param {Object|Function} context Context in which to invoke the callback
+     * or the callback itself
+     * @param {Function|String} callback Function to invoke if context
+     * specified
+     * @returns {Promise} Always notifies success because this impl is
+     * synchronous
      */
     proto.subscribeSiteJoin = function(context, callback) {
         if(callback === undefined) {
@@ -118,8 +133,12 @@ define([
     /**
      * Subscribes to site leaving notifications coweb.site.leave.
      *
-     * @param callback Function to invoke
-     * @return Promise which always notifies success
+     * @param {Object|Function} context Context in which to invoke the callback
+     * or the callback itself
+     * @param {Function|String} callback Function to invoke if context
+     * specified
+     * @returns {Promise} Always notifies success because this impl is
+     * synchronous
      */
     proto.subscribeSiteLeave = function(context, callback) {
         if(callback === undefined) {
@@ -145,12 +164,12 @@ define([
 
     /**
      * Sends an incremental state change event coweb.sync.<topic>.<id>.
-     * Throws an exception if this instance is disconnected or not initialized.
+     * Throws an exception if this instance is not initialized.
      *
-     * @param name String state name
-     * @param value JSON-encodable value for the change
-     * @param type String type of change or null
-     * @param position Integer position of the change
+     * @param {String} name Cooperative event name
+     * @param {Object} value JSON-encodable value for the change
+     * @param {String|null} [type='update'] Type of change or null
+     * @param {Number} [position=0] Integer position of the change
      */
     proto.sendSync = function(name, value, type, position) {
         if(this.id === undefined) {
@@ -174,9 +193,13 @@ define([
      * coweb.sync.<topic>.<id>. Throws an exception if this instance is 
      * not initialized.
      *
-     * @param name String state name
-     * @param callback Function to invoke
-     * @return Promise which always notifies success
+     * @param {String} name Cooperative event name
+     * @param {Object|Function} context Context in which to invoke the callback
+     * or the callback itself
+     * @param {Function|String} callback Function to invoke if context
+     * specified
+     * @returns {Promise} Always notifies success because this impl is
+     * synchronous
      */
     proto.subscribeSync = function(name, context, callback) {
         if(this.id === undefined) {
@@ -217,8 +240,12 @@ define([
     /**
      * Subscribes to full state requests coweb.state.get.
      *
-     * @param callback Function to invoke
-     * @return Promise which always notifies success
+     * @param {Object|Function} context Context in which to invoke the callback
+     * or the callback itself
+     * @param {Function|String} callback Function to invoke if context
+     * specified
+     * @returns {Promise} Always notifies success because this impl is
+     * synchronous
      */
     proto.subscribeStateRequest = function(context, callback) {
         if(callback === undefined) {
@@ -244,11 +271,10 @@ define([
     
     /**
      * Sends a response to a full state request coweb.state.set.<id>.
-     * Throws an exception if this instance is disconnected or not initialized.
+     * Throws an exception if this instance is not initialized.
      *
-     * @param state JSON-encodable state data for the response
-     * @param token String opaque token from the original request
-     * @return Promise which always notifies success
+     * @param {Object} state JSON-encodable state data for the response
+     * @param {String} token Opaque token from the original state request
      */
     proto.sendStateResponse = function(state, token) {
         if(this.id === undefined) {
@@ -267,8 +293,12 @@ define([
      * Subscribes to remote full state responses coweb.state.set.<id>.
      * Throws an exception if this instance is not initialized.
      *
-     * @param callback Function to invoke
-     * @return Promise which always notifies success
+     * @param {Object|Function} context Context in which to invoke the callback
+     * or the callback itself
+     * @param {Function|String} callback Function to invoke if context
+     * specified
+     * @returns {Promise} Always notifies success because this impl is
+     * synchronous
      */    
     proto.subscribeStateResponse = function(context, callback) {
         if(this.id === undefined) {
@@ -300,12 +330,15 @@ define([
     /**
      * Subscribes to a service with coweb.service.sub.<service>
      * and responses coweb.service.set.<service>.
-     * Throws an exception if this instance is disconnected or not initialized.
+     * Throws an exception if this instance is not initialized.
      *
-     * @param service String name of the service
-     * @param callback Function to invoke or a token from a previous call
-     *   subscribeService indicating a callback to reuse
-     * @return Promise which always notifies success
+     * @param {String} service Name of the service
+     * @param {Object|Function} context Context in which to invoke the callback
+     * or the callback itself
+     * @param {Function|String} callback Function to invoke if context
+     * specified
+     * @returns {Promise} Always notifies success because this impl is
+     * synchronous
      */
     proto.subscribeService = function(service, context, callback) {
         if(callback === undefined) {
@@ -350,12 +383,16 @@ define([
     /**
      * Requests a single service value with coweb.service.get.<service>
      * and response coweb.service.set.<service>_<request id>.<id>.
-     * Throws an exception if this instance is disconnected or not initialized.
+     * Throws an exception if this instance is not initialized.
      *
-     * @param service String name of the service
-     * @param params JSON-encodable parameters to configure the service
-     * @param callback Function to invoke
-     * @return Promise which always notifies success
+     * @param {String} service Name of the service
+     * @param {Object} params JSON-encodable parameters to pass to the service
+     * @param {Object|Function} context Context in which to invoke the callback
+     * or the callback itself
+     * @param {Function|String} callback Function to invoke if context
+     * specified
+     * @returns {Promise} Always notifies success because this impl is
+     * synchronous
      */    
     proto.postService = function(service, params, context, callback) {
         if(this.id === undefined) {
@@ -400,12 +437,14 @@ define([
     };
 
     /**
-     * Handles a service response. Unsubscribes a get request after delivering
-     * data to its callback.
+     * Handles a service response. Unsubscribes a postService request after 
+     * delivering data to its callback.
      *
-     * @param topic String response topic coweb.service.set.**
-     * @param params Object with value, type, position, and site
-     * @return Promise which always notifies success
+     * @private
+     * @param {String} topic Response topic coweb.service.set.**
+     * @param {Object} params Cooperative event
+     * @returns {Promise} Always notifies success because this impl is
+     * synchronous
      */
     proto._cowebServiceResponse = function(topic, params, subData) {
         var hubToken = subData.hubToken;
@@ -426,8 +465,8 @@ define([
     /**
      * Unsubscribes any subscription created via this interface.
      *
-     * @param def Promise returned by the method that created the
-     *   subscription
+     * @param {Promise} def Promise returned by the method that created the
+     * subscription
      */
     proto.unsubscribe = function(def) {
         var token, i;
