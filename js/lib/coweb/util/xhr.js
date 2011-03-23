@@ -5,6 +5,9 @@
 //
 /*global define window*/
 define(['coweb/util/Promise'], function(Promise) {
+    /**
+     * @private
+     */
     var _setHeaders = function(xhr, headers) {
         if(headers) {
             for (var headerName in headers) {
@@ -17,16 +20,15 @@ define(['coweb/util/Promise'], function(Promise) {
 
     return {
         /**
-         * Do an XHR request. The function extends the passed args with:
-         * - xhr: The browser XMLHttpRequest object
+         * Do an XHR request. The function extends the passed args with an
+         * "xhr" property containing the browser XMLHttpRequest object.
          *
-         * @param {Object} args Args for the XHR
-         * - url: Target url
-         * - sync: True to send synchronously (default: false)
-         * - method: POST, GET, etc.
-         * - body: Body of the request
-         * - headers: Key/value HTTP headers
-         * @return Promise to resolve or fail on XHR completion with the 
+         * @param {String} args.url Target url
+         * @param {Boolean} [args.sync=false] True to send synchronously
+         * @param {String} args.method POST, GET, etc.
+         * @param {String} args.body Body of the request
+         * @param {String} args.headers Key/value HTTP headers
+         * @returns {Promise} Resolve or fail on XHR completion with the 
          * extended args as the value
          */
         send: function(args) {

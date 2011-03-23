@@ -18,7 +18,8 @@ define(function() {
         /**
          * Notify all listeners of the promise of success or failure.
          * 
-         * @return True if any listener throw an uncaught error
+         * @private
+         * @returns {Boolean} True if any listener threw an uncaught error
          */
         var notifyListeners = function() {
             var func, rv, nextVal, ptr, unexpectedError = false;
@@ -81,8 +82,8 @@ define(function() {
          * @param {Function} errback Invoke on failure
          * @param {Object} context Optional context in which callback or 
          * errback is called
-         * @return New promise of this promise's callback / errback resolution
-         * or failure  
+         * @returns {Promise} New promise of this promise's callback / 
+         * errback resolution or failure  
          */
         this.then = function(callback, errback, context) {
             if(callback && typeof callback !== 'function') {

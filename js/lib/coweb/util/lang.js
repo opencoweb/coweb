@@ -12,7 +12,7 @@ define(function() {
          * @todo review for performance
          * 
          * @param {Object} obj Object with simple properties
-         * @return Clone of the object
+         * @returns {Object} Clone of the object
          */
         clone : function(obj) {
             return JSON.parse(JSON.stringify(obj))

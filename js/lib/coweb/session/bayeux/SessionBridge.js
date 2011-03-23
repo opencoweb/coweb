@@ -1,5 +1,5 @@
 //
-// Handles the flow from session preparation to update completion over Bayeux.
+// Bridges the SessionInterface to Bayeux/cometd and the ListenerInterface.
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
@@ -12,6 +12,12 @@ define([
     'coweb/util/Promise',
     'coweb/util/xhr'
 ], function(cometd, CowebExtension, ListenerBridge, Promise, xhr) {
+    /**
+     * @constructor
+     * @param {Boolean} args.debug True if in debug more, false if not
+     * @param {Object} args.listener ListenerInterface instance
+     * @param {String} args.adminUrl Target of prepare POST
+     */
     var SessionBridge = function(args) {
         // state constants
         this.DISCONNECTING = 0;
@@ -48,6 +54,10 @@ define([
     // save typing and lookup
     var proto = SessionBridge.prototype;
 
+    /**
+     * Destroys the instance. Voids all promises without resolution. Attempts
+     * a disconnect from the server if not idle.
+     */
     proto.destroy = function() {
         this._prepPromise = null;
         this._joinPromise = null;
@@ -58,10 +68,22 @@ define([
         }
     };
 
+    /**
+     * @returns {Number} Current state constant
+     */
     proto.getState = function() {
         return this._state;
     };
 
+    /**
+     * POSTs the (key, collab) tuple to the cowebConfig.adminUrl to get the
+     * associated session information.
+     *
+     * @params {String} key Key identifying the session to join
+     * @params {Boolean} collab True to request a cooperative session, false
+     * to request a session with access to services only
+     * @returns {Promise} Resolved on response from server
+     */
     proto.prepare = function(key, collab) {
         // make sure we're idle
         if(this._state !== this.IDLE) {
@@ -90,6 +112,9 @@ define([
         return this._prepPromise;
     };
 
+    /**
+     * @private
+     */
     proto._onPrepareResponse = function(args) {
         var resp = JSON.parse(args.xhr.responseText);
         if(this._state === this.PREPARING) {
@@ -99,9 +124,11 @@ define([
             this.prepResponse = resp;
             promise.resolve(resp);
         }
-        // @todo: cleanup?
     };
-    
+
+    /**
+     * @private
+     */    
     proto._onPrepareError = function(args) {
         // go back to idle state
         this._state = this.IDLE;
@@ -116,6 +143,11 @@ define([
         }
     };
 
+    /**
+     * Initiates the Bayeux handshake with the Bayeux handler for the session.
+     *
+     * @returns {Promise} Resolved on handshake with server
+     */
     proto.join = function() {
         if(this._state !== this.PREPARED) {
             throw new Error(this.id + ': cannot join in unprepared state');
@@ -141,6 +173,14 @@ define([
         return this._joinPromise;
     };
 
+    /**
+     * Called on /meta/unsuccessful notification from the cometd client for
+     * any error. Forces a disconnect to prevent attempts to reconnect with
+     * a dead server.
+     *
+     * @private
+     * @param {Error} err Error object
+     */
     proto._onSessionUnsuccessful = function(err) {
         //console.debug('_onSessionUnsuccessful', err);
         // pull out error code
@@ -186,6 +226,13 @@ define([
         }
     };
 
+    /**
+     * Called on successful first /meta/connect message from server indicating
+     * a successful handshake.
+     *
+     * @private
+     * @param {Object} msg Connect response
+     */
     proto._onSessionConnect = function(msg) {
         if(this._state === this.JOINING) {
             this._state = this.JOINED;
@@ -197,9 +244,13 @@ define([
             cometd.removeListener(this._connectToken);
             this._connectToken = null;
         }
-        // @todo: other cleanup?
     };
 
+    /**
+     * Called when the server confirms a /meta/disconnect message.
+     *
+     * @param {Object} msg Disconnect response
+     */ 
     proto._onSessionDisconnect = function(msg) {
         // client requested disconnect confirmed by the server
         if(this._state !== this.IDLE) {
@@ -207,6 +258,12 @@ define([
         }
     };
     
+    /**
+     * Triggers the request for the current shared session state.
+     *
+     * @returns {Promise} Resolved on completion or failure of local 
+     * application update
+     */
     proto.update = function() {
         if(this._state !== this.JOINED) {
             throw new Error(this.id + ': cannot update in unjoined state');
@@ -219,6 +276,12 @@ define([
         return this._updatePromise;
     };
     
+    /**
+     * Called when the listener reports the local application successfully 
+     * updated to the shared session state.
+     *
+     * @private
+     */
     proto._onUpdateSuccess = function() {
         if(this._state === this.UPDATING) {
             this._state = this.UPDATED;
@@ -227,7 +290,13 @@ define([
             promise.resolve();
         }
     };
-    
+
+    /**
+     * Called when the listener reports a failure to update the loca 
+     * application to the shared session state.
+     *
+     * @private
+     */
     proto._onUpdateFailure = function(err) {
         if(this._state === this.UPDATING) {
             // do a disconnect to leave the session and go back to idle
@@ -237,7 +306,15 @@ define([
             promise.fail(err);
         }
     };
-
+    
+    /**
+     * Sends a /meta/disconnect message to the server, synchronously or 
+     * asynchronously. Triggers the _onDisconnected callback immediately if
+     * already disconnected from the server.
+     *
+     * @param {Boolean} [sync=false] True to send the disconnect message 
+     * synchronously, false to send it asynchronously
+     */
     proto.disconnect = function(sync) {
         if(this._state < this.IDLE) { 
             // ignore if already disconnecting
@@ -255,6 +332,12 @@ define([
         }
     };
 
+    /**
+     * Called when the local client is disconnected from the Bayeux server.
+     *
+     * @param {Number} state State of the session before the disconnect
+     * @param {String} tag Tag explaining the reason for the disconnect
+     */
     proto._onDisconnected = function(state, tag) {
         // console.debug('onDisconnected state:', state, 'tag:', tag);
         this._state = this.IDLE;

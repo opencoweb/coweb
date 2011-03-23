@@ -1,5 +1,5 @@
 //
-// Handles session joining and updating plus cooperative events over Bayeux.
+// Bridges the ListenerInterface to Bayeux/cometd.
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
@@ -11,6 +11,11 @@ define([
     'coweb/util/lang',
     'coweb/topics'
 ], function(cometd, Promise, lang, topics) {
+    /**
+     * @constructor
+     * @param {Object} args.listener ListenerInterface instance
+     * @param {Object} args.bridge SessionBridge instance
+     */
     var ListenerBridge = function(args) {
         // constants
         this.IDLE = 0;
@@ -54,6 +59,12 @@ define([
     };
     var proto = ListenerBridge.prototype;
 
+    /**
+     * Publishes a local coweb event to the /session/sync Bayeux channel.
+     *
+     * @param {String} topic String topic identifying the event
+     * @param {Object} data JSON-encodable object
+     */
     proto.postSync = function(topic, data) {
         // don't send events if we're not updated yet
         if(this._state !== this.UPDATED) { return; }
@@ -65,7 +76,16 @@ define([
         });
         return true;
     };
-    
+
+    /**
+     * Publishes a local snapshot of the shared state to the 
+     * /service/session/updater Bayeux channel.
+     *
+     * @param {String} topic String topic identifying the portion of the state
+     * @param {Object} value JSON-encodable object
+     * @param {String} recipient Opqaue ID created by the server identifying
+     * the recipient (i.e., late-joiner)
+     */
     proto.postStateResponse = function(topic, value, recipient) {
         var state = this._stateReqs[recipient];
         // no outstanding request for state, ignore this message
@@ -86,6 +106,11 @@ define([
         }
     };
 
+    /**
+     * Subscribes to the /bot/<name> Bayeux channel.
+     *
+     * @param {String} service Name of the service bot
+     */
     proto.postServiceSubscribe = function(service) {
         var info = this._serviceSubs[service];
         if(!info) {
@@ -99,6 +124,14 @@ define([
         info.count += 1;
     };
     
+    /**
+     * Subscribes to the /service/bot/<name>/response Bayeux channel
+     * and then publishes a request to /service/bot/<name>/request.
+     *
+     * @param {String} service Name of the service bot
+     * @param {Object} params JSON-encodable args to pass to the bot
+     * @param {String} topic String topic name which the response should carry
+     */
     proto.postServiceRequest = function(service, params, topic) {
         var info = this._serviceReqs[service];
         if(!info) {
@@ -124,6 +157,11 @@ define([
         info.pending[topic] = true;
     };
     
+    /**
+     * Unsubscribes to the /bot/<name> Bayeux channel.
+     *
+     * @param {String} service Name of the service bot
+     */ 
     proto.postServiceUnsubscribe = function(service) {
         var info = this._serviceSubs[service];
         if(!info) {
@@ -142,6 +180,14 @@ define([
         }
     };
     
+    /**
+     * Triggers the start of the procedure to update the local, late-joining 
+     * app to the current shared session state. Subscribes to the roster, sync,
+     * and join channels to tickle the server into sending a copy of the full
+     * session state.
+     *
+     * @returns {Promise} Resolved after the app updates to the received state
+     */
     proto.initiateUpdate = function() {
         this._updatePromise = new Promise();
 
@@ -172,12 +218,26 @@ define([
         return this._updatePromise;
     };
     
+    /**
+     * Gets the initial session roster. Clears the store roster after 
+     * retrieval.
+     *
+     * @returns {Object} Roster of site IDs paired with user names at the time
+     * the local app started to update itself in the session
+     */
     proto.getInitialRoster = function() {
         var r = this._roster;
         this._roster = null;
         return r;
     };
     
+    /**
+     * Called when the server responds to any /meta/subscribe request. Notifies
+     * the listener of failures to subscribe to requested services.
+     * 
+     * @private
+     * @param {Object} msg Subscribe response message
+     */
     proto._onSubscribe = function(msg) {
         // check if bot subscribes were successful or not
         var topic, info, segs;
@@ -201,7 +261,6 @@ define([
                 }
                 // reset list of topics pending responses
                 info.pending = {};
-                return;
             }
             match = this._publicRegex.exec(ch);
             if(match) {
@@ -215,12 +274,18 @@ define([
                 segs = msg.error.split(':');
                 this._listener.syncInbound(topic, segs[2], 0, 'error');
                 // @todo: do we need to unsubscribe? toss tokens?
-                return;
             }
             // console.warn('bayeux.ListenerBridge: unhandled subscription error ' + msg.error);
         }
     };
     
+    /**
+     * Called when the server responds to any publish message. Notifies the
+     * listener of failures to post requests to requested bot services.
+     *
+     * @private
+     * @param {Object} msg Publish response message
+     */
     proto._onPublish = function(msg) {
         if(!msg.successful) {
             var ch = msg.channel;
@@ -247,6 +312,14 @@ define([
         }
     };
 
+    /**
+     * Called when the server publishes on a /service/session/join/* Bayeux
+     * channel. Handles siteid, roster, and full state messages, passing 
+     * information to the listener as needed.
+     *
+     * @private
+     * @param {Object} msg Published message
+     */
     proto._onServiceSessionJoin = function(msg) {
         // determine channel suffix
         var suffix = msg.channel.split('/');
@@ -279,6 +352,17 @@ define([
         }
     };
 
+    /**
+     * Called when the server sends a portion of the full application state
+     * to this late-joining app instance. Forwards the state to the listener
+     * for broadcast to the app. If applied properly, forwards any queued 
+     * events held during the update process. Finally, publishes a message to
+     * the /service/session/updater channel indicating this app instance can
+     * now provide state to other late joiners.
+     *
+     * @private
+     * @param {Object} msg Published state message
+     */
     proto._onServiceSessionJoinState = function(msg) {
         var i, l, item;
         // tell listener about state, one item at a time
@@ -319,6 +403,13 @@ define([
         this._updateQueue = [];
     };
     
+    /**
+     * Called to handle a /session/sync message. Forwards it to the listener
+     * for processing by the op engine and broadcast to the local app.
+     *
+     * @private
+     * @param {Object} msg Published coweb event message
+     */
     proto._onSessionSync = function(msg) {
         //console.debug('bayeux.ListenerBridge._onSessionSync:', msg);
         var d = msg.data;
@@ -334,6 +425,13 @@ define([
         this._listener.syncInbound(d.topic, d.eventData, d.siteId, 'result');        
     };
     
+    /**
+     * Called to handle a /session/roster/* message. Forwards it to the 
+     * listener for broadcast to the local application.
+     *
+     * @private
+     * @param {Object} msg Published roster message
+     */
     proto._onSessionRoster = function(msg) {
         if(this._state === this.UPDATING) {
             this._updateQueue.push({
@@ -355,6 +453,13 @@ define([
         }
     };
     
+    /**
+     * Called to handle a message on the /service/session/updater Bayeux 
+     * channel. Requests the full state of the local app.
+     *
+     * @private
+     * @param {Object} msg Published state request message
+     */
     proto._onServiceSessionUpdater = function(msg) {
         // note on-going request for state
         var token = msg.data;
@@ -368,6 +473,13 @@ define([
         }
     };
     
+    /**
+     * Called to handle a message on the /bot/<name> Bayeux channel. Forwards
+     * the bot broadcast to the listener.
+     *
+     * @private
+     * @param {Object} msg Published service bot message
+     */
     proto._onServiceBotPublish = function(msg) {
         var ch = msg.channel;
         var match = this._publicRegex.exec(ch);
@@ -378,7 +490,14 @@ define([
         var topic = topics.SET_SERVICE + match[1];
         this._listener.syncInbound(topic, msg.data.eventData, 0, 'result');
     };
-    
+
+    /**
+     * Called to handle a message on the /service/bot/<name>/response Bayeux 
+     * channel. Forwards the private bot response to the listener.
+     *
+     * @private
+     * @param {Object} msg Published service bot message
+     */   
     proto._onServiceBotResponse = function(msg) {
         var ch = msg.channel;
         var topic = msg.data.topic;
