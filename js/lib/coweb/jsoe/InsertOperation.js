@@ -48,25 +48,31 @@ define([
             return this;
         }
 
-        if(this.position > op.position) {
-            ++this.position;
-        } else if(this.position === op.position) {
-            // if(this.origPosition > op.origPosition) {
-            //     // adjust local position if other's position is earlier
-            //     ++this.position;
-            // } else if(this.origPosition === op.origPosition) {
-            //     var rv = this.origContextVector.compare(op.origContextVector);
-            //     if(rv < 0) {
-            //         // adjust local position if other's original context is later
-            //         ++this.position;
-            //     } else if(rv === 0 && this.siteId > op.siteId) {
-            if(this.siteId >= op.siteId) {
-                ++this.position;
-            }
-                // }
-            // }
+        if(this.position < op.position || (this.position === op.position && this.siteId > op.siteId)) {
+            return this;
         }
+        ++this.position;
         return this;
+
+        // if(this.position > op.position) {
+        //     ++this.position;
+        // } else if(this.position === op.position) {
+        //     // if(this.origPosition > op.origPosition) {
+        //     //     // adjust local position if other's position is earlier
+        //     //     ++this.position;
+        //     // } else if(this.origPosition === op.origPosition) {
+        //     //     var rv = this.origContextVector.compare(op.origContextVector);
+        //     //     if(rv < 0) {
+        //     //         // adjust local position if other's original context is later
+        //     //         ++this.position;
+        //     //     } else if(rv === 0 && this.siteId > op.siteId) {
+        //     if(this.siteId < op.siteId) {
+        //         ++this.position;
+        //     }
+        //         // }
+        //     // }
+        // }
+        // return this;
     };
 
     /**

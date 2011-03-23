@@ -364,6 +364,7 @@ define([
             // perform the inclusion transform on op and xop now that they have
             //   the same context; ask xop for the method that should be invoked
             //   on op to properly transform it
+            // console.log('T(O%d in %s, O%d in %s) ->', op.siteId+1, op.contextVector.toString(), xop.siteId+1, xop.contextVector.toString());
             op = op[xop.transformMethod()](xop);
             if(op === null) {
                 // op target was deleted by another earlier op so return now
@@ -371,6 +372,7 @@ define([
                 // meaning on this op
                 return null;
             }
+            // console.log('\t\t\t\t\t%s[%d, "%s"]', op.type, op.position, op.value || '');
             // upgrade the context of the transformed op to reflect the
             //   inclusion transform
             op.contextVector.setSeqForSite(xop.siteId, xop.seqId);
