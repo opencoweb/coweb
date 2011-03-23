@@ -70,10 +70,11 @@ define([
         try {
             this.onRequest(this, req, resp);
         } catch(e) {
-            if(isNaN(e.message)) {
+            var msg = e.message || e.number;
+            if(isNaN(msg)) {
                 this.setStatus(req, 500);
             } else {
-                this.setStatus(req, e.message);
+                this.setStatus(req, msg);
             }
             resp.fail(e);
         }
