@@ -70,12 +70,13 @@ The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb e
       $ cd cowebx
       $ mvn install
 
-#. Use Maven to run `cowebx-apps`.
+#. Use Maven to deploy `cowebx-apps`.
 
    .. sourcecode:: console
-   
+
+      $ cd cowebx/cowebx-apps
       $ mvn jetty:deploy-war
-      
+
 #. Visit http://localhost:8080/cowebx-apps in your browser to view the list of demos.
 
 Python setup
