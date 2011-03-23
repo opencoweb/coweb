@@ -74,7 +74,7 @@ The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb e
 
    .. sourcecode:: console
 
-      $ cd cowebx/cowebx-apps
+      $ cd cowebx-apps
       $ mvn jetty:deploy-war
 
 #. Visit http://localhost:8080/cowebx-apps in your browser to view the list of demos.
