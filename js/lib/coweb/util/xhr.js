@@ -46,14 +46,20 @@ define(['coweb/util/Promise'], function(Promise) {
                     // protect against dupe calls
                     xhr.onreadystatechange = function() {};
                     // check status
-                    var stat = xhr.status || 0;
+                    var stat;
+                    try {
+                        stat = xhr.status || 0;
+                    } catch(e) {
+                        // IE9 throws error when touching aborted xhr
+                        stat = 0;
+                    }
                     if((stat >= 200 && stat < 300) || 
                         // success is any 200 or a 304 from cache or an IE 1223
                         stat === 304 || stat === 1223) {
                         promise.resolve(args);
                     } else {
                         // error on everything else
-                        args.error = new Error('failed loading '+args.url+' status:'+xhr.status);
+                        args.error = new Error('failed loading '+args.url+' status:'+stat);
                         promise.fail(args);
                     }
                 }

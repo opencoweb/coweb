@@ -69,7 +69,7 @@ define([
                 return self.send.apply(self, arguments);
             };
         },
-    
+
         unhook: function() {
             if(!this._hooked) {
                 throw new Error('coweb/util/xhr not hooked');

@@ -92,7 +92,13 @@ define([
         stop(this.timeout);
         promise = xhr.send(args);
         promise.then(null, function(args) {
-            var status = args.xhr.status;
+            var status;
+            try {
+                status = args.xhr.status;
+            } catch(e) {
+                // watch out for IE9 throwing error on dead xhr
+                status = 0;
+            }
             // might have completed before the abort
             ok(status === 0 || status === 404, 'status: '+status);
             start();
