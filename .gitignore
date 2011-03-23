@@ -10,6 +10,7 @@ js/tmp
 js/lib/require.js
 js/lib/org
 js/release/coweb-latest
+js/build/require*
 target/
 servers/python/MANIFEST
 servers/python/dist
