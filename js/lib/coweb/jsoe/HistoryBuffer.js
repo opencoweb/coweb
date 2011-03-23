@@ -19,6 +19,7 @@ define([
     var HistoryBuffer = function() {
         this.ops = {};
         this.size = 0;    
+        this.order = 0;
     };
 
     /**
@@ -76,8 +77,8 @@ define([
             }
             ops.push(op);
         }
-        // sort them by context, sequence, and site
-        ops.sort(function(a,b) { return a.compare(b); });
+        // @debug: sort by order added to history
+        ops.sort(function(a,b) { return (a.order < b.order) ? -1 : 1 ; });
         return ops;
     };
 
@@ -89,6 +90,7 @@ define([
     HistoryBuffer.prototype.add = function(op) {
         var key = factory.createHistoryKey(op.siteId, op.seqId);
         this.ops[key] = op;
+        op.order = this.order++;
         op.immutable = true;
         ++this.size;
     };
