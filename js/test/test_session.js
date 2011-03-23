@@ -17,7 +17,10 @@ define([
 ], function(coweb, topics, lang, util, xhr, CowebServer, OpenAjax) {    
     var sessionModOpts = {
         setup: function() {
-            this.waitDisconnect = false;
+            try {
+                xhr.clearServers();
+                xhr.unhook();
+            } catch(e) {}
             this.timeout = 5000;
             this.prepReq = {
                 key : 10, 
@@ -55,19 +58,9 @@ define([
             for(i=0, l=this.collabs.length; i<l; i++) {
                 this.collabs[i].unsubscribeAll();
             }
-            if(this.waitDisconnect) {
-                this.server.onMetaDisconnect = function(server, msg) {
-                    xhr.unhook();
-                    xhr.clearServers();
-                    start();
-                };
-                stop(this.timeout);
-                coweb.reset();
-            } else {
-                xhr.unhook();
-                xhr.clearServers();
-                coweb.reset();
-            }
+            coweb.reset();
+            xhr.clearServers();
+            xhr.unhook();
         },
     
         hubSub: function() {
@@ -220,9 +213,6 @@ define([
     test('join empty conference', 4, function() {
         var self = this;
     
-        // we want to wait for a disconnect in the teardown
-        this.waitDisconnect = true;
-    
         this.session.prepare(this.autoPrepReq).then(start);
 
         // server side
@@ -256,8 +246,6 @@ define([
 
     test('join ongoing conference', 2, function() {
         var self = this; 
-        // we want to wait for a disconnect in the teardown
-        this.waitDisconnect = true;
     
         // listen for received state
         for(var i=0, l=this.collabs.length; i<l; i++) {
@@ -475,10 +463,9 @@ define([
 
     test('abort after updating', 1, function() {
         var self = this;
-        this.waitDisconnect = true;
     
         // check notification of leaving conference
-        this.collabs[0].subscribeEnd(function(params) {
+        var x = this.collabs[0].subscribeEnd(function(params) {
             ok(params.connected, 'conference end event check');
             start();
         });
@@ -500,7 +487,6 @@ define([
 
     test('manual prepare, join, update', 6, function() {
         var self = this;
-        this.waitDisconnect = true;
 
         var server = this.server;
         var prep = this.prepReq;
@@ -533,7 +519,6 @@ define([
 
     test('manual prepare, update', 4, function() {
         var self = this;
-        this.waitDisconnect = true;
         var server = this.server;
         var prep = this.prepReq;
         prep.autoJoin = true;
@@ -564,7 +549,6 @@ define([
 
     test('manual prepare, join', 4, function() {
         var self = this;
-        this.waitDisconnect = true;
         var server = this.server;
         var prep = this.prepReq;
         prep.autoJoin = false;
@@ -595,7 +579,6 @@ define([
 
     test('leave session', 1, function() {
         var self = this;
-        this.waitDisconnect = true;
     
         // check notification of leaving conference
         this.collabs[0].subscribeEnd(function(params) {
@@ -712,8 +695,6 @@ define([
 
     test('busy notices', 4, function() {
         var self = this; 
-        // we want to wait for a disconnect in the teardown
-        this.waitDisconnect = true;
     
         // listen for busy notifications
         var expected = ['preparing', 'joining', 'updating', 'ready'];
@@ -768,7 +749,6 @@ define([
 
     test('reuse session interface', 12, function() {
         var self = this;
-        this.waitDisconnect = true;
         var server = this.server;
         
         this.session.prepare(this.prepReq)

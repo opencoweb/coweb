@@ -28,6 +28,12 @@ define([
         },
     
         clearServers: function() {
+            // disable all servers to prevent late responses
+            for(var key in this._servers) {
+                if(this._servers.hasOwnProperty(key)) {
+                    this._servers[key].destroy();
+                }
+            }
             this._servers = {};
         },
 

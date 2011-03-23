@@ -11,8 +11,14 @@ define([
         this._queue = [];
         this._started = false;
         this._iterator = null;
+        this._destroyed = false;
     };
     var proto = Server.prototype;
+    
+    proto.destroy = function() {
+        this._destroyed = true;
+        this._queue = [];
+    };
     
     proto._process = function() {
         var it = this._iterator;
@@ -74,12 +80,14 @@ define([
         var self = this;
         resp.then(function(val) {
             setTimeout(function() {
+                if(self._destroyed) { return; }
                 req.args.xhr.responseText = JSON.stringify(val);
                 req.resolve(req.args);
                 self._pump();
             }, 0);
         }, function(err) {
             setTimeout(function() { 
+                if(self._destroyed) { return; }
                 req.args.error = err;
                 req.fail(req.args); 
                 self._pump();
