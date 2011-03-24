@@ -4,6 +4,7 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*global define equals equal deepEqual module test ok*/
 define([
     'util'
 ], function(util) {
@@ -54,7 +55,7 @@ define([
         var a = new util.OpEngClient(0, {symbol : '1 2'});
         var b = new util.OpEngClient(1, {symbol : '1 2'});
     
-        var aStr = 'abcdefghijkl'
+        var aStr = 'abcdefghijkl';
         var bStr = 'mnopqrstuvwxyz';
         var op;
         var aOps = [], bOps = [];
@@ -66,7 +67,7 @@ define([
         }
     
         // lots of typing on b after the "2"
-        for(var i=0, pos=3; i < bStr.length; i++, pos++) {
+        for(i=0, pos=3; i < bStr.length; i++, pos++) {
             op = b.local('symbol', bStr[i], 'insert', pos);
             bOps.push(op);
             b.send(op);
@@ -101,7 +102,7 @@ define([
     });
 
     (function() {
-        // permutations of who sends what
+        // permutations of event at site
         var send = [
             [[1, 'insert'], [1, 'delete'], [2, 'insert']],
             [[2, 'insert'], [1, 'insert'], [1, 'delete']],
@@ -118,40 +119,43 @@ define([
             [[1, 2], [2, 0], [1, 0]],
             [[2, 1], [2, 0], [1, 0]]
         ];
+        
+        var testFactory = function(s, r, toSend, toRecv) {
+            test('three site false-tie puzzle permutation '+(s*8 + r), 6, function() {
+                var sites = [];
+                var ops = [];
+                var i, l;
+                for(i=0; i < 3; i++) {
+                    var site = new util.OpEngClient(i, {text : 'abc'});
+                    var pos = toSend[i][0];
+                    var type = toSend[i][1];
+                    var val = (type === 'insert') ? ''+pos : null;
+                    var op = site.local('text', val, type, pos);
+                    sites.push(site);
+                    ops[i] = op;
+                }
+
+                for(i=0; i < 3; i++) {
+                    var order = toRecv[i];
+                    sites[i].remote(ops[order[0]]);
+                    sites[i].remote(ops[order[1]]);
+                }
+
+                var correct = sites[0].state;
+                for(i=0, l=sites.length; i<l; i++) {
+                    var e = sites[i];
+                    deepEqual(e.state, correct, 'client state check');
+                    equals(e.eng.getBufferSize(), 3, 'history buffer size check');
+                }
+            });
+        };
+        
         for(var s=0; s < send.length; s++) {
-            var toSend = send[s];
             for(var r=0; r < recv.length; r++) {
-                var toRecv = recv[r];
-                test('three site false-tie puzzle permutation '+(s*8 + r), 6, function() {
-                    var sites = [];
-                    var ops = [];
-                    var i, l;
-                    for(i=0; i < 3; i++) {
-                        var site = new util.OpEngClient(i, {text : 'abc'});
-                        var pos = toSend[i][0];
-                        var type = toSend[i][1];
-                        var val = (type == 'insert') ? ''+pos : null;
-                        var op = site.local('text', val, type, pos);
-                        sites.push(site);
-                        ops[i] = op;
-                    }
-
-                    for(i=0; i < 3; i++) {
-                        var order = toRecv[i];
-                        sites[i].remote(ops[order[0]]);
-                        sites[i].remote(ops[order[1]]);
-                    }
-
-                    var correct = sites[0].state;
-                    for(i=0, l=sites.length; i<l; i++) {
-                        var e = sites[i];
-                        deepEqual(e.state, correct, 'client state check');
-                        equals(e.eng.getBufferSize(), 3, 'history buffer size check');
-                    }
-                });
+                testFactory(s, r, send[s], recv[r]);
             }
         }
-    })();
+    }());
     
     test('three site late join', 6, function() {
         var a = new util.OpEngClient(0, {symbol : 'x'});
@@ -179,7 +183,7 @@ define([
     
         var correct = {symbol : 'A'};
         var sites = [a,b,c];
-        for(i=0, l=sites.length; i<l; i++) {
+        for(var i=0, l=sites.length; i<l; i++) {
             var e = sites[i];
             e.recvAll();
             deepEqual(e.state, correct, 'client state check');
