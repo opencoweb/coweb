@@ -48,11 +48,18 @@ define([
             return this;
         }
 
-        if(this.position < op.position || (this.position === op.position && this.siteId > op.siteId)) {
-            return this;
+        if(this.position > op.position || 
+            (this.position === op.position && this.siteId <= op.siteId)) {
+            ++this.position;
         }
-        ++this.position;
         return this;
+        // 
+        // 
+        // if(this.position < op.position || (this.position === op.position && this.siteId > op.siteId)) {
+        //     return this;
+        // }
+        // ++this.position;
+        // return this;
 
         // if(this.position > op.position) {
         //     ++this.position;
