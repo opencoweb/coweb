@@ -79,7 +79,7 @@ public class ServiceHandler {
 	
 	public void shutdown() {
 
-        System.out.println("ServiceHandler::shutdown");
+        //System.out.println("ServiceHandler::shutdown");
 		
 		for(Transport transport: this.brokers.values()) {
 			transport.shutdown();
