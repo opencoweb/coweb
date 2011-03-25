@@ -22,8 +22,6 @@ define([
      * @ivar position Integer position of the 
      * @ivar seqId Integer sequence number of this operation at the site where 
      *   it was generated
-     * @ivar origPosition Original position before any transformation
-     * @ivar origContextVector Original context before any transformation
      * @ivar immutable True if this op cannot be transformed without a copy
      *
      * Initializes an operation from serialized state or individual props.
@@ -39,26 +37,14 @@ define([
         } else if(args.state) {
             // restore from state alone
             this.setState(args.state);
-            // store originals
-            this.origPosition = this.position;
-            this.origContextVector = this.contextVector.copy();
         } else {
             // use individual properties
             this.siteId = args.siteId;
             this.contextVector = args.contextVector;
-            if(args.origContextVector) {
-                this.origContextVector = args.origContextVector;
-            } else {
-                this.origContextVector = this.contextVector.copy();
-            }
             this.key = args.key;
             this.value = args.value;
             this.position = args.position;
-            if(args.origPosition) {
-                this.origPosition = args.origPosition;
-            } else {
-                this.origPosition = this.position;
-            }
+            this.order = args.order || Infinity;
             if(args.seqId !== undefined) { 
                 this.seqId = args.seqId;
             } else if(this.contextVector) {
@@ -79,7 +65,8 @@ define([
     Operation.prototype.getState = function() {
         // use an array to minimize the wire format
         var arr = [this.type, this.key, this.value, this.position, 
-            this.contextVector.sites, this.seqId, this.siteId];
+            this.contextVector.sites, this.seqId, this.siteId,
+            this.order];
         return arr;
     };
 
@@ -96,6 +83,7 @@ define([
         this.contextVector = new ContextVector({state : arr[4]});
         this.seqId = arr[5];
         this.siteId = arr[6];
+        this.order = arr[7];
     };
 
     /**
@@ -110,12 +98,11 @@ define([
         var args = {
             siteId : this.siteId,
             seqId : this.seqId,
-            origContextVector : this.origContextVector,
             contextVector : this.contextVector.copy(),
             key : this.key,
             value : this.value,
             position : this.position,
-            origPosition : this.origPosition
+            order : this.order
         };
         // respect subclasses
         var op = new this.constructor(args);

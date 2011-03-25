@@ -10,6 +10,7 @@ define([
     // track all op engine clients publicly for reset
     var util = {};
     util.all_clients = [];
+    util.order = 1;
     
     // declare client class
     var OpEngClient = function(site, state, keepFrozen) {
@@ -28,10 +29,12 @@ define([
     util.OpEngClient = OpEngClient;
 
     OpEngClient.prototype.send = function(op) {
+        op = op.copy();
+        op.order = util.order++;
+        console.log('adding order', op.order);
         for(var i=0; i < util.all_clients.length; i++) {
             var client = util.all_clients[i];
-            if(client != this)
-                client.incoming.push(op);
+            client.incoming.push(op);
         }
     };
 
@@ -86,19 +89,9 @@ define([
     };
 
     OpEngClient.prototype.remote = function(op) {
+        op = op.copy();
         // make a copy before transforming because everything is local here
-        op = this.eng.pushRemoteOp(op.copy());
-        this._updateState(op);
-        return op;
-    };
-    
-    OpEngClient.prototype.remoteRaw = function(key, value, type, position, 
-    site, cv) {
-        if(this.eng.siteId == site) {
-            // ignore own incoming events
-            return;
-        }
-        var op = this.eng.push(false, key, value, type, position, site, cv);
+        op = this.eng.pushRemoteOp(op);
         this._updateState(op);
         return op;
     };

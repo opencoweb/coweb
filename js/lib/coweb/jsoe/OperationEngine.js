@@ -152,7 +152,7 @@ define([
         // update local context vector
         this.cv.setSeqForSite(op.siteId, op.seqId);
         // add to history buffer
-        this.hb.add(op);
+        this.hb.addLocal(op);
         return op;
     };
 
@@ -166,6 +166,8 @@ define([
         var top = null;
 
         if(this.hasProcessedOp(op)) {
+            // let the history buffer track the total order for the op
+            this.hb.addRemote(op);
             // engine has already processed this op so ignore it
             return null;
         } else if(this.cv.equals(op.contextVector)) {
@@ -184,7 +186,7 @@ define([
         // update local context vector with the original op
         this.cv.setSeqForSite(op.siteId, op.seqId);
         // store original op
-        this.hb.add(op);
+        this.hb.addRemote(op);
         // update context vector table with original op
         this.cvt.updateWithOperation(op);
 
@@ -364,7 +366,7 @@ define([
             // perform the inclusion transform on op and xop now that they have
             //   the same context; ask xop for the method that should be invoked
             //   on op to properly transform it
-            // console.log('T(O%d in %s, O%d in %s) ->', op.siteId+1, op.contextVector.toString(), xop.siteId+1, xop.contextVector.toString());
+            console.log('T(O%d in %s ordered %s, O%d in %s ordered %s) ->', op.siteId+1, op.contextVector.toString(), op.order, xop.siteId+1, xop.contextVector.toString(), xop.order);
             op = op[xop.transformMethod()](xop);
             if(op === null) {
                 // op target was deleted by another earlier op so return now
@@ -372,7 +374,7 @@ define([
                 // meaning on this op
                 return null;
             }
-            // console.log('\t\t\t\t\t%s[%d, "%s"]', op.type, op.position, op.value || '');
+            console.log('\t\t\t\t\t%s[%d, "%s"]', op.type, op.position, op.value || '');
             // upgrade the context of the transformed op to reflect the
             //   inclusion transform
             op.contextVector.setSeqForSite(xop.siteId, xop.seqId);

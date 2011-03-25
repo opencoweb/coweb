@@ -53,7 +53,7 @@ define([
         for(var i=0; i < arr.length; i++) {
             // restore operations
             var op = factory.createOperationFromState(arr[i]);
-            this.add(op);
+            this.addRemote(op);
         }
     };
 
@@ -78,7 +78,16 @@ define([
             ops.push(op);
         }
         // @debug: sort by order added to history
-        ops.sort(function(a,b) { return (a.order < b.order) ? -1 : 1 ; });
+        ops.sort(function(a,b) { 
+            if(a.order === b.order) {
+                // both Infinity, compare sequence ids
+                return a.seqId < b.seqId ? -1 : 1;
+            } else if(a.order < b.order) {
+                return -1;
+            } else if(a.order > b.order) {
+                return 1;
+            }
+        });
         return ops;
     };
 
@@ -87,12 +96,26 @@ define([
      *
      * @param op Operation instance
      */
-    HistoryBuffer.prototype.add = function(op) {
+    HistoryBuffer.prototype.addLocal = function(op) {
         var key = factory.createHistoryKey(op.siteId, op.seqId);
         this.ops[key] = op;
-        op.order = this.order++;
+        // unknown total order for now
         op.immutable = true;
         ++this.size;
+    };
+
+    HistoryBuffer.prototype.addRemote = function(op) {
+        var key = factory.createHistoryKey(op.siteId, op.seqId);
+        var eop = this.ops[key];
+        if(eop) {
+            // known place in total order
+            eop.order = op.order;
+        } else {
+            // add new remote op to history
+            this.ops[key] = op;
+            op.immutable = true;
+            ++this.size;
+        }
     };
 
     /**
