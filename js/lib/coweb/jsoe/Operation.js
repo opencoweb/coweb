@@ -115,7 +115,7 @@ define([
      *
      * @param op Operation object to compare with
      */
-    Operation.prototype.compare = function(op) {
+    Operation.prototype.compareByContext = function(op) {
         var rv = this.contextVector.compare(op.contextVector);
         if(rv === 0) {
             if(this.siteId < op.siteId) {
@@ -127,6 +127,19 @@ define([
             }
         }
         return rv;
+    };
+    
+    Operation.prototype.compareByOrder = function(op) {
+        if(this.order === op.order) {
+            // both unknown total order, should be from the same site
+            // compare sequence ids
+            // @todo: what about late joining?
+            return this.seqId < op.seqId ? -1 : 1;
+        } else if(this.order < op.order) {
+            return -1;
+        } else if(this.order > op.order) {
+            return 1;
+        }
     };
 
     /**

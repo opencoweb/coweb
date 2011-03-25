@@ -87,12 +87,14 @@ define([
         var a = new util.OpEngClient(0, {symbol : 'IBM'});
         var b = new util.OpEngClient(1, {symbol : 'IBM'});
         var a1 = a.local('symbol', 'JAVA', 'update', -1);
+        a.send(a1);
         var b1 = b.local('symbol', 'MSFT', 'update', -1);
+        b.send(b1);
         var b2 = b.local('symbol', 'GOOG', 'update', -1);
+        b.send(b2);
 
-        var b1r = a.remote(b1);
-        var b2r = a.remote(b2);
-        var a1r = b.remote(a1);
+        a.recvAll();
+        b.recvAll();
 
         var correct = {symbol : 'JAVA'};
         deepEqual(a.state, correct, 'client state check');
@@ -103,42 +105,42 @@ define([
 
     (function() {
         // permutations of event at site
-        var send = [
+        var events = [
             [[1, 'insert'], [1, 'delete'], [2, 'insert']],
             [[2, 'insert'], [1, 'insert'], [1, 'delete']],
             [[1, 'delete'], [2, 'insert'], [1, 'insert']]
         ];
-        // permutations of possible receive orders
-        var recv = [
-            [[1, 2], [0, 2], [0, 1]],
-            [[2, 1], [0, 2], [0, 1]],
-            [[1, 2], [2, 0], [0, 1]],
-            [[2, 1], [2, 0], [0, 1]],
-            [[1, 2], [0, 2], [1, 0]],
-            [[2, 1], [0, 2], [1, 0]],
-            [[1, 2], [2, 0], [1, 0]],
-            [[2, 1], [2, 0], [1, 0]]
-        ];
-        
-        var testFactory = function(s, r, toSend, toRecv) {
+        // permutations of total order
+        var orders = [
+            [0,1,2],
+            [0,2,1],
+            [1,0,2],
+            [1,2,0],
+            [2,0,1],
+            [2,1,0]
+        ];        
+        var testFactory = function(s, r, events, order) {
             test('three site false-tie puzzle permutation '+(s*8 + r), 6, function() {
                 var sites = [];
                 var ops = [];
                 var i, l;
-                for(i=0; i < 3; i++) {
+                for(i=0, l=order.length; i < l; i++) {
                     var site = new util.OpEngClient(i, {text : 'abc'});
-                    var pos = toSend[i][0];
-                    var type = toSend[i][1];
-                    var val = (type === 'insert') ? ''+pos : null;
-                    var op = site.local('text', val, type, pos);
                     sites.push(site);
-                    ops[i] = op;
                 }
 
-                for(i=0; i < 3; i++) {
-                    var order = toRecv[i];
-                    sites[i].remote(ops[order[0]]);
-                    sites[i].remote(ops[order[1]]);
+                for(i=0, l=order.length; i < l; i++) {
+                    var siteId = order[i];
+                    var site = sites[siteId];
+                    var pos = events[siteId][0];
+                    var type = events[siteId][1];
+                    var val = (type === 'insert') ? ''+pos : null;
+                    var op = site.local('text', val, type, pos);
+                    site.send(op);
+                }
+
+                for(i=0, l=sites.length; i < l; i++) {
+                    sites[i].recvAll();
                 }
 
                 var correct = sites[0].state;
@@ -150,9 +152,9 @@ define([
             });
         };
         
-        for(var s=0; s < send.length; s++) {
-            for(var r=0; r < recv.length; r++) {
-                testFactory(s, r, send[s], recv[r]);
+        for(var s=0; s < events.length; s++) {
+            for(var r=0; r < orders.length; r++) {
+                testFactory(s, r, events[s], orders[r]);
             }
         }
     }());
@@ -197,36 +199,27 @@ define([
         var c = new util.OpEngClient(2, {text : 'abc'});
 
         var a1 = a.local('text', 'x', 'insert', 2);
+        a.send(a1);
         var a2 = a.local('text', null, 'delete', 3);
+        a.send(a2);
         var b1 = b.local('text', null, 'delete', 1);
+        b.send(b1);
         var b2 = b.local('text', 'z', 'insert', 0);
+        b.send(b2);
         var c1 = c.local('text', null, 'delete', 1);
+        c.send(c1);
         var c2 = c.local('text', 'y', 'insert', 2);
-    
-        var list = [b1, b2, c1, c2];
-        var i, l, op, e;
-        for(i=0, l=list.length; i<l; i++) {
-            op = list[i];
-            a.remote(op);
-        }
-
-        list = [a1, a2, c1, c2];
-        for(i=0, l=list.length; i<l; i++) {
-            op = list[i];
-            b.remote(op);
-        }
-
-        list = [a1, a2, b1, b2];
-        for(i=0, l=list.length; i<l; i++) {
-            op = list[i];
-            c.remote(op);
-        }
+        c.send(c2);
+        
+        a.recvAll();
+        b.recvAll();
+        c.recvAll();
     
         // var correct = {text : 'zaxy'};
         var correct = a.state;
-        list = [a,b,c];
-        for(i=0, l=list.length; i<l; i++) {
-            e = list[i];
+        var list = [a,b,c];
+        for(var i=0, l=list.length; i<l; i++) {
+            var e = list[i];
             deepEqual(e.state, correct, 'client state check');
             equals(e.eng.getBufferSize(), 6, 'history buffer size check');
         }

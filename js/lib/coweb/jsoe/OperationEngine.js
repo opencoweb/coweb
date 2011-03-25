@@ -241,9 +241,9 @@ define([
         while(ops.length) {
             // get an op from the list we have yet to process
             var curr = ops.pop();
-            // if we haven't pick a minimum op yet OR
-            // the current op is sorted before minimum op in the hb
-            if(min_op === undefined || curr.compare(min_op) === -1) {
+            // if we haven't picked a minimum op yet OR
+            // the current op is before the minimum op in context
+            if(min_op === undefined || curr.compareByContext(min_op) === -1) {
                 // compute the oldest difference between the document state
                 // and the current op
                 cd = this.cv.oldestDifference(curr.contextVector);
@@ -255,7 +255,7 @@ define([
         }
 
         // get history buffer contents sorted by context dependencies
-        ops = this.hb.getSortedOperations();
+        ops = this.hb.getContextSortedOperations();
         // remove keys until we hit the min
         for(var i=0; i < ops.length; i++) {
             var op = ops[i];
@@ -366,7 +366,7 @@ define([
             // perform the inclusion transform on op and xop now that they have
             //   the same context; ask xop for the method that should be invoked
             //   on op to properly transform it
-            console.log('T(O%d in %s ordered %s, O%d in %s ordered %s) ->', op.siteId+1, op.contextVector.toString(), op.order, xop.siteId+1, xop.contextVector.toString(), xop.order);
+            // console.log('T(O%d in %s ordered %s, O%d in %s ordered %s) ->', op.siteId+1, op.contextVector.toString(), op.order, xop.siteId+1, xop.contextVector.toString(), xop.order);
             op = op[xop.transformMethod()](xop);
             if(op === null) {
                 // op target was deleted by another earlier op so return now
@@ -374,7 +374,7 @@ define([
                 // meaning on this op
                 return null;
             }
-            console.log('\t\t\t\t\t%s[%d, "%s"]', op.type, op.position, op.value || '');
+            // console.log('\t\t\t\t\t%s[%d, "%s"]', op.type, op.position, op.value || '');
             // upgrade the context of the transformed op to reflect the
             //   inclusion transform
             op.contextVector.setSeqForSite(xop.siteId, xop.seqId);

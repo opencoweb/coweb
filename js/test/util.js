@@ -29,9 +29,11 @@ define([
     util.OpEngClient = OpEngClient;
 
     OpEngClient.prototype.send = function(op) {
+        if(this.eng.siteId !== op.siteId) {
+            throw new Error('trying to send op from wrong site');
+        }
         op = op.copy();
         op.order = util.order++;
-        console.log('adding order', op.order);
         for(var i=0; i < util.all_clients.length; i++) {
             var client = util.all_clients[i];
             client.incoming.push(op);
@@ -53,7 +55,7 @@ define([
             this.recv();
         }
     };
-    
+
     OpEngClient.prototype.recvAll = function() {
         this.recvSome(this.incoming.length);
     };

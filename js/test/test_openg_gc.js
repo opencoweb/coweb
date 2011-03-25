@@ -197,7 +197,7 @@ define([
     test('garbage collection #5', 7, function() {
         var a = new util.OpEngClient(0, {symbol : '0'});
         var b = new util.OpEngClient(1, {symbol : '0'});
-        var op;
+        var op, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12;
 
         // b receives an op from a
         op = a.local('symbol', 'a1', 'update', -1);

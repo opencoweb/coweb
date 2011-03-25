@@ -19,7 +19,6 @@ define([
     var HistoryBuffer = function() {
         this.ops = {};
         this.size = 0;    
-        this.order = 0;
     };
 
     /**
@@ -69,7 +68,7 @@ define([
         // get the ops
         var keys = cd.getHistoryBufferKeys();
         var ops = [];
-        for(var i=0; i < keys.length; i++) {
+        for(var i=0, l=keys.length; i < l; i++) {
             var key = keys[i];
             var op = this.ops[key];
             if(op === undefined) {
@@ -77,17 +76,8 @@ define([
             }
             ops.push(op);
         }
-        // @debug: sort by order added to history
-        ops.sort(function(a,b) { 
-            if(a.order === b.order) {
-                // both Infinity, compare sequence ids
-                return a.seqId < b.seqId ? -1 : 1;
-            } else if(a.order < b.order) {
-                return -1;
-            } else if(a.order > b.order) {
-                return 1;
-            }
-        });
+        // sort by total order
+        ops.sort(function(a,b) { return a.compareByOrder(b); });
         return ops;
     };
 
@@ -147,7 +137,7 @@ define([
      *
      * @return Array of operations
      */
-    HistoryBuffer.prototype.getSortedOperations = function() {
+    HistoryBuffer.prototype.getContextSortedOperations = function() {
         var ops = [];
         // put all ops into an array
         for(var key in this.ops) {
@@ -156,7 +146,7 @@ define([
             }
         }
         // sort them by context, sequence, and site
-        ops.sort(function(a,b) { return a.compare(b); });
+        ops.sort(function(a,b) { return a.compareByContext(b); });
         return ops;
     };
     
