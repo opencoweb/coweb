@@ -33,7 +33,7 @@
             <param-name>jsonDebug</param-name>
             <param-value>false</param-value>
         </init-param>
-        <async-supported>true</async-supported>
+        <!-- <async-supported>true</async-supported> -->
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
