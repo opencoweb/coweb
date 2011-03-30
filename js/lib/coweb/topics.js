@@ -21,7 +21,6 @@ define(function() {
         // full state topics
         GET_STATE : p+'state.get',
         SET_STATE : p+'state.set.',
-        END_STATE : p+'state.done',
         ENGINE_STATE : p+'engine.state',
         ENGINE_SYNC : p+'engine.sync',
         // site joining and leaving topics

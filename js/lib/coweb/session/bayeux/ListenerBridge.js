@@ -62,17 +62,50 @@ define([
     /**
      * Publishes a local coweb event to the /session/sync Bayeux channel.
      *
-     * @param {String} topic String topic identifying the event
-     * @param {Object} data JSON-encodable object
+     * @param {String} topic Event topic
+     * @param {Object} value JSON-encodable event value
+     * @param {String|null} type Event operation type
+     * @param {Number} type Event integer linear position
+     * @param {Number[]} context Event integer array context vector
      */
-    proto.postSync = function(topic, data) {
+    proto.postSync = function(topic, value, type, position, context) {
         // don't send events if we're not updated yet
-        if(this._state !== this.UPDATED) { return; }
-        data = lang.clone(data);
+        if(this._state !== this.UPDATED) { return; }        
+        // @todo: goes away with completion of issue #59
+        var eventData = {
+            value : value,
+            type : type,
+            position : position,
+            context : context
+        };
         // publish to server
         cometd.publish('/session/sync', {
             topic : topic, 
-            eventData : data
+            eventData : eventData
+        });
+        return true;
+    };
+    
+    /**
+     * Publishes a local op engine sync event to the /session/sync Bayeux 
+     * channel.
+     *
+     * @param {Number[]} context Integer array context vector for this site
+     */
+    proto.postEngineSync = function(context) {
+        // don't send events if we're not updated yet
+        if(this._state !== this.UPDATED) { return; }        
+        // @todo: channel and msg format changes with completion of issue #59
+        var eventData = {
+            value : '',
+            type : 'update',
+            position : 0,
+            context : context
+        };
+        // publish to server
+        cometd.publish('/session/sync', {
+            topic : topics.ENGINE_SYNC, 
+            eventData : eventData
         });
         return true;
     };
@@ -83,14 +116,14 @@ define([
      *
      * @param {String} topic String topic identifying the portion of the state
      * @param {Object} value JSON-encodable object
-     * @param {String} recipient Opqaue ID created by the server identifying
+     * @param {String} recipient Opaque ID created by the server identifying
      * the recipient (i.e., late-joiner)
      */
     proto.postStateResponse = function(topic, value, recipient) {
         var state = this._stateReqs[recipient];
         // no outstanding request for state, ignore this message
         if(state === undefined) { return; }
-        if(topic !== topics.END_STATE) {
+        if(topic) {
             // hold onto state
             value = lang.clone(value);
             state.push({topic: topic, value: value});
@@ -256,7 +289,8 @@ define([
                 // inform all callbacks of error
                 for(topic in info.pending) {
                     if(info.pending.hasOwnProperty(topic)) {
-                        this._listener.syncInbound(topic, segs[2], 0, 'error');
+                        this._listener.serviceResponseInbound(topic, segs[2], 
+                            true);
                     }
                 }
                 // reset list of topics pending responses
@@ -272,7 +306,7 @@ define([
                 cometd.removeListener(info.token);
                 info.token = null;
                 segs = msg.error.split(':');
-                this._listener.syncInbound(topic, segs[2], 0, 'error');
+                this._listener.servicePublishInbound(topic, segs[2], true);
                 // @todo: do we need to unsubscribe? toss tokens?
             }
             // console.warn('bayeux.ListenerBridge: unhandled subscription error ' + msg.error);
@@ -302,7 +336,8 @@ define([
                 // inform all callbacks of error
                 for(var topic in info.pending) {
                     if(info.pending.hasOwnProperty(topic)) {
-                        this._listener.syncInbound(topic, segs[2], 0, 'error');
+                        this._listener.serviceResponseInbound(topic, segs[2], 
+                            true);
                     }
                 }
                 // reset list of topics pending responses
@@ -402,7 +437,7 @@ define([
         this._state = this.UPDATED;
         this._updateQueue = [];
     };
-    
+
     /**
      * Called to handle a /session/sync message. Forwards it to the listener
      * for processing by the op engine and broadcast to the local app.
@@ -411,7 +446,6 @@ define([
      * @param {Object} msg Published coweb event message
      */
     proto._onSessionSync = function(msg) {
-        //console.debug('bayeux.ListenerBridge._onSessionSync:', msg);
         var d = msg.data;
         // ignore echo'ed messages
         if(d.siteId === this._siteId) {return;}
@@ -422,7 +456,15 @@ define([
             });
             return;
         }
-        this._listener.syncInbound(d.topic, d.eventData, d.siteId, 'result');        
+        // post to listener
+        if(d.topic === topics.ENGINE_SYNC) {
+            this._listener.engineSyncInbound(d.site, d.eventData.context);
+        } else {
+            // @todo: eventData intermediary goes away with completion of issue #59
+            this._listener.syncInbound(d.topic, d.eventData.value, 
+                d.eventData.type, d.eventData.position, d.siteId, 
+                d.eventData.context);
+        }
     };
     
     /**
@@ -487,8 +529,9 @@ define([
            console.warn('bayeux.ListenerBridge: unknown bot publish ' + ch);
            return;
         }
-        var topic = topics.SET_SERVICE + match[1];
-        this._listener.syncInbound(topic, msg.data.eventData, 0, 'result');
+        var serviceName = match[1];
+        this._listener.servicePublishInbound(serviceName, msg.data.eventData, 
+            false);
     };
 
     /**
@@ -515,7 +558,8 @@ define([
         }
         delete info.pending[topic];
         // send to listener
-        this._listener.syncInbound(topic, msg.data.eventData, 0, 'result');
+        this._listener.serviceResponseInbound(topic, msg.data.eventData, 
+            false);
     };
     
     return ListenerBridge;
