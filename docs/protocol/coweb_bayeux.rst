@@ -88,9 +88,9 @@ The URL of the session handler is determined by the `sessionurl` value in the se
 Client subscribes to session topics
 ###################################
 
-The client must subscribe to the `/session/roster/*`, `/session/sync`, and `/service/session/join/*` Bayeux channels after completing the Bayeux handshake. The first two subscriptions ensure receipt of roster changes and cooperative events. The third initiates the update procedure if the client is joining a session already in progress.
+The client must subscribe to the `/session/roster/*`, `/session/sync/*`, and `/service/session/join/*` Bayeux channels after completing the Bayeux handshake. The first two subscriptions ensure receipt of roster changes and cooperative events. The third initiates the update procedure if the client is joining a session already in progress.
 
-The client must queue all messages received on the `/session/roster` and `/session/sync` channels until it receives and processes a copy of the current application state on the `/service/session/join/state` channel. This queue guarantees no events are missed while the client completes the join procedure.
+The client must queue all messages received on the `/session/roster` and `/session/sync/*` channels until it receives and processes a copy of the current application state on the `/service/session/join/state` channel. This queue guarantees no events are missed while the client completes the join procedure.
 
 ::
 
@@ -104,7 +104,7 @@ The client must queue all messages received on the `/session/roster` and `/sessi
    {
       "channel" : "/meta/subscribe",
       "clientID" : "clientId",
-      "subscription" : "/session/sync"
+      "subscription" : "/session/sync/*"
    },
    {
       "channel" : "/meta/subscribe",
@@ -203,7 +203,7 @@ The operation engine on the updater site must include its state as part of this 
 Server sends state to late joining client
 #########################################
 
-A server must forward the current application state to a client joining a session in-progress. A client must apply the received state to its application and operation engine. After applying the state, the client must process any queued events from the `/session/roster` and `/session/sync` channel subscriptions to finish bringing the application up to date. Only after this step should a client allow a user to make changes to its state.
+A server must forward the current application state to a client joining a session in-progress. A client must apply the received state to its application and operation engine. After applying the state, the client must process any queued events from the `/session/roster` and `/session/sync/*` channel subscriptions to finish bringing the application up to date. Only after this step should a client allow a user to make changes to its state.
 
 ::
 
@@ -280,27 +280,33 @@ Client operations
 Client publishes an operation
 `````````````````````````````
 
-The client must send operations that affect the shared application state to the server. The operation must contain a `topic` indicating the portion of the application affected (e.g., which widget) and `eventData` describing the change for operational transformation by other clients.
+The client must send operations that affect the shared application state to the server. The operation must contain a `topic` indicating the portion of the application affected (e.g., which widget), a string `value` representing the change, a `type` set to one of the operation types supported by the :doc:`operation engine </intro/openg>` or null, an integer `position` representing the index of the change in a linear collection, and an array of integers representing the context in which the operation occurred or null. 
 
-The structure of `eventData` is unspecified to support arbitrary data types and different operational transformation algorithms. For compatibility with the current coweb framework implementation, `eventData` should contain the `value`, `type`, `position`, and `context` attributes used by the :doc:`operation engine </intro/openg>`.
+If either `type` or `context` is null, the other field must also be null indicating an event cannot conflict and should not be processed by the remote operation engine. When these fields are null, the `position` argument is ignored and should be defaulted to `0`.
 
 ::
 
    POST /path/to/session/handler HTTP/1.1
 
    [{
-      "channel" : "/session/sync",
+      "channel" : "/session/sync/app",
       "clientId" : "clientId",
       "data" : {
          "topic" : "topic",
-         "eventData" : { ... }
+         "value" : "value",
+         "type" : "typeOrNull",
+         "position" : posInt,
+         "context" : [arrayOfIntOrNull]
       }
    }]
+
+.. versionchanged:: 0.5
+   `eventData` exploded to well defined operation fields
 
 Server delivers an operation
 ````````````````````````````
 
-The server must insert the site ID of the client into the `data` field of any operation the client sends before publishing it to the `/session/sync` channel for other clients.
+The server must insert the site ID of the client into the `data` field of any operation the client sends before publishing it to the `/session/sync/app` channel for other clients.
 
 ::
 
@@ -308,13 +314,19 @@ The server must insert the site ID of the client into the `data` field of any op
    Content-Type: application/json; charset=UTF-8
 
    [{
-      "channel" : "/session/sync",
+      "channel" : "/session/sync/app",
       "data" : {
-         "siteId" : siteId,
+         "siteId" : siteIdInt,
          "topic" : "topic",
-         "eventData" : { ... }
+         "value" : "value",
+         "type" : "typeOrNull",
+         "position" : posInt,
+         "context" : [arrayOfIntOrNull]
       }
    }]
+
+.. versionchanged:: 0.5
+   `eventData` exploded to well defined operation fields
 
 Service requests, responses, and broadcasts
 ###########################################
@@ -384,9 +396,12 @@ The client may publish a request to the `/service/bot/service_name/request` chan
       "clientId" : "clientId",
       "data" : {
          "topic" : "request topic",
-         "eventData" : { ... }
+         "value" : { ... }
       }
    }]
+
+.. versionchanged:: 0.5
+   `eventData` changed to `value` for consistency with other messages
 
 .. _proto-service-response:
 
@@ -406,9 +421,12 @@ The server must avoid sending any bot response to a client that does not have an
       "channel" : "/service/bot/service_name/response",
       "data" : {
          "topic" : "request topic",
-         "eventData" : { ... }
+         "value" : { ... }
       }
    }]
+
+.. versionchanged:: 0.5
+   `eventData` changed to `value` for consistency with other messages
 
 .. _proto-service-broadcast:
 
@@ -427,6 +445,9 @@ The server must ensure the bot is broadcasting on its own channel and no other.
    [{
       "channel" : "/bot/service_name",
       "data" : {
-         "eventData" : { ... }
+         "value" : { ... }
       }
    }]
+
+.. versionchanged:: 0.5
+   `eventData` changed to `value` for consistency with other messages
