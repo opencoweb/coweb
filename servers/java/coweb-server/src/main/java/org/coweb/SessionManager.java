@@ -205,7 +205,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     }
      
     public void handleMessage(ServerSession remote, Message message) {
-    	System.out.println("SessionManager::handleMessage");
+    	//System.out.println("SessionManager::handleMessage");
     	//System.out.println(message);
     	String sessionId = (String)remote.getAttribute("sessionid");
     	SessionHandler handler = null;
@@ -219,7 +219,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     		handler.onPublish(remote, message);
     	}
     	else {
-    		System.out.println("could not find handler");
+    		//System.out.println("could not find handler");
     	}
     }
     
@@ -255,7 +255,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     }
     
     public void removeSessionHandler(SessionHandler handler) {
-    	System.out.println("removeSessionHandler");
+    	//System.out.println("removeSessionHandler");
     	this.removeSessionHandler(handler.getConfKey(), handler.isCollab());
     }
     
@@ -276,7 +276,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
 
 	@Override
 	public void sessionRemoved(ServerSession client, boolean timeout) {
-		System.out.println("SessionManager::sessionRemoved");
+		//System.out.println("SessionManager::sessionRemoved");
 		String sessionId = (String)client.getAttribute("sessionid");
 		SessionHandler handler = this.getSessionHandler(sessionId);
 	
