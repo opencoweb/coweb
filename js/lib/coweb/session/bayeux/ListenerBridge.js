@@ -32,7 +32,7 @@ define([
         this._rosterToken = null;
         // /service/session/updater subscription
         this._updaterToken = null;
-        // /session/sync subscription
+        // /session/sync/* subscription
         this._syncToken = null;
         // local site id for filtering echo messages
         this._siteId = null;
@@ -71,17 +71,13 @@ define([
     proto.postSync = function(topic, value, type, position, context) {
         // don't send events if we're not updated yet
         if(this._state !== this.UPDATED) { return; }        
-        // @todo: goes away with completion of issue #59
-        var eventData = {
+        // publish to server
+        cometd.publish('/session/sync/app', {
+            topic : topic, 
             value : value,
             type : type,
             position : position,
             context : context
-        };
-        // publish to server
-        cometd.publish('/session/sync', {
-            topic : topic, 
-            eventData : eventData
         });
         return true;
     };
@@ -95,18 +91,8 @@ define([
     proto.postEngineSync = function(context) {
         // don't send events if we're not updated yet
         if(this._state !== this.UPDATED) { return; }        
-        // @todo: channel and msg format changes with completion of issue #59
-        var eventData = {
-            value : '',
-            type : 'update',
-            position : 0,
-            context : context
-        };
         // publish to server
-        cometd.publish('/session/sync', {
-            topic : topics.ENGINE_SYNC, 
-            eventData : eventData
-        });
+        cometd.publish('/session/sync/engine', {context : context});
         return true;
     };
 
@@ -183,7 +169,7 @@ define([
         }
         // publish the bot request
         cometd.publish('/service/bot/'+service+'/request', {
-            eventData: params,
+            value: params,
             topic : topic
         });
         // add topic to pending
@@ -241,7 +227,7 @@ define([
             this._rosterToken = cometd.subscribe('/session/roster/*', 
                 this, '_onSessionRoster');
             // subscribe to sync events
-            this._syncToken = cometd.subscribe('/session/sync', 
+            this._syncToken = cometd.subscribe('/session/sync/*', 
                 this, '_onSessionSync');
             // start the joining process
             this._joinToken = cometd.subscribe('/service/session/join/*', 
@@ -439,8 +425,8 @@ define([
     };
 
     /**
-     * Called to handle a /session/sync message. Forwards it to the listener
-     * for processing by the op engine and broadcast to the local app.
+     * Called to handle a /session/sync/* message. Forwards it to the listener
+     * for processing by the op engine and/or broadcast to the local app.
      *
      * @private
      * @param {Object} msg Published coweb event message
@@ -448,6 +434,7 @@ define([
     proto._onSessionSync = function(msg) {
         var d = msg.data;
         // ignore echo'ed messages
+        // @todo: will change for issue #41 where total order is used
         if(d.siteId === this._siteId) {return;}
         if(this._state === this.UPDATING) {
             this._updateQueue.push({
@@ -456,14 +443,19 @@ define([
             });
             return;
         }
+        var ch = msg.channel.split('/');
+        var sch = ch[ch.length-1];
         // post to listener
-        if(d.topic === topics.ENGINE_SYNC) {
-            this._listener.engineSyncInbound(d.site, d.eventData.context);
+        if(sch === 'engine') {
+            // engine sync
+            this._listener.engineSyncInbound(d.site, d.context);
+        } else if(sch === 'app') {
+            // app event sync
+            this._listener.syncInbound(d.topic, d.value, d.type, d.position, 
+                d.siteId, d.context);
         } else {
-            // @todo: eventData intermediary goes away with completion of issue #59
-            this._listener.syncInbound(d.topic, d.eventData.value, 
-                d.eventData.type, d.eventData.position, d.siteId, 
-                d.eventData.context);
+            console.warn('bayeux.ListenerBridge: received unknown sync ' + 
+                ch);
         }
     };
     
@@ -530,7 +522,8 @@ define([
            return;
         }
         var serviceName = match[1];
-        this._listener.servicePublishInbound(serviceName, msg.data.eventData, 
+        console.debug('bayeux.ListenerBridge: bot published', ch, msg.data);
+        this._listener.servicePublishInbound(serviceName, msg.data.value, 
             false);
     };
 
@@ -558,7 +551,7 @@ define([
         }
         delete info.pending[topic];
         // send to listener
-        this._listener.serviceResponseInbound(topic, msg.data.eventData, 
+        this._listener.serviceResponseInbound(topic, msg.data.value, 
             false);
     };
     

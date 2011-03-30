@@ -82,7 +82,7 @@ class BayeuxBotWrapper(BayeuxClient):
                 mtd = self._bot.on_request
             except AttributeError, e:
                 return
-            mtd(data['eventData'], msg['id'], data['username'])
+            mtd(data['value'], msg['id'], data['username'])
         elif rch == pch+'sync':
             data = msg['data']
             try:

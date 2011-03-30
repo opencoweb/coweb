@@ -291,7 +291,7 @@ class CollabSessionConnection(session.SessionConnection):
                 # bad updater, disconnect and assign a new one
                 self._manager.remove_bad_client(cl)
                 return
-        elif channel == '/session/sync':
+        elif channel.startswith('/session/sync/'):
             # handle sync events
             try:
                 req['data']['siteId'] = cl.siteId
@@ -302,8 +302,9 @@ class CollabSessionConnection(session.SessionConnection):
                 return
             # last state no longer valid
             self._manager.clear_last_state()
-            # let manager deal with the sync if forwarding it to services
-            self._manager.sync_for_service(cl, req)
+            if channel == '/session/sync/app':
+                # let manager deal with the sync if forwarding it to services
+                self._manager.sync_for_service(cl, req)
         # delegate all other handling to base class
         super(CollabSessionConnection, self).on_publish(cl, req, res)
 

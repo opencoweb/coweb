@@ -40,7 +40,7 @@ define([
         ];
         this.joinTopics = [
             '/session/roster/*', 
-            '/session/sync', 
+            '/session/sync/*', 
             '/service/session/join/*'
         ];
         this.updaterTopics = [
@@ -127,17 +127,17 @@ define([
         msg.data = {siteId : username};
         this.respond(msg);
     };
-    
-    proto.sendSync = function(siteId, topic, eventData) {
-        var msg = lang.clone(this.publishEnvelope);
-        msg.channel = '/session/sync';
-        msg.data = {
-            siteId : site,
-            topic: topic,
-            eventData: eventData
-        };
-        this.respond(msg);
-    };
+    // 
+    // proto.sendSync = function(siteId, topic, value) {
+    //     var msg = lang.clone(this.publishEnvelope);
+    //     msg.channel = '/session/sync/app';
+    //     msg.data = {
+    //         siteId : site,
+    //         topic: topic,
+    //         value: value
+    //     };
+    //     this.respond(msg);
+    // };
     
     return CowebServer;
 });
