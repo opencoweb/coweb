@@ -34,8 +34,6 @@ define([
         this._updaterToken = null;
         // /session/sync/* subscription
         this._syncToken = null;
-        // local site id for filtering echo messages
-        this._siteId = null;
         // active requests for state
         this._stateReqs = {};
         // state of the join process
@@ -347,7 +345,6 @@ define([
         suffix = suffix[suffix.length-1];
         
         if(suffix === 'siteid') {
-            this._siteId = msg.data;
             // tell listener about site ID
             this._listener.setSiteID(msg.data);
         } else if(suffix === 'roster') {
@@ -433,9 +430,6 @@ define([
      */
     proto._onSessionSync = function(msg) {
         var d = msg.data;
-        // ignore echo'ed messages
-        // @todo: will change for issue #41 where total order is used
-        if(d.siteId === this._siteId) {return;}
         if(this._state === this.UPDATING) {
             this._updateQueue.push({
                 mtd : '_onSessionSync',
@@ -448,14 +442,13 @@ define([
         // post to listener
         if(sch === 'engine') {
             // engine sync
-            this._listener.engineSyncInbound(d.site, d.context);
+            this._listener.engineSyncInbound(d.siteId, d.context);
         } else if(sch === 'app') {
             // app event sync
             this._listener.syncInbound(d.topic, d.value, d.type, d.position, 
-                d.siteId, d.context);
+                d.siteId, d.context, d.order);
         } else {
-            console.warn('bayeux.ListenerBridge: received unknown sync ' + 
-                ch);
+            console.warn('bayeux.ListenerBridge: received unknown sync ' + ch);
         }
     };
     

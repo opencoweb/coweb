@@ -91,6 +91,9 @@ define([
     };
 
     OpEngClient.prototype.remote = function(op) {
+        if(op.order === Infinity) {
+            op.order = util.order++;
+        }
         op = op.copy();
         // make a copy before transforming because everything is local here
         op = this.eng.pushRemoteOp(op);

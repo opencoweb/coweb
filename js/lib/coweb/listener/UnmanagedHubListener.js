@@ -179,28 +179,33 @@ define([
      * @param {Number} site Unique integer ID of the sending site
      * @param {Number[]} sites Context vector as an array of integers
      */
-    proto.syncInbound = function(topic, value, type, position, site, sites) {
+    proto.syncInbound = function(topic, value, type, position, site, sites, 
+    order) {
         var op, event;
         // console.debug('UnmanagedHubListener.syncInbound topic: %s, value: %s, type: %s, position: %s, site: %d, sites: %s', 
-        // topic, value, type || 'null', position, site, sites ? sites.toString() : 'null');
+        //     topic, value, type || 'null', position, site, sites ? sites.toString() : 'null');
         // check if the event has a context and non-null type
-        if(sites !== null && type !== null) {
+        if(sites && type) {
             // treat event as a possibly conflicting operation
             try {
                 op = this._engine.push(false, topic, value, type, position, 
-                    site, sites);
+                    site, sites, order);
             } catch(e) {
                 console.warn('UnmanagedHubListener: failed to push op into engine ' +
                     e.message);
                 // @todo: we're out of sync now probably, fail the session?
                 return;
             }
-            // discard null operations; they should not be sent to gadget
+            // discard null operations; they should not be sent to app
             // according to op engine
             if(op === null) {return;}
             // use newly computed value and position
             value = op.value;
             position = op.position;
+        } else if(site === this._engine.siteId) {
+            // op was echo'ed from server for op engine, but type null means
+            // op engine doesn't care about this message anyway so drop it
+            return;
         }
 
         // value is always json-encoded to avoid ref sharing problems with ops
@@ -296,6 +301,7 @@ define([
             // we have to allow purges after sending even one event in 
             // case this site is the only one in the session for now
             this._shouldPurge = true;
+            console.log('set should purge after sending op');
         } else if(err) {
             // throw error back to the caller
             throw err;
@@ -607,6 +613,8 @@ define([
      * should run garbage collection over its history. 
      */
     proto.engineSyncInbound = function(site, sites) {
+        // ignore our own engine syncs
+        if(site === this._engine.siteId) {return;}
         // give the engine the data
         try {
             this._engine.pushSyncWithSites(site, sites);
@@ -628,18 +636,18 @@ define([
         var size;
         if(this._shouldPurge) {
             size = this._engine.getBufferSize();
-            //var time = new Date();
+            // var time = new Date();
             try {
                 var mcv = this._engine.purge();
             } catch(e) {
                 console.warn('UnmanagedHubListener: failed to purge engine ' + 
                     e.message);
             }
-            //time = new Date() - time;
-            //size = this._engine.getBufferSize();
+            // time = new Date() - time;
+            // size = this._engine.getBufferSize();
             // console.debug('UnmanagedHubListener: purged size =', 
-            // size, 'time =', time, 'mcv =', 
-            // (mcv != null) ? mcv.toString() : 'null');
+            //     size, 'time =', time, 'mcv =', 
+            //     (mcv != null) ? mcv.toString() : 'null');
         }
         // reset flag
         this._shouldPurge = false;

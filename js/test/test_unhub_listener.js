@@ -220,7 +220,7 @@ define([
         // invoke inbound method
         this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
             targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
-            targets.inSyncMsg.context);
+            targets.inSyncMsg.context, 1);
         // whitebox: ensure op engine processed event
         deepEqual(this.listener._engine.cv.sites, [0,1,0,0,0,0]);
     });
