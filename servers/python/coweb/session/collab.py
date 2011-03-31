@@ -39,6 +39,14 @@ class CollabSession(session.Session):
 
         # list that helps us assign the lowest available site id
         self._siteids = ['reserved'] + [None] * 5
+        
+        # operation total order
+        self._opOrder = -1
+        
+    def get_order(self):
+        '''Gets the next operation order sequence number.'''
+        self._opOrder += 1
+        return self._opOrder
 
     def clear_last_state(self):
         '''Clears the last updater state response. No longer valid.'''
@@ -294,6 +302,7 @@ class CollabSessionConnection(session.SessionConnection):
         elif channel.startswith('/session/sync/'):
             # handle sync events
             try:
+                # put siteId on message
                 req['data']['siteId'] = cl.siteId
                 self._manager.ensure_updater(cl)
             except (KeyError, AttributeError):
@@ -303,6 +312,8 @@ class CollabSessionConnection(session.SessionConnection):
             # last state no longer valid
             self._manager.clear_last_state()
             if channel == '/session/sync/app':
+                # put total order sequence number on message
+                req['data']['order'] = self._manager.get_order()
                 # let manager deal with the sync if forwarding it to services
                 self._manager.sync_for_service(cl, req)
         # delegate all other handling to base class

@@ -65,7 +65,7 @@ class AdminHandler(tornado.web.RequestHandler):
                 key=key,
                 container=self._container,
                 deadAfter=self._container.cowebIdleTimeout,
-                exts=[bayeux.BayeuxAuthExt, bayeux.BayeuxEcholessExt, bayeux.BayeuxAckExt]
+                exts=[bayeux.BayeuxAuthExt, bayeux.BayeuxAckExt]
             )
             # create a new session
             sess.start_session()
