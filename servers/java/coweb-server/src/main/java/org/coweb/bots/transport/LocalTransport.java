@@ -84,7 +84,7 @@ public class LocalTransport extends Transport implements Proxy {
 		//System.out.println("message = " + message);
 		
 		Map<String, Object> data = message.getDataAsMap();
-		Map<String, Object> params = (Map<String, Object>)data.get("eventData");
+		Map<String, Object> params = (Map<String, Object>)data.get("value");
 		String replyToken = (String)data.get("topic");
 		String username = (String)client.getAttribute("username");
 		
@@ -136,7 +136,7 @@ public class LocalTransport extends Transport implements Proxy {
 		}
 			
 		HashMap<String, Object> data = new HashMap<String, Object>();
-		data.put("eventData", obj);
+		data.put("value", obj);
 		data.put("topic", replyToken);
 		
 		//HashMap<String, Object> payload = new HashMap<String, Object>();
@@ -155,7 +155,7 @@ public class LocalTransport extends Transport implements Proxy {
 		//System.out.println("LocalTransport::publish");
 		
 		HashMap<String, Object> data = new HashMap<String, Object>();
-		data.put("eventData", obj);
+		data.put("value", obj);
 		
 		HashMap<String, Object> payload = new HashMap<String, Object>();
 		payload.put("data", data);

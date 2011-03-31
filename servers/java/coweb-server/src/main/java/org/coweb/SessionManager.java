@@ -57,7 +57,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
 		this.addService("/service/bot/**", "handleMessage");
 		this.addService("/bot/**", "handleMessage");
 
-		ServerChannel.Initializer initializer = new ServerChannel.Initializer()
+        ServerChannel.Initializer initializer = new ServerChannel.Initializer()
         {
             @Override
             public void configureChannel(ConfigurableServerChannel channel)
@@ -66,8 +66,8 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
                 channel.setLazy(false);
             }
         };
-        
-        bayeux.createIfAbsent("/session/sync", initializer);
+        bayeux.createIfAbsent("/session/sync/app", initializer);
+        bayeux.createIfAbsent("/session/sync/engine", initializer);
 			
         bayeux.addListener(this);
     }
