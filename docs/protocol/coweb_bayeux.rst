@@ -280,7 +280,7 @@ Client operations
 Client publishes an operation
 `````````````````````````````
 
-The client must send operations that affect the shared application state to the server. The operation must contain a `topic` indicating the portion of the application affected (e.g., which widget), a string `value` representing the change, a `type` set to one of the operation types supported by the :doc:`operation engine </intro/openg>` or null, an integer `position` representing the index of the change in a linear collection, and an array of integers representing the context in which the operation occurred or null. 
+The client must send operations that affect the shared application state to the server. The operation must contain a `topic` indicating the portion of the application affected (e.g., which widget), a string `value` representing the change, a `type` set to one of the operation types supported by the :doc:`operation engine </intro/openg>` or null, an integer `position` representing the index of the change in a linear collection, and an array of integers representing the `context` in which the operation occurred or null.
 
 If either `type` or `context` is null, the other field must also be null indicating an event cannot conflict and should not be processed by the remote operation engine. When these fields are null, the `position` argument is ignored and should be defaulted to `0`.
 
@@ -301,7 +301,7 @@ If either `type` or `context` is null, the other field must also be null indicat
    }]
 
 .. versionchanged:: 0.5
-   `eventData` exploded to well defined operation fields
+   Exploded `eventData` to well defined operation fields; separated from engine context messages on an independent channel 
 
 Server delivers an operation
 ````````````````````````````
@@ -326,7 +326,54 @@ The server must insert the site ID of the client into the `data` field of any op
    }]
 
 .. versionchanged:: 0.5
-   `eventData` exploded to well defined operation fields
+   Exploded `eventData` to well-defined operation fields; separated from engine context messages on an independent channel 
+
+Operation engine context
+########################
+
+The operation engine instance maintained by each client relies on the `context` field of received messages in its garbage collection routine. If a client is "silent" for a long period of time (i.e., it is not broadcasting user changes as operations), it can impede garbage collection at remote sites. To resolve this problem, the operation engine broadcasts context messages when needed.
+
+Client publishes an operation engine context
+````````````````````````````````````````````
+
+The client must broadcast its operation engine context vector whenever it receives a remote operation. The client should broadcast this state in a timely manner to ensure remote clients can continue garbage collection of old operations, but may delay sending its context in the hope of including it in the next user operation instead of in an independent message.
+
+For example, the current implementation sends operation engine context on a fixed 10 second interval if it received a remote operation during the interval and did not send a local operation of its own thereafter.
+
+::
+
+   POST /path/to/session/handler HTTP/1.1
+
+   [{
+      "channel" : "/session/sync/engine",
+      "data" : {
+         "context" : [arrayOfIntOrNull]
+      }
+   }]
+
+.. versionchanged:: 0.5
+   Separated from operations on an independent channel
+
+Server delivers an operation engine context
+```````````````````````````````````````````
+
+The server must insert the site ID of the client into the `data` field of any operation engine context message the client sends before publishing it to the `/session/sync/engine` channel for other clients.
+
+::
+
+   HTTP/1.1 200 OK
+   Content-Type: application/json; charset=UTF-8
+
+   [{
+      "channel" : "/session/sync/engine",
+      "data" : {
+         "siteId" : siteIdInt,
+         "context" : [arrayOfIntOrNull]
+      }
+   }]
+
+.. versionchanged:: 0.5
+   Separated from operations on an independent channel
 
 Service requests, responses, and broadcasts
 ###########################################

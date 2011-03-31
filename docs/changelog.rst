@@ -4,6 +4,11 @@
 Changelog
 ---------
 
+Version 0.5
+~~~~~~~~~~~
+
+* Updated the :doc:`coweb Bayeux protocol <protocol/coweb_bayeux>` to separate application operations from operation engine synchronization messages and better define the fields of a coweb event message.
+
 Version 0.4
 ~~~~~~~~~~~
 
