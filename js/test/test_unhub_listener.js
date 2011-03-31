@@ -64,8 +64,7 @@ define([
             position : 1,
             type : 'insert',
             value : 'abc',
-            site : 1,
-            error : false
+            site : 1
         },
         serviceName : 'somebot',
         serviceParams : {
@@ -77,20 +76,14 @@ define([
             g : 'h'
         },
         hubServiceResponse: {
-            position : 0,
-            type : null,
             value : {
                 e : 'f',
                 g : 'h'
             },
-            site : 0,
             error : false
         },
         hubServiceError : {
-            position : 0,
-            type : null,
-            value : 'error message',
-            site : 0,
+            value : 'service error message',
             error : true
         },
         reqServiceTopic : topics.GET_SERVICE+'somebot_0.wid4',
@@ -124,13 +117,17 @@ define([
     
     // mock bridge
     var bridge = {
-        postSync: function(topic, msg) {
-            if(topic === topics.ENGINE_SYNC) {
-                deepEqual(msg, targets.engineSync);
-            } else {
-                equal(topic, targets.syncTopic);
-                deepEqual(msg, targets.inSyncMsg);
-            }
+        postSync: function(topic, value, type, position, context) {
+            equal(topic, targets.syncTopic, 'sync topic');
+            deepEqual(value, targets.inSyncMsg.value, 'sync value');
+            deepEqual(type, targets.inSyncMsg.type, 'sync type');
+            deepEqual(position, targets.inSyncMsg.position, 'sync position');
+            deepEqual(context, targets.inSyncMsg.context, 'sync context');
+            return true;
+        },
+        
+        postEngineSync: function(context) {
+            deepEqual(context, targets.engineSync.context, 'engine sync context');            
             return true;
         },
         
@@ -156,12 +153,11 @@ define([
             equal(token, targets.stateRecipient, 'posted state token');
             if(topic === topics.ENGINE_STATE) {
                 deepEqual(state, targets.engineState, 'engine state');
-            } else if(topic === topics.END_STATE) {
+            } else if(topic === null) {
                 equal(state, null, 'end state sentinel');
             } else {
                 deepEqual(state, targets.stateMsg[topic], 'posted state');
             }
-
         }
     };
     
@@ -222,8 +218,9 @@ define([
             deepEqual(msg, targets.inHubSyncMsg);
         });
         // invoke inbound method
-        this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg, 1, 
-            'result');
+        this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
+            targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
+            targets.inSyncMsg.context);
         // whitebox: ensure op engine processed event
         deepEqual(this.listener._engine.cv.sites, [0,1,0,0,0,0]);
     });
@@ -240,13 +237,13 @@ define([
             deepEqual(msg, inHubSyncMsg);
         });
         // invoke inbound method
-        this.listener.syncInbound(targets.syncTopic, inSyncMsg, 1, 
-            'result');
+        this.listener.syncInbound(targets.syncTopic, inSyncMsg.value, 
+            inSyncMsg.type, inSyncMsg.position, 1, inSyncMsg.context);
         // whitebox: ensure op engine did not process the event
         deepEqual(this.listener._engine.cv.sites, [0,0,0,0,0,0]);
     });
     
-    test('outbound sync', 3, function() {
+    test('outbound sync', 6, function() {
         // publish sync for listener to receive and bridge to check
         OpenAjax.hub.publish(targets.syncTopic, targets.outSyncMsg);
         // whitebox: ensure op engine processed the event
@@ -332,8 +329,8 @@ define([
             equal(topic, targets.pubServiceTopic, 'service publish topic');
             deepEqual(msg, targets.hubServiceResponse, 'service publish value');
         });
-        this.listener.syncInbound(targets.pubServiceTopic, 
-            targets.serviceResponse, 0, 'result');
+        this.listener.servicePublishInbound(targets.serviceName, 
+            targets.serviceResponse, false);
     });
     
     test('inbound service response', 2, function() {
@@ -341,19 +338,27 @@ define([
             equal(topic, targets.respServiceTopic, 'service response topic');
             deepEqual(msg, targets.hubServiceResponse, 'service response value');
         });
-        this.listener.syncInbound(targets.respServiceTopic, 
-            targets.serviceResponse, 0, 'result');
+        this.listener.serviceResponseInbound(targets.respServiceTopic, 
+            targets.serviceResponse, false);
     });
     
-    test('inbound service error', 2, function() {
+    test('inbound service response error', 2, function() {
         this.sub(targets.respServiceTopic, function(topic, msg) {
             equal(topic, targets.respServiceTopic, 'service error topic');
-            deepEqual(msg, targets.hubServiceError, 'service error value');
+            deepEqual(msg, targets.hubServiceError, 'service error msg');
         });
-        this.listener.syncInbound(targets.respServiceTopic, 
-            targets.hubServiceError.value, 0, 'error');
+        this.listener.serviceResponseInbound(targets.respServiceTopic, 
+            targets.hubServiceError.value, true);
     });
 
+    test('inbound service publish error', 2, function() {
+        this.sub(targets.pubServiceTopic, function(topic, msg) {
+            equal(topic, targets.pubServiceTopic, 'service error topic');
+            deepEqual(msg, targets.hubServiceError, 'service error msg');
+        });
+        this.listener.serviceResponseInbound(targets.pubServiceTopic, 
+            targets.hubServiceError.value, true);
+    });
 
     test('outbound engine sync', 2, function() {
         this.listener._shouldSync = true;
@@ -363,7 +368,7 @@ define([
 
     test('inbound engine sync', 1, function() {
         var target = [1,2,3,4,5,6];
-        this.listener._engineSyncInbound(2, target);
+        this.listener.engineSyncInbound(2, target);
         var cvt = this.listener._engine.cvt.getState();
         deepEqual(cvt[2], target);
     });

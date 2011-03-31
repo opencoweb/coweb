@@ -168,51 +168,30 @@ define([
     };
 
     /**
-     * Called by the session when a coweb event is received from a remote app
-     * or service bot. Processes the data in the local operation engine if 
-     * required before publishing it on the local Hub. Takes special action for
-     * engine sync topics to ensure the op engine remains in a valid state.
+     * Called by the session when a coweb event is received from a remote app.
+     * Processes the data in the local operation engine if required before 
+     * publishing it on the local Hub. 
      *
      * @param {String} topic Topic name (topics.SYNC.**)
-     * @param {Object} msg Received cooperative event or error message
+     * @param {String} value JSON-encoded operation value
+     * @param {String|null} type Operation type
+     * @param {Number} position Operation linear position
      * @param {Number} site Unique integer ID of the sending site
-     * @param {String} msgType String 'result' for data or 'error' for 
-     * error message
+     * @param {Number[]} sites Context vector as an array of integers
      */
-    proto.syncInbound = function(topic, msg, site, msgType) {
-        //console.debug("UnmanagedHubListener.syncInbound:", topic, msg, site);        
-        var value, type, position, cv;
-        if(site !== 0) {
-            // message from another client
-            value = msg.value || null;
-            type = msg.type || null;
-            position = msg.position || 0;
-            cv = msg.context || null;
-        } else {
-            // message from service
-            value = msg;
-            type = null;
-            position = 0;
-            cv = null;
-        }
-
-        // don't try to transform anything that doesn't have a context vector
-        // just let it pass...
-        if(cv !== null && type !== null) {
-            if(topic === topics.ENGINE_SYNC) {
-                // handle engine sync events here in the listener
-                this._engineSyncInbound(site, cv);
-                // and then quit; no one else should get syncs
-                return;
-            }
-
-            // process the remote event in the engine
-            var op;
+    proto.syncInbound = function(topic, value, type, position, site, sites) {
+        var op, event;
+        // console.debug('UnmanagedHubListener.syncInbound topic: %s, value: %s, type: %s, position: %s, site: %d, sites: %s', 
+        // topic, value, type || 'null', position, site, sites ? sites.toString() : 'null');
+        // check if the event has a context and non-null type
+        if(sites !== null && type !== null) {
+            // treat event as a possibly conflicting operation
             try {
                 op = this._engine.push(false, topic, value, type, position, 
-                    site, cv);
+                    site, sites);
             } catch(e) {
-                console.warn('UnmanagedHubListener: failed to push op into engine' + e.message);
+                console.warn('UnmanagedHubListener: failed to push op into engine ' +
+                    e.message);
                 // @todo: we're out of sync now probably, fail the session?
                 return;
             }
@@ -224,21 +203,14 @@ define([
             position = op.position;
         }
 
-        // all op engine processed events are JSON encoded; try to decode 
-        // everything but ignore if failed because not encoded
-        //if(typeof value === 'string') {
-        try {
-            value = JSON.parse(value);
-        } catch(x) {}
-        //}
-
-        // package processed data as a hub event
-        var event = {
+        // value is always json-encoded to avoid ref sharing problems with ops
+        // stored inside the op engine history buffer, so decode it and
+        // pack it into a hub event
+        event = {
             position : position,
             type : type,
-            value : value,
-            site : site,
-            error : (msgType === 'error')
+            value : JSON.parse(value),
+            site : site
         };
 
         // publish on local hub
@@ -246,13 +218,14 @@ define([
         try {
             OpenAjax.hub.publish(topic, event);
         } catch(z) {
-            console.warn('UnmanagedHubListener: failed to deliver incoming event ' + topic + '(' + z.message + ')');
+            console.warn('UnmanagedHubListener: failed to deliver incoming event ' + 
+                topic + '(' + z.message + ')');
         }
         this._mutex = false;
 
-        if(cv !== null) {
-            // we've gotten data from elsewhere, so we should sync and/or purge
-            // the engine on the next interval
+        if(op) {
+            // we've gotten an operation from elsewhere, so we should sync 
+            // and/or purge the engine on the next interval
             this._shouldPurge = true;
             this._shouldSync = true;
         }
@@ -265,9 +238,9 @@ define([
      * 
      * @private
      * @param {String} topic Topic name (topics.SYNC.**)
-     * @param {Object} publisherData Cooperative event to send
+     * @param {Object} event Cooperative event to send
      */
-    proto._syncOutbound = function(topic, publisherData) {
+    proto._syncOutbound = function(topic, event) {
         // if the mutex is held, we're broadcasting and shouldn't be 
         // getting any additional events back, EVER!
         // (all other events will be generated by the same broadcast 
@@ -278,39 +251,35 @@ define([
             return;
         }
 
-        //console.debug("UnmanagedHubListener._syncOutbound:", topic, publisherData);
+        // unpack event data; be sure to json encode the value before pushing 
+        // into op engine to avoid ref sharing with the operation history
+        var position = event.position,
+            type = event.type,
+            value = JSON.stringify(event.value),
+            op = null,
+            sites = null,
+            msg,
+            sent,
+            err;
 
-        // unpack event data to create an operation
-        var position = publisherData.position;
-        var type = publisherData.type;
-        var value = publisherData.value;
-        var op = null;
-        var context = null;
         if(type !== null) {   
-            // be sure to encode before pushing into op engine to avoid
-            // changes to operation value stored in the history
-            value = JSON.stringify(publisherData.value);
             // build operation
             try {
                 op = this._engine.createOp(true, topic, value, type, position);
-                context = op.contextVector.sites;
+                sites = op.contextVector.sites;
             } catch(e) {
-                console.warn('UnmanagedHubListener: bad type "'+type+'" on outgoing event; making null');
+                console.warn('UnmanagedHubListener: bad type "' + type +
+                    '" on outgoing event; making null');
                 type = null;
             }   
         }
-        
-        var msg = {
-           value : value,
-           type : type,
-           position: position,
-           context : context
-        };
 
+        // console.debug('UnmanagedHubListener._syncOutbound topic: %s, value: %s, type: %s, position: %s, sites: %s', 
+        // topic, value, type || 'null', position, sites ? sites.toString() : 'null');
+        
         // post to client
-        var sent, err;
         try {
-            sent = this._bridge.postSync(topic, msg);
+            sent = this._bridge.postSync(topic, value, type, position, sites);
         } catch(x) {
             // ignore if can't post
             err = x;
@@ -325,7 +294,7 @@ define([
             // event we never sent
             this._engine.pushLocalOp(op);
             // we have to allow purges after sending even one event in 
-            // case this site is the only one in the conf for now
+            // case this site is the only one in the session for now
             this._shouldPurge = true;
         } else if(err) {
             // throw error back to the caller
@@ -384,6 +353,51 @@ define([
         }
         this._mutex = false;
     };
+    
+    /**
+     * Called by the session when a service publish arrives. Packages the 
+     * response into a Hub event and publishes it locally (topics.SET_SERVICE).
+     *
+     * @param {String} serviceName Name of the service that published
+     * @param {Object|String} value Arbitrary value published or error string
+     * @param {Boolean} error True if value represents an error, false if data
+     */
+    proto.servicePublishInbound = function(serviceName, value, error) {
+        var topic = topics.SET_SERVICE+serviceName,
+            event = {
+                value : value,
+                error : error
+            };
+        try {
+            OpenAjax.hub.publish(topic, event);
+        } catch(e) {
+            console.warn('UnmanagedHubListener: failed to deliver bot publish ' + 
+                e.message);
+        }
+    };
+
+    /**
+     * Called by the session when a service response arrives. Packages the
+     * response into a Hub event and publishes it locally.
+     * 
+     * @param {String} topic Topic name included in the request 
+     * (topics.SET_SERVICE.**)
+     * @param {Object|String} value Arbitrary value published or error string
+     * @param {Boolean} error True if value represents an error, false if data
+     */
+    proto.serviceResponseInbound = function(topic, value, error) {
+        // pack value and flag into a hub event
+        var event = {
+            value : value,
+            error : error
+        };
+        try {
+            OpenAjax.hub.publish(topic, event);
+        } catch(e) {
+            console.warn('UnmanagedHubListener: failed to deliver bot response ' + 
+                e.message);
+        }
+    };
 
     /**
      * Called when a CollabInterface instance subscribes to a service.
@@ -391,12 +405,11 @@ define([
      * 
      * @private
      * @param {String} topic Topic name (topics.SUB_SERVICE.**)
-     * @param {Object} publisherData Object topic value
+     * @param {Object} evebt Object topic value
      */
-    proto._onSubServiceOutbound = function(topic, publisherData) {
-        //console.debug("UnmanagedHubListener._onSubServiceOutbound:", topic, publisherData);
+    proto._onSubServiceOutbound = function(topic, event) {
         try {
-            this._bridge.postServiceSubscribe(publisherData.service);
+            this._bridge.postServiceSubscribe(event.service);
         } catch(e) {
             console.warn('UnmanagedHubListener: failed service subscribe ' + 
                 e.message);
@@ -410,12 +423,11 @@ define([
      * 
      * @private
      * @param {String} topic Topic name (topics.UNSUB_SERVICE.**)
-     * @param {Object} publisherData Object topic value
+     * @param {Object} event Object topic value
      */
-    proto._onUnsubServiceOutbound = function(topic, publisherData) {
-        //console.debug("UnmanagedHubListener._onUnsubServiceOutbound:", topic, publisherData);
+    proto._onUnsubServiceOutbound = function(topic, event) {
         try {
-            this._bridge.postServiceUnsubscribe(publisherData.service);
+            this._bridge.postServiceUnsubscribe(event.service);
         } catch(e) {
             console.warn('UnmanagedHubListener: failed service unsub ' + 
                 e.message);
@@ -428,13 +440,12 @@ define([
      * 
      * @private
      * @param {String} topic Topic name (topics.GET_SERVICE.**)
-     * @param {Object} publisherData Object topic value
+     * @param {Object} event Object topic value
      */
-    proto._onRequestServiceOutbound = function(topic, publisherData) {
-        // console.debug("UnmanagedHubListener._onRequestServiceOutbound:", topic, publisherData);
+    proto._onRequestServiceOutbound = function(topic, event) {
         try {
-            this._bridge.postServiceRequest(publisherData.service,
-                publisherData.params, publisherData.topic);
+            this._bridge.postServiceRequest(event.service,
+                event.params, event.topic);
         } catch(e) {
             console.warn('UnmanagedHubListener: failed service request ' + 
                 e.message);
@@ -446,15 +457,13 @@ define([
      * application to seed a new app instance joining the session. Broadcasts
      * a request for state on the local Hub (topics.GET_STATE) and collects 
      * state directly from the op engine (topics.ENGINE_STATE). Sends an 
-     * end state (topics.END_STATE) sentinel after publishing all requests as 
+     * end state (null) sentinel after publishing all requests as 
      * this impl of the Hub is synchronous.
      *
      * @param {String} recipient Token that all responses with application 
      * state must include to pair with the original request
      */
     proto.requestStateInbound = function(recipient) {
-        //console.debug("UnmanagedHubListener.requestState:", recipient);
-
         // ask all gadgets for their state
         try {
             OpenAjax.hub.publish(topics.GET_STATE, recipient);
@@ -491,7 +500,7 @@ define([
 
         try {
             // indicate done collecting state
-            this._bridge.postStateResponse(topics.END_STATE, null, recipient);
+            this._bridge.postStateResponse(null, null, recipient);
         } catch(z) {
             // ignore if can't post
             console.warn('UnmanagedHubListener: failed sending end state ' + 
@@ -505,10 +514,10 @@ define([
      *
      * @private
      * @param {String} topic Topic name (topics.SET_STATE)
-     * @param {Object} publisherData.state Arbitrary app state
-     * @param {Object} publisherData.token Token from the state request
+     * @param {Object} event.state Arbitrary app state
+     * @param {Object} event.token Token from the state request
      */
-    proto._stateOutbound = function(topic, publisherData) {
+    proto._stateOutbound = function(topic, event) {
         //console.debug('UnmanagedHubListener._onState', topic);
         // don't listen to state we just sent
         if(this._mutex) {
@@ -516,8 +525,8 @@ define([
         }
 
         // pull out data to send
-        var recipient = publisherData.recipient;
-        var msg = publisherData.state;
+        var recipient = event.recipient;
+        var msg = event.state;
 
         // send message to client here
         try {
@@ -548,7 +557,7 @@ define([
             try {
                 this._engine.setState(state);
             } catch(e) {
-                console.warn('UnmanagedHubListener: failed to receive engine state ' + 
+                console.warn('UnmanagedHubListener: failed to recv engine state ' + 
                     e.message);
                 // @todo: engine dead, should exit session
                 throw e;
@@ -561,7 +570,7 @@ define([
                 // publish state for a gadget to grab
                 OpenAjax.hub.publish(topic, state);
             } catch(x) {
-                console.warn('UnmanagedHubListener: failed to initialize state ' + 
+                console.warn('UnmanagedHubListener: failed to recv state ' + 
                     x.message);
                 throw x;
             } finally {
@@ -580,15 +589,8 @@ define([
         // console.debug('UnmanagedHubListener._engineSyncOutbound');
         // get engine context vector
         var cv = this._engine.copyContextVector();
-        // JSON encode just the context for transmission
-        var msg = {
-            value : '',
-            type : 'update',
-            position: 0,
-            context : cv.sites
-        };
         try {
-            this._bridge.postSync(topics.ENGINE_SYNC, msg);
+            this._bridge.postEngineSync(cv.sites);
         } catch(e) {
             // ignore if can't post
             console.warn('UnmanagedHubListener: failed to send engine sync ' + 
@@ -604,8 +606,7 @@ define([
      * vector table of the local engine. Sets a flag saying the local op engine
      * should run garbage collection over its history. 
      */
-    proto._engineSyncInbound = function(site, sites) {
-        //console.debug('UnmanagedHubListener._onRecvEngineSync: site =', site, 'cv =', sites);
+    proto.engineSyncInbound = function(site, sites) {
         // give the engine the data
         try {
             this._engine.pushSyncWithSites(site, sites);

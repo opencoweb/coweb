@@ -51,7 +51,7 @@ class ServiceManagerBase(object):
         '''
         raise NotImplementedError
         
-    def on_user_request(self, serviceName, username, token, eventData):
+    def on_user_request(self, serviceName, username, token, value):
         '''
         Called to build a private user request message for a bot. Expects any
         return value that can later serve as a parameter to send_message.

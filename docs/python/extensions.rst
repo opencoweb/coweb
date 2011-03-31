@@ -231,14 +231,14 @@ Communicating with service bots
       :param str serviceName: Name of the service
       :rtype: object
    
-   .. method:: on_user_request(self, serviceName, username, token, eventData)
+   .. method:: on_user_request(self, serviceName, username, token, value)
 
       The coweb server calls this method when a coweb application requests a bot service. The manager should return an object representing the message which the server will later ask it to send using :meth:`send_message`.
       
       :param str serviceName: Name of the service
       :param str username: Authenticated username of the requestor
       :param str token: Random token the bot should provide when responding to this request
-      :param dict eventData: Request data sent by a coweb application using :js:func:`CollabInterface.postService`
+      :param dict value: Request data sent by a coweb application using :js:func:`CollabInterface.postService`
       :rtype: object
    
    .. method:: on_user_subscribe(self, serviceName, username)

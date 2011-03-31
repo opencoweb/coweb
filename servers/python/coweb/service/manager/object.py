@@ -27,8 +27,8 @@ class ObjectServiceManager(ServiceManagerBase):
         '''Forward message directly to implementation.'''
         impl.on_message(*msg)
 
-    def on_user_request(self, serviceName, username, token, eventData):
-        return ('on_request', eventData, token, username)
+    def on_user_request(self, serviceName, username, token, value):
+        return ('on_request', value, token, username)
         
     def on_user_subscribe(self, serviceName, username):
         return ('on_subscribe', username)

@@ -87,12 +87,12 @@ class BayeuxServiceManager(bayeux.BayeuxManager, ServiceManagerBase):
             }
         }
 
-    def on_user_request(self, serviceName, username, token, eventData):
+    def on_user_request(self, serviceName, username, token, value):
         '''Builds a user request to a bot.'''
         return {
             'channel' : '/service/bot/%s/request' % serviceName,
             'data' : {
-                'eventData' : eventData,
+                'value' : value,
                 'username' : username
             },
             'id' : token

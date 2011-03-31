@@ -138,8 +138,8 @@ class ServiceSessionBridge(object):
         data = req['data']
         username = user.username
         for bot in self.activeBots.values():
-            if bot.acls & ACL_SERVICE_SYNC and data['topic'] != 'coweb.engine.sync':
-                # forward sync events if allowed and if not op engine gc sync
+            if bot.acls & ACL_SERVICE_SYNC:
+                # forward sync events if allowed
                 msg = self.manager.on_user_sync(bot.serviceName, username, data)
                 # decide whether to queue or send now based on bot state
                 if bot.is_subscribed():
@@ -188,10 +188,10 @@ class ServiceSessionBridge(object):
         # create token for request
         token = uuid.uuid4().hex
         # send request along to bot
-        eventData = req['data']['eventData']
+        value = req['data']['value']
         # ask service manager to build request message
         msg = self.manager.on_user_request(bot.serviceName, user.username, 
-            token, eventData)
+            token, value)
         # stash info for later bot response
         bot.push_request(token, req['clientId'], req['id'], req['data']['topic'])
         # decide whether to queue or send now based on bot state
@@ -335,7 +335,7 @@ class ServiceSessionBridge(object):
             'channel' : '/service/bot/%s/response' % serviceName,
             'data' : {
                 'topic' : clientInfo[2],
-                'eventData' : data
+                'value' : data
             },
             'id' : clientInfo[1]
         }
@@ -359,7 +359,7 @@ class ServiceSessionBridge(object):
         msg = {
             'channel' : '/bot/%s' % serviceName,
             'data' : {
-                'eventData' : data
+                'value' : data
             }
         }
         # queue publish for clients

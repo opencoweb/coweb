@@ -45,8 +45,6 @@ public interface Bot {
      * Called when a sync events occurs in the session.
      *
      * @param params key value pairs containing the sync event info.
-     * topic = event topic.
-     * eventData the state adata associated with this sync.
      * @param username the username from whom this sync originated.
      */
 	public void onSync(Map<String, Object> params, String username);

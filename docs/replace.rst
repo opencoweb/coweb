@@ -9,8 +9,11 @@
 .. _Bayeux handshake request: http://svn.cometd.com/trunk/bayeux/bayeux.html#toc_49
 .. _Bayeux protocol: http://svn.cometd.com/trunk/bayeux/bayeux.html
 .. _virtualenv: http://pypi.python.org/pypi/virtualenv
+.. _PyPI: http://pypi.python.org/pypi
 .. _Google CDN: http://code.google.com/apis/libraries/devguide.html#dojo
 .. _Apache Maven: http://maven.apache.org/
+.. _Maven Central: http://mvnrepository.com/
+.. _Java SE JDK: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 .. _Asynchronous Module Definition: http://wiki.commonjs.org/wiki/Modules/AsynchronousDefinition
 .. _AMD: http://wiki.commonjs.org/wiki/Modules/AsynchronousDefinition
 .. _CommonJS: http://www.commonjs.org/

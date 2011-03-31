@@ -50,7 +50,7 @@ public class CollabDelegate extends DefaultDelegate {
             this.clearLastState();
         }
         else {
-            System.out.println("CollabDelegate::onSync remove bad client");
+            //System.out.println("CollabDelegate::onSync remove bad client");
             this.sessionHandler.removeBadClient(client);
             return false;
         }
@@ -303,6 +303,7 @@ public class CollabDelegate extends DefaultDelegate {
 	}
 	
 	private void assignUpdater(ServerSession updatee) {
+        //System.out.println("CollabDelegate::assignUpdater for " + updatee);
 		ServerSession from = this.sessionManager.getServerSession();
 		if(this.updaters.isEmpty()) {
 			this.addUpdater(updatee, false);
@@ -344,6 +345,7 @@ public class CollabDelegate extends DefaultDelegate {
 	}
 	
 	private void removeUpdater(ServerSession client) {
+        //System.out.println("CollabDelegate::removeUpdater " + client);
 		this.removeSiteForClient(client);
 		
 		List<String> tokenList = this.updaters.get(client.getId());
@@ -360,12 +362,14 @@ public class CollabDelegate extends DefaultDelegate {
 			//System.out.println("sending roster unavailable");
 			this.sendRosterUnavailable(client);
 			if(!tokenList.isEmpty()) {
+                //System.out.println("this updater was updating someone");
 				for(String token: tokenList) {
 					ServerSession updatee = this.updatees.get(token);
 					if(updatee == null)
 						continue;
 					
-					this.updatees.remove(token);
+					//this.updatees.remove(token);
+                    this.assignUpdater(updatee);
 				}
 			}
 		}
