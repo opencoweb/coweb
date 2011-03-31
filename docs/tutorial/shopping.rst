@@ -35,7 +35,6 @@ If you plan to develop your own copy of the shopping list application, you shoul
 Java
 ####
 
-#. Use Maven to :ref:`install the coweb server dependencies <maven-install>`.
 #. Use the :ref:`coweb Maven archetype <maven-archetype>` to initialize a new `mycolist` project.
 
    .. sourcecode:: console
