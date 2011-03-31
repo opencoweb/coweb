@@ -52,7 +52,7 @@ define([
         for(var i=0; i < arr.length; i++) {
             // restore operations
             var op = factory.createOperationFromState(arr[i]);
-            this.addRemote(op);
+            this.addLocal(op);
         }
     };
 
@@ -72,7 +72,8 @@ define([
             var key = keys[i];
             var op = this.ops[key];
             if(op === undefined) {
-                throw new Error('missing operation: i=' + i + ' key=' + key + ' keys=' + keys.toString());
+                throw new Error('missing op for context diff: i=' + i + 
+                    ' key=' + key + ' keys=' + keys.toString());
             }
             ops.push(op);
         }
@@ -82,23 +83,39 @@ define([
     };
 
     /**
-     * Adds an operation to the history.
+     * Adds a local operation to the history.
      *
      * @param op Operation instance
      */
     HistoryBuffer.prototype.addLocal = function(op) {
         var key = factory.createHistoryKey(op.siteId, op.seqId);
         this.ops[key] = op;
-        // unknown total order for now
         op.immutable = true;
         ++this.size;
     };
 
+    /**
+     * Adds a remote operation received from the server to the history.
+     * If the operation already exists in the history, simply updates its
+     * order attribute. If not, adds it.
+     *
+     * @param op Operation instance
+     */
     HistoryBuffer.prototype.addRemote = function(op) {
         var key = factory.createHistoryKey(op.siteId, op.seqId);
         var eop = this.ops[key];
-        if(eop) {
-            // known place in total order
+        if(op.order === null || op.order === undefined || 
+        op.order === Infinity) {
+            // remote op must have order set by server
+            throw new Error('remote op missing total order');
+        } else if(eop) {
+            if(eop.order !== Infinity) {
+                // order should never repeat
+                throw new Error('duplicate op in total order: old='+eop.order +
+                    'new='+op.order);
+            }
+            // server has responded with known total order for an op this site
+            // previously sent; update the local op with the info
             eop.order = op.order;
         } else {
             // add new remote op to history

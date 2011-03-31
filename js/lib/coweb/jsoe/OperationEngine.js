@@ -95,7 +95,7 @@ define([
      * @return Operation subclass instance matching the given type
      */
     OperationEngine.prototype.createOp = function(local, key, value, type, 
-    position, site, cv) {
+    position, site, cv, order) {
         var args;
         if(local) {
             args = {
@@ -113,7 +113,8 @@ define([
                 position : position,
                 value : value,
                 siteId : site,
-                contextVector : cv
+                contextVector : cv,
+                order : order
             };
         }
         return factory.createOperationFromType(type, args);
@@ -133,8 +134,9 @@ define([
      * @return Original operation if local, transformed operation if remote
      */
     OperationEngine.prototype.push = function(local, key, value, type, 
-    position, site, cv) {
-        var op = this.createOp(local, key, value, type, position, site, cv);
+    position, site, cv, order) {
+        var op = this.createOp(local, key, value, type, position, site, cv, 
+            order);
         if(local) {
             return this.pushLocalOp(op);
         } else {

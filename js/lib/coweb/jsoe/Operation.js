@@ -129,11 +129,18 @@ define([
         return rv;
     };
     
+    /**
+     * Compares the this operation to another according to the server-decided
+     * total order. 
+     *
+     * @param op Operation object to compare with
+     */
     Operation.prototype.compareByOrder = function(op) {
         if(this.order === op.order) {
-            // both unknown total order, should be from the same site
-            // compare sequence ids
-            // @todo: what about late joining?
+            // both unknown total order, so compare sequence ids
+            // both from the same site or from a site that seeded this one
+            // when it was late-joining; either way seq id should match total
+            // order from the server
             return this.seqId < op.seqId ? -1 : 1;
         } else if(this.order < op.order) {
             return -1;
