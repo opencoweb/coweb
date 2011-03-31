@@ -522,7 +522,6 @@ define([
            return;
         }
         var serviceName = match[1];
-        console.debug('bayeux.ListenerBridge: bot published', ch, msg.data);
         this._listener.servicePublishInbound(serviceName, msg.data.value, 
             false);
     };
