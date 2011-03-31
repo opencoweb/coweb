@@ -21,9 +21,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
     private ServiceHandler serviceHandler = null;
     private BayeuxServer server = null;
     private SessionManager manager = null;
-
     private SessionHandlerDelegate delegate = null;
-    
+    private long order = 0;
     
     public SessionHandler(String confkey,
             boolean collab,
@@ -65,6 +64,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
         if(this.delegate.onSync(from, message)) {
             String channelName = message.getChannel();
             if(channelName.equals("/session/sync/app")) {
+                // put total order on message
+                data.put("order", this.order++);
                 // forward app sync events to bots, not engine
                 try {
                      this.serviceHandler.forwardSyncEvent(from, message);
