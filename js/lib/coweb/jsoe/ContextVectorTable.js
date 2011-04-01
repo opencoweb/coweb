@@ -25,10 +25,10 @@ define([
      * @param {Number} index Integer site ID representing the index at which to
      * store the initial context vector
      */
-    var ContextVectorTable = function(cv, index) {
+    var ContextVectorTable = function(cv, site) {
         this.cvt = [];
-        this.growTo(index+1);
-        this.cvt[index] = cv;        
+        this.growTo(site+1);
+        this.cvt[site] = cv;        
     };
     
     /**

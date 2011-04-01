@@ -126,10 +126,8 @@ define([
      * algorithm. The parameters and return value are the same as those
      * documented for createOp.
      */
-    OperationEngine.prototype.push = function(local, key, value, type, 
-    position, site, cv, order) {
-        var op = this.createOp(local, key, value, type, position, site, cv, 
-            order);
+    OperationEngine.prototype.push = function(local) {
+        var op = this.createOp.apply(this, arguments);
         if(local) {
             return this.pushLocalOp(op);
         } else {

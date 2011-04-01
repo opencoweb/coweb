@@ -166,15 +166,6 @@ define([
     };
 
     /**
-     * Makes a copy of the context vector of this operation.
-     *
-     * @return Context vector object
-     */
-    Operation.prototype.copyContextVector = function() {
-        return this.contextVector.copy();
-    };
-
-    /**
      * Gets the name of the method to use to transform this operation with
      * another based on the type of this operation defined by a subclass.
      *
