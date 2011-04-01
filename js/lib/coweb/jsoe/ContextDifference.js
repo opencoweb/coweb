@@ -9,13 +9,11 @@ define([
     'coweb/jsoe/factory'
 ], function(factory) {
     /**
-    * Stores the difference in operations between two contexts in terms of 
-    * site IDs and sequence numbers.
-    *
-    * @ivar sites Array of integer site IDs paired with corresponding seq 
-    *   numbers
-    * @ivar seqs Array of integer sequence numbers paired with site IDs
-    */
+     * Stores the difference in operations between two contexts in terms of 
+     * site IDs and sequence numbers.
+     *
+     * @constructor
+     */
     var ContextDifference = function() {
         this.sites = [];
         this.seqs = [];
@@ -25,9 +23,9 @@ define([
     /**
      * Adds a range of operations to the difference.
      *
-     * @param site Integer site ID
-     * @param start First integer operation sequence number, inclusive
-     * @param end Last integer operation sequence number, exclusive
+     * @param {Number} site Integer site ID
+     * @param {Number} start First integer operation sequence number, inclusive
+     * @param {Number} end Last integer operation sequence number, exclusive
      */
     ContextDifference.prototype.addRange = function(site, start, end) {
         for(var i=start; i < end; i++) {
@@ -38,8 +36,8 @@ define([
     /**
      * Adds a single operation to the difference.
      *
-     * @param site Integer site ID
-     * @param seq Integer sequence number
+     * @param {Number} site Integer site ID
+     * @param {Number} seq Integer sequence number
      */
     ContextDifference.prototype.addSiteSeq = function(site, seq) {
         this.sites.push(site);
@@ -50,7 +48,7 @@ define([
      * Gets the histor buffer keys for all the operations represented in this
      * context difference.
      *
-     * @return Array of keys
+     * @return {String[]} Array of keys for HistoryBuffer lookups
      */
     ContextDifference.prototype.getHistoryBufferKeys = function() {
         var arr = [];
@@ -65,7 +63,7 @@ define([
     /**
      * Converts the contents of this context difference to a string.
      *
-     * @return String for debugging
+     * @return {String} All keys in the difference (for debug)
      */
     ContextDifference.prototype.toString = function() {
         return this.getHistoryBufferKeys().toString();

@@ -14,18 +14,20 @@ define([
      * terms of the operation sequence numbers already applied at that site or
      * the state of the document at the time.
      *
-     * Initializes the sequence context vector. Throws an exception if no
-     * valid initialization parameter is provided.
+     * Initializes the sequence context vector based on the desired size of
+     * the vector, an existing context vector, an array of integers from an
+     * existing context vector, or the serialized state of an existing context
+     * vector. At least one of these must be passed on the args parameter else
+     * the constructor throws an exception. The argument properties are checked
+     * in the order documented below. The first one encountered is used.
      *
-     * @ivar sites Array of integer sequence numbers for a set of indexed 
-     *   sites
-     * 
-     * @param args Object with properties initializing the context array in 
-     *   various ways:
-     *   - count: Integer number of vector entries to initialize to zero
-     *   - contextVector: Context vector object to copy
-     *   - sites: Array from a context vector object to copy
-     *   - state: Array from a serialized context vector object to reference
+     * @constructor
+     * @param {Number} args.count Integer number of vector entries to 
+     * initialize to zero
+     * @param {ContextVector} args.contextVector Context vector to copy
+     * @param {Number[]} args.sites Array from a context vector object to copy
+     * @param {Number[]} args.state Array from a serialized context vector 
+     * object to reference without copy
      */
     var ContextVector = function(args) {
         if(typeof args.count !== 'undefined') {
@@ -43,9 +45,9 @@ define([
     };
 
     /**
-     * Converts the contents of this context vector to a string.
+     * Converts the contents of this context vector sites array to a string.
      *
-     * @return String for debugging
+     * @returns {String} All integers in the vector (for debug)
      */
     ContextVector.prototype.toString = function() {
         return '[' + this.sites.toString() + ']';
@@ -54,7 +56,7 @@ define([
     /**
      * Serializes this context vector.
      *
-     * @return Array of integer sequencen numbers
+     * @returns {Number[]} Array of integer sequence numbers
      */
     ContextVector.prototype.getState = function() {
         return this.sites;
@@ -63,7 +65,7 @@ define([
     /**
      * Makes an independent copy of this context vector.
      *
-     * @return Context vector copy
+     * @returns {ContextVector} Copy of this context vector
      */
     ContextVector.prototype.copy = function() {
         return new ContextVector({contextVector : this});
@@ -72,7 +74,7 @@ define([
     /**
      * Makes an independent copy of the array in this context vector.
      *
-     * @return Array copy
+     * @return {Number[]} Copy of this context vector's sites array
      */
     ContextVector.prototype.copySites = function() {
         return this.sites.slice();
@@ -82,8 +84,9 @@ define([
      * Computes the difference in sequence numbers at each site between this
      * context vector and the one provided.
      *
-     * @param cv Other context vector object
-     * @return Context difference object
+     * @param {ContextVector} cv Other context vector object
+     * @returns {ContextDifference} Represents the difference between this
+     * vector and the one passed
      */
     ContextVector.prototype.subtract = function(cv) {
         var cd = new ContextDifference();
@@ -101,8 +104,9 @@ define([
      * Finds the oldest sequence number in the difference in sequence numbers
      * for each site between this context and the one provided.
      *
-     * @param cv Other context vector object
-     * @return Context difference object
+     * @param {ContextVector} cv Other context vector object
+     * @returns {ContextDifference} Represents the oldest difference for each
+     * site between this vector and the one passed
      */
     ContextVector.prototype.oldestDifference = function(cv) {
         var cd = new ContextDifference();
@@ -120,7 +124,7 @@ define([
      * Increases the size of the context vector to the given size. Initializes
      * new entries with zeros.
      *
-     * @param count Desired integer size
+     * @param {Number} count Desired integer size of the vector
      */
     ContextVector.prototype.growTo = function(count) {
         for(var i=this.sites.length; i < count; i++) {
@@ -132,8 +136,8 @@ define([
      * Gets the sequence number for the given site in this context vector.
      * Grows the vector if it does not include the site yet.
      * 
-     * @param site Integer site ID
-     * @return Integer sequence number
+     * @param {Number} site Integer site ID
+     * @returns {Number} Integer sequence number for the site
      */
     ContextVector.prototype.getSeqForSite = function(site) {
         if(this.sites.length <= site) {
@@ -146,8 +150,8 @@ define([
      * Sets the sequence number for the given site in this context vector.
      * Grows the vector if it does not include the site yet.
      * 
-     * @param site Integer site ID
-     * @param seq Integer sequence number
+     * @param {Number} site Integer site ID
+     * @param {Number} seq Integer sequence number
      */
     ContextVector.prototype.setSeqForSite = function(site, seq) {
         if(this.sites.length <= site) {
@@ -158,17 +162,20 @@ define([
 
     /**
      * Gets the size of this context vector.
+     *
+     * @returns {Number} Integer size
      */
     ContextVector.prototype.getSize = function() {
         return this.sites.length;
     };
 
     /**
-     * Determines if this context vector equals the other. If the vectors are
-     * of different sizes, treats missing entries as zeros.
+     * Determines if this context vector equals the other in terms of the
+     * sequence IDs at each site. If the vectors are of different sizes, treats
+     * missing entries as suffixed zeros.
      *
-     * @param cv Context vector instance
-     * @return Boolean true if equal, false if not
+     * @param {ContextVector} cv Other context vector
+     * @returns {Boolean} True if equal, false if not
      */
     ContextVector.prototype.equals = function(cv) {
         var a = this.sites;
@@ -186,13 +193,14 @@ define([
     };
 
     /**
-     * Compares two context vectors. If the v vectors are of different sizes, 
-     * treats missing entries as zeros.
+     * Computes an ordered comparison of two context vectors according to the
+     * sequence IDs at each site. If the vectors are of different sizes, 
+     * treats missing entries as suffixed zeros.
      *
-     * @param cv Context vector instance
-     * @return Integer -1 if this context vector represents a state before
-     *   the other, 0 if they are equal, or 1 if this context vector 
-     *   represents a state later than the other
+     * @param {ContextVector} cv Other context vector
+     * @returns {Number} -1 if this context vector is ordered before the other,
+     *   0 if they are equal, or 1 if this context vector is ordered after the
+     *   other
      */
     ContextVector.prototype.compare = function(cv) {
         var a = this.sites;

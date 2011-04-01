@@ -21,7 +21,7 @@ define([
      * Gets the method name to use to transform another operation against this
      * insert operation.
      *
-     * @return String method name
+     * @returns {String} Method name
      */
     InsertOperation.prototype.transformMethod = function() {
         return 'transformWithInsert';
@@ -30,18 +30,19 @@ define([
     /**
      * No-op. Update has no effect on an insert.
      *
-     * @param op UpdateOperation object
-     * @return This instance
+     * @param {UpdateOperation} op Update to include in this op
+     * @returns {InsertOperation} This instance
      */
     InsertOperation.prototype.transformWithUpdate = function(op) {
         return this;
     };
 
     /**
-     * Transforms this insert to include the effect of an insert.
+     * Transforms this insert to include the effect of an insert. Assumes 
+     * the control algorithm breaks the CP2 pre-req to ensure convergence.
      *
-     * @param op InsertOperation object
-     * @return This instance
+     * @param {InsertOperation} op Insert to include in this op
+     * @returns {InsertOperation} This instance
      */
     InsertOperation.prototype.transformWithInsert = function(op) {
         if(this.key !== op.key) {
@@ -53,40 +54,13 @@ define([
             ++this.position;
         }
         return this;
-        // 
-        // 
-        // if(this.position < op.position || (this.position === op.position && this.siteId > op.siteId)) {
-        //     return this;
-        // }
-        // ++this.position;
-        // return this;
-
-        // if(this.position > op.position) {
-        //     ++this.position;
-        // } else if(this.position === op.position) {
-        //     // if(this.origPosition > op.origPosition) {
-        //     //     // adjust local position if other's position is earlier
-        //     //     ++this.position;
-        //     // } else if(this.origPosition === op.origPosition) {
-        //     //     var rv = this.origContextVector.compare(op.origContextVector);
-        //     //     if(rv < 0) {
-        //     //         // adjust local position if other's original context is later
-        //     //         ++this.position;
-        //     //     } else if(rv === 0 && this.siteId > op.siteId) {
-        //     if(this.siteId < op.siteId) {
-        //         ++this.position;
-        //     }
-        //         // }
-        //     // }
-        // }
-        // return this;
     };
 
     /**
      * Transforms this insert to include the effect of a delete.
      *
-     * @param op DeleteOperation object
-     * @return This instance or null
+     * @param {DeleteOperation} op Delete to include in this op
+     * @return {InsertOperation} This instance
      */
     InsertOperation.prototype.transformWithDelete = function(op) {
         if(this.key !== op.key) {

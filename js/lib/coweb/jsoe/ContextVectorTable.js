@@ -13,12 +13,17 @@ define([
      *
      * Initializes the table to include the given context vector at the given
      * site index. Ensures the table has enough empty context vectors up to
-     * the given site index.
+     * the given site ID.
      *
-     * @ivar cvt Array of context vectors
+     * Supports the freezing and unfreezing of slots in the table as the
+     * corresponding sites start and stop participating in operational 
+     * transformation.
      *
-     * @param cv Context vector object
-     * @param index Integer site ID index into the table
+     * @constructor
+     * @param {ContextVector} Context vector to store in the table at the
+     * given index
+     * @param {Number} index Integer site ID representing the index at which to
+     * store the initial context vector
      */
     var ContextVectorTable = function(cv, index) {
         this.cvt = [];
@@ -29,7 +34,7 @@ define([
     /**
      * Converts the contents of this context vector table to a string.
      *
-     * @return String for debugging
+     * @return {String} All context vectors in the table (for debug)
      */
     ContextVectorTable.prototype.toString = function() {
         var arr = [];
@@ -41,12 +46,14 @@ define([
     };
 
     /**
-     * Gets the index of each entry in the table referencing the given context
-     * vector, not counting the index given as skip.
+     * Gets the index of each entry in the table frozen to (i.e., sharing a 
+     * reference with, the given context vector, skipping the one noted in the 
+     * skip param.
      *
-     * @param cv Context vector instance
-     * @param skip Integer index to skip
-     * @return Array of integer indices
+     * @param {ContextVector} cv Context vector instance
+     * @param {Number} skip Integer index to skip
+     * @returns {Number[]} Integer indices of table slots referencing the
+     * context vector
      */
     ContextVectorTable.prototype.getEquivalents = function(cv, skip) {
         var equiv = [];
@@ -61,7 +68,7 @@ define([
     /**
      * Serializes the state of this context vector table for transmission.
      *
-     * @return Array of serialized context vectors
+     * @returns {Array[]} Array of context vectors serialized as arrays
      */
     ContextVectorTable.prototype.getState = function() {
         var arr = [];
@@ -74,7 +81,7 @@ define([
     /**
      * Unserializes context vector table contents to initialize this intance.
      *
-     * @param arr Array in the format returned by getState
+     * @param {Array[]} arr Array in the format returned by getState
      */
     ContextVectorTable.prototype.setState = function(arr) {
         // clear out any existing state
@@ -87,9 +94,9 @@ define([
     /**
      * Increases the size of the context vector table to the given size.
      * Inceases the size of all context vectors in the table to the given size.
-     * Initializes new entries with zeroed context vectors
+     * Initializes new entries with zeroed context vectors.
      *
-     * @param count Desired integer size
+     * @param {Number} count Desired integer size
      */
     ContextVectorTable.prototype.growTo = function(count) {
         // grow all context vectors
@@ -105,10 +112,10 @@ define([
 
     /**
      * Gets the context vector for the given site. Grows the table if it does 
-     * not include the site yet.
+     * not include the site yet and returns a zeroed context vector if so.
      *
-     * @param site Integer site ID
-     * @return Context vector instance
+     * @param {Number} site Integer site ID
+     * @returns {ContextVector} Context vector for the given site
      */
     ContextVectorTable.prototype.getContextVector = function(site) {
         if(this.cvt.length <= site) {
@@ -123,8 +130,8 @@ define([
      * Sets the context vector for the given site. Grows the table if it does
      * not include the site yet.
      *
-     * @param site Integer site ID
-     * @param cv Context vector instance
+     * @param {Number} site Integer site ID
+     * @param {ContextVector} cv Context vector instance
      */
     ContextVectorTable.prototype.updateWithContextVector = function(site, cv) {
         if(this.cvt.length <= site) {
@@ -139,10 +146,10 @@ define([
     };
 
     /**
-     * Sets the context vector for the given site. Grows the table if it does
-     * not include the site yet.
+     * Sets the context vector for the site on the given operation. Grows the 
+     * table if it does not include the site yet.
      *
-     * @param op Operation with the site ID and context vector instance
+     * @param {Operation} op Operation with the site ID and context vector
      */
     ContextVectorTable.prototype.updateWithOperation = function(op) {
         // copy the context vector from the operation
@@ -156,9 +163,9 @@ define([
     /**
      * Gets the context vector with the minimum sequence number for each site
      * among all context vectors in the table. Gets null if the minimum
-     * vector cannot be constructed.
+     * vector cannot be constructed because the table is empty.
      *
-     * @return Context vector or null
+     * @returns {ContextVector|null} Minium context vector
      */
     ContextVectorTable.prototype.getMinimumContextVector = function() {
         // if table is empty, abort

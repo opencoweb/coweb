@@ -12,22 +12,18 @@ define([
     'coweb/jsoe/ContextVector',
     'coweb/jsoe/HistoryBuffer',
     'coweb/jsoe/factory',
-    // load subclass to get them registered with the factory
+    // load subclasses to get them registered with the factory
     'coweb/jsoe/UpdateOperation',
     'coweb/jsoe/InsertOperation',
     'coweb/jsoe/DeleteOperation'
 ], function(ContextVectorTable, ContextVector, HistoryBuffer, factory) {
     /**
      * Controls the operational transformation algorithm. Provides a public
-     * API for operation processing, garbage collection, engine 
+     * API for operation processing, garbage collection, and engine 
      * synchronization.
      *
-     * @ivar siteId Unique site integer for this engine instance in a 
-     *   session
-     * @ivar cv Context vector representing local document state
-     * @ivar cvt Context vector table representing all conference document 
-     *   states
-     * @ivar hb History buffer of local and remote operations
+     * @constructor
+     * @param {Number} siteId Unique integer site ID for this engine instance
      */
     var OperationEngine = function(siteId) {
         this.siteId = siteId;
@@ -39,8 +35,7 @@ define([
     /**
      * Gets the state of this engine instance to seed a new instance.
      *
-     * @return Array of cvt state, hb state, local site ID, and indices of
-     *   frozen cvt entries
+     * @return {Object[]} Array or serialized state
      */
     OperationEngine.prototype.getState = function() {
         // op engine state can be cloned from cvt, hb, site ID, and frozen slots
@@ -51,9 +46,9 @@ define([
     
     /**
      * Sets the state of this engine instance to state received from another
-     * instance in a conference.
+     * instance.
      *
-     * @param arr Array of values returned by getState on a remote instance
+     * @param {Object[]} arr Array in the format returned by getState
      */
     OperationEngine.prototype.setState = function(arr) {
         // configure the history buffer and context vector table
@@ -73,9 +68,10 @@ define([
     };
 
     /**
-     * Makes a copy of the engine context vector representing document state.
+     * Makes a copy of the engine context vector representing the local 
+     * document state.
      *
-     * @return Context vector
+     * @returns {ContextVector} Copy of the context vector for the local site
      */
     OperationEngine.prototype.copyContextVector = function() {
         return this.cv.copy();
@@ -85,14 +81,19 @@ define([
      * Factory method that creates an operation object initialized with the
      * given values.
      *
-     * @param local True if the operation was originated locally, false if not
-     * @param key String key identifying what property this op affects
-     * @param value Arbitrary new data value associated with the property
-     * @param type String type of operation: update, insert, delete
-     * @param position Integer position of the property in a linear order
-     * @param site Site integer on which the op originated (remote only)
-     * @param cv Context vector timestamp for the op (remote only)
-     * @return Operation subclass instance matching the given type
+     * @param {Boolean} local True if the operation was originated locally, 
+     * false if not
+     * @param {String} key Operation key
+     * @param {String} value Operation value
+     * @param {String} type Type of operation: update, insert, delete
+     * @param {Number} position Operation integer position
+     * @param {Number} site Integer site ID where a remote op originated. 
+     * Ignored for local operations which adopt the local site ID.
+     * @param {ContextVector} cv Operation context. Ignored for local
+     * operations which adopt the local site context.
+     * @param {Number} order Place of the operation in the total order. Ignored
+     * for local operations which are not yet assigned a place in the order.
+     * @returns {Operation} Subclass instance matching the given type
      */
     OperationEngine.prototype.createOp = function(local, key, value, type, 
     position, site, cv, order) {
@@ -122,16 +123,8 @@ define([
 
     /**
      * Creates an operation object and pushes it into the operation engine
-     * algorithm.
-     *
-     * @param local True if the operation was originated locally, false if not
-     * @param key String key identifying what property this op affects
-     * @param value Arbitrary new data value associated with the op
-     * @param type String type of operation: update, insert, delete
-     * @param position Integer position of the property in a linear order
-     * @param site Site integer on which the op originated (remote only)
-     * @param cv Context vector timestamp for the op (remote only)
-     * @return Original operation if local, transformed operation if remote
+     * algorithm. The parameters and return value are the same as those
+     * documented for createOp.
      */
     OperationEngine.prototype.push = function(local, key, value, type, 
     position, site, cv, order) {
@@ -145,10 +138,10 @@ define([
     };
 
     /**
-     * Procceses a local operation.
+     * Procceses a local operation and adds it to the history buffer.
      *
-     * @param op Operation object
-     * @return Operation object (same ref as param)
+     * @param {Operation} Local operation
+     * @returns {Operation} Reference to the pass parameter
      */
     OperationEngine.prototype.pushLocalOp = function(op) {
         // update local context vector
@@ -159,10 +152,13 @@ define([
     };
 
     /**
-     * Procceses a remote operation.
+     * Procceses a remote operation, transforming it if required, and adds
+     * the original to the history buffer.
      *
-     * @param op Operation object
-     * @return Transformed operation object (not same ref as param)
+     * @param {Operation} Remote operation
+     * @returns {Operation|null} New, transformed operation object or null if
+     * the effect of the passed operation is nothing and should not be applied
+     * to the shared state
      */
     OperationEngine.prototype.pushRemoteOp = function(op) {
         var top = null;
@@ -199,8 +195,8 @@ define([
     /**
      * Processes an engine synchronization event.
      *
-     * @param site Integer site ID of where the sync originated
-     * @param cv Context vector of that site
+     * @param {Number} site Integer site ID of where the sync originated
+     * @param {ContextVector} cv Context vector sent by the engine at that site
      */
     OperationEngine.prototype.pushSync = function(site, cv) {
         // update the context vector table
@@ -210,8 +206,8 @@ define([
     /**
      * Processes an engine synchronization event.
      *
-     * @param site Integer site ID of where the sync originated
-     * @param site Array of site sequence values for a context vector
+     * @param {Number} site Integer site ID of where the sync originated
+     * @param {Number[]} Array form of the context vector sent by the site
      */
     OperationEngine.prototype.pushSyncWithSites = function(site, sites) {
         // build a context vector from raw site data
@@ -222,7 +218,9 @@ define([
     /**
      * Runs the garbage collection algorithm over the history buffer.
      *
-     * @return Minimum context vector object or null if gc didn't run
+     * @returns {ContextVector|null} Compiuted minimum context vector of the
+     * earliest operation garbage collected or null if garbage collection
+     * did not run
      */
     OperationEngine.prototype.purge = function() {
         if(this.getBufferSize() === 0) {
@@ -279,7 +277,7 @@ define([
     /**
      * Gets the size of the history buffer in terms of stored operations.
      * 
-     * @return Integer size
+     * @returns {Number} Integer size
      */
     OperationEngine.prototype.getBufferSize = function() {
         return this.hb.getCount();
@@ -289,8 +287,9 @@ define([
      * Gets if the engine has already processed the give operation based on
      * its context vector and the context vector of this engine instance.
      *
-     * @param Operation object
-     * @return True if already processed, false if not
+     * @param {Operation} op Operation to check
+     * @returns {Boolean} True if the engine already processed this operation,
+     * false if not
      */
     OperationEngine.prototype.hasProcessedOp = function(op) {
         var seqId = this.cv.getSeqForSite(op.siteId);
@@ -299,9 +298,10 @@ define([
 
     /**
      * Freezes a slot in the context vector table by inserting a reference
-     * to this engine instance's context vector.
+     * to context vector of this engine. Should be invoked when a remote site
+     * stops participating.
      *
-     * @param site Integer ID of the site to freeze
+     * @param {Number} site Integer ID of the site to freeze
      */
     OperationEngine.prototype.freezeSite = function(site) {
         // insert a ref to this site's cv into the cvt for the given site
@@ -309,10 +309,11 @@ define([
     };
 
     /**
-     * Thaws a slot in the context vector table by inserting an empty context
-     * vector into the context vector table.
+     * Thaws a slot in the context vector table by inserting a zeroed context
+     * vector into the context vector table. Should be invoked before 
+     * processing the first operation from a new remote site.
      *
-     * @param site Integer ID of the site to thaw
+     * @param {Number} site Integer ID of the site to thaw
      */
     OperationEngine.prototype.thawSite = function(site) {
         // don't ever thaw the slot for our own site
@@ -326,12 +327,17 @@ define([
     };
 
     /**
-     * Executes a recursive step in the integration algorithm.
+     * Executes a recursive step in the operation transformation control 
+     * algorithm. This method assumes it will NOT be called if no 
+     * transformation is needed in order to reduce the number of operation
+     * copies needed.
      *
-     * @param op Operation to transform
-     * @param cd Context vector difference between the given op and another
-     *   document state
-     * @return Transformed operation (not a ref to the param op)
+     * @param {Operation} op Operation to transform
+     * @param {ContextDifference} cd Context vector difference between the 
+     * given op and the document state at the time of this recursive call
+     * @returns {Operation|null} A new operation, including the effects of all 
+     * of the operations in the context difference or null if the operation 
+     * can have no further effect on the document state
      */
     OperationEngine.prototype._transform = function(op, cd) {
         // get all ops for context different from history buffer sorted by
@@ -368,7 +374,6 @@ define([
             // perform the inclusion transform on op and xop now that they have
             //   the same context; ask xop for the method that should be invoked
             //   on op to properly transform it
-            // console.log('T(O%d in %s ordered %s, O%d in %s ordered %s) ->', op.siteId+1, op.contextVector.toString(), op.order, xop.siteId+1, xop.contextVector.toString(), xop.order);
             op = op[xop.transformMethod()](xop);
             if(op === null) {
                 // op target was deleted by another earlier op so return now
@@ -376,7 +381,6 @@ define([
                 // meaning on this op
                 return null;
             }
-            // console.log('\t\t\t\t\t%s[%d, "%s"]', op.type, op.position, op.value || '');
             // upgrade the context of the transformed op to reflect the
             //   inclusion transform
             op.contextVector.setSeqForSite(xop.siteId, xop.seqId);

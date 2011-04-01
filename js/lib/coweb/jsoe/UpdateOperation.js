@@ -22,7 +22,7 @@ define([
      * Gets the method name to use to transform another operation against this
      * update operation.
      *
-     * @return String method name
+     * @return {String} Method name
      */
     UpdateOperation.prototype.transformMethod = function() {
         return 'transformWithUpdate';
@@ -31,8 +31,8 @@ define([
     /**
      * Transforms this update to include the effect of an update.
      *
-     * @param op UpdateOperation object
-     * @return This instance
+     * @param {UpdateOperation} op Update to include in this op
+     * @returns {UpdateOperation} This instance
      */
     UpdateOperation.prototype.transformWithUpdate = function(op) {
         if((op.position !== this.position) || (op.key !== this.key)) {
@@ -50,8 +50,8 @@ define([
     /**
      * Transforms this update to include the effect of an insert.
      *
-     * @param op InsertOperation object
-     * @return This instance
+     * @param {InsertOperation} op Insert to include in this op
+     * @returns {UpdateOperation} This instance
      */
     UpdateOperation.prototype.transformWithInsert = function(op) {
         if(this.key !== op.key) {
@@ -66,8 +66,8 @@ define([
     /**
      * Transforms this update to include the effect of a delete.
      *
-     * @param op DeleteOperation object
-     * @return This instance or null
+     * @param {DeleteOperation} op Delete to include in this op
+     * @returns {UpdateOperation} This instance
      */
     UpdateOperation.prototype.transformWithDelete = function(op) {
         if(this.key !== op.key) {

@@ -12,9 +12,8 @@ define([
     /**
      * Stores information about local and remote operations for future 
      * transformations.
-     * 
-     * @ivar size Integer number of ops in the history
-     * @ivar ops Object with string keys mapped to operation objects
+     *
+     * @constructor
      */
     var HistoryBuffer = function() {
         this.ops = {};
@@ -24,7 +23,7 @@ define([
     /**
      * Serializes the history buffer contents to seed a remote instance.
      *
-     * @return Array of string keys and serialized operation objects
+     * @return {Object[]} Serialized operations in the history
      */
     HistoryBuffer.prototype.getState = function() {
         // pack keys and values into linear array to minimize wire size
@@ -43,7 +42,7 @@ define([
     /**
      * Unserializes history buffer contents to initialize this instance.
      *
-     * @param arr Array in the format returned by getState
+     * @param {Object[]} arr Array in the format returned by getState
      */
     HistoryBuffer.prototype.setState = function(arr) {
         // reset internals
@@ -58,11 +57,13 @@ define([
 
     /**
      * Retrieves all of the operations represented by the given context
-     * differences from the history buffer. Sorts them by context. Throws an
-     * exception when a requested operation is missing from the history.
+     * differences from the history buffer. Sorts them by total order, placing
+     * any ops with an unknown place in the order (i.e., local ops) at the end
+     * sorted by their sequence IDs. Throws an exception when a requested 
+     * operation is missing from the history.
      *
-     * @param cd Context difference object
-     * @return Array of operation objects
+     * @param {ContextDifference} cd  Context difference object
+     * @returns {Operation[]} Sorted operations
      */ 
     HistoryBuffer.prototype.getOpsForDifference = function(cd) {
         // get the ops
@@ -85,21 +86,24 @@ define([
     /**
      * Adds a local operation to the history.
      *
-     * @param op Operation instance
+     * @param {Operation} Local operation to add
      */
     HistoryBuffer.prototype.addLocal = function(op) {
         var key = factory.createHistoryKey(op.siteId, op.seqId);
         this.ops[key] = op;
+        // make sure ops in the history never change
         op.immutable = true;
         ++this.size;
     };
 
     /**
-     * Adds a remote operation received from the server to the history.
-     * If the operation already exists in the history, simply updates its
-     * order attribute. If not, adds it.
+     * Adds a received operation to the history. If the operation already 
+     * exists in the history, simply updates its order attribute. If not, 
+     * adds it. Throws an exception if the op does not include its place in 
+     * the total order or if the op with the same key already has an assigned
+     * place in the total order.
      *
-     * @param op Operation instance
+     * @param {Operation} Received operation to add
      */
     HistoryBuffer.prototype.addRemote = function(op) {
         var key = factory.createHistoryKey(op.siteId, op.seqId);
@@ -128,13 +132,14 @@ define([
     /**
      * Removes and returns an operation in the history.
      *
-     * @param op Operation instance
-     * @return Operation removed
+     * @param {Operation} op Operation to locate for removal
+     * @returns {Operation} Removed operation
      */
     HistoryBuffer.prototype.remove = function(op) {
         var key = factory.createHistoryKey(op.siteId, op.seqId);
         op = this.ops[key];
         delete this.ops[key];
+        // no longer in the history, so allow mutation
         op.immutable = false;
         --this.size;
         return op;
@@ -143,7 +148,7 @@ define([
     /**
      * Gets the number of operations in the history.
      *
-     * @return Integer count
+     * @returns {Number} Integer count
      */
     HistoryBuffer.prototype.getCount = function() {
         return this.size;
@@ -152,7 +157,7 @@ define([
     /**
      * Gets all operations in the history buffer sorted by context.
      *
-     * @return Array of operations
+     * @returns {Operation[]} Sorted operations
      */
     HistoryBuffer.prototype.getContextSortedOperations = function() {
         var ops = [];

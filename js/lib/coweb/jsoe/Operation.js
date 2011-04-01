@@ -1,8 +1,9 @@
 //
 // Defines the base class for operations.
 //
-// @todo: should not be a class; factory with raw JS objects and functions to
-//   transform
+// @todo: probably shouldn't be a class for performance; a bunch of functions
+// that act on raw js objects representing ops would cut out the serialize
+// steps and make copy simpler most likely
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
@@ -14,20 +15,26 @@ define([
     /**
      * Contains information about a local or remote event for transformation.
      *
-     * @ivar siteId Integer ID of the site where the operation originated
-     * @ivar contextVector Context vector object indicating in what state the
-     *   the operation was generated
-     * @ivar key String key identifying what property the operation affects
-     * @ivar value Arbitrary value that the operation assigned to the property
-     * @ivar position Integer position of the 
-     * @ivar seqId Integer sequence number of this operation at the site where 
-     *   it was generated
-     * @ivar immutable True if this op cannot be transformed without a copy
+     * Initializes the operation from serialized state or individual props if
+     * state is not defined in the args parameter.
      *
-     * Initializes an operation from serialized state or individual props.
-     *
-     * @param args Object with state containing serialized state or individual
-     *   op properties
+     * @param {Object[]} args.state Array in format returned by getState 
+     * bundling the following individual parameter values
+     * @param {Number} args.siteId Integer site ID where the op originated
+     * @param {ContextVector} args.contextVector Context in which the op 
+     * occurred
+     * @param {String} args.key Name of the property the op affected
+     * @param {String} args.value Value of the op
+     * @param {Number} args.position Integer position of the op in a linear
+     * collection
+     * @param {Number} args.order Integer sequence number of the op in the 
+     * total op order across all sites
+     * @param {Number} args.seqId Integer sequence number of the op at its
+     * originating site. If undefined, computed from the context vector and
+     * site ID.
+     * @param {Boolean} args.immutable True if the copy method returns a true
+     * copy or false if the copy method may shortcut and return a shared ref
+     * to this instance
      */
     var Operation = function(args) {
         if(args === undefined) {
@@ -57,10 +64,10 @@ define([
     };
 
     /**
-     * Serializes the operation as an array of values.
+     * Serializes the operation as an array of values for transmission.
      *
-     * @return Array with the name of the operation class and all of its 
-     *   instance variables as primitive JS types
+     * @return {Object[]} Array with the name of the operation type and all
+     * of its instance variables as primitive JS types
      */
     Operation.prototype.getState = function() {
         // use an array to minimize the wire format
@@ -71,9 +78,10 @@ define([
     };
 
     /**
-     * Unserializes operation data and sets it as the instance data.
+     * Unserializes operation data and sets it as the instance data. Throws an
+     * exception if the state is not from an operation of the same type.
      *
-     * @param arr Array matching the format of that returned by getState
+     * @param {Object[]} arr Array in the format returned by getState
      */
     Operation.prototype.setState = function(arr) {
         // name args as required by constructor
@@ -87,9 +95,10 @@ define([
     };
 
     /**
-     * Makes a copy of this operation object.
+     * Makes a copy of this operation object. Takes a shortcut and returns
+     * a ref to this instance if the op is marked as mutable.
      *
-     * @return Operation object
+     * @returns {Operation} Operation object
      */
     Operation.prototype.copy = function() {
         if(!this.immutable) {
@@ -110,10 +119,12 @@ define([
     };
 
     /**
-     * Compares the context vector of this operation to the context vector
-     * of the given operation. Used for sorting operations by their contexts.
+     * Computes an ordered comparison of this op and another based on their
+     * context vectors. Used for sorting operations by their contexts.
      *
-     * @param op Operation object to compare with
+     * @param {Operation} op Other operation
+     * @returns {Number} -1 if this op is ordered before the other, 0 if they
+     * are in the same context, and 1 if this op is ordered after the other
      */
     Operation.prototype.compareByContext = function(op) {
         var rv = this.contextVector.compare(op.contextVector);
@@ -130,15 +141,17 @@ define([
     };
     
     /**
-     * Compares the this operation to another according to the server-decided
-     * total order. 
+     * Computes an ordered comparison of this op and another based on their
+     * position in the total op order.
      *
-     * @param op Operation object to compare with
+     * @param {Operation} op Other operation
+     * @returns {Number} -1 if this op is ordered before the other, 0 if they
+     * are in the same context, and 1 if this op is ordered after the other
      */
     Operation.prototype.compareByOrder = function(op) {
         if(this.order === op.order) {
-            // both unknown total order, so compare sequence ids
-            // both from the same site or from a site that seeded this one
+            // both unknown total order, so compare sequence ids; implies both
+            // are from the same site or from a site that seeded this one
             // when it was late-joining; either way seq id should match total
             // order from the server
             return this.seqId < op.seqId ? -1 : 1;
@@ -172,6 +185,9 @@ define([
      * Transforms this operation to include the effects of an update operation.
      *
      * Abstract implementation always throws an exception if not overriden.
+     *
+     * @param {UpdateOperation} op Update to include in this op
+     * @returns {Operation} This operation
      */ 
     Operation.prototype.transformWithUpdate = function(op) {
         throw new Error('transformWithUpdate not implemented');
@@ -181,6 +197,9 @@ define([
      * Transforms this operation to include the effects of an insert operation.
      *
      * Abstract implementation always throws an exception if not overriden.
+     *
+     * @param {InsertOperation} op Update to include in this op
+     * @returns {Operation} This operation
      */ 
     Operation.prototype.transformWithInsert = function(op) {
         throw new Error('transformWithInsert not implemented');
@@ -190,6 +209,10 @@ define([
      * Transforms this operation to include the effects of a delete operation.
      *
      * Abstract implementation always throws an exception if not overriden.
+     *
+     * @param {DeleteOperation} op Update to include in this op
+     * @returns {Operation|null} This operation or null if this op can have
+     * no further affect on other ops
      */ 
     Operation.prototype.transformWithDelete = function(op) {
         throw new Error('transformWithDelete not implemented');
