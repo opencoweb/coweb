@@ -9,9 +9,12 @@ define([
     'coweb/jsoe/Operation',
     'coweb/jsoe/factory'
 ], function(Operation, factory) {
+    /**
+     * @constructor
+     */
     var InsertOperation = function(args) {
-        Operation.call(this, args);
         this.type = 'insert';
+        Operation.call(this, args);
     };
     InsertOperation.prototype = new Operation();
     InsertOperation.prototype.constructor = InsertOperation;

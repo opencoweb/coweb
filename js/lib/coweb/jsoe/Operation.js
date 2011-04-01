@@ -84,6 +84,9 @@ define([
      * @param {Object[]} arr Array in the format returned by getState
      */
     Operation.prototype.setState = function(arr) {
+        if(arr[0] !== this.type) {
+            throw new Error('setState invoked with state from wrong op type');
+        }
         // name args as required by constructor
         this.key = arr[1];
         this.value = arr[2];
