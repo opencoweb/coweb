@@ -8,13 +8,12 @@
 /*global test define start equal equals deepEqual ok stop module*/
 define([
     'coweb/main',
-    'coweb/topics',
     'coweb/util/lang',
     'util',
     'mock/xhr',
     'mock/CowebServer',
     'org/OpenAjax'
-], function(coweb, topics, lang, util, xhr, CowebServer, OpenAjax) {    
+], function(coweb, lang, util, xhr, CowebServer, OpenAjax) {    
     var sessionModOpts = {
         setup: function() {
             try {

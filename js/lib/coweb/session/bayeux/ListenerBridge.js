@@ -8,9 +8,8 @@
 define([
     'coweb/session/bayeux/cometd',
     'coweb/util/Promise',
-    'coweb/util/lang',
-    'coweb/topics'
-], function(cometd, Promise, lang, topics) {
+    'coweb/util/lang'
+], function(cometd, Promise, lang) {
     /**
      * @constructor
      * @param {Object} args.listener ListenerInterface instance

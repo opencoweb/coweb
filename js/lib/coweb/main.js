@@ -21,11 +21,10 @@ cowebConfig = {
 };
 
 define([
-    'coweb/topics',
     cowebConfig.sessionImpl,
     cowebConfig.listenerImpl,
     cowebConfig.collabImpl
-], function(topics, SessionImpl, ListenerImpl, CollabImpl) {
+], function(SessionImpl, ListenerImpl, CollabImpl) {
     // session and listener instance singletons
     var sessionInst = null,
         listenerInst = null,

@@ -8,10 +8,9 @@
 define([
     'coweb/session/bayeux/SessionBridge',
     'coweb/util/Promise',
-    'coweb/topics',
     'coweb/util/xhr',
     'coweb/util/lang'
-], function(SessionBridge, Promise, topics, xhr, lang) {
+], function(SessionBridge, Promise, xhr, lang) {
     /**
      * @constructor
      */

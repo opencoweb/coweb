@@ -13,7 +13,6 @@
             name: "coweb/main",
             includeRequire: false,
             include : [
-                "coweb/topics", 
                 "coweb/session/BayeuxSession",
                 "coweb/listener/UnmanagedHubListener",
                 "coweb/collab/UnmanagedHubCollab"
