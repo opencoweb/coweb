@@ -283,14 +283,13 @@ define([
             match = this._publicRegex.exec(ch);
             if(match) {
                 // error subscribing to public bot channel
-                topic = topics.SET_SERVICE + match[1];
                 // toss the subscription token
                 info = this._serviceSubs[match[1]];
                 // remove local listener only, sub never happened on server
                 cometd.removeListener(info.token);
                 info.token = null;
                 segs = msg.error.split(':');
-                this._listener.servicePublishInbound(topic, segs[2], true);
+                this._listener.servicePublishInbound(match[1], segs[2], true);
                 // @todo: do we need to unsubscribe? toss tokens?
             }
             // console.warn('bayeux.ListenerBridge: unhandled subscription error ' + msg.error);
