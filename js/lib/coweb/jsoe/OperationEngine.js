@@ -30,6 +30,7 @@ define([
         this.cv = new ContextVector({count : siteId+1});
         this.cvt = new ContextVectorTable(this.cv, siteId);
         this.hb = new HistoryBuffer();
+        this.siteCount = 1;
     };
 
     /**
@@ -60,9 +61,11 @@ define([
         this.cv = this.cv.copy();
         // freeze our own site slot
         this.cvt.updateWithContextVector(this.siteId, this.cv);
+        // set the initial count of active sites; freeze below will adjust
+        this.siteCount = this.cv.getSize();
         // freeze all sites that must be frozen
         var frozen = arr[3];
-        for(var i=0; i < frozen.length; i++) {
+        for(var i=0, l=frozen.length; i < l; i++) {
             this.freezeSite(frozen[i]);
         }
     };
@@ -304,6 +307,8 @@ define([
     OperationEngine.prototype.freezeSite = function(site) {
         // insert a ref to this site's cv into the cvt for the given site
         this.cvt.updateWithContextVector(site, this.cv);
+        // one less site participating now
+        this.siteCount--;
     };
 
     /**
@@ -322,6 +327,17 @@ define([
         cv.growTo(site);
         // use it as the initial context of the site
         this.cvt.updateWithContextVector(site, cv);
+        // one more site participating now
+        this.siteCount++;
+    };
+    
+    /**
+     * Gets the number of sites known to be participating, including this site.
+     *
+     * @returns {Number} Integer count
+     */
+    OperationEngine.prototype.getSiteCount = function() {
+        return this.siteCount;
     };
 
     /**

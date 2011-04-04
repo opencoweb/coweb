@@ -44,6 +44,10 @@ define([
         } else if(args.state) {
             // restore from state alone
             this.setState(args.state);
+            this.xCache = {
+                byContext : {},
+                byOrder : []
+            };
         } else {
             // use individual properties
             this.siteId = args.siteId;
@@ -60,6 +64,7 @@ define([
                 throw new Error('missing sequence id for new operation');
             }
             this.immutable = false;
+            this.xCache = args.xCache;
         }
     };
 
@@ -114,12 +119,53 @@ define([
             key : this.key,
             value : this.value,
             position : this.position,
-            order : this.order
+            order : this.order,
+            // reference existing xCache
+            xCache : this.xCache
         };
         // respect subclasses
         var op = new this.constructor(args);
         return op;
     };
+
+    /**
+     * Gets a version of the given operation previously transformed into the
+     * given context if available.
+     *
+     * @param {ContextVector} cv Context of the transformed op to seek
+     */
+    Operation.prototype.getFromCache = function(cv) {
+        // check if the cv is a key in the xCache
+        return this.xCache.byContext[cv.toString()];
+    };
+
+    /**
+     * Caches a transformed copy of this original operation for faster future
+     * transformations.
+     *
+     * @param {Operation} xop Transformed op to cache
+     * @param {Number} Integer count of active sites, including the local one
+     */
+    Operation.prototype.addToCache = function(xop, siteCount) {
+        // pull some refs local
+        var cache = this.xCache,
+            bo = cache.byOrder,
+            bcv = cache.byContext;
+
+        // check the count of cached ops against number of sites
+        // really +1 for the op to add but -1 for this site
+        var diff = bo.length - siteCount;
+        if(diff > 0) {
+            // if overflow, remove oldest op(s)
+            cache.byOrder = bo = bo.slice(diff);
+        }
+        // add new transformed op
+        bcv[xop.contextVector.toString()] = xop;
+        bo.push(xop);
+        // mark op as immutable because it's in the history
+        xop.immutable = true;
+    };
+
 
     /**
      * Computes an ordered comparison of this op and another based on their
