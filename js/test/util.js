@@ -19,14 +19,29 @@ define([
         this.state = state;
         this.incoming = [];
         all.push(this);
-        if(!keepFrozen) {            
+        if(!keepFrozen) {
+            // update internal site count if not keeping frozen for
+            // join testing
+            this.eng.siteCount += (util.all_clients.length -1);
             for(var i=0, l=all.length; i<l; i++) {
                 var item = all[i];
+                if(!item) {continue;}
                 item.eng.thawSite(site);
             }
         }
     };
     util.OpEngClient = OpEngClient;
+    
+    OpEngClient.prototype.leave = function() {
+        var all = util.all_clients,
+            site = this.eng.siteId;
+        all[site] = null;
+        for(var i=0, l=all.length; i<l; i++) {
+            var item = all[i];
+            if(!item) {continue;}
+            item.eng.freezeSite(site);
+        }
+    };
 
     OpEngClient.prototype.send = function(op) {
         if(this.eng.siteId !== op.siteId) {

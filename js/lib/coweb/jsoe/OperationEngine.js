@@ -305,10 +305,13 @@ define([
      * @param {Number} site Integer ID of the site to freeze
      */
     OperationEngine.prototype.freezeSite = function(site) {
-        // insert a ref to this site's cv into the cvt for the given site
-        this.cvt.updateWithContextVector(site, this.cv);
-        // one less site participating now
-        this.siteCount--;
+        // ignore if already frozen
+        if(this.cvt.getContextVector(site) !== this.cv) {
+            // insert a ref to this site's cv into the cvt for the given site
+            this.cvt.updateWithContextVector(site, this.cv);
+            // one less site participating now
+            this.siteCount--;
+        }
     };
 
     /**
