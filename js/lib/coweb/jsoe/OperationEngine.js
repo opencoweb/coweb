@@ -359,38 +359,47 @@ define([
     OperationEngine.prototype._transform = function(op, cd) {
         // get all ops for context different from history buffer sorted by
         //   context dependencies
-        var ops = this.hb.getOpsForDifference(cd);
+        // console.log(op, op.xCache.byContext);
+        var ops = this.hb.getOpsForDifference(cd),
+            xcd, xop, cxop, i, l;
+
         // copy the incoming operation to avoid disturbing the history buffer
         //   when the op comes from our history buffer during a recursive step
         op = op.copy();
         //iterate over all operations in the difference
-        for(var i=0; i < ops.length; i++) {
+        for(i=0, l=ops.length; i < l; i++) {
             // xop is the previously applied op
-            var xop = ops[i];
+            xop = ops[i];
             if(!op.contextVector.equals(xop.contextVector)) {
-                // transform needed to upgrade context of xop to op
-                var xcd = op.contextVector.subtract(xop.contextVector);
-/*                if(!xcd.sites.length) {
-                    throw new Error('bad context diff');
-                }*/
-                // we'll get a copy back from the recursion
-                var cxop = this._transform(xop, xcd);
-                if(cxop === null) {
-                    // xop was invalidated by a previous op during the transform
-                    // so it has no effect on the current op; upgrade context
-                    // immediately
-                    op.contextVector.setSeqForSite(xop.siteId, xop.seqId);
-                    continue;
+                // see if we've cached a transform of this op in the desired
+                // context to avoid recursion
+                cxop = op.getFromCache(xop.contextVector);
+                if(cxop) {
+                    xop = cxop;
+                } else {                
+                    // transform needed to upgrade context of xop to op
+                    xcd = op.contextVector.subtract(xop.contextVector);
+    /*                if(!xcd.sites.length) {
+                        throw new Error('bad context diff');
+                    }*/
+                    // we'll get a copy back from the recursion
+                    cxop = this._transform(xop, xcd);
+                    if(cxop === null) {
+                        // xop was invalidated by a previous op during the 
+                        // transform so it has no effect on the current op; 
+                        // upgrade context immediately and continue with
+                        // the next one
+                        op.contextVector.setSeqForSite(xop.siteId, xop.seqId);
+                        continue;
+                    }
+                    // now only deal with the copy
+                    xop = cxop;
                 }
-                // now only deal with the copy
-                xop = cxop;
             }
 /*            if(!op.contextVector.equals(xop.contextVector)) {
                 throw new Error('context vectors unequal after upgrade');
             }*/
-            // perform the inclusion transform on op and xop now that they have
-            //   the same context; ask xop for the method that should be invoked
-            //   on op to properly transform it
+            // transform op to include xop now that contexts match IT(op, xop)
             op = op[xop.transformMethod()](xop);
             if(op === null) {
                 // op target was deleted by another earlier op so return now
@@ -398,9 +407,19 @@ define([
                 // meaning on this op
                 return null;
             }
-            // upgrade the context of the transformed op to reflect the
-            //   inclusion transform
+            // upgrade the context of the transformed op
             op.contextVector.setSeqForSite(xop.siteId, xop.seqId);
+            // cache the transformed op
+            op.addToCache(op, this.siteCount);
+
+            // do a symmetric transform on a copy of xop too while we're here
+            xop = xop.copy();
+            xop = xop[op.transformMethod()](op);
+            if(xop) {
+                // if the transform didn't nullify xop, upgrade and cach it too
+                xop.contextVector.setSeqForSite(op.siteId, op.seqId);
+                xop.addToCache(xop, this.siteCount);
+            }
         }
         // op is always a copy because we never entered this method if no
         // transform was needed

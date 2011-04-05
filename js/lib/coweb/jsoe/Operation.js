@@ -44,10 +44,6 @@ define([
         } else if(args.state) {
             // restore from state alone
             this.setState(args.state);
-            this.xCache = {
-                byContext : {},
-                byOrder : []
-            };
         } else {
             // use individual properties
             this.siteId = args.siteId;
@@ -65,6 +61,13 @@ define([
             }
             this.immutable = false;
             this.xCache = args.xCache;
+        }
+        
+        if(!this.xCache) {
+            this.xCache = {
+                byContext : {},
+                byOrder : []
+            };
         }
     };
 
@@ -136,7 +139,9 @@ define([
      */
     Operation.prototype.getFromCache = function(cv) {
         // check if the cv is a key in the xCache
-        return this.xCache.byContext[cv.toString()];
+        var xop = this.xCache.byContext[cv.toString()];
+        if(xop) { console.log('cache hit'); }
+        return xop;
     };
 
     /**
@@ -155,6 +160,7 @@ define([
         // check the count of cached ops against number of sites
         // really +1 for the op to add but -1 for this site
         var diff = bo.length - siteCount;
+        // console.log(bo.length, siteCount);
         if(diff > 0) {
             // if overflow, remove oldest op(s)
             cache.byOrder = bo = bo.slice(diff);

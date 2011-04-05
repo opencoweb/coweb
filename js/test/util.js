@@ -5,8 +5,9 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 define([
-    'coweb/jsoe/OperationEngine'
-], function(OperationEngine) {
+    'coweb/jsoe/OperationEngine',
+    'coweb/jsoe/factory'
+], function(OperationEngine, factory) {
     // track all op engine clients publicly for reset
     var util = {};
     util.all_clients = [];
@@ -47,7 +48,7 @@ define([
         if(this.eng.siteId !== op.siteId) {
             throw new Error('trying to send op from wrong site');
         }
-        op = op.copy();
+        op = factory.createOperationFromState(op.getState());
         op.order = util.order++;
         for(var i=0; i < util.all_clients.length; i++) {
             var client = util.all_clients[i];
@@ -109,7 +110,7 @@ define([
         if(op.order === Infinity) {
             op.order = util.order++;
         }
-        op = op.copy();
+        op = factory.createOperationFromState(op.getState());
         // make a copy before transforming because everything is local here
         op = this.eng.pushRemoteOp(op);
         this._updateState(op);
