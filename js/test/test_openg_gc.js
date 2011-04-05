@@ -10,7 +10,7 @@ define([
     module('op engine gc', {
         teardown: function() {
             // clean up all clients
-            util.OpEngClient.all_clients = [];
+            util.all_clients = [];
         }
     });
 
