@@ -32,8 +32,8 @@ define([
      * @param {Number} args.seqId Integer sequence number of the op at its
      * originating site. If undefined, computed from the context vector and
      * site ID.
-     * @param {Boolean} args.immutable True if the copy method returns a true
-     * copy or false if the copy method may shortcut and return a shared ref
+     * @param {Boolean} args.immutable True if the op cannot be changed, most
+     * likely because it is in a history buffer somewhere
      * to this instance
      */
     var Operation = function(args) {
@@ -44,6 +44,8 @@ define([
         } else if(args.state) {
             // restore from state alone
             this.setState(args.state);
+            // never local when building from serialized state
+            this.local = false;
         } else {
             // use individual properties
             this.siteId = args.siteId;
@@ -59,8 +61,10 @@ define([
             } else {
                 throw new Error('missing sequence id for new operation');
             }
-            this.immutable = false;
+            this.local = args.local || false;
         }
+        // always mutable to start
+        this.immutable = false;
     };
 
     /**
@@ -94,7 +98,7 @@ define([
         this.contextVector = new ContextVector({state : arr[4]});
         this.seqId = arr[5];
         this.siteId = arr[6];
-        this.order = arr[7];
+        this.order = arr[7] || Infinity;
     };
 
     /**
@@ -114,7 +118,8 @@ define([
             key : this.key,
             value : this.value,
             position : this.position,
-            order : this.order
+            order : this.order,
+            local : this.local
         };
         // respect subclasses
         var op = new this.constructor(args);
@@ -153,11 +158,22 @@ define([
      */
     Operation.prototype.compareByOrder = function(op) {
         if(this.order === op.order) {
-            // both unknown total order, so compare sequence ids; implies both
-            // are from the same site or from a site that seeded this one
-            // when it was late-joining; either way seq id should match total
-            // order from the server
-            return this.seqId < op.seqId ? -1 : 1;
+            // both unknown total order so next check if both ops are from
+            // the same site or if one is from the local site and the other
+            // remote
+            if(this.local === op.local) {
+                // compare sequence ids for local-local or remote-remote order
+                return (this.seqId < op.seqId) ? -1 : 1;
+            } else if(this.local && !op.local) {
+                // this local op must appear after the remote one in the total
+                // order as the remote one was included in the late joining 
+                // state sent by the remote site to this one meaning it was
+                // sent before this site finished joining
+                return 1;
+            } else if(!this.local && op.local) {
+                // same as above, but this op is the remote one now
+                return -1;
+            }
         } else if(this.order < op.order) {
             return -1;
         } else if(this.order > op.order) {

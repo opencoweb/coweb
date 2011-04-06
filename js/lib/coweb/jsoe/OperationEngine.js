@@ -104,7 +104,8 @@ define([
                 position : position,
                 value : value,
                 siteId : this.siteId,
-                contextVector : this.copyContextVector()
+                contextVector : this.copyContextVector(),
+                local : true
             };
         } else {
             // build cv from raw sites array
@@ -115,7 +116,8 @@ define([
                 value : value,
                 siteId : site,
                 contextVector : cv,
-                order : order
+                order : order,
+                local : false
             };
         }
         return factory.createOperationFromType(type, args);

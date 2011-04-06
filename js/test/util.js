@@ -5,8 +5,9 @@
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
 define([
-    'coweb/jsoe/OperationEngine'
-], function(OperationEngine) {
+    'coweb/jsoe/OperationEngine',
+    'coweb/jsoe/factory'
+], function(OperationEngine, factory) {
     // track all op engine clients publicly for reset
     var util = {};
     util.all_clients = [];
@@ -32,11 +33,18 @@ define([
         if(this.eng.siteId !== op.siteId) {
             throw new Error('trying to send op from wrong site');
         }
-        op = op.copy();
-        op.order = util.order++;
+        // serialize and unseralize to avoid ref problems locally
+        var order = util.order++,
+            state = op.getState(),
+            cop;
+        // json encode to avoid refs because all are local
+        state = JSON.stringify(state);
         for(var i=0; i < util.all_clients.length; i++) {
+            // build op upon send instead of recv to add total order
+            cop = factory.createOperationFromState(JSON.parse(state));
+            cop.order = order;
             var client = util.all_clients[i];
-            client.incoming.push(op);
+            client.incoming.push(cop);
         }
     };
 
