@@ -301,7 +301,6 @@ define([
             // we have to allow purges after sending even one event in 
             // case this site is the only one in the session for now
             this._shouldPurge = true;
-            console.log('set should purge after sending op');
         } else if(err) {
             // throw error back to the caller
             throw err;
