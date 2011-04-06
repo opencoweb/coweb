@@ -294,6 +294,8 @@ define([
      */
     OperationEngine.prototype.hasProcessedOp = function(op) {
         var seqId = this.cv.getSeqForSite(op.siteId);
+        // console.log('op processed? %s: this.cv=%s, seqId=%d, op.siteId=%d, op.cv=%s, op.seqId=%d',
+        //     (seqId >= op.seqId), this.cv.toString(), seqId, op.siteId, op.contextVector.toString(), op.seqId);
         return (seqId >= op.seqId);
     };
 
@@ -359,14 +361,12 @@ define([
     OperationEngine.prototype._transform = function(op, cd) {
         // get all ops for context different from history buffer sorted by
         //   context dependencies
-        // console.log(op, op.xCache.byContext);
         var ops = this.hb.getOpsForDifference(cd),
             xcd, xop, cxop, i, l;
-
         // copy the incoming operation to avoid disturbing the history buffer
         //   when the op comes from our history buffer during a recursive step
         op = op.copy();
-        //iterate over all operations in the difference
+        // iterate over all operations in the difference
         for(i=0, l=ops.length; i < l; i++) {
             // xop is the previously applied op
             xop = ops[i];
@@ -379,9 +379,9 @@ define([
                 } else {                
                     // transform needed to upgrade context of xop to op
                     xcd = op.contextVector.subtract(xop.contextVector);
-    /*                if(!xcd.sites.length) {
-                        throw new Error('bad context diff');
-                    }*/
+                    if(!xcd.sites.length) {
+                        throw new Error('transform produced empty context diff');
+                    }
                     // we'll get a copy back from the recursion
                     cxop = this._transform(xop, xcd);
                     if(cxop === null) {
@@ -390,35 +390,32 @@ define([
                         // upgrade context immediately and continue with
                         // the next one
                         op.contextVector.setSeqForSite(xop.siteId, xop.seqId);
+                        // @todo: cache here too?
                         continue;
                     }
                     // now only deal with the copy
                     xop = cxop;
                 }
             }
-/*            if(!op.contextVector.equals(xop.contextVector)) {
+            if(!op.contextVector.equals(xop.contextVector)) {
                 throw new Error('context vectors unequal after upgrade');
-            }*/
+            }
             // transform op to include xop now that contexts match IT(op, xop)
-            op = op[xop.transformMethod()](xop);
+            op = op.transformWith(xop);
             if(op === null) {
                 // op target was deleted by another earlier op so return now
                 // do not continue because no further transforms have any
                 // meaning on this op
                 return null;
             }
-            // upgrade the context of the transformed op
-            op.contextVector.setSeqForSite(xop.siteId, xop.seqId);
             // cache the transformed op
-            op.addToCache(op, this.siteCount);
+            op.addToCache(this.siteCount);
 
             // do a symmetric transform on a copy of xop too while we're here
             xop = xop.copy();
-            xop = xop[op.transformMethod()](op);
+            xop = xop.transformWith(op);
             if(xop) {
-                // if the transform didn't nullify xop, upgrade and cach it too
-                xop.contextVector.setSeqForSite(op.siteId, op.seqId);
-                xop.addToCache(xop, this.siteCount);
+                xop.addToCache(this.siteCount);
             }
         }
         // op is always a copy because we never entered this method if no

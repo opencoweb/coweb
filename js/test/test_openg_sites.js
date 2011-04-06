@@ -13,7 +13,7 @@ define([
             util.all_clients = [];
         }
     });
-    
+
     test('one site', 1, function() {
         var a = new util.OpEngClient(0, {symbol : 'x'});
         equals(a.eng.getSiteCount(), 1);
@@ -114,9 +114,7 @@ define([
         b.send(b1);
     
         // join c and use state from b
-        var state = b.eng.getState();
-        c.eng.setState(state);
-        c.state.symbol = 'B';
+        c.getStateFrom(b);
     
         // notify all sites of c's existence after update
         a.eng.thawSite(2);
@@ -130,6 +128,7 @@ define([
         var sites = [a,b,c];
         for(var i=0, l=sites.length; i<l; i++) {
             var e = sites[i];
+            console.log('********* site', i, e.eng.cv.toString());
             e.recvAll();
             deepEqual(e.state, correct, 'client state check');
             equals(e.eng.getBufferSize(), 3, 'history buffer size check');

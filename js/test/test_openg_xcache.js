@@ -15,15 +15,14 @@ define([
         }
     });
 
-    test('two site lag - DISABLED', 0, function() {
-        ok(true, 'test will freeze browser, need caching in op engine');
+    test('two site lag - DISABLED', 1, function() {
         return;
-    
+
         var a = new util.OpEngClient(0, {symbol : '1 2'});
         var b = new util.OpEngClient(1, {symbol : '1 2'});
     
-        var aStr = 'abcdefghijkl';
-        var bStr = 'mnopqrstuvwxyz';
+        var aStr = 'ab';
+        var bStr = 'mn';
         var op;
         var aOps = [], bOps = [];
         // lots of typing on a after the "1"
@@ -43,11 +42,11 @@ define([
         a.recvAll();
         b.recvAll();
     
-        var correct = {symbol : '1abcdefghijkl 2mnopqrstuvwxyz'};
+        var correct = {symbol : '1'+aStr+' 2'+bStr};
         deepEqual(a.state, correct, 'client state check');
-        equals(a.eng.getBufferSize(), 26);
+        equals(a.eng.getBufferSize(), aStr.length+bStr.length);
         deepEqual(b.state, correct, 'client state check');
-        equals(b.eng.getBufferSize(), 26); 
+        equals(b.eng.getBufferSize(), aStr.length+bStr.length); 
     });
     
     test('three site lag', 1, function() {

@@ -116,7 +116,7 @@ define([
             if(eop.order !== Infinity) {
                 // order should never repeat
                 throw new Error('duplicate op in total order: old='+eop.order +
-                    'new='+op.order);
+                    ' new='+op.order);
             }
             // server has responded with known total order for an op this site
             // previously sent; update the local op with the info

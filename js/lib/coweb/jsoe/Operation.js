@@ -63,11 +63,9 @@ define([
             this.xCache = args.xCache;
         }
         
+        // define the xcache if not set elsewhere
         if(!this.xCache) {
-            this.xCache = {
-                byContext : {},
-                byOrder : []
-            };
+            this.xCache = [];
         }
     };
 
@@ -94,6 +92,8 @@ define([
     Operation.prototype.setState = function(arr) {
         if(arr[0] !== this.type) {
             throw new Error('setState invoked with state from wrong op type');
+        } else if(this.immutable) {
+            throw new Error('op is immutable');
         }
         // name args as required by constructor
         this.key = arr[1];
@@ -112,9 +112,6 @@ define([
      * @returns {Operation} Operation object
      */
     Operation.prototype.copy = function() {
-        if(!this.immutable) {
-            return this;
-        }
         var args = {
             siteId : this.siteId,
             seqId : this.seqId,
@@ -136,42 +133,48 @@ define([
      * given context if available.
      *
      * @param {ContextVector} cv Context of the transformed op to seek
+     * @returns {Operation|null} Copy of the transformed operation from the 
+     * cache or null if not found in the cache
      */
     Operation.prototype.getFromCache = function(cv) {
         // check if the cv is a key in the xCache
-        var xop = this.xCache.byContext[cv.toString()];
-        if(xop) { console.log('cache hit'); }
-        return xop;
+        return null;
+
+        var cache = this.xCache,
+            xop, i, l;
+        for(i=0, l=cache.length; i<l; i++) {
+            xop = cache[i];
+            if(xop.contextVector.equals(cv)) {
+                return xop.copy();
+            }
+        }
+        return null;
     };
 
     /**
      * Caches a transformed copy of this original operation for faster future
      * transformations.
      *
-     * @param {Operation} xop Transformed op to cache
      * @param {Number} Integer count of active sites, including the local one
      */
-    Operation.prototype.addToCache = function(xop, siteCount) {
+    Operation.prototype.addToCache = function(siteCount) {
         // pull some refs local
         var cache = this.xCache,
-            bo = cache.byOrder,
-            bcv = cache.byContext;
+            cop = this.copy();
 
-        // check the count of cached ops against number of sites
-        // really +1 for the op to add but -1 for this site
-        var diff = bo.length - siteCount;
-        // console.log(bo.length, siteCount);
+        // mark copy as immutable
+        cop.immutable = true;
+
+        // add a copy of this transformed op to the history
+        cache.push(cop);
+
+        // check the count of cached ops against number of sites - 1
+        var diff = cache.length - (siteCount-1);
         if(diff > 0) {
             // if overflow, remove oldest op(s)
-            cache.byOrder = bo = bo.slice(diff);
+            cache = cache.slice(diff);
         }
-        // add new transformed op
-        bcv[xop.contextVector.toString()] = xop;
-        bo.push(xop);
-        // mark op as immutable because it's in the history
-        xop.immutable = true;
     };
-
 
     /**
      * Computes an ordered comparison of this op and another based on their
@@ -216,6 +219,35 @@ define([
             return 1;
         }
     };
+    
+    /**
+     * Transforms this operation to include the effects of the operation
+     * provided as a parameter IT(this, op). Upgrade the context of this
+     * op to reflect the inclusion of the other.
+     *
+     * @returns {Operation|null} This operation, transformed in-place, or null
+     * if its effects are nullified by the transform
+     * @throws {Error} If this op to be transformed is immutable or if the
+     * this operation subclass does not implement the transform method needed
+     * to handle the passed op
+     */
+    Operation.prototype.transformWith = function(op) {
+        if(this.immutable) {
+            throw new Error('attempt to transform immutable op');
+        }
+        var func = this[op.transformMethod()], rv;
+        if(!func) {
+            throw new Error('operation cannot handle transform with type: '+ op.type);
+        }
+        // do the transform
+        rv = func.apply(this, arguments);
+        // check if op effects nullified
+        if(rv) {
+            // upgrade the context of this op to include the other
+            this.contextVector.setSeqForSite(op.siteId, op.seqId);
+        }
+        return rv;
+    };
 
     /**
      * Gets the name of the method to use to transform this operation with
@@ -223,45 +255,8 @@ define([
      *
      * Abstract implementation always throws an exception if not overriden.
      */ 
-    Operation.prototype.transformMethod = function() {
+    Operation.prototype.getTransformMethod = function() {
         throw new Error('transformMethod not implemented');
-    };
-
-    /**
-     * Transforms this operation to include the effects of an update operation.
-     *
-     * Abstract implementation always throws an exception if not overriden.
-     *
-     * @param {UpdateOperation} op Update to include in this op
-     * @returns {Operation} This operation
-     */ 
-    Operation.prototype.transformWithUpdate = function(op) {
-        throw new Error('transformWithUpdate not implemented');
-    };
-
-    /**
-     * Transforms this operation to include the effects of an insert operation.
-     *
-     * Abstract implementation always throws an exception if not overriden.
-     *
-     * @param {InsertOperation} op Update to include in this op
-     * @returns {Operation} This operation
-     */ 
-    Operation.prototype.transformWithInsert = function(op) {
-        throw new Error('transformWithInsert not implemented');
-    };
-
-    /**
-     * Transforms this operation to include the effects of a delete operation.
-     *
-     * Abstract implementation always throws an exception if not overriden.
-     *
-     * @param {DeleteOperation} op Update to include in this op
-     * @returns {Operation|null} This operation or null if this op can have
-     * no further affect on other ops
-     */ 
-    Operation.prototype.transformWithDelete = function(op) {
-        throw new Error('transformWithDelete not implemented');
     };
 
     return Operation;
