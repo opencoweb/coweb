@@ -144,8 +144,6 @@ define([
      */
     Operation.prototype.getFromCache = function(cv) {
         // check if the cv is a key in the xCache
-        return null;
-
         var cache = this.xCache,
             xop, i, l;
         for(i=0, l=cache.length; i<l; i++) {

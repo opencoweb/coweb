@@ -375,7 +375,7 @@ define([
             if(!op.contextVector.equals(xop.contextVector)) {
                 // see if we've cached a transform of this op in the desired
                 // context to avoid recursion
-                cxop = op.getFromCache(xop.contextVector);
+                cxop = xop.getFromCache(op.contextVector);
                 if(cxop) {
                     xop = cxop;
                 } else {                

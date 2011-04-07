@@ -15,27 +15,22 @@ define([
         }
     });
 
-    test('two site lag - DISABLED', 1, function() {
-        return;
-
+    test('two site insert lag', 0, function() {
         var a = new util.OpEngClient(0, {symbol : '1 2'});
         var b = new util.OpEngClient(1, {symbol : '1 2'});
     
-        var aStr = 'ab';
-        var bStr = 'mn';
+        var aStr = 'abcdefghijklm';
+        var bStr = 'nopqrstuvwxyz';
         var op;
-        var aOps = [], bOps = [];
         // lots of typing on a after the "1"
         for(var i=0, pos=1; i < aStr.length; i++, pos++) {
             op = a.local('symbol', aStr[i], 'insert', pos);
-            aOps.push(op);
             a.send(op);
         }
     
         // lots of typing on b after the "2"
         for(i=0, pos=3; i < bStr.length; i++, pos++) {
             op = b.local('symbol', bStr[i], 'insert', pos);
-            bOps.push(op);
             b.send(op);
         }
 
@@ -49,7 +44,48 @@ define([
         equals(b.eng.getBufferSize(), aStr.length+bStr.length); 
     });
     
-    test('three site lag', 1, function() {
+    test('three site insert lag', 6, function() {
+        var init = '1 2 3';
+        var sites = [
+            new util.OpEngClient(0, {symbol : init}),
+            new util.OpEngClient(1, {symbol : init}),
+            new util.OpEngClient(2, {symbol : init})
+        ];
+        var strs = ['abcdefghi', 'jklmnopqr', 'stuvwxyz'];
+        var op, i, pos, offset = 1, s, str, site;
+        
+        for(s=0; s < strs.length; s++) {
+            str = strs[s];
+            site = sites[s];
+            for(i=0, pos=offset; i < str.length; i++, pos++) {
+                op = site.local('symbol', str[i], 'insert', pos);
+                site.send(op);
+            }
+            offset += 2;
+        }
+    
+        var correct = {symbol : '1'+strs[0]+' 2'+strs[1]+' 3'+strs[2]};
+        for(i=0; i < sites.length; i++) {
+            site = sites[i];
+            site.recvAll();
+            deepEqual(site.state, correct, 'client state check');
+            equals(site.eng.getBufferSize(), 26);
+        };
+    });
+
+    test('two site delete lag', 1, function() {
+        
+    });
+
+    test('three site delete lag', 1, function() {
+        
+    });
+    
+    test('two site insert/delete lag', 1, function() {
+        
+    });
+
+    test('three site insert/delete lag', 1, function() {
         
     });
 });
