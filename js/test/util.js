@@ -67,6 +67,7 @@ define([
         var op = this.incoming[0];
         this.incoming = this.incoming.slice(1);
         if(op) {
+            console.log('recv siteId=%d, seqId=%d at %d', op.siteId, op.seqId, this.eng.siteId);
             this.remote(op);
             return true;
         }
