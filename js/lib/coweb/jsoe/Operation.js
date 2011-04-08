@@ -259,9 +259,23 @@ define([
         // check if op effects nullified
         if(rv) {
             // upgrade the context of this op to include the other
-            this.contextVector.setSeqForSite(op.siteId, op.seqId);
+            this.upgradeContextTo(op);
         }
         return rv;
+    };
+    
+    /**
+     * Upgrades the context of this operation to reflect the inclusion of a
+     * single other operation from some site.
+     *
+     * @param {Operation} The operation to include in the context of this op
+     * @throws {Error} If this op to be upgraded is immutable
+     */
+    Operation.prototype.upgradeContextTo = function(op) {
+        if(this.immutable) {
+            throw new Error('attempt to upgrade context of immutable op');
+        }
+        this.contextVector.setSeqForSite(op.siteId, op.seqId);
     };
 
     /**

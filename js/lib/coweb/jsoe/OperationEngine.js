@@ -364,7 +364,7 @@ define([
         // get all ops for context different from history buffer sorted by
         //   context dependencies
         var ops = this.hb.getOpsForDifference(cd),
-            xcd, xop, cxop, i, l;
+            xcd, xop, cxop, cop, i, l;
         // copy the incoming operation to avoid disturbing the history buffer
         //   when the op comes from our history buffer during a recursive step
         op = op.copy();
@@ -376,6 +376,7 @@ define([
                 // see if we've cached a transform of this op in the desired
                 // context to avoid recursion
                 cxop = xop.getFromCache(op.contextVector);
+                // cxop = null;
                 if(cxop) {
                     xop = cxop;
                 } else {                
@@ -391,8 +392,8 @@ define([
                         // transform so it has no effect on the current op; 
                         // upgrade context immediately and continue with
                         // the next one
-                        op.contextVector.setSeqForSite(xop.siteId, xop.seqId);
-                        // @todo: cache here too?
+                        op.upgradeContextTo(xop);
+                        // @todo: see null below
                         continue;
                     }
                     // now only deal with the copy
@@ -402,12 +403,17 @@ define([
             if(!op.contextVector.equals(xop.contextVector)) {
                 throw new Error('context vectors unequal after upgrade');
             }
+            // make a copy of the op as is before transform
+            cop = op.copy();            
             // transform op to include xop now that contexts match IT(op, xop)
             op = op.transformWith(xop);
             if(op === null) {
                 // op target was deleted by another earlier op so return now
                 // do not continue because no further transforms have any
                 // meaning on this op
+                // @todo: i bet we want to remove this shortcut if we're
+                //   deep in recursion when we find a dead op; instead cache it
+                //   so we don't come down here again
                 return null;
             }
             // cache the transformed op
@@ -415,7 +421,7 @@ define([
 
             // do a symmetric transform on a copy of xop too while we're here
             xop = xop.copy();
-            xop = xop.transformWith(op);
+            xop = xop.transformWith(cop);
             if(xop) {
                 xop.addToCache(this.siteCount);
             }
