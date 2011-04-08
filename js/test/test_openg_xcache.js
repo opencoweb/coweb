@@ -73,19 +73,121 @@ define([
         };
     });
 
-    test('two site delete lag', 1, function() {
+    test('two site delete lag', 4, function() {
+        var init = '1abcdefghijklm 2nopqrstuvwxyz';
+        var sites = [
+            new util.OpEngClient(0, {symbol : init}),
+            new util.OpEngClient(1, {symbol : init}),
+        ];
+        var strs = ['abcdefghijklm', 'nopqrstuvwxyz'];
+        var op, i, pos, offset = 1, s, str, site;
         
+        for(s=0; s < strs.length; s++) {
+            str = strs[s];
+            site = sites[s];
+            for(i=0, pos=offset; i < str.length; i++) {
+                op = site.local('symbol', null, 'delete', pos);
+                site.send(op);
+            }
+            offset += str.length+2;
+        }
+    
+        var correct = {symbol : '1 2'};
+        for(i=0; i < sites.length; i++) {
+            site = sites[i];
+            site.recvAll();
+            deepEqual(site.state, correct, 'client state check');
+            equals(site.eng.getBufferSize(), 26);
+        };
     });
 
-    test('three site delete lag', 1, function() {
+    test('three site delete lag', 6, function() {
+        var init = '1abcdefghi 2jklmnopqr 3stuvwxyz';
+        var sites = [
+            new util.OpEngClient(0, {symbol : init}),
+            new util.OpEngClient(1, {symbol : init}),
+            new util.OpEngClient(2, {symbol : init})
+        ];
+        var strs = ['abcdefghi', 'jklmnopqr', 'stuvwxyz'];
+        var op, i, pos, offset = 1, s, str, site;
         
+        for(s=0; s < strs.length; s++) {
+            str = strs[s];
+            site = sites[s];
+            for(i=0, pos=offset; i < str.length; i++) {
+                op = site.local('symbol', null, 'delete', pos);
+                site.send(op);
+            }
+            offset += str.length+2;
+        }
+    
+        var correct = {symbol : '1 2 3'};
+        for(i=0; i < sites.length; i++) {
+            site = sites[i];
+            site.recvAll();
+            deepEqual(site.state, correct, 'client state check');
+            equals(site.eng.getBufferSize(), 26);
+        };
     });
     
-    test('two site insert/delete lag', 1, function() {
+    test('two site insert/delete lag', 4, function() {
+        var init = '1nopqrstuvwxyz 2abcdefghijklm';
+        var sites = [
+            new util.OpEngClient(0, {symbol : init}),
+            new util.OpEngClient(1, {symbol : init}),
+        ];
+        var strs = ['abcdefghijklm', 'nopqrstuvwxyz'];
+        var op, i, pos, offset = 1, s, str, site;
         
+        for(s=0; s < strs.length; s++) {
+            str = strs[s];
+            site = sites[s];
+            for(i=0, pos=offset; i < str.length; i++, pos++) {
+                op = site.local('symbol', null, 'delete', pos);
+                site.send(op);
+                op = site.local('symbol', str[i], 'insert', pos);
+                site.send(op);
+            }
+            offset += str.length+2;
+        }
+    
+        var correct = {symbol : '1' + strs[0] + ' 2' + strs[1]};
+        for(i=0; i < sites.length; i++) {
+            site = sites[i];
+            site.recvAll();
+            deepEqual(site.state, correct, 'client state check');
+            equals(site.eng.getBufferSize(), 52);
+        };
     });
 
-    test('three site insert/delete lag', 1, function() {
+    test('three site insert/delete lag', 6, function() {
+        var init = '1nopqrstuvwxyz 2abcdefghijklm 3zyxwvutsrqpon';
+        var sites = [
+            new util.OpEngClient(0, {symbol : init}),
+            new util.OpEngClient(1, {symbol : init}),
+            new util.OpEngClient(2, {symbol : init})
+        ];
+        var strs = ['abcdefghijklm', 'nopqrstuvwxyz', 'mlkjihgfedcba'];
+        var op, i, pos, offset = 1, s, str, site;
         
+        for(s=0; s < strs.length; s++) {
+            str = strs[s];
+            site = sites[s];
+            for(i=0, pos=offset; i < str.length; i++, pos++) {
+                op = site.local('symbol', null, 'delete', pos);
+                site.send(op);
+                op = site.local('symbol', str[i], 'insert', pos);
+                site.send(op);
+            }
+            offset += str.length+2;
+        }
+
+        var correct = {symbol : '1' + strs[0] + ' 2' + strs[1] + ' 3' + strs[2]};
+        for(i=0; i < sites.length; i++) {
+            site = sites[i];
+            site.recvAll();
+            deepEqual(site.state, correct, 'client state check');
+            equals(site.eng.getBufferSize(), 78);
+        };
     });
 });

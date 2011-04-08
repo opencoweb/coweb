@@ -128,7 +128,6 @@ define([
         var sites = [a,b,c];
         for(var i=0, l=sites.length; i<l; i++) {
             var e = sites[i];
-            console.log('********* site', i, e.eng.cv.toString());
             e.recvAll();
             deepEqual(e.state, correct, 'client state check');
             equals(e.eng.getBufferSize(), 3, 'history buffer size check');

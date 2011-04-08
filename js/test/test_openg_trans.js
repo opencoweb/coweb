@@ -154,23 +154,8 @@ define([
         equals(a.state.symbol, 'Ab');
         equals(b.state.symbol, 'bD');
     
-        a.recv();
-        console.log(a.state.symbol);
-        a.recv();
-        console.log(a.state.symbol);
-        a.recv();
-        console.log(a.state.symbol);
-        a.recv();
-        console.log(a.state.symbol);
-        console.log('******');
-        b.recv();
-        console.log(b.state.symbol);
-        b.recv();
-        console.log(b.state.symbol);
-        b.recv();
-        console.log(b.state.symbol);
-        b.recv();
-        console.log(b.state.symbol);
+        a.recvAll();
+        b.recvAll();
 
         equals(a.state.symbol, 'AbD');
         equals(b.state.symbol, 'AbD'); 
