@@ -15,20 +15,20 @@ What is it?
 
 The Open Cooperative Web Framework enables the creation of *cooperative web applications* featuring concurrent real-time interactions among remote users and external data sources. The framework handles remote notification of user changes, the resolution of conflicting changes, and convergence of application state with minimal information from the application.
 
-The current implementation of the framework is based on open web technologies such as Dojo, CometD, Bayeux, and WebSocket. The framework includes:
+The current implementation of the framework is based on open web technologies such as `AMD <http://wiki.commonjs.org/wiki/Modules/AsynchronousDefinition>`, `Bayeux <http://svn.cometd.com/trunk/bayeux/bayeux.html>`, and `WebSockets <http://en.wikipedia.org/wiki/WebSockets>`. The framework includes:
 
 * A JavaScript API for sending and receiving coweb events
-* An JavaScript *operation engine* using `operational transformation <http://en.wikipedia.org/wiki/Operational_transformation>`_ to resolve conflicting, simultaneous changes
-* A Python coweb server built on the `Tornado <http://tornadowebserver.org>`_ web server
-* A Java coweb server built on the `CometD <http://cometd.org>`_ Java Library
+* An JavaScript *operation engine* using `operational transformation <http://en.wikipedia.org/wiki/Operational_transformation>`_ to ensure shared state convergence
+* A Python coweb server built on the `Tornado <http://tornadowebserver.org>`_ web framework
+* A Java coweb server built on the `CometD <http://cometd.org>`_ Java library
 * API documentation, tutorials, and examples
 
 Getting Started
 ===============
 
-1. Download the latest stable release from https://github.com/opencoweb/coweb/downloads.
-2. Read the the framework documentation online at http://opencoweb.org/ocwdocs. It includes tutorials on how to setup a coweb server and write your first cooperative web application. 
-3. Send mail to the coweb users group or join us on IRC if you're having trouble.
+Read the the framework documentation online at http://opencoweb.org/ocwdocs. It includes tutorials on how to obtain the coweb package from Maven Central or PyPI and write your first cooperative web application. 
+
+Send mail to the coweb users group or join us on IRC if you're having trouble.
 
 Status
 ======
