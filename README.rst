@@ -15,7 +15,7 @@ What is it?
 
 The Open Cooperative Web Framework enables the creation of *cooperative web applications* featuring concurrent real-time interactions among remote users and external data sources. The framework handles remote notification of user changes, the resolution of conflicting changes, and convergence of application state with minimal information from the application.
 
-The current implementation of the framework is based on open web technologies such as `AMD <http://wiki.commonjs.org/wiki/Modules/AsynchronousDefinition>`, `Bayeux <http://svn.cometd.com/trunk/bayeux/bayeux.html>`, and `WebSockets <http://en.wikipedia.org/wiki/WebSockets>`. The framework includes:
+The current implementation of the framework is based on open web technologies such as `AMD <http://wiki.commonjs.org/wiki/Modules/AsynchronousDefinition>`_, `Bayeux <http://svn.cometd.com/trunk/bayeux/bayeux.html>`_, and `WebSockets <http://en.wikipedia.org/wiki/WebSockets>`_. The framework includes:
 
 * A JavaScript API for sending and receiving coweb events
 * An JavaScript *operation engine* using `operational transformation <http://en.wikipedia.org/wiki/Operational_transformation>`_ to ensure shared state convergence
