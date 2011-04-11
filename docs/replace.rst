@@ -1,6 +1,7 @@
 .. |coweb api| replace:: OpenCoweb Framework
 .. |oaa hub| replace:: OpenAjax Hub
 
+.. _pip: http://pypi.python.org/pypi/pip
 .. _Dojo: http://dojotoolkit.org
 .. _Dojo Base: http://dojotoolkit.org
 .. _CometD: http://cometd.org

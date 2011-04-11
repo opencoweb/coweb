@@ -13,24 +13,28 @@ Java setup
 
 The |coweb API| includes a Java cooperative web servlet implementation based on the CometD Jetty code. The coweb server can run anywhere the CometD Jetty Java code works, and will perform best under a servlet 3.0 compliant container.
 
-The Java setup currently relies on `Apache Maven`_ 2.2.1 or higher and the `Java SE JDK`_ 1.6 for builds. Make sure you have them installed before continuing.
+The Java setup currently relies on `Apache Maven`_ 2.2.1 or higher and the `Java SE JDK`_ 1.6 for builds. Make sure you have them installed before continuing. You do not need to download any other coweb packages or dependencies to get started.
+
+Installing the Java server
+##########################
+
+There are no steps to take to install the Java server. Maven automatically downloads the server components for you from `Maven Central`_ when you build your coweb application for the first time.
 
 .. _maven-archetype:
 
-Generate a new coweb application
-################################
+Generating a new coweb application
+##################################
 
-The latest stable version of the |coweb API| is available in `Maven Central`_ and its mirrors. You can seed a new cooperative web application project using the Maven archetype for the latest version of the coweb framework.
+You can seed a new cooperative web application project using the Maven archetype for the latest version of the coweb framework.
 
 #. Invoke the Maven command to generate a new project in the desired parent path of the project folder.
 
    .. sourcecode:: console
 
       $ cd /desired/project/parent/path
-      $ mvn archetype:generate
-         -DarchetypeGroupId=org.opencoweb
+      $ mvn archetype:generate \
+         -DarchetypeGroupId=org.opencoweb \
          -DarchetypeArtifactId=coweb-archetype 
-
 
 #. Enter your desired `groupId` (e.g., `com.acme`), `artifactId` (e.g., `myproject`), `version`, and `package` when prompted. Press :kbd:`Enter` to use any suggested default.
 #. Review the information you entered and press :kbd:`Enter` to confirm.
@@ -54,8 +58,8 @@ Alternatively, you can take the resulting WAR file and deploy it on the servlet 
 
 To make changes to the archetype defaults, modify the :file:`web.xml` file created by the archetype, repackage your application, and redeploy. See the Java documentation section about :doc:`/java/deploy` for configuration details.
 
-Deploy the cowebx demos
-#######################
+Deploying the cowebx demos (optional)
+#####################################
 
 The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb example applications running at http://demos.opencoweb.org. Follow these instructions if you want to deploy the cowebx demos on your own Java server.
 
@@ -83,17 +87,24 @@ The |coweb API| includes a Python cooperative web server implementation based on
 
 .. _virtualenv-install:
 
-Create a new coweb virtualenv
-#############################
+Installing using pip and virtualenv (option #1)
+###############################################
 
 If you want to create a virtualenv containing all the pre-requisites needed to develop and/or deploy your own coweb application, do the following:
+
+#. Install `pip`_ 1.0 or higher using some automated method or manually from `PyPI`_.
+
+   .. sourcecode:: console
+   
+      $ sudo easy_install pip    # works on Mac OS X 10.5+
+      $ sudo apt-get install python-setuptools && \
+        sudo easy_install pip    # works on Ubuntu
 
 #. Install `virtualenv`_ 1.5.1 or higher.
 
    .. sourcecode:: console
    
-      $ sudo pip install virtualenv       # run this ...
-      $ sudo easy_install virtualenv      # or this
+      $ sudo pip install virtualenv
 
 #. Create a virtual environment to host your coweb server.
 
@@ -130,13 +141,13 @@ By default, the script makes the contents of :file:`/desired/project/path/www` a
 
 .. _distutils-install:
 
-Install using distutils
-#######################
+Installing using distutils (option #2)
+######################################
 
-You can manually run the distutils :file:`setup.py` to install the Python `coweb` package in your system :file:`site-packages` or the active virtualenv. If you take this approach, you must download the framework package and resolve dependencies yourself (e.g., `Tornado`_). Otherwise, the steps are the same sans use of pip.
+Instead of using `pip`_, You can manually run the distutils :file:`setup.py` to install the Python `coweb` package in your system :file:`site-packages` or the active virtualenv. If you take this approach, you must download the framework package from `PyPI`_ and resolve dependencies yourself (e.g., `Tornado`_). Otherwise, the steps are the same sans use of `pip`_ and/or `virtualenv`_.
 
-Deploy the cowebx demos
-#######################
+Deploying the cowebx demos (optional)
+#####################################
 
 The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb example applications running at http://demos.opencoweb.org. Follow these instructions if you want to deploy the cowebx demos on your own Python server after installing the :py:mod:`coweb` Python package as described above.
 

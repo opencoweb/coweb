@@ -6,37 +6,37 @@ Configuration and load
 
 A web application can configure the various implementations of the JavaScript API components used and URLs contacted for login, logout, and session preparation. If the application wishes to deviate from the default configuration, it must define a :data:`cowebConfig` object of its own **before** importing the `coweb/main` module. After loading that module, both the web application and the framework should consider the :data:`cowebConfig` read-only.
 
-.. data:: cowebConfig (object)
+.. data:: cowebConfig
 
    Global defining the global options for the use of the |coweb api| on the page. If the application does not define this global, the framework initializes it with all of the default documented below upon `coweb/main` load.
 
-.. attribute:: cowebConfig.adminUrl (string)
+.. attribute:: cowebConfig.adminUrl
 
-   URL to contact with session preparation requests. Defaults to `/admin`.
+   String URL to contact with session preparation requests. Defaults to `/admin`.
 
-.. attribute:: cowebConfig.collabImpl (string)
+.. attribute:: cowebConfig.collabImpl
 
-   Module name containing the :class:`CollabInterface` implementation to use. This implementation must be able to communicate with the configured :attr:`cowebConfig.listenerImpl`. Defaults to `coweb/collab/UnmanagedHubCollab`.
+   String module name containing the :class:`CollabInterface` implementation to use. This implementation must be able to communicate with the configured :attr:`cowebConfig.listenerImpl`. Defaults to `coweb/collab/UnmanagedHubCollab`.
 
-.. attribute:: cowebConfig.debug (boolean)
+.. attribute:: cowebConfig.debug
 
-   Indicates if extra debugging information should be logged to the JavaScript console or not. Defaults to `false`.
+   Boolean indicates if extra debugging information should be logged to the JavaScript console or not. Defaults to `false`.
 
-.. attribute:: cowebConfig.listenerImpl (string)
+.. attribute:: cowebConfig.listenerImpl
 
-   Module name containing the :class:`ListenerInterface` implementation to use. This implementation must be able to communicate with the configured :attr:`cowebConfig.collabImpl`. Defaults to `coweb/listener/UnmanagedHubListener`.
+   String module name containing the :class:`ListenerInterface` implementation to use. This implementation must be able to communicate with the configured :attr:`cowebConfig.collabImpl`. Defaults to `coweb/listener/UnmanagedHubListener`.
    
-.. attribute:: cowebConfig.loginUrl (string)
+.. attribute:: cowebConfig.loginUrl
 
-   Optional URL to contact with requests for authentication with the coweb server. Defaults to `/login`.
+   Optional string URL to contact with requests for authentication with the coweb server. Defaults to `/login`.
 
-.. attribute:: cowebConfig.logoutUrl (string)
+.. attribute:: cowebConfig.logoutUrl
 
-   Optional URL to contact with requests to deauthorize a user with the coweb server. Defaults to `/logout`.
+   Optional string URL to contact with requests to deauthorize a user with the coweb server. Defaults to `/logout`.
 
-.. attribute:: cowebConfig.sessionImpl (string)
+.. attribute:: cowebConfig.sessionImpl
 
-   Module name containing the :class:`SessionInterface` implementation to use. This implementation must be able to communicate with the running coweb server. Defaults to `coweb/session/BayeuxSession`.
+   String module name containing the :class:`SessionInterface` implementation to use. This implementation must be able to communicate with the running coweb server. Defaults to `coweb/session/BayeuxSession`.
    
 Bootstrapping a coweb application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
