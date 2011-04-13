@@ -68,10 +68,6 @@ To run a coweb server instance, execute the application container script like so
 
    Specifies the HTTP port on which the server listens. Defaults to the one configured in the script. Specifying a port on the command line is useful for starting multiple coweb server processes without modifying the script.
 
-.. option:: --strictJson
-
-   Enables strict JSON checking on incoming messages from JavaScript where `undefined` is not allowed according to the JSON spec. Defaults to false.
-
 Run :file:`coweb_app.py --help` for additional options provided by Tornado.
 
 Configuring an app container

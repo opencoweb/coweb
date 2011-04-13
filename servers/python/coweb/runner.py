@@ -19,19 +19,12 @@ log = logging.getLogger('coweb')
 # app command line options
 tornado.options.define('port', type=int, default=None, help='server port number (default: use app specified)')
 tornado.options.define('debug', type=bool, default=False, help='run in debug mode with autoreload (default: false)')
-tornado.options.define('strictJson', type=bool, default=False, help='force strict JSON handling of undefined (default: false)')
 
 def run_server(containerCls):
     '''Runs a coweb server instance given an AppContainer subclass.'''
     # parse command line
     tornado.options.parse_command_line()
     options = tornado.options.options
-
-    if not options.strictJson:
-        # allow undefined from javascript
-        json.decoder._CONSTANTS['undefined'] = None
-        json.scanner.pattern('(-?Infinity|NaN|true|false|null|undefined)')(json.decoder.JSONConstant)
-        json.decoder.JSONScanner = json.decoder.Scanner(json.decoder.ANYTHING)
 
     # build the container instance
     container = containerCls(options)
