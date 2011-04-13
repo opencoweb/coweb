@@ -100,7 +100,7 @@ Seed the :file:`index.html` with the following markup. If you initialized the pr
        <meta charset="utf-8" />
        <title>Cooperative Shopping List Example</title>
        <link rel="stylesheet" href="colist.css" type="text/css" />
-       <script data-main="main" src="../lib/require.js"></script>
+       <script data-main="main" src="./lib/require.js"></script>
      </head>
      <body class="claro">
        <h1>Hello World!</h1>
