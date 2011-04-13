@@ -40,8 +40,8 @@ Java
    .. sourcecode:: console
 
       $ cd /desired/project/path
-      $ mvn archetype:generate 
-         -DarchetypeGroupId=org.opencoweb 
+      $ mvn archetype:generate \
+         -DarchetypeGroupId=org.opencoweb \
          -DarchetypeArtifactId=coweb-archetype
 
 #. Run the application using or deploy it to your servlet container of choice. Pick a custom port if the default (8080) conflicts with another server.
@@ -142,7 +142,7 @@ Next create the :file:`colist.js` file in your project folder. This file will co
 
 The :func:`define` call indicates this JavaScript module is in AMD format. Its first parameter, an array, indicates other modules and/or plain scripts to load. `coweb/main` refers to the main module of the |coweb api|. The second script is a cross-domain, CDN hosted version of Dojo 1.6 that you will use to construct the shopping list UI. Dojo does not yet support AMD in its cross-domain builds, so the RequireJS loader treats it as a plain JavaScript file.
 
-.. note:: This tutorial and the complete example use the CDN version of Dojo to limit the number of dependencies you must install. If you use Dojo 1.6 for your own applications, you should use a local, built copy of Dojo to improve your applicaiton's performance.
+.. note:: This tutorial and the complete example use the CDN version of Dojo to limit the number of dependencies you must install. If you use Dojo 1.6 for your own applications, you should use a local, built copy of Dojo to improve your application's performance.
 
 The :func:`dojo.ready` function registers a callback that will fire after the DOM finishes loading, all Dojo modules finish loading, and all declarative Dojo widgets in the DOM are instantiated. For the time being, the :func:`console.log` statement in the callback gives you something to check to ensure all of the dependencies are loading without error.
 
