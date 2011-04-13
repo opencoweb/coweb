@@ -238,6 +238,9 @@ Next, replace the :func:`console.log` call in the :func:`dojo.ready` callback wi
 
 .. sourcecode:: javascript
 
+   // parse declarative widgets
+   dojo.parser.parse();
+
    // configure the grid datastore, starting it empty
    var emptyData = {identifier : 'id', label : 'name', items: []};
    var dataStore = new dojo.data.ItemFileWriteStore({data : emptyData});
