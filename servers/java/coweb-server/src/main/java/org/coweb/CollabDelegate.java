@@ -250,8 +250,8 @@ public class CollabDelegate extends DefaultDelegate {
 	}
 	
 	private int getSiteForClient(ServerSession client) {
-		if(this.siteids.contains(client)) {
-			return this.siteids.indexOf(client);
+		if(this.siteids.contains(client.getId())) {
+			return this.siteids.indexOf(client.getId());
 		}
 		
 		return -1;
@@ -275,16 +275,22 @@ public class CollabDelegate extends DefaultDelegate {
 	}
 	
 	private int removeSiteForClient(ServerSession client) {
-		Integer i = (Integer)client.getAttribute("siteid");
-		int siteid = i.intValue();
-		
-		String clientId = this.siteids.get(siteid);
-		if(clientId == null)
-			return -1;
-		
-		if(clientId != client.getId())
-			return -1;
-		
+
+        if(client == null) {
+            System.out.println("CollabDelegate::removeSiteForClient ******* client is null *******");
+            return -1;
+        }
+
+        int siteid = this.siteids.indexOf(client.getId());
+        if(siteid == -1) {
+            System.out.println("CollabDelegate::removeSiteForClient ****** Cannot find client in siteids list *******");
+            Integer i = (Integer)client.getAttribute("siteid");
+            if(i == null) {
+                System.out.println("******* Client Does not have siteId attribute - Ghost *******");
+            }
+            return -1;
+        }
+
 		this.siteids.set(siteid, null);
 		return siteid;
 	}
