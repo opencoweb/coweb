@@ -28,10 +28,18 @@ public class CollabDelegate extends DefaultDelegate {
 	private Map<String,List<String>> updaters = 
         new HashMap<String, List<String>>();
 
+    /**
+     * List of available siteids.  An index with a null value
+     * is an available siteid, otherwise the slot is filled with
+     * ServerSession's clientid.
+     */
 	private ArrayList<String> siteids = new ArrayList<String>(5);
 
 	private Object[] lastState = null;
 
+    /**
+     * Map of bayeux client id to ServerSession
+     */
 	private Map<String,ServerSession> clientids = 
         new HashMap<String,ServerSession>();
 
@@ -315,7 +323,7 @@ public class CollabDelegate extends DefaultDelegate {
 	}
 	
 	private void assignUpdater(ServerSession updatee) {
-        //System.out.println("CollabDelegate::assignUpdater for " + updatee);
+        System.out.println("CollabDelegate::assignUpdater *****************");
 		ServerSession from = this.sessionManager.getServerSession();
 		if(this.updaters.isEmpty()) {
 			this.addUpdater(updatee, false);
@@ -334,7 +342,8 @@ public class CollabDelegate extends DefaultDelegate {
 		Object[] keys = this.updaters.keySet().toArray();
 		String updaterId = (String)keys[idx];
 		ServerSession updater = this.clientids.get(updaterId);
-		
+	
+        System.out.println("assigning updater " + updater.getAttribute("siteid") + " to " + updatee.getAttribute("siteid"));    
 		SecureRandom s = new SecureRandom();
 		String token = new BigInteger(130, s).toString(32);
 		
