@@ -244,6 +244,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
                     (SessionHandlerDelegate)this.delegateClass.newInstance();
             }
             catch(Exception e) {
+                System.out.println("SessionManager::createSession delegate class is null");
                 delegate = new DefaultDelegate();
             }
 
@@ -255,12 +256,14 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     }
     
     public void removeSessionHandler(SessionHandler handler) {
-    	//System.out.println("removeSessionHandler");
     	this.removeSessionHandler(handler.getConfKey(), handler.isCollab());
     }
     
     public void removeSessionHandler(String confkey, boolean collab) {
+
+    	System.out.println("SessionManager::removeSessionHandler ***********");
     	SessionHandler handler = this.sessions.remove(confkey+":" + collab);
+    	System.out.println("handler = " + handler);
     	
     	handler = null;
     }

@@ -188,6 +188,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
     }
     
     public void endSession() {
+        System.out.println("SessionHandler::endSession ***********");
         BayeuxServer server = this.manager.getBayeux();
         ServerChannel sync = server.getChannel("/session/sync");
         sync.removeListener(this);

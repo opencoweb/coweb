@@ -60,13 +60,14 @@ public class CollabDelegate extends DefaultDelegate {
 
     @Override
     public void onClientJoin(ServerSession client, Message message) {
+        System.out.println("CollabDelegate::onClientJoin *************");
 		int siteId = this.getSiteForClient(client);
 		
 		if(siteId == -1) {
 			siteId = this.addSiteForClient(client);
 		}
-		
-		//System.out.println("siteId = " + siteId);
+
+		System.out.println("siteId = " + siteId);
 		Map<Integer,String> roster = this.getRosterList(client);
 		//ArrayList<Object>data = new ArrayList<Object>();
 		Object[]data = new Object[0];
@@ -139,11 +140,16 @@ public class CollabDelegate extends DefaultDelegate {
 
     @Override
     public boolean onClientRemove(ServerSession client) {
+
+        System.out.println("CollabDelegate::onClientRemove ********");
+        System.out.println("siteId = " + client.getAttribute("siteid"));
         super.onClientRemove(client);
 
         this.removeUpdater(client);
-		if(this.getUpdaterCount() == 0)
-			this.sessionHandler.endSession();	
+		if(this.getUpdaterCount() == 0) {
+            System.out.println("removing last updater, ending coweb session");
+			this.sessionHandler.endSession();
+        }
 
         return true;
     }
