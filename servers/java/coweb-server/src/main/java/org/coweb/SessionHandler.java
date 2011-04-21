@@ -3,7 +3,6 @@ package org.coweb;
 import java.util.ArrayList;
 import java.util.Map;
 
-
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerSession;
@@ -190,7 +189,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
     public void endSession() {
         System.out.println("SessionHandler::endSession ***********");
         BayeuxServer server = this.manager.getBayeux();
-        ServerChannel sync = server.getChannel("/session/sync");
+        ServerChannel sync = server.getChannel("/session/sync/app");
+        sync.removeListener(this);
+        sync = server.getChannel("/session/sync/engine");
         sync.removeListener(this);
 
         this.delegate.onEndSession();

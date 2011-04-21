@@ -234,7 +234,8 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
      * @return
      */
     public SessionHandler createSession(String confkey, boolean collab) {
-    	//System.out.println("SessionManager::createSession");
+    	System.out.println("SessionManager::createSession ************");
+        System.out.println("delegateClass = " + this.delegateClass);
     	//System.out.println("collab = " + collab);
     	SessionHandler handler = this.getSessionHandler(confkey, collab);
     
@@ -250,6 +251,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
                 delegate = new DefaultDelegate();
             }
 
+            System.out.println("delegate = " + delegate);
     		handler = new SessionHandler(confkey, collab, delegate);
     		this.sessions.put(confkey + ":" + collab, handler);
     	}
