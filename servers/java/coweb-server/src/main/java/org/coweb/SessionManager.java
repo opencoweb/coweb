@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import java.util.Collections;
+
 import javax.servlet.ServletContext;
 
 import org.cometd.server.AbstractService;
@@ -26,7 +28,7 @@ import org.cometd.bayeux.server.ServerSession;
 
 public class SessionManager extends AbstractService implements BayeuxServer.SessionListener
 {
-	private Map<String, SessionHandler> sessions = new HashMap<String, SessionHandler>();
+	private Map<String, SessionHandler> sessions = Collections.synchronizedMap(new HashMap<String, SessionHandler>());
 	
 	private static SessionManager singleton = null;
 	private ServletContext servletContext = null;
