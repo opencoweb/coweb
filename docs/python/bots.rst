@@ -24,7 +24,7 @@ Implementing a bot delegate
 
    .. note:: 
 
-      The :class:`BotDelegate` class itself is not actually declared in :mod:`pbs.bot`. It is an informal interface.
+      The :class:`BotDelegate` class itself is not actually declared in :mod:`coweb.bot`. It is an informal interface.
 
    .. method:: __init__(self, botWrapper, serviceName, appData)
    
@@ -80,7 +80,7 @@ Using the bot wrapper
 
 .. class:: BotWrapperBase
 
-   The :func:`coweb.bot.run` function creates an instance of an implementation of this class based on the transport bot-server transport configured for the coweb server. The instance acts as a proxy between the :class:`pbs.bot.BotDelegate` and the coweb server. 
+   The :func:`coweb.bot.run` function creates an instance of an implementation of this class based on the transport bot-server transport configured for the coweb server. The instance acts as a proxy between the :class:`coweb.bot.BotDelegate` and the coweb server. 
    
    Support for a new transport between bots and the coweb server can be added by creating a new subclass of :class:`BaseBotWrapper` and a corresponding :class:`coweb.service.manager.ServiceManagerBase` subclass.
 
@@ -132,7 +132,7 @@ The following code is a simple template for a coweb Python bot:
 
 .. sourcecode:: python
 
-   import pbs.bot
+   import coweb.bot
    
    class NoOpBot:
       '''Do nothing bot.'''
@@ -141,4 +141,4 @@ The following code is a simple template for a coweb Python bot:
 
       # Implement some delegate methods to respond to events
 
-   pbs.bot.run(NoOpBot)
+   coweb.bot.run(NoOpBot)
