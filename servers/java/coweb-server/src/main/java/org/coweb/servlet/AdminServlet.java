@@ -73,7 +73,8 @@ public class AdminServlet extends HttpServlet {
 
         //set the coweb security policty
 	    bayeux.setSecurityPolicy(securityPolicy);
-	   
+	  
+        System.out.println("delegateClass = " + delegateClass); 
         //create the session manager. 
 	    this.sessionManager = SessionManager.newInstance(servletContext, 
                 bayeux,

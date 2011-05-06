@@ -88,6 +88,8 @@ References
 
 The operational transformation algorithm used in the framework is based on various lines of research, such as: 
 
+* \C. Sun, "Operational Transformation Frequently Asked Questions and Answers" 2010. [Online]. Available: http://cooffice.ntu.edu.sg/otfaq/
+* \D. Sun and C. Sun: "Context-based Operational Transformation in Distributed Collaborative Editing Systems," in IEEE Transactions on Parallel and Distributed Systems, Vol. 20, No. 10, pp. 1454 – 1470, Oct. 2009.
 * \D. Sun and C. Sun, "Operation context and context-based operational transformation," in CSCW '06: Proceedings of the 2006 20th anniversary conference on Computer supported cooperative work. New York, NY, USA: ACM Press, 2006, pp. 279-288. [Online]. Available: http://dx.doi.org/10.1145/1180875.1180918
 * \D. Sun, S. Xia, C. Sun, and D. Chen, "Operational transformation for collaborative word processing," in CSCW '04: Proceedings of the 2004 ACM conference on Computer supported cooperative work. New York, NY, USA: ACM, 2004, pp. 437-446. [Online]. Available: http://dx.doi.org/10.1145/1031607.1031681
 * \S. Xia, D. Sun, C. Sun, D. Chen, and H. Shen, "Leveraging single-user applications for multi-user collaboration: the coword approach," in CSCW '04: Proceedings of the 2004 ACM conference on Computer supported cooperative work.    New York, NY, USA: ACM, 2004, pp. 162-171. [Online]. Available: http://dx.doi.org/10.1145/1031607.1031635

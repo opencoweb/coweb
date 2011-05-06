@@ -28,10 +28,18 @@ public class CollabDelegate extends DefaultDelegate {
 	private Map<String,List<String>> updaters = 
         new HashMap<String, List<String>>();
 
+    /**
+     * List of available siteids.  An index with a null value
+     * is an available siteid, otherwise the slot is filled with
+     * ServerSession's clientid.
+     */
 	private ArrayList<String> siteids = new ArrayList<String>(5);
 
 	private Object[] lastState = null;
 
+    /**
+     * Map of bayeux client id to ServerSession
+     */
 	private Map<String,ServerSession> clientids = 
         new HashMap<String,ServerSession>();
 
@@ -60,13 +68,14 @@ public class CollabDelegate extends DefaultDelegate {
 
     @Override
     public void onClientJoin(ServerSession client, Message message) {
+        System.out.println("CollabDelegate::onClientJoin *************");
 		int siteId = this.getSiteForClient(client);
 		
 		if(siteId == -1) {
 			siteId = this.addSiteForClient(client);
 		}
-		
-		//System.out.println("siteId = " + siteId);
+
+		System.out.println("siteId = " + siteId);
 		Map<Integer,String> roster = this.getRosterList(client);
 		//ArrayList<Object>data = new ArrayList<Object>();
 		Object[]data = new Object[0];
@@ -139,11 +148,16 @@ public class CollabDelegate extends DefaultDelegate {
 
     @Override
     public boolean onClientRemove(ServerSession client) {
+
+        System.out.println("CollabDelegate::onClientRemove ********");
+        System.out.println("siteId = " + client.getAttribute("siteid"));
         super.onClientRemove(client);
 
         this.removeUpdater(client);
-		if(this.getUpdaterCount() == 0)
-			this.sessionHandler.endSession();	
+		if(this.getUpdaterCount() == 0) {
+            System.out.println("removing last updater, ending coweb session");
+			this.sessionHandler.endSession();
+        }
 
         return true;
     }
@@ -250,8 +264,8 @@ public class CollabDelegate extends DefaultDelegate {
 	}
 	
 	private int getSiteForClient(ServerSession client) {
-		if(this.siteids.contains(client)) {
-			return this.siteids.indexOf(client);
+		if(this.siteids.contains(client.getId())) {
+			return this.siteids.indexOf(client.getId());
 		}
 		
 		return -1;
@@ -275,16 +289,22 @@ public class CollabDelegate extends DefaultDelegate {
 	}
 	
 	private int removeSiteForClient(ServerSession client) {
-		Integer i = (Integer)client.getAttribute("siteid");
-		int siteid = i.intValue();
-		
-		String clientId = this.siteids.get(siteid);
-		if(clientId == null)
-			return -1;
-		
-		if(clientId != client.getId())
-			return -1;
-		
+
+        if(client == null) {
+            System.out.println("CollabDelegate::removeSiteForClient ******* client is null *******");
+            return -1;
+        }
+
+        int siteid = this.siteids.indexOf(client.getId());
+        if(siteid == -1) {
+            System.out.println("CollabDelegate::removeSiteForClient ****** Cannot find client in siteids list *******");
+            Integer i = (Integer)client.getAttribute("siteid");
+            if(i == null) {
+                System.out.println("******* Client Does not have siteId attribute - Ghost *******");
+            }
+            return -1;
+        }
+
 		this.siteids.set(siteid, null);
 		return siteid;
 	}
@@ -303,7 +323,7 @@ public class CollabDelegate extends DefaultDelegate {
 	}
 	
 	private void assignUpdater(ServerSession updatee) {
-        //System.out.println("CollabDelegate::assignUpdater for " + updatee);
+        System.out.println("CollabDelegate::assignUpdater *****************");
 		ServerSession from = this.sessionManager.getServerSession();
 		if(this.updaters.isEmpty()) {
 			this.addUpdater(updatee, false);
@@ -322,7 +342,8 @@ public class CollabDelegate extends DefaultDelegate {
 		Object[] keys = this.updaters.keySet().toArray();
 		String updaterId = (String)keys[idx];
 		ServerSession updater = this.clientids.get(updaterId);
-		
+	
+        System.out.println("assigning updater " + updater.getAttribute("siteid") + " to " + updatee.getAttribute("siteid"));    
 		SecureRandom s = new SecureRandom();
 		String token = new BigInteger(130, s).toString(32);
 		
