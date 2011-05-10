@@ -2,7 +2,6 @@
 coweb/main.js
 ----------------
 coweb/main.js
-coweb/topics.js
 coweb/util/Promise.js
 coweb/util/xhr.js
 org/cometd.js
@@ -12,6 +11,7 @@ coweb/util/lang.js
 coweb/session/bayeux/ListenerBridge.js
 coweb/session/bayeux/SessionBridge.js
 coweb/session/BayeuxSession.js
+coweb/topics.js
 coweb/jsoe/factory.js
 coweb/jsoe/ContextDifference.js
 coweb/jsoe/ContextVector.js
