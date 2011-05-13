@@ -27,6 +27,16 @@ define([
         // should sync if we've received a sync and have been quiet
         this._shouldSync = false;
 
+        // Object that maps topics to booleans which indicate whether that topic
+        // is paused right now or not.
+        this._pausedTopics = {};
+        // Object that maps topics to arrays which serve as a buffer for the
+        // outgoing operations that are created while the topic is paused.
+        this._outgoingPausedBuffer = {};
+        // Object that maps topics to arrays which serve as a buffer for the
+        // incoming operations that are received while the topic is paused.
+        this._incomingPausedBuffer = {};
+
         // timer references
         this._syncTimer = null;
         this._purgeTimer = null;
@@ -140,6 +150,14 @@ define([
         conn = OpenAjax.hub.subscribe(topics.GET_SERVICE+"**",
             '_onRequestServiceOutbound', this);
         this._conns.push(conn);
+        // listen for all topic pausing requests
+        conn = OpenAjax.hub.subscribe(topics.PAUSE_TOPIC,
+            '_onPauseTopic', this);
+        this._conns.push(conn);
+        // listen for all topic resuming requests
+        conn = OpenAjax.hub.subscribe(topics.RESUME_TOPIC,
+            '_onResumeTopic', this);
+        this._conns.push(conn);
     };
 
     /**
@@ -184,6 +202,13 @@ define([
         var op, event;
         // console.debug('UnmanagedHubListener.syncInbound topic: %s, value: %s, type: %s, position: %s, site: %d, sites: %s', 
         //     topic, value, type || 'null', position, site, sites ? sites.toString() : 'null');
+
+        if(this._topicIsPaused(topic)) {
+            this._incomingPausedBuffer[topic].push([topic, value, type, position,
+                                                    site, sites, order]);
+            return;
+        }
+
         // check if the event has a context and non-null type
         if(sites && type) {
             // treat event as a possibly conflicting operation
@@ -256,7 +281,12 @@ define([
             return;
         }
 
-        // unpack event data; be sure to json encode the value before pushing 
+        if(this._topicIsPaused(topic)) {
+            this._outgoingPausedBuffer[topic].push([topic, event]);
+            return;
+        }
+
+        // unpack event data; be sure to json encode the value before pushing
         // into op engine to avoid ref sharing with the operation history
         var position = event.position,
             type = event.type,
@@ -639,19 +669,82 @@ define([
             try {
                 var mcv = this._engine.purge();
             } catch(e) {
-                console.warn('UnmanagedHubListener: failed to purge engine ' + 
+                console.warn('UnmanagedHubListener: failed to purge engine ' +
                     e.message);
             }
             // time = new Date() - time;
             // size = this._engine.getBufferSize();
-            // console.debug('UnmanagedHubListener: purged size =', 
-            //     size, 'time =', time, 'mcv =', 
+            // console.debug('UnmanagedHubListener: purged size =',
+            //     size, 'time =', time, 'mcv =',
             //     (mcv != null) ? mcv.toString() : 'null');
         }
         // reset flag
         this._shouldPurge = false;
         return size;
     };
-    
+
+    /**
+     * Returns true if the given topic is currently paused.
+     *
+     * @private
+     * @param {String} topic The topic to test if it is currently paused or not.
+     */
+    proto._topicIsPaused = function(topic) {
+        return topic in this._pausedTopics;
+    };
+
+    /**
+     * Pause the operations from being sent and received on the given
+     * topic. Puts all operations from this topic in buffers to be handled when
+     * this topic is resumed.
+     *
+     * @private
+     * @param {String} topic The topic to pause.
+     */
+    proto._pauseTopic = function(topic) {
+        if(!this._topicIsPaused(topic)) {
+            this._pausedTopics[topic] = true;
+            this._outgoingPausedBuffer[topic] = [];
+            this._incomingPausedBuffer[topic] = [];
+        }
+    };
+
+    /**
+     * Resume syncing operations for the given topic.
+     *
+     * @private
+     * @param {String} topic The topic to resume.
+     */
+    proto._resumeTopic = function(topic) {
+        var i, len;
+        if(this._topicIsPaused(topic)) {
+            incoming = this._incomingPausedBuffer[topic];
+            outgoing = this._outgoingPausedBuffer[topic];
+            delete this._pausedTopics[topic];
+            delete this._incomingPausedBuffer[topic];
+            delete this._outgoingPausedBuffer[topic];
+            for(i = 0, len = incoming.length; i < len; i++) {
+                this.syncInbound.apply(this, incoming[i]);
+            }
+            for(i = 0, len = outgoing.length; i < len; i++) {
+                this._syncOutbound.apply(this, outgoing[i]);
+            }
+        }
+    }
+
+    /**
+     * @private
+     */
+    proto._onResumeTopic = function(subscribeTopic, targetTopic) {
+        this._resumeTopic(targetTopic);
+    };
+
+    /**
+     * @private
+     */
+    proto._onPauseTopic = function(subscribeTopic, targetTopic) {
+        this._pauseTopic(targetTopic);
+    };
+
     return UnmanagedHubListener;
 });
