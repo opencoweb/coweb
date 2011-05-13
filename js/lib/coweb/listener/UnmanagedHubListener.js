@@ -716,7 +716,7 @@ define([
      * @param {String} topic The topic to resume.
      */
     proto._resumeTopic = function(topic) {
-        var i, len;
+        var i, len, incoming, outgoing;
         if(this._topicIsPaused(topic)) {
             incoming = this._incomingPausedBuffer[topic];
             outgoing = this._outgoingPausedBuffer[topic];
