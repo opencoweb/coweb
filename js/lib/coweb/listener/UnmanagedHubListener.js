@@ -31,9 +31,6 @@ define([
         // is paused right now or not.
         this._pausedTopics = {};
         // Object that maps topics to arrays which serve as a buffer for the
-        // outgoing operations that are created while the topic is paused.
-        this._outgoingPausedBuffer = {};
-        // Object that maps topics to arrays which serve as a buffer for the
         // incoming operations that are received while the topic is paused.
         this._incomingPausedBuffer = {};
 
@@ -278,11 +275,6 @@ define([
         // assumes synchronous hub operation
         // stop now if we have no engine
         if(this._mutex || !this._engine) {
-            return;
-        }
-
-        if(this._topicIsPaused(topic)) {
-            this._outgoingPausedBuffer[topic].push([topic, event]);
             return;
         }
 
@@ -704,7 +696,6 @@ define([
     proto._pauseTopic = function(topic) {
         if(!this._topicIsPaused(topic)) {
             this._pausedTopics[topic] = true;
-            this._outgoingPausedBuffer[topic] = [];
             this._incomingPausedBuffer[topic] = [];
         }
     };
@@ -716,18 +707,13 @@ define([
      * @param {String} topic The topic to resume.
      */
     proto._resumeTopic = function(topic) {
-        var i, len, incoming, outgoing;
+        var i, len, incoming;
         if(this._topicIsPaused(topic)) {
             incoming = this._incomingPausedBuffer[topic];
-            outgoing = this._outgoingPausedBuffer[topic];
             delete this._pausedTopics[topic];
             delete this._incomingPausedBuffer[topic];
-            delete this._outgoingPausedBuffer[topic];
             for(i = 0, len = incoming.length; i < len; i++) {
                 this.syncInbound.apply(this, incoming[i]);
-            }
-            for(i = 0, len = outgoing.length; i < len; i++) {
-                this._syncOutbound.apply(this, outgoing[i]);
             }
         }
     }
