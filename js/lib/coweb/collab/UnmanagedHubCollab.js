@@ -516,30 +516,19 @@ define([
     };
 
     /**
-     * Pause the syncing of operations for an application property which is
-     * identified by name. Any incoming or outgoing operations will be delayed
-     * until resume is called.
-     *
-     * @param {String} name The name identifying the application property to be
-     * paused.
+     * Pause the syncing of incoming operations. The application of any incoming
+     * operations will be delayed until `resumeSync` is called.
      */
-    proto.pauseSync = function(name) {
-        var topic = topics.SYNC+name+'.'+this.id;
-        OpenAjax.hub.publish(topics.PAUSE_TOPIC, topic);
+    proto.pauseSync = function() {
+        OpenAjax.hub.publish(topics.PAUSE_TOPIC, true);
     };
 
     /**
-     * Resume applying the incoming and outgoing operations associated with the
-     * application property identified by name. Any incoming or outgoing
-     * operations that were delayed while the pause was in effect will now be
-     * applied.
-     *
-     * @param {String} name The name identifying the application property to be
-     * resumed.
+     * Resume syncing the incoming operations. Any incoming operations that were
+     * delayed while the pause was in effect will now be applied.
      */
-    proto.resumeSync = function(name) {
-        var topic = topics.SYNC+name+'.'+this.id;
-        OpenAjax.hub.publish(topics.RESUME_TOPIC, topic);
+    proto.resumeSync = function() {
+        OpenAjax.hub.publish(topics.RESUME_TOPIC, true);
     };
 
     return UnmanagedHubCollab;

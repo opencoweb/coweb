@@ -27,12 +27,12 @@ define([
         // should sync if we've received a sync and have been quiet
         this._shouldSync = false;
 
-        // Object that maps topics to booleans which indicate whether that topic
-        // is paused right now or not.
-        this._pausedTopics = {};
-        // Object that maps topics to arrays which serve as a buffer for the
-        // incoming operations that are received while the topic is paused.
-        this._incomingPausedBuffer = {};
+        // Boolean flag which represents whether or not we are currently paused,
+        // and therefore buffering incoming events.
+        this._paused = false;
+        // This array serves as a buffer for all incoming operations for when we
+        // are paused.
+        this._incomingPausedBuffer = [];
 
         // timer references
         this._syncTimer = null;
@@ -149,11 +149,11 @@ define([
         this._conns.push(conn);
         // listen for all topic pausing requests
         conn = OpenAjax.hub.subscribe(topics.PAUSE_TOPIC,
-            '_onPauseTopic', this);
+            '_pause', this);
         this._conns.push(conn);
         // listen for all topic resuming requests
         conn = OpenAjax.hub.subscribe(topics.RESUME_TOPIC,
-            '_onResumeTopic', this);
+            '_resume', this);
         this._conns.push(conn);
     };
 
@@ -200,9 +200,9 @@ define([
         // console.debug('UnmanagedHubListener.syncInbound topic: %s, value: %s, type: %s, position: %s, site: %d, sites: %s', 
         //     topic, value, type || 'null', position, site, sites ? sites.toString() : 'null');
 
-        if(this._topicIsPaused(topic)) {
-            this._incomingPausedBuffer[topic].push([topic, value, type, position,
-                                                    site, sites, order]);
+        if(this._paused) {
+            this._incomingPausedBuffer.push([topic, value, type, position,
+                                             site, sites, order]);
             return;
         }
 
@@ -686,51 +686,32 @@ define([
     };
 
     /**
-     * Pause the operations from being sent and received on the given
-     * topic. Puts all operations from this topic in buffers to be handled when
-     * this topic is resumed.
+     * Pause incoming operations from being applied. Puts all operations in a
+     * buffer to be applied later when we resume.
      *
      * @private
-     * @param {String} topic The topic to pause.
      */
-    proto._pauseTopic = function(topic) {
-        if(!this._topicIsPaused(topic)) {
-            this._pausedTopics[topic] = true;
-            this._incomingPausedBuffer[topic] = [];
+    proto._pause = function() {
+        if(!this._paused) {
+            this._paused = true;
+            this._incomingPausedBuffer = [];
         }
     };
 
     /**
-     * Resume syncing operations for the given topic.
+     * Resume syncing operations and apply the incoming operations that have
+     * been buffered while we were paused.
      *
      * @private
-     * @param {String} topic The topic to resume.
      */
-    proto._resumeTopic = function(topic) {
-        var i, len, incoming;
-        if(this._topicIsPaused(topic)) {
-            incoming = this._incomingPausedBuffer[topic];
-            delete this._pausedTopics[topic];
-            delete this._incomingPausedBuffer[topic];
-            for(i = 0, len = incoming.length; i < len; i++) {
-                this.syncInbound.apply(this, incoming[i]);
+    proto._resume = function() {
+        var i, len;
+        if(this._paused) {
+            for(i = 0, len = this._incomingPausedBuffer.length; i < len; i++) {
+                this.syncInbound.apply(this, this._incomingPausedBuffer[i]);
             }
         }
     }
-
-    /**
-     * @private
-     */
-    proto._onResumeTopic = function(subscribeTopic, targetTopic) {
-        this._resumeTopic(targetTopic);
-    };
-
-    /**
-     * @private
-     */
-    proto._onPauseTopic = function(subscribeTopic, targetTopic) {
-        this._pauseTopic(targetTopic);
-    };
 
     return UnmanagedHubListener;
 });
