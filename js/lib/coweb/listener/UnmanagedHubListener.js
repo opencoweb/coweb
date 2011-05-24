@@ -707,6 +707,7 @@ define([
     proto._resume = function() {
         var i, len;
         if(this._paused) {
+            this._paused = false;
             for(i = 0, len = this._incomingPausedBuffer.length; i < len; i++) {
                 this.syncInbound.apply(this, this._incomingPausedBuffer[i]);
             }
