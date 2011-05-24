@@ -27,6 +27,12 @@ define([
         teardown: function() {
             // clean up all clients
             util.all_clients = [];
+            this.listener.stop();
+            delete this.listener;
+            for(var i=0, l=this._subs.length; i<l; i++) {
+                OpenAjax.hub.unsubscribe(this._subs[i]);
+            }
+
         },
         sub: function() {
             var tok = OpenAjax.hub.subscribe.apply(OpenAjax.hub, arguments);
