@@ -130,12 +130,13 @@ public class CollabDelegate extends DefaultDelegate {
 			return;
 		
 		this.updatees.remove(token);
-		this.lastState = (Object[])data.get("state");
+		// @disabled: issue 76
+		//this.lastState = (Object[])data.get("state");
 		
 		ServerMessage.Mutable msg = this.sessionManager.getBayeux().newMessage();
 
 		msg.setChannel("/service/session/join/state");
-		msg.setData(this.lastState);
+		msg.setData((Object[])data.get("state"));
 		msg.setLazy(false);
 			
 		updatee.deliver(this.sessionManager.getServerSession(), msg);
