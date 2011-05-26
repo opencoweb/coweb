@@ -226,9 +226,10 @@ class CollabSession(session.Session):
             del self._updatees[token]
         except KeyError:
             return
-            
+         
+        # @disabled: issue #76   
         # store this state as the last known up-to-date state
-        self._lastState = data['state']
+        #self._lastState = data['state']
 
         # send state to updatee
         updatee.add_message({
