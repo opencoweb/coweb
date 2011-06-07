@@ -29,7 +29,10 @@ define(function() {
         READY : p+'site.ready',
         END : p+'site.end',
         // busy state topics
-        BUSY : p+'busy.change'
+        BUSY : p+'busy.change',
+        // pausing and resuming topics
+        PAUSE_TOPIC : p+'topics.pause',
+        RESUME_TOPIC : p+'topics.resume'
     };
 
 });

@@ -7,9 +7,11 @@
 define([
     'coweb/listener/UnmanagedHubListener',
     'org/OpenAjax',
+    'coweb/util/lang',
     'coweb/topics',
-    'coweb/util/lang'
-], function(UnmanagedHubListener, OpenAjax, topics, lang) {
+    'mock/targets',
+    'mock/bridge'
+], function(UnmanagedHubListener, OpenAjax, lang, topics, targets, bridge) {
     var modOpts = function(collab) {
         return {
             setup: function() {
@@ -39,128 +41,6 @@ define([
         };
     };
 
-    // test targets
-    var targets = {
-        localSiteId : 5,
-        localUsername : 'foo.bar',
-        roster : {
-            1 : 'john.doe',
-            2 : 'jane.smith',
-            4 : 'bob.watts'
-        },
-        syncTopic : topics.SYNC+'name.wid0',
-        outSyncMsg : {
-            value : 'abc',
-            type : 'insert',
-            position : 1
-        },
-        inSyncMsg : {
-            value : JSON.stringify('abc'),
-            type : 'insert',
-            position : 1,
-            context : [0,0,0,0,0,0]
-        },
-        inHubSyncMsg : {
-            position : 1,
-            type : 'insert',
-            value : 'abc',
-            site : 1
-        },
-        serviceName : 'somebot',
-        serviceParams : {
-            a : 'b',
-            c : 'd'
-        },
-        serviceResponse : {
-            e : 'f',
-            g : 'h'
-        },
-        hubServiceResponse: {
-            value : {
-                e : 'f',
-                g : 'h'
-            },
-            error : false
-        },
-        hubServiceError : {
-            value : 'service error message',
-            error : true
-        },
-        reqServiceTopic : topics.GET_SERVICE+'somebot_0.wid4',
-        respServiceTopic : topics.SET_SERVICE+'somebot_0.wid4',
-        pubServiceTopic : topics.SET_SERVICE+'somebot',
-        stateMsg : {},
-        stateRecipient : '123abc',
-        engineState : [
-            [
-                [0,0,0,0,0,0],
-                [0,0,0,0,0,0],
-                [0,0,0,0,0,0],
-                [0,0,0,0,0,0],
-                [0,0,0,0,0,0],
-                [0,0,0,0,0,0]
-            ], 
-            [], 
-            5, 
-            [0]
-        ],
-        engineSync : {
-            value : '',
-            type : 'update',
-            position : 0,
-            context :  [0,0,0,0,0,0]
-        }
-    };
-    targets.stateMsg[topics.SET_STATE+'wid1'] = [1,2,3];
-    targets.stateMsg[topics.SET_STATE+'wid2'] = [4,5];
-    targets.stateMsg[topics.SET_STATE+'wid3'] = {6: 'seven'};    
-    
-    // mock bridge
-    var bridge = {
-        postSync: function(topic, value, type, position, context) {
-            equal(topic, targets.syncTopic, 'sync topic');
-            deepEqual(value, targets.inSyncMsg.value, 'sync value');
-            deepEqual(type, targets.inSyncMsg.type, 'sync type');
-            deepEqual(position, targets.inSyncMsg.position, 'sync position');
-            deepEqual(context, targets.inSyncMsg.context, 'sync context');
-            return true;
-        },
-        
-        postEngineSync: function(context) {
-            deepEqual(context, targets.engineSync.context, 'engine sync context');            
-            return true;
-        },
-        
-        getInitialRoster: function() {
-            return targets.roster;
-        },
-        
-        postServiceSubscribe: function(serviceName) {
-            equal(serviceName, targets.serviceName);
-        },
-        
-        postServiceUnsubscribe: function(serviceName) {
-            equal(serviceName, targets.serviceName);
-        },
-        
-        postServiceRequest: function(serviceName, params, topic) {
-            equal(serviceName, targets.serviceName, 'service request name');
-            deepEqual(params, targets.serviceParams, 'service request params');
-            equal(topic, targets.reqServiceTopic, 'service request topic');
-        },
-        
-        postStateResponse: function(topic, state, token) {
-            equal(token, targets.stateRecipient, 'posted state token');
-            if(topic === topics.ENGINE_STATE) {
-                deepEqual(state, targets.engineState, 'engine state');
-            } else if(topic === null) {
-                equal(state, null, 'end state sentinel');
-            } else {
-                deepEqual(state, targets.stateMsg[topic], 'posted state');
-            }
-        }
-    };
-    
     module('listener bootstrap', modOpts());
     
     test('start collab', 3, function() {

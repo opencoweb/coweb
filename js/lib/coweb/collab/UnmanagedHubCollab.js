@@ -514,6 +514,22 @@ define([
             }
         }
     };
-    
+
+    /**
+     * Pause the syncing of incoming operations. The application of any incoming
+     * operations will be delayed until `resumeSync` is called.
+     */
+    proto.pauseSync = function() {
+        OpenAjax.hub.publish(topics.PAUSE_TOPIC, true);
+    };
+
+    /**
+     * Resume syncing the incoming operations. Any incoming operations that were
+     * delayed while the pause was in effect will now be applied.
+     */
+    proto.resumeSync = function() {
+        OpenAjax.hub.publish(topics.RESUME_TOPIC, true);
+    };
+
     return UnmanagedHubCollab;
 });
