@@ -27,6 +27,13 @@ define([
         // should sync if we've received a sync and have been quiet
         this._shouldSync = false;
 
+        // Boolean flag which represents whether or not we are currently paused,
+        // and therefore buffering incoming events.
+        this._paused = false;
+        // This array serves as a buffer for all incoming operations for when we
+        // are paused.
+        this._incomingPausedBuffer = [];
+
         // timer references
         this._syncTimer = null;
         this._purgeTimer = null;
@@ -140,6 +147,14 @@ define([
         conn = OpenAjax.hub.subscribe(topics.GET_SERVICE+"**",
             '_onRequestServiceOutbound', this);
         this._conns.push(conn);
+        // listen for all topic pausing requests
+        conn = OpenAjax.hub.subscribe(topics.PAUSE_TOPIC,
+            '_pause', this);
+        this._conns.push(conn);
+        // listen for all topic resuming requests
+        conn = OpenAjax.hub.subscribe(topics.RESUME_TOPIC,
+            '_resume', this);
+        this._conns.push(conn);
     };
 
     /**
@@ -184,6 +199,13 @@ define([
         var op, event;
         // console.debug('UnmanagedHubListener.syncInbound topic: %s, value: %s, type: %s, position: %s, site: %d, sites: %s', 
         //     topic, value, type || 'null', position, site, sites ? sites.toString() : 'null');
+
+        if(this._paused) {
+            this._incomingPausedBuffer.push([topic, value, type, position,
+                                             site, sites, order]);
+            return;
+        }
+
         // check if the event has a context and non-null type
         if(sites && type) {
             // treat event as a possibly conflicting operation
@@ -256,7 +278,7 @@ define([
             return;
         }
 
-        // unpack event data; be sure to json encode the value before pushing 
+        // unpack event data; be sure to json encode the value before pushing
         // into op engine to avoid ref sharing with the operation history
         var position = event.position,
             type = event.type,
@@ -639,19 +661,58 @@ define([
             try {
                 var mcv = this._engine.purge();
             } catch(e) {
-                console.warn('UnmanagedHubListener: failed to purge engine ' + 
+                console.warn('UnmanagedHubListener: failed to purge engine ' +
                     e.message);
             }
             // time = new Date() - time;
             // size = this._engine.getBufferSize();
-            // console.debug('UnmanagedHubListener: purged size =', 
-            //     size, 'time =', time, 'mcv =', 
+            // console.debug('UnmanagedHubListener: purged size =',
+            //     size, 'time =', time, 'mcv =',
             //     (mcv != null) ? mcv.toString() : 'null');
         }
         // reset flag
         this._shouldPurge = false;
         return size;
     };
-    
+
+    /**
+     * Returns true if the given topic is currently paused.
+     *
+     * @private
+     * @param {String} topic The topic to test if it is currently paused or not.
+     */
+    proto._topicIsPaused = function(topic) {
+        return topic in this._pausedTopics;
+    };
+
+    /**
+     * Pause incoming operations from being applied. Puts all operations in a
+     * buffer to be applied later when we resume.
+     *
+     * @private
+     */
+    proto._pause = function() {
+        if(!this._paused) {
+            this._paused = true;
+            this._incomingPausedBuffer = [];
+        }
+    };
+
+    /**
+     * Resume syncing operations and apply the incoming operations that have
+     * been buffered while we were paused.
+     *
+     * @private
+     */
+    proto._resume = function() {
+        var i, len;
+        if(this._paused) {
+            this._paused = false;
+            for(i = 0, len = this._incomingPausedBuffer.length; i < len; i++) {
+                this.syncInbound.apply(this, this._incomingPausedBuffer[i]);
+            }
+        }
+    }
+
     return UnmanagedHubListener;
 });
