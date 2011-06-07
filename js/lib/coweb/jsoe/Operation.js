@@ -53,7 +53,8 @@ define([
             this.key = args.key;
             this.value = args.value;
             this.position = args.position;
-            this.order = args.order || Infinity;
+            this.order = (args.order === undefined || args.order === null) ?
+                Infinity : args.order;
             if(args.seqId !== undefined) { 
                 this.seqId = args.seqId;
             } else if(this.contextVector) {

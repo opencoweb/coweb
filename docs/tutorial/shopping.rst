@@ -54,6 +54,10 @@ Java
 Python
 ######
 
+.. note:: 
+
+	If you completed the Developer Setup on the OpenCoweb wiki page on GitHub, you can skip to the next section titled 'Starting with a blank page'.
+
 #. Install the Python server package and scripts to a :ref:`virtualenv <virtualenv-install>` or :ref:`system-wide <distutils-install>`.
 #. Deploy an initial coweb application using the :file:`pycoweb` script.
 
