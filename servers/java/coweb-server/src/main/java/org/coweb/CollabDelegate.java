@@ -146,6 +146,9 @@ public class CollabDelegate extends DefaultDelegate {
         this.addUpdater(client, true);
     }
 
+    /**
+     * returns true if this was the last updater.
+     */
     @Override
     public boolean onClientRemove(ServerSession client) {
 
@@ -156,10 +159,10 @@ public class CollabDelegate extends DefaultDelegate {
         this.removeUpdater(client);
 		if(this.getUpdaterCount() == 0) {
             System.out.println("removing last updater, ending coweb session");
-			this.sessionHandler.endSession();
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     @Override

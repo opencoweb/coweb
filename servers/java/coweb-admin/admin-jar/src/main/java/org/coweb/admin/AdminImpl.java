@@ -17,7 +17,7 @@ public class AdminImpl implements Admin {
 
     private ConferenceDB db = null;
 
-    @Resource(name="SystemDatasource")
+    @Resource(name="CowebUserDatasource")
     private DataSource dbsource;
     private Connection dbconnect;
     

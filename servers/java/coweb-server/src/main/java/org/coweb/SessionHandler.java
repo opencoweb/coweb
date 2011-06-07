@@ -71,7 +71,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
                 }
                 catch(Exception e) { e.printStackTrace(); }
             }
-        }
+        } else {
+			return false;
+		}
         
         return true;
     }
@@ -128,7 +130,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
     }
 
     public void onPurgingClient(ServerSession client) {
-        this.delegate.onClientRemove(client);
+        if(this.delegate.onClientRemove(client)) {
+            this.endSession();
+        }
     }
     
     public String toString() {
