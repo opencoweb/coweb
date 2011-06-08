@@ -199,8 +199,7 @@ define([
         var op, event;
         // console.debug('UnmanagedHubListener.syncInbound topic: %s, value: %s, type: %s, position: %s, site: %d, sites: %s', 
         //     topic, value, type || 'null', position, site, sites ? sites.toString() : 'null');
-
-        if(this._paused) {
+        if(this._paused && (type != null)) {
             this._incomingPausedBuffer.push([topic, value, type, position,
                                              site, sites, order]);
             return;
