@@ -91,19 +91,84 @@ define([
 
     module('listener', modOpts(true));
 
-    test('inbound sync op', 3, function() {
+	test('inbound sync op paused', 2, function() {
         // subscribe to sync
         this.sub(targets.syncTopic, function(topic, msg) {
-            equal(topic, targets.syncTopic);
-            deepEqual(msg, targets.inHubSyncMsg);
+            ok(false);
         });
-        // invoke inbound method
+		//pause
+		this.listener._pause();
+		// invoke inbound method
         this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
             targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
             targets.inSyncMsg.context, 1);
-        // whitebox: ensure op engine processed event
-        deepEqual(this.listener._engine.cv.sites, [0,1,0,0,0,0]);
-    });
+        // whitebox: ensure op engine did NOT process event
+        deepEqual(this.listener._engine.cv.sites, [0,0,0,0,0,0]);
+		// blackbox: check queue for events
+		deepEqual(this.listener._incomingPausedBuffer, [[
+			targets.syncTopic, 
+			targets.inSyncMsg.value,
+			targets.inSyncMsg.type,
+			targets.inSyncMsg.position,
+			1,
+			targets.inSyncMsg.context,
+			1
+		]]);
+	});
+	
+	test('inbound sync ops paused', 2, function() {
+        // subscribe to sync
+        this.sub(targets.syncTopic, function(topic, msg) {
+            ok(false);
+        });
+		//pause sync events
+		this.listener._pause();
+		// invoke two inbound methods
+        this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
+            targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
+            targets.inSyncMsg.context, 1);
+		this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
+            targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
+            targets.inSyncMsg.context, 1);
+        // whitebox: ensure op engine did NOT process event
+        deepEqual(this.listener._engine.cv.sites, [0,0,0,0,0,0]);
+		// blackbox: check queue for events
+		deepEqual(this.listener._incomingPausedBuffer, [[
+			targets.syncTopic,
+			targets.inSyncMsg.value,
+			targets.inSyncMsg.type,
+			targets.inSyncMsg.position,
+			1,
+			targets.inSyncMsg.context,
+			1
+		],
+		[
+			targets.syncTopic,
+			targets.inSyncMsg.value,
+			targets.inSyncMsg.type,
+			targets.inSyncMsg.position,
+			1,
+			targets.inSyncMsg.context,
+			1
+		]]);
+	});
+	
+	test('inbound sync no-op paused', 2, function() {
+        // subscribe to sync
+        this.sub(targets.syncTopic, function(topic, msg) {
+            ok(false);
+        });
+		//pause sync events
+		this.listener._pause();
+		// invoke inbound method
+        this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
+            null, targets.inSyncMsg.position, 1, 
+            targets.inSyncMsg.context, 1);
+        // whitebox: ensure op engine did NOT process event
+        deepEqual(this.listener._engine.cv.sites, [0,0,0,0,0,0]);
+		// blackbox: check that queue does NOT contain events
+		deepEqual(this.listener._incomingPausedBuffer, []);
+	});
 
     test('inbound sync no-op', 3, function() {
         var inSyncMsg = lang.clone(targets.inSyncMsg),
@@ -122,12 +187,62 @@ define([
         // whitebox: ensure op engine did not process the event
         deepEqual(this.listener._engine.cv.sites, [0,0,0,0,0,0]);
     });
+
+	test('inbound sync op resume', 2, function() {
+        // subscribe to sync
+        this.sub(targets.syncTopic, function(topic, msg) {
+            ok(true);
+        });
+		//pause
+		this.listener._pause();
+		// invoke inbound method
+        this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
+            targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
+            targets.inSyncMsg.context, 1);
+		// resume sync events
+		this.listener._resume();
+		// whitebox: ensure op engine processed the event
+        deepEqual(this.listener._engine.cv.sites, [0,1,0,0,0,0]);
+	});
+	
+	test('inbound sync ops resume', 3, function() {
+        // subscribe to sync
+        this.sub(targets.syncTopic, function(topic, msg) {
+            ok(true);
+        });
+		//pause
+		this.listener._pause();
+		// invoke two inbound methods
+        this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
+            targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
+            targets.inSyncMsg.context, 1);
+        this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
+            targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
+            targets.inSyncMsg.context, 1);
+		// resume sync events
+		this.listener._resume();
+		// whitebox: ensure op engine processed the event
+        deepEqual(this.listener._engine.cv.sites, [0,1,0,0,0,0]);
+	});
     
-    test('outbound sync', 6, function() {
+    test('outbound sync', 7, function() {
         // publish sync for listener to receive and bridge to check
         OpenAjax.hub.publish(targets.syncTopic, targets.outSyncMsg);
         // whitebox: ensure op engine processed the event
         deepEqual(this.listener._engine.cv.sites, [0,0,0,0,0,1]);
+		// blackbox: check that queue does NOT contain events
+		deepEqual(this.listener._incomingPausedBuffer, []);
+    });
+
+    test('outbound sync paused', 7, function() {
+		// pause sync events
+		this.listener._pause();
+        // publish sync for listener to receive and bridge to check
+        OpenAjax.hub.publish(targets.syncTopic, targets.outSyncMsg);
+        // whitebox: ensure op engine processed the event
+        deepEqual(this.listener._engine.cv.sites, [0,0,0,0,0,1]);
+		// blackbox: check that queue does NOT contain events
+		deepEqual(this.listener._incomingPausedBuffer, []);
     });
     
     test('inbound notice', 4, function() {

@@ -210,6 +210,45 @@ define([
         this._subs.push(tok);
         this.collab.sendSync(name, target.value);
     });
+
+    test('send sync paused', 1, function() {
+        var tok,
+            name = 'a.b.c.d',
+            topic = topics.SYNC+name+'.'+this.collab.id,
+            target = {
+                value : 'b',
+                type : 'insert',
+                position : 1
+            };
+        tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
+            ok(true);
+        });
+		//Pause sync events
+		this.collab.pauseSync();
+		//Send sync
+        this.collab.sendSync(name, target.value, target.type, target.position);
+        OpenAjax.hub.unsubscribe(tok);
+    });
+
+    test('send syncs paused', 2, function() {
+        var tok,
+            name = 'a.b.c.d',
+            topic = topics.SYNC+name+'.'+this.collab.id,
+            target = {
+                value : 'b',
+                type : 'insert',
+                position : 1
+            };
+        tok = OpenAjax.hub.subscribe(topic, function(topic, params) {
+            ok(true);
+        });
+		//Pause sync events
+		this.collab.pauseSync();
+		//Send sync
+        this.collab.sendSync(name, target.value, target.type, target.position);
+		this.collab.sendSync(name, target.value, target.type, target.position);
+        OpenAjax.hub.unsubscribe(tok);
+    });
     
     test('subscribe state request', 7, function() {
         var target = 'token',
