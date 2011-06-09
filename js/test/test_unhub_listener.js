@@ -153,10 +153,10 @@ define([
 		]]);
 	});
 	
-	test('inbound sync no-op paused', 2, function() {
+	test('inbound sync no-op paused', 3, function() {
         // subscribe to sync
         this.sub(targets.syncTopic, function(topic, msg) {
-            ok(false);
+            ok(true);
         });
 		//pause sync events
 		this.listener._pause();
@@ -166,7 +166,7 @@ define([
             targets.inSyncMsg.context, 1);
         // whitebox: ensure op engine did NOT process event
         deepEqual(this.listener._engine.cv.sites, [0,0,0,0,0,0]);
-		// blackbox: check that queue does NOT contain events
+		// blackbox: check that queue DOES contain events
 		deepEqual(this.listener._incomingPausedBuffer, []);
 	});
 
@@ -205,7 +205,7 @@ define([
         deepEqual(this.listener._engine.cv.sites, [0,1,0,0,0,0]);
 	});
 	
-	test('inbound sync ops resume', 3, function() {
+	test('inbound sync ops resume', 2, function() {
         // subscribe to sync
         this.sub(targets.syncTopic, function(topic, msg) {
             ok(true);
