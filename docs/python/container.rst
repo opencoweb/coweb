@@ -97,9 +97,9 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
       
       Other available implementations of :class:`coweb.auth.AuthBase` include:
       
-         * :class:`coweb.auth.IniAuth` supporting form-based plain-text or MD5-hashed auth (Only an example implementation, **not for production!**)
+         * :class:`coweb.auth.ini.IniAuth` supporting form-based plain-text or MD5-hashed auth (Only an example implementation, **not for production!**)
       
-      New authentication managers can be created by subclassing :class:`coweb.access.AccessBase`.
+      New authentication managers can be created by subclassing :class:`coweb.access.AuthBase`.
       
       This attribute may also be set to a 2-tuple with the class reference as the first element and a dictionary to be passed as keyword arguments to the class constructor as the second.
    
