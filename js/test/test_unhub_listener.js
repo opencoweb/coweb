@@ -205,7 +205,7 @@ define([
         deepEqual(this.listener._engine.cv.sites, [0,1,0,0,0,0]);
 	});
 	
-	test('inbound sync ops resume', 2, function() {
+	test('inbound sync ops resume', 3, function() {
         // subscribe to sync
         this.sub(targets.syncTopic, function(topic, msg) {
             ok(true);
@@ -216,13 +216,15 @@ define([
         this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
             targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
             targets.inSyncMsg.context, 1);
+        var ctx = lang.clone(targets.inSyncMsg.context);
+        ctx[1] += 1;
         this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
             targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
-            targets.inSyncMsg.context, 1);
+            ctx, 2);
 		// resume sync events
 		this.listener._resume();
 		// whitebox: ensure op engine processed the event
-        deepEqual(this.listener._engine.cv.sites, [0,1,0,0,0,0]);
+        deepEqual(this.listener._engine.cv.sites, [0,2,0,0,0,0]);
 	});
     
     test('outbound sync', 7, function() {
