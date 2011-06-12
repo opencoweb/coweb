@@ -29,7 +29,7 @@ class Application(tornado.web.Application):
         # pattern pulls out sessionId for us on request
         pattern = '%s(%s)/?.*' % (self._container.webSessionRoot, session.sessionId)
         # add session handler for all hosts
-        self.extend_handlers(r'.*$', [(pattern, handler)])
+        self.extend_handlers(r'.*$', [(pattern, handler)], False)
         self._sessionIds[(session.key, session.collab)] = session.sessionId
         self._sessions[session.sessionId] = session
 
