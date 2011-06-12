@@ -45,7 +45,8 @@ define([
         this._bridge = new SessionBridge({
             debug : this._debug,
             listener: this._listener,
-            adminUrl : params.adminUrl
+            adminUrl : params.adminUrl,
+            baseUrl : params.baseUrl
         });
 
         // cleanup on page unload, try to do it as early as possible so 
