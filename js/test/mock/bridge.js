@@ -43,13 +43,20 @@ define([
 
         postStateResponse: function(topic, state, token) {
             equal(token, targets.stateRecipient, 'posted state token');
-            if(topic === topics.ENGINE_STATE) {
+            if(topic === topics.PAUSE_STATE) {
+                deepEqual(state, targets.pauseState, 'pause state');
+            }else if(topic === topics.ENGINE_STATE) {
                 deepEqual(state, targets.engineState, 'engine state');
             } else if(topic === null) {
                 equal(state, null, 'end state sentinel');
             } else {
                 deepEqual(state, targets.stateMsg[topic], 'posted state');
             }
+        },
+        
+        swapTargets: function(obj){
+            targets = obj;
+            console.log(targets);
         }
     };
 });

@@ -74,7 +74,8 @@ define(['coweb/topics'], function(topics) {
             type : 'update',
             position : 0,
             context :  [0,0,0,0,0,0]
-        }
+        },
+        pauseState: []
     };
     targets.stateMsg[topics.SET_STATE+'wid1'] = [1,2,3];
     targets.stateMsg[topics.SET_STATE+'wid2'] = [4,5];
