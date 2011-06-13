@@ -56,7 +56,6 @@ define([
         
         swapTargets: function(obj){
             targets = obj;
-            console.log(targets);
         }
     };
 });
