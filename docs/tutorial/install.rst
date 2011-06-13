@@ -83,7 +83,7 @@ The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb e
 Python setup
 ~~~~~~~~~~~~
 
-The |coweb API| includes a Python cooperative web server implementation based on `Tornado`_ version 1.1 or higher. The Python server requires Python 2.6 or 2.7 which ship with or are easily installable on most \*nix/BSD operating systems.
+The |coweb API| includes a Python cooperative web server implementation based on `Tornado`_ version 1.2 or higher. The Python server requires Python 2.6 or 2.7 which ship with or are easily installable on most \*nix/BSD operating systems.
 
 .. _virtualenv-install:
 

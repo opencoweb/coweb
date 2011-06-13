@@ -70,7 +70,7 @@ setup(name='OpenCoweb',
         ]
     },
     scripts=['pycoweb'],
-    install_requires=['tornado>=1.1'],
+    install_requires=['tornado>=1.2'],
 )
 
 if isSDist:

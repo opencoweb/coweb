@@ -4,6 +4,11 @@
 Changelog
 ---------
 
+Version 0.6
+~~~~~~~~~~~
+
+* Aded :data:`cowebConfig.baseUrl` parameter to support deployments behind proxies.
+
 Version 0.5
 ~~~~~~~~~~~
 
