@@ -283,20 +283,20 @@ define([
         this.listener.requestStateInbound(targets.stateRecipient);        
     });
     
-    test('inbound state request / response paused', 7, function() {
+    test('inbound state request / response paused', 6, function() {
         var self = this;
         
         //pause sync events
 		this.listener._pause();
 		
         //invoke inbound sync
-        this.listener.syncInbound(targets.syncTopic, targets.inSyncMsg.value,
+        this.listener.syncInbound(targets.syncTopic, "test",
             targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
             targets.inSyncMsg.context, 1);
             
         //Temporarily replace bridge.targets.pauseSync
         var temp = targets;
-        temp['pauseSync'] = [["coweb.sync.name.wid0","\\"abc\\"","insert",1,1,[0,0,0,0,0,0],1]];
+        temp['pauseState'] = [["coweb.sync.name.wid0","test","insert",1,1,[0,0,0,0,0,0],1]];
         bridge.swapTargets(temp);
         
         //Simulate late join state request

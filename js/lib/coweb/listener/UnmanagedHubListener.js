@@ -524,6 +524,7 @@ define([
         }
         
         try {
+            console.log(this._incomingPausedBuffer);
             // post pause queue state
             this._bridge.postStateResponse(topics.PAUSE_STATE, this._incomingPausedBuffer, 
                 recipient);
