@@ -128,7 +128,7 @@ class AppContainer(object):
         if self.httpStaticPath is not None:
             from coweb.static import SecureStaticHandler
             from tornado.web import StaticFileHandler
-            www = dict(path=self.httpStaticPath)
+            www = dict(path=self.httpStaticPath, default_filename='index.html')
             # insecure icon and robots file
             handlers.extend([
                 (r'%s(.*)' % self.webStaticRoot, SecureStaticHandler, www),

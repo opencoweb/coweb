@@ -32,6 +32,7 @@ define([
         // init variables
         this._debug = args.debug;
         this._adminUrl = args.adminUrl;
+        this._baseUrl = args.baseUrl;
         this._state = this.IDLE;
         this._connectToken = null;
         
@@ -160,7 +161,7 @@ define([
         cometd.registerExtension('coweb', new CowebExtension(args));
 
         cometd.configure({
-            url : this.prepResponse.sessionurl, 
+            url : this._baseUrl + this.prepResponse.sessionurl, 
             logLevel: this._debug ? 'debug' : 'info',
             autoBatch : true,
             appendMessageTypeToURL: false

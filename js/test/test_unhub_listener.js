@@ -31,6 +31,8 @@ define([
                 for(var i=0, l=this._subs.length; i<l; i++) {
                     OpenAjax.hub.unsubscribe(this._subs[i]);
                 }
+                //Restore bridge.targets
+                bridge.swapTargets(targets);
             },
         
             sub: function() {
@@ -262,7 +264,7 @@ define([
         this.listener.noticeInbound('unavailable', leave);
     });
     
-    test('inbound state request / response', 16, function() {
+    test('inbound state request / response', 18, function() {
         var self = this;
         // subscribe to request
         for(var key in targets.stateMsg) {
@@ -281,6 +283,26 @@ define([
             }
         }
         this.listener.requestStateInbound(targets.stateRecipient);        
+    });
+    
+    test('inbound state request / response paused', 6, function() {
+        var self = this;
+        
+        //pause sync events
+		this.listener._pause();
+		
+        //invoke inbound sync
+        this.listener.syncInbound(targets.syncTopic, "test",
+            targets.inSyncMsg.type, targets.inSyncMsg.position, 1, 
+            targets.inSyncMsg.context, 1);
+            
+        //Temporarily replace bridge.targets.pauseSync
+        var temp = targets;
+        temp['pauseState'] = [["coweb.sync.name.wid0","test","insert",1,1,[0,0,0,0,0,0],1]];
+        bridge.swapTargets(temp);
+        
+        //Simulate late join state request
+        this.listener.requestStateInbound(targets.stateRecipient);
     });
     
     test('inbound state response', 7, function() {

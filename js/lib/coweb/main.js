@@ -15,6 +15,7 @@ cowebConfig = {
     listenerImpl : cowebConfig.listenerImpl || 'coweb/listener/UnmanagedHubListener',
     collabImpl : cowebConfig.collabImpl || 'coweb/collab/UnmanagedHubCollab',
     debug : cowebConfig.debug || false,
+    baseUrl : cowebConfig.baseUrl || '',
     adminUrl : cowebConfig.adminUrl || '/admin',
     loginUrl : cowebConfig.loginUrl || '/login',
     logoutUrl : cowebConfig.logoutUrl || '/logout'    
@@ -28,7 +29,8 @@ define([
     // session and listener instance singletons
     var sessionInst = null,
         listenerInst = null,
-        noop;
+        urlNames = ['adminUrl', 'loginUrl', 'logoutUrl'],
+        name, value, base, noop, i, l;
 
     // define a dummy console for error logging if not provided
     if(typeof console === 'undefined') {
@@ -39,6 +41,17 @@ define([
         console.log = 
         console.info = 
         console.debug = noop;
+    }
+    
+    if(cowebConfig.baseUrl) {
+        // adjust abs urls relative to base
+        for(i=0, l=urlNames.length; i<l; i++) {
+            name = urlNames[i];
+            value = cowebConfig[urlNames[i]];
+            if(value.charAt(0) === '/') {
+                cowebConfig[name] = cowebConfig.baseUrl + value;
+            }
+        }
     }
 
     // factory interface

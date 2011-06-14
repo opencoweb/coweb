@@ -194,8 +194,7 @@ define([
      * @param {Number} site Unique integer ID of the sending site
      * @param {Number[]} sites Context vector as an array of integers
      */
-    proto.syncInbound = function(topic, value, type, position, site, sites, 
-    order) {
+    proto.syncInbound = function(topic, value, type, position, site, sites, order) {
         var op, event;
         // console.debug('UnmanagedHubListener.syncInbound topic: %s, value: %s, type: %s, position: %s, site: %d, sites: %s', 
         //     topic, value, type || 'null', position, site, sites ? sites.toString() : 'null');
@@ -523,6 +522,17 @@ define([
             console.warn('UnmanagedHubListener: failed sending engine state ' + 
                 y.message);
         }
+        
+        try {
+            console.log(this._incomingPausedBuffer);
+            // post pause queue state
+            this._bridge.postStateResponse(topics.PAUSE_STATE, this._incomingPausedBuffer, 
+                recipient);
+        } catch(w) {
+            // ignore if can't post
+            console.warn('UnmanagedHubListener: failed sending pause state ' + 
+                w.message);
+        }
 
         try {
             // indicate done collecting state
@@ -553,7 +563,7 @@ define([
         // pull out data to send
         var recipient = event.recipient;
         var msg = event.state;
-
+        
         // send message to client here
         try {
             // topic is always SET_STATE so state is applied at receiver
@@ -577,8 +587,19 @@ define([
      * @param {Object} state Arbitrary state
      */
     proto.stateInbound = function(topic, state) {
+        if(topic === topics.PAUSE_STATE) {
+            // handle pause queue state
+            try {
+                for(var i=0; i<state.length; i++){
+                    this.syncInbound(state[i][0],state[i][1],state[i][2],state[i][3],state[i][4],state[i][5],state[i][6]);
+                }
+            } catch(a) {
+                console.warn('UnmanagedHubListener: failed to recv pause queue state ' + 
+                    a.message);
+                throw a;
+            }
         //console.debug('UnmanagedHubListener.broadcastState', topic);
-        if(topic === topics.ENGINE_STATE) {
+        }else if(topic === topics.ENGINE_STATE) {
             // handle engine state
             try {
                 this._engine.setState(state);
