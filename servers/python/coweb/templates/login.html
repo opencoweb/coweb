@@ -94,7 +94,7 @@
             // post and listen for response
             dojo.xhrPost({
               postData : dojo.toJson(data),
-              url : ''
+              url : window.location.href
             }).then(success, failure);
           } finally {
             return false;
