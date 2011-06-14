@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# activate the virtualenv
+. ~/envs/coweb_demo_latest/bin/activate
+# reinstall coweb to the env
+cd ~/src/coweb
+git pull origin master
+cd servers/python
+pip install .
+# deploy the cowebx demos to the env
+cd ~/src/cowebx/cowebx-apps
+python setup.py deploy ~/envs/coweb_demo_latest --force
+# restore the custom run script
+cd ~/envs/coweb_demo_latest/bin
+cp run_server.py.bak run_server.py
+# update cowebConfig in demos
+cd ~/envs/coweb_demo_latest/www
+for name in dailyscrum/main.js comap/main.js colist/main.js; do
+    echo $name
+    sed -e 's/^var cowebConfig.*/var cowebConfig = \{ adminUrl \: "\.\.\/admin", baseUrl \: "\/latest" \};/' < "$name" > "${name}.new"
+    mv "${name}.new" "$name"
+done
+# copy dojo / dijit / dojox into place for dailyscrum app
+cp -r ~/src/dojo ~/envs/coweb_demo_latest/www/dailyscrum/
+cp -r ~/src/dijit ~/envs/coweb_demo_latest/www/dailyscrum/
+cp -r ~/src/dojox ~/envs/coweb_demo_latest/www/dailyscrum/
+# deactivate the virtualenv
+deactivate
+# restart the demo server process
+cd ~
+supervisorctl restart coweb_demo_latest
