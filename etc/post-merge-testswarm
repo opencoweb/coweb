@@ -16,7 +16,7 @@ my $USER = "opencoweb";
 
 ## replace this
 # Your authorization token.
-my $AUTH_TOKEN = "";
+my $AUTH_TOKEN = "5ce0f0fb55f403bf2e9691d26b70ea37e17cb1b9";
 
 # The number of commits to search back through
 my $NUM = 3;
@@ -35,7 +35,7 @@ my $BASE_DIR = "/home/parente/webapps/testswarm/git/coweb";
 # (pick a descriptive, but short, name to make it easy to search)
 # Note: The string {REV} will be replaced with the current
 #       commit number/hash.
-my $JOB_NAME = "OpenCoweb Commit <a href=\"http://github.com/opencoweb/coweb/commit/{REV}\">#{REV}</a>";
+my $JOB_NAME = "<a href=\"http://github.com/opencoweb/coweb/commit/{REV}\">{INFO}</a>";
 
 # The browsers you wish to run against. Options include:
 #  - "all" all available browsers.
@@ -63,7 +63,7 @@ $SUITES {"promise"} = "http://testswarm.mindtrove.info/git/coweb/{REV}/js/test/i
 $SUITES {"xhr"} = "http://testswarm.mindtrove.info/git/coweb/{REV}/js/test/index.html?filter=xhr";
 $SUITES {"collab"} = "http://testswarm.mindtrove.info/git/coweb/{REV}/js/test/index.html?filter=collab";
 $SUITES {"op engine"} = "http://testswarm.mindtrove.info/git/coweb/{REV}/js/test/index.html?filter=op%20engine";
-$SUITES {"listener"} = "http://testswarm.mindtrove.info/git/coweb/{REV}/js/test/index.html?filter=listener";
+$SUITES {"listner"} = "http://testswarm.mindtrove.info/git/coweb/{REV}/js/test/index.html?filter=listener";
 $SUITES {"session"} = "http://testswarm.mindtrove.info/git/coweb/{REV}/js/test/index.html?filter=session";
 
 # Comment these out if you wish to define a custom set of SUITES above
@@ -103,6 +103,7 @@ print "chdir $co_dir\n" if ( $DEBUG );
 chdir( $co_dir );
 
 my $rev;
+my $info;
 
 # Figure out the revision of the checkout
 if ( $RCS_TYPE eq "svn" ) {
@@ -113,11 +114,14 @@ if ( $RCS_TYPE eq "svn" ) {
     my $cmd = "git rev-parse HEAD";
     print "$cmd\n" if ( $DEBUG );
     $rev = `$cmd`;
+    $cmd = "git log --pretty=format:'%ae: %s' HEAD^1..HEAD";
+    $info = `$cmd`;
 }
 
 $rev =~ s/\s*//g;
 
 print "Revision: $rev\n" if ( $DEBUG );
+print "Info: $info\n" if ( $DEBUG );
 
 if ( ! $rev ) {
     remove_tmp();
@@ -202,6 +206,7 @@ sub remove_tmp {
 sub clean {
     my $str = shift;
     $str =~ s/{REV}/$rev/g;
+    $str =~ s/{INFO}/$info/g;
     $str =~ s/([^A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg;
     $str;
 }
