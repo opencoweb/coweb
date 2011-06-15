@@ -68,20 +68,24 @@ define([
         this.incoming = this.incoming.slice(1);
         if(op) {
             // console.log('recv siteId=%d, seqId=%d at %d', op.siteId, op.seqId, this.eng.siteId);
-            this.remote(op);
-            return true;
+            return this.remote(op);
         }
-        return false;
+        return null;
     };
     
     OpEngClient.prototype.recvSome = function(count) {
+        var ops = [], op;
         while(count-- > 0 && this.incoming.length) {
-            this.recv();
+            op = this.recv()
+            if(op) {
+                ops.push(ops);
+            }
         }
+        return ops;
     };
 
     OpEngClient.prototype.recvAll = function() {
-        this.recvSome(this.incoming.length);
+        return this.recvSome(this.incoming.length);
     };
 
     OpEngClient.prototype.syncWith = function(client) {
