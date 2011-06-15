@@ -14,4 +14,4 @@ class LogoutHandler(tornado.web.RequestHandler):
         self._container = self.application.get_container()
 
     def get(self):
-        self._container.auth.clear_credentials()
+        self._container.auth.clear_credentials(self)
