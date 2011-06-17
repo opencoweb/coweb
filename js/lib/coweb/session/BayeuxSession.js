@@ -228,6 +228,9 @@ define([
             params.autoUpdate = true;
         }
 
+        if(params.updaterType === undefined) {
+            params.updaterType = "default";
+        }
         // create a promise and hang onto its ref as part of the params
         this._prepParams = lang.clone(params);
         this._prepParams.promise = new Promise();
@@ -260,7 +263,7 @@ define([
 
         if(this._prepParams.autoJoin) {
             // continue to join without resolving promise
-            this.join();
+            this.join(this._prepParams.updaterType);
         } else {
             // pull out the promise
             var promise = this._prepParams.promise;
@@ -289,7 +292,7 @@ define([
      * @returns {Promise} Promise resolved when the last phase (prepare, join,
      * update) set to automatically run completes or fails
      */
-    proto.join = function() {
+    proto.join = function(updaterType) {
         if(this._bridge.getState() !== this._bridge.PREPARED) {
             throw new Error('join() not valid in current state');
         }
@@ -303,7 +306,10 @@ define([
             // new promise for join if prepare was resolved
             this._prepParams.promise = new Promise();
         }
-        this._bridge.join().then('_onJoined', '_onJoinError', this);
+        if (updaterType === undefined) {
+        	updaterType = 'default';
+        }
+        this._bridge.join(updaterType).then('_onJoined', '_onJoinError', this);
         return this._prepParams.promise;
     };
 

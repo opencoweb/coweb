@@ -149,7 +149,7 @@ define([
      *
      * @returns {Promise} Resolved on handshake with server
      */
-    proto.join = function() {
+    proto.join = function(updaterType) {
         if(this._state !== this.PREPARED) {
             throw new Error(this.id + ': cannot join in unprepared state');
         }
@@ -157,7 +157,7 @@ define([
         this._joinPromise = new Promise();
         // register extension to include session id in ext        
         cometd.unregisterExtension('coweb');
-        var args = {sessionid : this.prepResponse.sessionid};
+        var args = {sessionid : this.prepResponse.sessionid, updaterType: updaterType};
         cometd.registerExtension('coweb', new CowebExtension(args));
 
         cometd.configure({
