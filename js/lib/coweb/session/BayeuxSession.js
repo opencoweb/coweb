@@ -263,7 +263,7 @@ define([
 
         if(this._prepParams.autoJoin) {
             // continue to join without resolving promise
-            this.join(this._prepParams.updaterType);
+            this.join({updaterType:this._prepParams.updaterType});
         } else {
             // pull out the promise
             var promise = this._prepParams.promise;
@@ -289,13 +289,15 @@ define([
 
     /**
      * Called by an app to join the prepared session.
+     * @param {Object} Session join options
      * @returns {Promise} Promise resolved when the last phase (prepare, join,
      * update) set to automatically run completes or fails
      */
-    proto.join = function(updaterType) {
+    proto.join = function(params) {
         if(this._bridge.getState() !== this._bridge.PREPARED) {
             throw new Error('join() not valid in current state');
         }
+        params = params || {};
 
         // indicate joining status
         this.onStatusChange('joining');
@@ -306,10 +308,10 @@ define([
             // new promise for join if prepare was resolved
             this._prepParams.promise = new Promise();
         }
-        if (updaterType === undefined) {
-        	updaterType = 'default';
+        if (params.updaterType === undefined) {
+        	params.updaterType = 'default';
         }
-        this._bridge.join(updaterType).then('_onJoined', '_onJoinError', this);
+        this._bridge.join(params.updaterType).then('_onJoined', '_onJoinError', this);
         return this._prepParams.promise;
     };
 

@@ -147,6 +147,7 @@ define([
     /**
      * Initiates the Bayeux handshake with the Bayeux handler for the session.
      *
+     * @params {String} updateType indicating what type of updater should be used when joining
      * @returns {Promise} Resolved on handshake with server
      */
     proto.join = function(updaterType) {
