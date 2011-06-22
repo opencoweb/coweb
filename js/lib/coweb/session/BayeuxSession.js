@@ -26,6 +26,7 @@ define([
         this._unloadToks = {};
         this._loginUrl = null;
         this._logoutUrl = null;
+        this._cacheState = false;
     };
     var proto = BayeuxSession.prototype;
 
@@ -40,6 +41,7 @@ define([
         this._loginUrl = params.loginUrl;
         this._logoutUrl = params.logoutUrl;
         this._debug = params.debug;
+        this._cacheState = params.cacheState;
         this._listener = listenerImpl;
         // create the bridge impl
         this._bridge = new SessionBridge({
@@ -61,7 +63,6 @@ define([
             window.attachEvent('onbeforeunload', destroy);
             window.attachEvent('onunload', destroy);
         }
-       
     };
 
     /**
@@ -240,7 +241,7 @@ define([
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
-        this._bridge.prepare(params.key, params.collab)
+        this._bridge.prepare(params.key, params.collab, this._cacheState)
             .then('_onPrepared', '_onPrepareError', this);
         // start listening to disconnections
         this._bridge.disconnectPromise.then('_onDisconnected', null, this);

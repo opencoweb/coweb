@@ -164,9 +164,9 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
      * @param collab True if this is a collaborative session
      * @return SessionHandler
      */
-    public SessionHandler getSessionHandler(String confkey, boolean collab) {
+    public SessionHandler getSessionHandler(String confkey, boolean collab, boolean cacheState) {
 		
-    	String key = confkey + ":" + collab;
+    	String key = confkey + ":" + collab + ":" + cacheState;
     	return this.sessions.get(key);
     }
     
@@ -233,11 +233,11 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
      * @param collab
      * @return
      */
-    public SessionHandler createSession(String confkey, boolean collab) {
+    public SessionHandler createSession(String confkey, boolean collab, boolean cacheState) {
     	System.out.println("SessionManager::createSession ************");
         System.out.println("delegateClass = " + this.delegateClass);
     	//System.out.println("collab = " + collab);
-    	SessionHandler handler = this.getSessionHandler(confkey, collab);
+    	SessionHandler handler = this.getSessionHandler(confkey, collab, cacheState);
     
     	if(handler == null) {
     		
@@ -252,8 +252,8 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
             }
 
             System.out.println("delegate = " + delegate);
-    		handler = new SessionHandler(confkey, collab, delegate);
-    		this.sessions.put(confkey + ":" + collab, handler);
+    		handler = new SessionHandler(confkey, collab, cacheState, delegate);
+    		this.sessions.put(confkey + ":" + collab + ":" + cacheState, handler);
     	}
     	
     	return handler;

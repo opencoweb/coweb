@@ -18,7 +18,8 @@ cowebConfig = {
     baseUrl : cowebConfig.baseUrl || '',
     adminUrl : cowebConfig.adminUrl || '/admin',
     loginUrl : cowebConfig.loginUrl || '/login',
-    logoutUrl : cowebConfig.logoutUrl || '/logout'    
+    logoutUrl : cowebConfig.logoutUrl || '/logout',
+    cacheState : cowebConfig.cacheState || false
 };
 
 define([

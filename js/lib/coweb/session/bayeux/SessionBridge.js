@@ -82,10 +82,11 @@ define([
      *
      * @params {String} key Key identifying the session to join
      * @params {Boolean} collab True to request a cooperative session, false
+     * @params {Boolean} cacheState True to turn state caching on
      * to request a session with access to services only
      * @returns {Promise} Resolved on response from server
      */
-    proto.prepare = function(key, collab) {
+    proto.prepare = function(key, collab, cacheState) {
         // make sure we're idle
         if(this._state !== this.IDLE) {
             throw new Error(this.id + ': cannot prepare in non-idle state');
@@ -96,7 +97,8 @@ define([
         this._prepPromise = new Promise();
         var data = {
             key : key,
-            collab : collab
+            collab : collab,
+            cacheState : cacheState
         };
         var args = {
             method : 'POST',

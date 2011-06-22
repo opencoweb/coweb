@@ -16,6 +16,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
     
     private String confKey = null;
     private boolean collab = true;
+    private boolean cacheState = false;
     private String sessionId = null;
     private ServiceHandler serviceHandler = null;
     private BayeuxServer server = null;
@@ -25,9 +26,11 @@ public class SessionHandler implements ServerChannel.MessageListener {
     
     public SessionHandler(String confkey,
             boolean collab,
+            boolean cacheState,
             SessionHandlerDelegate delegate) {
 
         this.collab = collab;
+        this.cacheState = cacheState;
         this.confKey = confkey;
         this.sessionId = hashURI(confkey);
         this.serviceHandler = new ServiceHandler(this.sessionId);
@@ -40,7 +43,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
         sync = server.getChannel("/session/sync/engine");
         sync.addListener(this);
 
-        this.delegate.init(this);
+        this.delegate.init(this, cacheState);
     }
 
     public ServiceHandler getServiceHandler() {

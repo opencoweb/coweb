@@ -94,6 +94,7 @@ public class AdminServlet extends HttpServlet {
 
 		String confKey = null;
 		boolean collab = false;
+		boolean cacheState = false;
 		
 		try {
 			Map<String, Object> jsonObj = 
@@ -111,6 +112,12 @@ public class AdminServlet extends HttpServlet {
 				}
 			}
 
+			if(jsonObj.containsKey("cacheState")) {
+				if(((Boolean)jsonObj.get("cacheState")).booleanValue() == true) {
+					cacheState = true;
+				}
+			}
+
             //TODO need to call the security policy to see if this user is 
             //allowed to send prep requests and allow any further processing
             //as an extension point.
@@ -125,9 +132,9 @@ public class AdminServlet extends HttpServlet {
 		
 		
 		SessionHandler handler = 
-            this.sessionManager.getSessionHandler(confKey, collab);
+            this.sessionManager.getSessionHandler(confKey, collab, cacheState);
 		if(handler == null) {
-			handler = this.sessionManager.createSession(confKey, collab);
+			handler = this.sessionManager.createSession(confKey, collab, cacheState);
 		}
 			
 		String sessionId = handler.getSessionId();
