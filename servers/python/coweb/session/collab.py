@@ -142,9 +142,17 @@ class CollabSession(session.Session):
                 'data': []
             })
             return
-            
-        # grab random updater 
-        updaterId = random.choice(self._updaters.keys())
+        updaterId = None
+        if updatee.updaterType is not 'default':
+            for clientId in self._updaters:
+                updater = self.get_client(clientId)
+                if updater.updaterType == updatee.updaterType:
+                    updaterId = clientId
+                    log.info('found an updater type of %s', updatee.updaterType)
+                    break
+        if updaterId is None:
+            # grab random updater
+            updaterId = random.choice(self._updaters.keys())
         updater = self.get_client(updaterId)
         # generate a unique token
         token = uuid.uuid4().hex

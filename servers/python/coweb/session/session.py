@@ -164,6 +164,11 @@ class SessionConnection(bayeux.BayeuxConnection):
             didSub = self._manager.subscribe_to_service(cl, req, res, True)
         elif sub == '/service/session/join/*':
             # respond immediately with empty updater
+            ext = req['ext']
+            coweb = ext['coweb']
+            updaterType = coweb['updaterType']
+            # log.info('updaterType %s', updaterType )
+            cl.updaterType = updaterType
             self._manager.queue_updatee(cl)
             didSub = True
         if didSub:
