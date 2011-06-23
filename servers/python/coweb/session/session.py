@@ -24,13 +24,14 @@ class Session(bayeux.BayeuxManager):
     Manages a session instance that supports services but no user cooperative 
     events.
     '''
-    def __init__(self, container, key, *args, **kwargs):
+    def __init__(self, container, key, cacheState, *args, **kwargs):
         super(Session, self).__init__(*args, **kwargs)
         self.collab = False
         # produce unique session ID
         self.sessionId = uuid.uuid4().hex
         self.key = key
-        
+        self.cacheState = cacheState
+
         self._connectionClass = SessionConnection
         self._container = container
         self._application = container.webApp

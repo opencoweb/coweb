@@ -46,10 +46,10 @@ class AdminHandler(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(400)
         # get collab flag
         collab = args.get('collab', True)
-        
+        cacheState = args.get('cacheState', False)
         try:
             # check if there is a session for this key already            
-            sessionId = self.application.get_session_id(key, collab)
+            sessionId = self.application.get_session_id(key, collab, cacheState)
         except KeyError:
             sessionId = None
 
@@ -63,6 +63,7 @@ class AdminHandler(tornado.web.RequestHandler):
             sess = session.create_session(
                 collab,
                 key=key,
+                cacheState=cacheState,
                 container=self._container,
                 deadAfter=self._container.cowebIdleTimeout,
                 exts=[bayeux.BayeuxAuthExt, bayeux.BayeuxAckExt]

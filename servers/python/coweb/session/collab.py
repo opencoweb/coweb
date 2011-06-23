@@ -235,9 +235,10 @@ class CollabSession(session.Session):
         except KeyError:
             return
          
-        # @disabled: issue #76   
         # store this state as the last known up-to-date state
-        #self._lastState = data['state']
+        if self.cacheState is True:
+            log.info('using cached state')
+            self._lastState = data['state']
 
         # send state to updatee
         updatee.add_message({
