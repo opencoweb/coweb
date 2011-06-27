@@ -3,6 +3,9 @@
 //
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 //
+/*jslint white:false, bitwise:true, eqeqeq:true, immed:true, nomen:false, 
+  onevar:false, plusplus:false, undef:true, browser:true, devel:true, 
+  forin:false, sub:false*/
 /*global define*/
 define(function() {
     return {
@@ -15,7 +18,7 @@ define(function() {
          * @returns {Object} Clone of the object
          */
         clone : function(obj) {
-            return JSON.parse(JSON.stringify(obj))
+            return JSON.parse(JSON.stringify(obj));
         }
     };
 });

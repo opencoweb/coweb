@@ -4,6 +4,9 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*jslint white:false, bitwise:true, eqeqeq:true, immed:true, nomen:false, 
+  onevar:false, plusplus:false, undef:true, browser:true, devel:true, 
+  forin:false, sub:false*/
 /*global define*/
 define([
     'coweb/session/bayeux/cometd',
@@ -330,7 +333,7 @@ define([
     };
 
     /**
-     * Called when the server publishes on a /service/session/join/* Bayeux
+     * Called when the server publishes on a /service/session/join/ Bayeux
      * channel. Handles siteid, roster, and full state messages, passing 
      * information to the listener as needed.
      *
@@ -420,7 +423,7 @@ define([
     };
 
     /**
-     * Called to handle a /session/sync/* message. Forwards it to the listener
+     * Called to handle a /session/sync/ message. Forwards it to the listener
      * for processing by the op engine and/or broadcast to the local app.
      *
      * @private
@@ -451,7 +454,7 @@ define([
     };
     
     /**
-     * Called to handle a /session/roster/* message. Forwards it to the 
+     * Called to handle a /session/roster/ message. Forwards it to the 
      * listener for broadcast to the local application.
      *
      * @private
