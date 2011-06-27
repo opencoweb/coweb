@@ -144,12 +144,14 @@ class CollabSession(session.Session):
             return
         updaterId = None
         if updatee.updaterType is not 'default':
-            for clientId in self._updaters:
-                updater = self.get_client(clientId)
-                if updater.updaterType == updatee.updaterType:
-                    updaterId = clientId
-                    log.info('found an updater type of %s', updatee.updaterType)
-                    break
+            matchedType = self._container.updaterTypeMatcher.match(updatee.updaterType, self._updaters.keys())
+            if matchedType is not None:
+                for clientId in self._updaters:
+                    updater = self.get_client(clientId)
+                    if updater.updaterType == matchedType:
+                        updaterId = clientId
+                        log.info('found an updater type of %s', matchedType)
+                        break
         if updaterId is None:
             # grab random updater
             updaterId = random.choice(self._updaters.keys())
