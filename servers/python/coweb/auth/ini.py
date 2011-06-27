@@ -31,6 +31,7 @@ class IniAuth(AuthBase):
         '''Checks the login credentials against a simple INI file.'''
         # @todo: put this on a timer or something; wasteful to do each time
         users = ConfigParser.ConfigParser()
+        users.optionxform = str
         users.read(self._iniPath)
 
         try:
