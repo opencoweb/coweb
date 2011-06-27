@@ -4,6 +4,9 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*jslint white:false, bitwise:true, eqeqeq:true, immed:true, nomen:false, 
+  onevar:false, plusplus:false, undef:true, browser:true, devel:true, 
+  forin:false, sub:false*/
 /*global define window*/
 define([
     'coweb/session/bayeux/SessionBridge',

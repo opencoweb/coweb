@@ -4,6 +4,9 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
+/*jslint white:false, bitwise:true, eqeqeq:true, immed:true, nomen:false, 
+  onevar:false, plusplus:false, undef:true, browser:true, devel:true, 
+  forin:false, sub:false*/
 /*global define*/
 define([
     'coweb/topics',
@@ -198,7 +201,7 @@ define([
         var op, event;
         // console.debug('UnmanagedHubListener.syncInbound topic: %s, value: %s, type: %s, position: %s, site: %d, sites: %s', 
         //     topic, value, type || 'null', position, site, sites ? sites.toString() : 'null');
-        if(this._paused && (type != null)) {
+        if(this._paused && (type !== null)) {
             this._incomingPausedBuffer.push([topic, value, type, position,
                                              site, sites, order]);
             return;
@@ -732,7 +735,7 @@ define([
                 this.syncInbound.apply(this, this._incomingPausedBuffer[i]);
             }
         }
-    }
+    };
 
     return UnmanagedHubListener;
 });
