@@ -356,12 +356,14 @@ public class CollabDelegate extends DefaultDelegate {
 		ServerSession updater = null;
 		if (!updaterType.equals("default")) {
 			String matchedType = updaterTypeMatcher.match(updaterType, getAvailableUpdaterTypes());
-			for (String id : this.updaters.keySet()) {
-				updater = this.clientids.get(id);
-				if (updater.getAttribute("updaterType").equals(matchedType)) {
-					updaterId = id;
-			        System.out.println("found an updater type matched to ["+matchedType+"]");
-					break;
+			if (matchedType != null) {
+				for (String id : this.updaters.keySet()) {
+					updater = this.clientids.get(id);
+					if (updater.getAttribute("updaterType").equals(matchedType)) {
+						updaterId = id;
+				        System.out.println("found an updater type matched to ["+matchedType+"]");
+						break;
+					}
 				}
 			}
 		}
