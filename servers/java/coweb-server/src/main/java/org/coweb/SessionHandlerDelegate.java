@@ -16,7 +16,7 @@ public interface SessionHandlerDelegate {
      * invokes this delegate.
      * @param cacheState boolean indicating if state should be cached.
      */
-    public void init(SessionHandler sessionHandler, boolean cacheState);
+    public void init(SessionHandler sessionHandler, boolean cacheState, UpdaterTypeMatcher updaterTypeMatcher);
 
     /**
      * Called when a user attempts to send a request to a service in a 

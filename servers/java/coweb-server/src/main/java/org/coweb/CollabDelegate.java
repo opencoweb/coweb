@@ -355,11 +355,12 @@ public class CollabDelegate extends DefaultDelegate {
 		String updaterId = null;
 		ServerSession updater = null;
 		if (!updaterType.equals("default")) {
+			String matchedType = updaterTypeMatcher.match(updaterType, getAvailableUpdaterTypes());
 			for (String id : this.updaters.keySet()) {
 				updater = this.clientids.get(id);
-				if (updater.getAttribute("updaterType").equals(updaterType)) {
+				if (updater.getAttribute("updaterType").equals(matchedType)) {
 					updaterId = id;
-			        System.out.println("found an updater type of ["+updaterType+"]");
+			        System.out.println("found an updater type matched to ["+matchedType+"]");
 					break;
 				}
 			}
@@ -433,6 +434,14 @@ public class CollabDelegate extends DefaultDelegate {
 		return this.updaters.size();
 	}
 	
+	private List<String> getAvailableUpdaterTypes() {
+		List<String> availableUpdaterTypes = new ArrayList<String>();
+		for (String id : this.updaters.keySet()) {
+			ServerSession updater = this.clientids.get(id);
+			availableUpdaterTypes.add((String)updater.getAttribute("updaterType"));
+		}
+		return availableUpdaterTypes;
+	}
 	
 	private class BatchUpdateMessage implements Runnable {
 		

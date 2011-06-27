@@ -27,7 +27,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
     public SessionHandler(String confkey,
             boolean collab,
             boolean cacheState,
-            SessionHandlerDelegate delegate) {
+            SessionHandlerDelegate delegate,
+            UpdaterTypeMatcher updaterTypeMatcher) {
 
         this.collab = collab;
         this.cacheState = cacheState;
@@ -43,7 +44,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
         sync = server.getChannel("/session/sync/engine");
         sync.addListener(this);
 
-        this.delegate.init(this, cacheState);
+        this.delegate.init(this, cacheState, updaterTypeMatcher);
     }
 
     public ServiceHandler getServiceHandler() {

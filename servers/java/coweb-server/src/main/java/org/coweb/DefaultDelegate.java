@@ -15,16 +15,18 @@ public class DefaultDelegate implements SessionHandlerDelegate {
     protected SessionHandler sessionHandler = null;
     protected ServiceHandler serviceHandler = null;
     protected SessionManager sessionManager = null;
+    protected UpdaterTypeMatcher updaterTypeMatcher = null;
     protected boolean cacheState = false;
 
     public void DefaultDelegate() {
     }
-
-    public void init(SessionHandler sessionHandler, boolean cacheState) {
+    
+    public void init(SessionHandler sessionHandler, boolean cacheState, UpdaterTypeMatcher updaterTypeMatcher) {
         this.sessionHandler = sessionHandler;
         this.serviceHandler = this.sessionHandler.getServiceHandler();
         this.sessionManager = this.sessionHandler.getSessionManager();
         this.cacheState = cacheState;
+        this.updaterTypeMatcher = updaterTypeMatcher;
     }
 
     public boolean onServiceRequest(ServerSession client, Message message) {

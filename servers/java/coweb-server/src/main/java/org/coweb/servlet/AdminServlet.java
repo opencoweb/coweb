@@ -57,6 +57,8 @@ public class AdminServlet extends HttpServlet {
         String delegateClass = config.getInitParameter("delegateClass");
         //Get the SecurityPolicy for this application
         String securityClass = config.getInitParameter("securityClass");
+        //Get the UpdaterTypeMatcher for this application
+        String updaterTypeMatcherClass = config.getInitParameter("updaterTypeMatcherClass");
 
         //Create the security policy.  Default to CowebSecurityPolicy.
         if(securityClass == null)
@@ -78,7 +80,8 @@ public class AdminServlet extends HttpServlet {
         //create the session manager. 
 	    this.sessionManager = SessionManager.newInstance(servletContext, 
                 bayeux,
-                delegateClass);
+                delegateClass,
+                updaterTypeMatcherClass);
 	}
 	
 	
