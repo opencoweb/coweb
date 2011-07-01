@@ -164,6 +164,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
         return this.collab;
     }
     
+    public boolean isCachingState() {
+    	return this.cacheState;
+    }
+
     public static String hashURI(String url) {
         
         String hash = null;

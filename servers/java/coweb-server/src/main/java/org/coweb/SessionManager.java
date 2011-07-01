@@ -280,13 +280,13 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     }
     
     public void removeSessionHandler(SessionHandler handler) {
-    	this.removeSessionHandler(handler.getConfKey(), handler.isCollab());
+    	this.removeSessionHandler(handler.getConfKey(), handler.isCollab(), handler.isCachingState());
     }
     
-    public void removeSessionHandler(String confkey, boolean collab) {
+    public void removeSessionHandler(String confkey, boolean collab, boolean cacheState) {
 
     	System.out.println("SessionManager::removeSessionHandler ***********");
-    	SessionHandler handler = this.sessions.remove(confkey+":" + collab);
+    	SessionHandler handler = this.sessions.remove(confkey+":" + collab + ":" + cacheState);
     	System.out.println("handler = " + handler);
     	
     	handler = null;
