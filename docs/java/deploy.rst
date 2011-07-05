@@ -86,6 +86,9 @@ delegateClass
 securityClass
    String name of a :class:`org.coweb.CowebSecurityPolicy` subclass to use instead of the base class which allows anonymous access to all sessions. 
 
+updaterTypeMatcherClass
+   String name of a :class:`org.coweb.UpdaterTypeMatcher` subclass to use to match an Updater Type for a late joiner.
+
 Use cases
 ~~~~~~~~~
 
@@ -109,5 +112,9 @@ Say a certain app deployment requires the coweb server to control user access to
       <init-param>
          <param-name>securityClass</param-name>
          <param-value>org.someorg.CustomSecurityPolicy</param-value>
+      </init-param>
+      <init-param>
+         <param-name>updaterTypeMatcherClass</param-name>
+         <param-value>org.someorg.CustomUpdaterTypeMatcher</param-value>
       </init-param>
    </servlet>

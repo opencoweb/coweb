@@ -5,13 +5,14 @@
 Extension points
 ----------------
 
-The various manager classes specified in a :class:`coweb.AppContainer` derive from abstract base classes representing extension points in the :mod:`coweb` package. New implementations of these base classes can define new methods of authenticating users, controlling session access, launching bots, and communicating with bots.
+The various manager classes specified in a :class:`coweb.AppContainer` derive from abstract base classes representing extension points in the :mod:`coweb` package. New implementations of these base classes can define new methods of authenticating users, controlling session access, launching bots, communicating with bots and controlling the type of updater selected for late joiners.
 
 The creation and use of new managers requires:
 
 #. The installation of the :mod:`coweb` package into the Python import path.
 #. The import of the new manager module into an application container script.
 #. The configuration of an application container to use the new manager instead of its default.
+#. The configuration of an updater type matcher implementation used to select the type of updater for late joiners.
 
 Revisit the section about :doc:`container` for assistance configuring a coweb server to use third-party managers.
 
@@ -332,3 +333,19 @@ Bridging bots and sessions
       :param str serviceName: Name of the service
       :param dict data: Dictionary of data 
       :rtype: None
+
+Controlling the type of Updater assigned to late joiners
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. module:: coweb.updater
+   :synopsis: Python package defining the updater type matcher interface.
+
+.. class:: UpdaterTypeMatcherBase
+
+   .. method:: match(self, updaterType, availableUpdaterTypes)
+
+      The service manager calls when a Delegate implementation needs to match an Updater Type for a late joiner.
+
+      :param str updaterType: type of updater of the updatee
+      :param list availableUpdaterTypes: list of available updater types
+      :rtype: str
