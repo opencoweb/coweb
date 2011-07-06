@@ -81,7 +81,9 @@ This open source project derives from a broader IBM cooperative web project. The
 
 Bill Abt, Krishna Akella, Hisatoshi Adachi, David Boloker, `Paul Bouchon <http://github.com/bouchon>`_, `Brian Burns <http://github.com/bpburns>`_, `Bryce Curtis <http://github.com/brycecurtis>`_, Andrew Donoho, `Dan Gisolfi <http://github.com/vinomaster>`_, Wing Lee, `Peter Parente <http://github.com/parente>`_, Aaron Reed, `Roger Que <http://github.com/query>`_, Sonal Starr, `Michael Stewart <http://github.com/thegreatmichael>`_, Wayne Vicknair, Royce Walter, Peter Westerink
 
-Subsequent contributors to the project under the Dojo Foundation will be credited here. 
+Additional contributions made to the project under the Dojo Foundation come from the following people:
+
+Richard Backhouse <http://github.com/rbackhouse>`_, Nick Fitzgerald <http://github.com/fitzgen>`_
 
 References
 ==========
