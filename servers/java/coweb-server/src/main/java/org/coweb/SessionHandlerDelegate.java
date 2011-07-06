@@ -14,8 +14,9 @@ public interface SessionHandlerDelegate {
      *
      * @param sessionHandler The org.coweb.SessionHandler object which 
      * invokes this delegate.
+     * @param cacheState boolean indicating if state should be cached.
      */
-    public void init(SessionHandler sessionHandler);
+    public void init(SessionHandler sessionHandler, boolean cacheState, UpdaterTypeMatcher updaterTypeMatcher);
 
     /**
      * Called when a user attempts to send a request to a service in a 

@@ -43,7 +43,11 @@ A web application can configure the various implementations of the JavaScript AP
 .. attribute:: cowebConfig.sessionImpl
 
    String module name containing the :class:`SessionInterface` implementation to use. This implementation must be able to communicate with the running coweb server. Defaults to `coweb/session/BayeuxSession`.
-   
+
+.. attribute:: cowebConfig.cacheState
+
+   Boolean indicates if the server session state should be cached.
+
 Bootstrapping a coweb application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

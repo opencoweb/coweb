@@ -13,6 +13,7 @@ from coweb.auth.public import PublicAuth
 from coweb.access.public import PublicAccess
 from coweb.service.launcher.process import ProcessLauncher
 from coweb.service.manager.bayeux import BayeuxServiceManager
+from coweb.updater.default import DefaultUpdaterTypeMatcher
 
 class AppContainer(object):
     '''
@@ -50,6 +51,7 @@ class AppContainer(object):
         self.serviceLauncherClass = (ProcessLauncher,
             {'sandboxUser' : 'nobody', 'botPaths' : self.cowebBotLocalPaths})
         self.serviceManagerClass = BayeuxServiceManager
+        self.updaterTypeMatcherClass = DefaultUpdaterTypeMatcher
         
         # allow easy override of default settings without busting manager
         # creation
@@ -65,6 +67,7 @@ class AppContainer(object):
         self.access = self.on_build_access_manager()
         handlers = self.on_build_web_handlers()
         self.webApp = self.on_build_web_app(handlers, self.appSettings)
+        self.updaterTypeMatcher = self.on_build_updater_type_matcher()
     
     def get_absolute_path(self, path):
         if not path.startswith('/'):
@@ -155,3 +158,12 @@ class AppContainer(object):
     def on_build_web_app(self, handlers, settings):
         from coweb.application import Application
         return coweb.application.Application(self, handlers, **settings)
+
+    def on_build_updater_type_matcher(self):
+        try:
+            cls, kwargs = self.updaterTypeMatcherClass
+        except TypeError:
+            updaterTypeMatcher = self.updaterTypeMatcherClass(self)
+        else:
+            updaterTypeMatcher = cls(self, **kwargs)
+        return updaterTypeMatcher

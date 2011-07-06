@@ -142,9 +142,19 @@ class CollabSession(session.Session):
                 'data': []
             })
             return
-            
-        # grab random updater 
-        updaterId = random.choice(self._updaters.keys())
+        updaterId = None
+        if updatee.updaterType is not 'default':
+            matchedType = self._container.updaterTypeMatcher.match(updatee.updaterType, self.get_available_updater_types())
+            if matchedType is not None:
+                for clientId in self._updaters:
+                    updater = self.get_client(clientId)
+                    if updater.updaterType == matchedType:
+                        updaterId = clientId
+                        log.info('found an updater type of %s', matchedType)
+                        break
+        if updaterId is None:
+            # grab random updater
+            updaterId = random.choice(self._updaters.keys())
         updater = self.get_client(updaterId)
         # generate a unique token
         token = uuid.uuid4().hex
@@ -157,6 +167,13 @@ class CollabSession(session.Session):
             'channel':'/service/session/updater',
             'data': token
         })
+
+    def get_available_updater_types(self):
+        updaterTypes = [];
+        for clientId in self._updaters:
+            updater = self.get_client(clientId)
+            updaterTypes.append(updater.updaterType)
+        return updaterTypes
 
     def queue_updatee(self, client):
         '''Queues a late-joiner to receive full state.'''
@@ -227,9 +244,10 @@ class CollabSession(session.Session):
         except KeyError:
             return
          
-        # @disabled: issue #76   
         # store this state as the last known up-to-date state
-        #self._lastState = data['state']
+        if self.cacheState is True:
+            log.info('using cached state')
+            self._lastState = data['state']
 
         # send state to updatee
         updatee.add_message({

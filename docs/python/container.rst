@@ -179,6 +179,10 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
    
       String absolute URL for static web resources in the :attr:`httpStaticPath`. Defaults to :attr:`webRoot` + `www/`.
    
+   .. attribute:: updaterTypeMatcherClass
+   
+      Subclass of :class:`coweb.updater.UpdaterTypeMatcherBase` to use to match an Updater Type for a late joiner. Defaults to :mod:`coweb.updater.DefaultUpdaterTypeMatcher` which will attempt an exact match against the available updater types.
+   
    .. method:: on_configure(self)
    
       The constructor invokes this method after defining the default attribute values but before computing relative paths. Override any attributes in here.
@@ -216,6 +220,10 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
    .. method:: on_build_web_app(self, handlers, settings)
    
       The constructor invokes this method to instantiate a :class:`tornado.web.Application` instance, passing it the handler list from :meth:`on_build_web_handlers` and the settings from :attr:`appSettings`. Override to perform additional work.
+
+   .. method:: on_build_updater_type_matcher(self)
+
+      The session manager invokes this method to instantiate the configured updater type match at session startup. Override to customize manager instantiation. 
 
 Use cases
 ~~~~~~~~~
