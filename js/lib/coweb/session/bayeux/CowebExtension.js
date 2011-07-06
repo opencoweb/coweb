@@ -18,6 +18,7 @@ define(function() {
     var CowebExtension = function(args) {
         this._cometd = null;
         this._sessionid = args.sessionid;
+        this._updaterType = args.updaterType;
     };
     
     /**
@@ -50,6 +51,7 @@ define(function() {
         var ext = msg.ext = msg.ext || {};
         var coweb = msg.ext.coweb = msg.ext.coweb || {};
         coweb.sessionid = this._sessionid;
+        coweb.updaterType = this._updaterType;
         return msg;
     };
 

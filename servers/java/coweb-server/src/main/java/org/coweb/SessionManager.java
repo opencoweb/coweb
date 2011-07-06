@@ -33,10 +33,12 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
 	private static SessionManager singleton = null;
 	private ServletContext servletContext = null;
     private Class delegateClass = null;
+    private Class updaterTypeMatcherClass = null;
 	
     private SessionManager(BayeuxServer bayeux, 
             ServletContext context,
-            String delegate)
+            String delegate,
+            String updaterTypeMatcher)
     {
         super(bayeux, "session");
         this.servletContext = context;
@@ -49,7 +51,13 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
             //TODO Better error handling.
             e.printStackTrace();
         }
-
+        try {
+            this.updaterTypeMatcherClass = Class.forName(updaterTypeMatcher);
+        }
+        catch(Exception e) {
+            //TODO Better error handling.
+            e.printStackTrace();
+        }
         this.addService("/meta/subscribe", "handleSubscribed");
         this.addService("/meta/unsubscribe", "handleUnsubscribed");
         this.addService("/session/roster/*", "handleMessage");
@@ -76,7 +84,8 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     
     public static SessionManager newInstance(ServletContext servletContext,
             BayeuxServer bayeux,
-            String delegate) {
+            String delegate, 
+            String updaterTypeMatcher) {
 
         if(singleton != null)
             return singleton;
@@ -87,7 +96,10 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
         if(delegate == null)
             delegate = "org.coweb.CollabDelegate";
 
-        singleton = new SessionManager(bayeux, servletContext, delegate);
+        if (updaterTypeMatcher == null) {
+        	updaterTypeMatcher = "org.coweb.DefaultUpdaterTypeMatcher";
+        }
+        singleton = new SessionManager(bayeux, servletContext, delegate, updaterTypeMatcher);
         singleton.setSeeOwnPublishes(false);
 
     	return singleton;
@@ -164,9 +176,9 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
      * @param collab True if this is a collaborative session
      * @return SessionHandler
      */
-    public SessionHandler getSessionHandler(String confkey, boolean collab) {
+    public SessionHandler getSessionHandler(String confkey, boolean collab, boolean cacheState) {
 		
-    	String key = confkey + ":" + collab;
+    	String key = confkey + ":" + collab + ":" + cacheState;
     	return this.sessions.get(key);
     }
     
@@ -233,11 +245,11 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
      * @param collab
      * @return
      */
-    public SessionHandler createSession(String confkey, boolean collab) {
+    public SessionHandler createSession(String confkey, boolean collab, boolean cacheState) {
     	System.out.println("SessionManager::createSession ************");
         System.out.println("delegateClass = " + this.delegateClass);
     	//System.out.println("collab = " + collab);
-    	SessionHandler handler = this.getSessionHandler(confkey, collab);
+    	SessionHandler handler = this.getSessionHandler(confkey, collab, cacheState);
     
     	if(handler == null) {
     		
@@ -252,21 +264,29 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
             }
 
             System.out.println("delegate = " + delegate);
-    		handler = new SessionHandler(confkey, collab, delegate);
-    		this.sessions.put(confkey + ":" + collab, handler);
+            
+            UpdaterTypeMatcher updaterTypeMatcher = null;
+            try {
+            	updaterTypeMatcher = (UpdaterTypeMatcher)this.updaterTypeMatcherClass.newInstance();
+            }catch(Exception e) {
+            	updaterTypeMatcher = new DefaultUpdaterTypeMatcher();
+            }
+            
+    		handler = new SessionHandler(confkey, collab, cacheState, delegate, updaterTypeMatcher);
+    		this.sessions.put(confkey + ":" + collab + ":" + cacheState, handler);
     	}
     	
     	return handler;
     }
     
     public void removeSessionHandler(SessionHandler handler) {
-    	this.removeSessionHandler(handler.getConfKey(), handler.isCollab());
+    	this.removeSessionHandler(handler.getConfKey(), handler.isCollab(), handler.isCachingState());
     }
     
-    public void removeSessionHandler(String confkey, boolean collab) {
+    public void removeSessionHandler(String confkey, boolean collab, boolean cacheState) {
 
     	System.out.println("SessionManager::removeSessionHandler ***********");
-    	SessionHandler handler = this.sessions.remove(confkey+":" + collab);
+    	SessionHandler handler = this.sessions.remove(confkey+":" + collab + ":" + cacheState);
     	System.out.println("handler = " + handler);
     	
     	handler = null;

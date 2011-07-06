@@ -30,12 +30,12 @@ class Application(tornado.web.Application):
         pattern = '%s(%s)/?.*' % (self._container.webSessionRoot, session.sessionId)
         # add session handler for all hosts
         self.extend_handlers(r'.*$', [(pattern, handler)], False)
-        self._sessionIds[(session.key, session.collab)] = session.sessionId
+        self._sessionIds[(session.key, session.collab, session.cacheState)] = session.sessionId
         self._sessions[session.sessionId] = session
 
-    def get_session_id(self, key, collab):
-        '''Gets a session ID from the key and collab flag.'''
-        return self._sessionIds[(key, collab)]
+    def get_session_id(self, key, collab, cacheState):
+        '''Gets a session ID from the key, collab flag and cacheState flag.'''
+        return self._sessionIds[(key, collab, cacheState)]
         
     def get_session_url(self, sessionId):
         '''Gets a session URL from a session ID.'''
@@ -48,7 +48,7 @@ class Application(tornado.web.Application):
     def remove_session_handler(self, session):
         '''Removes the handler for a session.'''
         try:
-            del self._sessionIds[(session.key, session.collab)]
+            del self._sessionIds[(session.key, session.collab, session.cacheState)]
         except KeyError:
             return
         del self._sessions[session.sessionId]

@@ -7,13 +7,14 @@
 Extension points
 ----------------
 
-The optional admin servlet parameters in the coweb application deployment descriptor can name custom classes deriving from base classes in the :mod:`org.coweb` package. The optional broker parameter in a service bot configuration file can also name a custom class deriving from a base class in the same package. New implementations of these bases can define new methods of managing sessions and communicating with bots. Together, they represent points of extension on the coweb server.
+The optional admin servlet parameters in the coweb application deployment descriptor can name custom classes deriving from base classes in the :mod:`org.coweb` package. The optional broker parameter in a service bot configuration file can also name a custom class deriving from a base class in the same package. New implementations of these bases can define new methods of managing sessions, communicating with bots and controlling the type of updater selected for late joiners. Together, they represent points of extension on the coweb server.
 
 The creation and use of new subclasses at these extension points requires:
 
 #. The installation of the coweb Maven modules.
 #. The configuration of the coweb admin servlet to use alternative security policy and/or session delegate classes.
 #. The configuration of coweb bots to use an alternative transport class.
+#. The configuration of an updater type matcher implementation used to select the type of updater for late joiners.
 
 See the sections about :doc:`deploy` and :doc:`bots` for assistance configuring deployment descriptors and bots.
 
@@ -151,3 +152,16 @@ Communicating with service bots
       :param client: `org.cometd.bayeux.server.ServerSession`_ instance representing the application that sent the message
       :param message: `org.cometd.bayeux.Message`_ instance representing the request message
       :except IOException: When the transport experiences a failure delivering the message
+
+Controlling the type of Updater assigned to late joiners
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. class:: UpdaterTypeMatcher
+
+   Interface called when a Delegate implementation needs to match an Updater Type for a late joiner.
+
+   .. method:: match(String updaterType, List<String> availableUpdaterTypes) -> String
+
+      :param updaterType: Type of updater of the updatee
+      :param availableUpdaterTypes: List of available updater types
+      :return: Matched type otherwise null to indicate no match is available

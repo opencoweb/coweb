@@ -57,6 +57,8 @@ public class AdminServlet extends HttpServlet {
         String delegateClass = config.getInitParameter("delegateClass");
         //Get the SecurityPolicy for this application
         String securityClass = config.getInitParameter("securityClass");
+        //Get the UpdaterTypeMatcher for this application
+        String updaterTypeMatcherClass = config.getInitParameter("updaterTypeMatcherClass");
 
         //Create the security policy.  Default to CowebSecurityPolicy.
         if(securityClass == null)
@@ -78,7 +80,8 @@ public class AdminServlet extends HttpServlet {
         //create the session manager. 
 	    this.sessionManager = SessionManager.newInstance(servletContext, 
                 bayeux,
-                delegateClass);
+                delegateClass,
+                updaterTypeMatcherClass);
 	}
 	
 	
@@ -94,6 +97,7 @@ public class AdminServlet extends HttpServlet {
 
 		String confKey = null;
 		boolean collab = false;
+		boolean cacheState = false;
 		
 		try {
 			Map<String, Object> jsonObj = 
@@ -111,6 +115,12 @@ public class AdminServlet extends HttpServlet {
 				}
 			}
 
+			if(jsonObj.containsKey("cacheState")) {
+				if(((Boolean)jsonObj.get("cacheState")).booleanValue() == true) {
+					cacheState = true;
+				}
+			}
+
             //TODO need to call the security policy to see if this user is 
             //allowed to send prep requests and allow any further processing
             //as an extension point.
@@ -125,9 +135,9 @@ public class AdminServlet extends HttpServlet {
 		
 		
 		SessionHandler handler = 
-            this.sessionManager.getSessionHandler(confKey, collab);
+            this.sessionManager.getSessionHandler(confKey, collab, cacheState);
 		if(handler == null) {
-			handler = this.sessionManager.createSession(confKey, collab);
+			handler = this.sessionManager.createSession(confKey, collab, cacheState);
 		}
 			
 		String sessionId = handler.getSessionId();

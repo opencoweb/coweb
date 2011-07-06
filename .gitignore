@@ -15,3 +15,6 @@ target/
 servers/python/MANIFEST
 servers/python/dist
 servers/python/build
+.classpath
+.project
+.settings/

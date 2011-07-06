@@ -29,6 +29,7 @@ define([
         this._unloadToks = {};
         this._loginUrl = null;
         this._logoutUrl = null;
+        this._cacheState = false;
     };
     var proto = BayeuxSession.prototype;
 
@@ -43,6 +44,7 @@ define([
         this._loginUrl = params.loginUrl;
         this._logoutUrl = params.logoutUrl;
         this._debug = params.debug;
+        this._cacheState = params.cacheState;
         this._listener = listenerImpl;
         // create the bridge impl
         this._bridge = new SessionBridge({
@@ -64,7 +66,6 @@ define([
             window.attachEvent('onbeforeunload', destroy);
             window.attachEvent('onunload', destroy);
         }
-       
     };
 
     /**
@@ -231,6 +232,9 @@ define([
             params.autoUpdate = true;
         }
 
+        if(params.updaterType === undefined) {
+            params.updaterType = "default";
+        }
         // create a promise and hang onto its ref as part of the params
         this._prepParams = lang.clone(params);
         this._prepParams.promise = new Promise();
@@ -240,7 +244,7 @@ define([
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
-        this._bridge.prepare(params.key, params.collab)
+        this._bridge.prepare(params.key, params.collab, this._cacheState)
             .then('_onPrepared', '_onPrepareError', this);
         // start listening to disconnections
         this._bridge.disconnectPromise.then('_onDisconnected', null, this);
@@ -263,7 +267,7 @@ define([
 
         if(this._prepParams.autoJoin) {
             // continue to join without resolving promise
-            this.join();
+            this.join({updaterType:this._prepParams.updaterType});
         } else {
             // pull out the promise
             var promise = this._prepParams.promise;
@@ -289,13 +293,15 @@ define([
 
     /**
      * Called by an app to join the prepared session.
+     * @param {Object} Session join options
      * @returns {Promise} Promise resolved when the last phase (prepare, join,
      * update) set to automatically run completes or fails
      */
-    proto.join = function() {
+    proto.join = function(params) {
         if(this._bridge.getState() !== this._bridge.PREPARED) {
             throw new Error('join() not valid in current state');
         }
+        params = params || {};
 
         // indicate joining status
         this.onStatusChange('joining');
@@ -306,7 +312,10 @@ define([
             // new promise for join if prepare was resolved
             this._prepParams.promise = new Promise();
         }
-        this._bridge.join().then('_onJoined', '_onJoinError', this);
+        if (params.updaterType === undefined) {
+        	params.updaterType = 'default';
+        }
+        this._bridge.join(params.updaterType).then('_onJoined', '_onJoinError', this);
         return this._prepParams.promise;
     };
 

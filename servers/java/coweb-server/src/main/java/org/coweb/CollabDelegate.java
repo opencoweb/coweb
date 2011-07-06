@@ -83,12 +83,19 @@ public class CollabDelegate extends DefaultDelegate {
 		//System.out.println("data = " + data);
 		boolean sendState = false;
 		
+		Map<String, Object> ext = message.getExt();
+		@SuppressWarnings("unchecked")
+		Map<String, Object> cobwebData = (Map<String, Object>)ext.get("coweb");
+		String updaterType = (String)cobwebData.get("updaterType");
+		client.setAttribute("updaterType", updaterType);
+        System.out.println("updaterType = "+updaterType);
+		
 		if(this.updaters.isEmpty()) {
 			this.addUpdater(client, false);
 			sendState = true;
 		}
 		else if(this.lastState == null) {
-			this.assignUpdater(client);
+			this.assignUpdater(client, updaterType);
 			sendState = false;
 		}
 		else {
@@ -130,13 +137,18 @@ public class CollabDelegate extends DefaultDelegate {
 			return;
 		
 		this.updatees.remove(token);
-		// @disabled: issue 76
-		//this.lastState = (Object[])data.get("state");
+		if (this.cacheState) {
+			this.lastState = (Object[])data.get("state");
+		}
 		
 		ServerMessage.Mutable msg = this.sessionManager.getBayeux().newMessage();
 
 		msg.setChannel("/service/session/join/state");
-		msg.setData((Object[])data.get("state"));
+		if (this.cacheState) {
+			msg.setData(this.lastState);
+		} else {
+			msg.setData((Object[])data.get("state"));
+		}
 		msg.setLazy(false);
 			
 		updatee.deliver(this.sessionManager.getServerSession(), msg);
@@ -326,7 +338,7 @@ public class CollabDelegate extends DefaultDelegate {
 		return roster;
 	}
 	
-	private void assignUpdater(ServerSession updatee) {
+	private void assignUpdater(ServerSession updatee, String updaterType) {
         System.out.println("CollabDelegate::assignUpdater *****************");
 		ServerSession from = this.sessionManager.getServerSession();
 		if(this.updaters.isEmpty()) {
@@ -340,13 +352,29 @@ public class CollabDelegate extends DefaultDelegate {
 			return;		
 		}
 		
-		Random r = new Random();
-		int idx = r.nextInt(this.updaters.size());
-		
-		Object[] keys = this.updaters.keySet().toArray();
-		String updaterId = (String)keys[idx];
-		ServerSession updater = this.clientids.get(updaterId);
-	
+		String updaterId = null;
+		ServerSession updater = null;
+		if (!updaterType.equals("default")) {
+			String matchedType = updaterTypeMatcher.match(updaterType, getAvailableUpdaterTypes());
+			if (matchedType != null) {
+				for (String id : this.updaters.keySet()) {
+					updater = this.clientids.get(id);
+					if (updater.getAttribute("updaterType").equals(matchedType)) {
+						updaterId = id;
+				        System.out.println("found an updater type matched to ["+matchedType+"]");
+						break;
+					}
+				}
+			}
+		}
+		if (updaterId == null) {
+			Random r = new Random();
+			int idx = r.nextInt(this.updaters.size());
+	        System.out.println("using default updater type");
+			Object[] keys = this.updaters.keySet().toArray();
+			updaterId = (String)keys[idx];
+			updater = this.clientids.get(updaterId);
+		}
         System.out.println("assigning updater " + updater.getAttribute("siteid") + " to " + updatee.getAttribute("siteid"));    
 		SecureRandom s = new SecureRandom();
 		String token = new BigInteger(130, s).toString(32);
@@ -394,7 +422,11 @@ public class CollabDelegate extends DefaultDelegate {
 						continue;
 					
 					//this.updatees.remove(token);
-                    this.assignUpdater(updatee);
+					String updaterType = (String)client.getAttribute("updaterType");
+					if (updaterType == null) {
+						updaterType = "default";
+					}
+                    this.assignUpdater(updatee, updaterType);
 				}
 			}
 		}
@@ -404,6 +436,14 @@ public class CollabDelegate extends DefaultDelegate {
 		return this.updaters.size();
 	}
 	
+	private List<String> getAvailableUpdaterTypes() {
+		List<String> availableUpdaterTypes = new ArrayList<String>();
+		for (String id : this.updaters.keySet()) {
+			ServerSession updater = this.clientids.get(id);
+			availableUpdaterTypes.add((String)updater.getAttribute("updaterType"));
+		}
+		return availableUpdaterTypes;
+	}
 	
 	private class BatchUpdateMessage implements Runnable {
 		
