@@ -76,7 +76,7 @@ define([
     OpEngClient.prototype.recvSome = function(count) {
         var ops = [], op;
         while(count-- > 0 && this.incoming.length) {
-            op = this.recv()
+            op = this.recv();
             if(op) {
                 ops.push(ops);
             }
