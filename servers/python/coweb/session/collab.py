@@ -144,7 +144,7 @@ class CollabSession(session.Session):
             return
         updaterId = None
         if updatee.updaterType is not 'default':
-            matchedType = self._container.updaterTypeMatcher.match(updatee.updaterType, self._updaters.keys())
+            matchedType = self._container.updaterTypeMatcher.match(updatee.updaterType, self.get_available_updater_types())
             if matchedType is not None:
                 for clientId in self._updaters:
                     updater = self.get_client(clientId)
@@ -167,6 +167,13 @@ class CollabSession(session.Session):
             'channel':'/service/session/updater',
             'data': token
         })
+
+    def get_available_updater_types(self):
+        updaterTypes = [];
+        for clientId in self._updaters:
+            updater = self.get_client(clientId)
+            updaterTypes.append(updater.updaterType)
+        return updaterTypes
 
     def queue_updatee(self, client):
         '''Queues a late-joiner to receive full state.'''
