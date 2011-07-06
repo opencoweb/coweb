@@ -7,7 +7,8 @@ Changelog
 Version 0.6
 ~~~~~~~~~~~
 
-* Aded :data:`cowebConfig.baseUrl` parameter to support deployments behind proxies.
+* Added :data:`cowebConfig.baseUrl` parameter to support deployments behind proxies.
+* Added :data:`cowebConfig.cacheState` parameter to support turning on state caching.
 
 Version 0.5
 ~~~~~~~~~~~
