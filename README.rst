@@ -83,7 +83,7 @@ Bill Abt, Krishna Akella, Hisatoshi Adachi, David Boloker, `Paul Bouchon <http:/
 
 Additional contributions made to the project under the Dojo Foundation come from the following people:
 
-Richard Backhouse <http://github.com/rbackhouse>`_, Nick Fitzgerald <http://github.com/fitzgen>`_
+`Richard Backhouse <http://github.com/rbackhouse>`_, `Nick Fitzgerald <http://github.com/fitzgen>`_
 
 References
 ==========
