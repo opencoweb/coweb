@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
 
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
@@ -21,6 +22,8 @@ public class LocalTransport extends Transport implements Proxy {
 	
 	private Bot bot = null;
 	private Map<String, ServerSession> clients = new HashMap<String, ServerSession>();
+	
+	private ArrayList<ServerSession> subscribers = new ArrayList<ServerSession>();
 	
 	public LocalTransport() {
 		super();
@@ -42,8 +45,10 @@ public class LocalTransport extends Transport implements Proxy {
 				throw new IOException("unable to locate bot " + this.serviceName);
 		}
 			
-		if(pub) 
+		if(pub) {
 			this.bot.onSubscribe((String)client.getAttribute("username"));
+			this.subscribers.add(client);
+		}
 
         return true;
 	}
@@ -62,8 +67,10 @@ public class LocalTransport extends Transport implements Proxy {
 				throw new IOException("unable to locate bot " + this.serviceName);
 		}
 		
-		if(pub) 
+		if(pub) {
 			this.bot.onUnsubscribe((String)client.getAttribute("username"));
+			this.subscribers.remove(client);
+		}
 
         return true;
 	
@@ -73,6 +80,7 @@ public class LocalTransport extends Transport implements Proxy {
 	public void shutdown() {
 		//System.out.println("LocalTransport::shutdown");
 		this.clients.clear();
+		this.subscribers.clear();
 		if(this.bot != null)
 			this.bot.onShutdown();	
 	}
@@ -161,6 +169,9 @@ public class LocalTransport extends Transport implements Proxy {
 		payload.put("data", data);
 	
 		ServerChannel channel = this.getResponseChannel();
+		for(ServerSession client: this.subscribers) {
+			client.deliver(this.server, channel.getId(), data, null);
+		}
 	
 		//System.out.println("LocalTransport::publish");
 		//System.out.println(data);
@@ -171,7 +182,7 @@ public class LocalTransport extends Transport implements Proxy {
 			System.out.println(client.getAttribute("username"));
 		}
 		*/
-		channel.publish(this.server, data, null);
+		//channel.publish(this.server, data, null);
 	}
 	
 	private Bot getBotInstance() throws IOException {
