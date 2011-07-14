@@ -77,7 +77,7 @@ define([
         var init = '1abcdefghijklm 2nopqrstuvwxyz';
         var sites = [
             new util.OpEngClient(0, {symbol : init}),
-            new util.OpEngClient(1, {symbol : init}),
+            new util.OpEngClient(1, {symbol : init})
         ];
         var strs = ['abcdefghijklm', 'nopqrstuvwxyz'];
         var op, i, pos, offset = 1, s, str, site;
@@ -134,7 +134,7 @@ define([
         var init = '1nopqrstuvwxyz 2abcdefghijklm';
         var sites = [
             new util.OpEngClient(0, {symbol : init}),
-            new util.OpEngClient(1, {symbol : init}),
+            new util.OpEngClient(1, {symbol : init})
         ];
         var strs = ['abcdefghijklm', 'nopqrstuvwxyz'];
         var op, i, pos, offset = 1, s, str, site;
