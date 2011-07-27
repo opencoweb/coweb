@@ -156,6 +156,7 @@ Communicating with service bots
 Controlling the type of Updater assigned to late joiners
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. module:: org.coweb
 .. class:: UpdaterTypeMatcher
 
    Interface called when a Delegate implementation needs to match an Updater Type for a late joiner.

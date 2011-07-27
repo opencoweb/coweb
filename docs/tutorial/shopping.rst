@@ -1083,6 +1083,131 @@ Your application now meets all of the requirements we set forth at the beginning
 #. The text of a row is red when a remote user puts keyboard focus on that row.
 #. When a user leaves the session, the focus for that user is no longer shown.
 
+Providing a custom Updater Type Matcher
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default the type of updater assigned to late joiners of sessions is selected randomly. Some applications may need to provide more control over which type of updater is selected. For example if the application has different types of clients such as mobile or desktop clients ensuring that a mobile updater type is used for mobile client late joiners and the desktop one for desktop clients might be a requirement.
+
+For the shopping list application we are first going to enable it to specify the type of updater the joining client is. The updater type will be optionally specified as a URL query parameter called 'updaterType' and passed in to the session prepare code. 'updaterType' is also an optional parameter for the 'join' API.
+
+:file:`colist.js`
+#################
+
+.. sourcecode:: javascript
+
+    function getURLParams() {
+        var urlParams = {};
+        var searchText = window.location.search.substring(1);
+        var searchSegs = searchText.split('&');
+        for(var i=0, l=searchSegs.length; i<l; i++) {
+            var tmp = searchSegs[i].split('=');
+            urlParams[decodeURIComponent(tmp[0])] = decodeURIComponent(tmp[1]);
+        }
+        return urlParams;
+    }
+
+.. sourcecode:: javascript
+
+    var urlParams = getURLParams();
+    var updaterType = urlParams['updaterType'] === undefined  ? 'default' : urlParams['updaterType'];
+    // do the prep
+    sess.prepare({updaterType: updaterType});
+
+Now that an updater type can be specified by clients a custom Updater Type Matcher can be written that will be able to select the type of updater to be used based on the type of the updatee. The following is a java and a python example that demonstrates a custom matcher that looks for 4 different types (type1, type2, type3, type4). type1 will be matched for type1 and also type3, type2 will be matched for type2 and type4. type3 and type4 will only match their own type.
+
+:file:`ExampleUpdaterTypeMatcher.java`
+######################################
+
+.. sourcecode:: java
+
+	import java.util.Arrays;
+	import java.util.HashMap;
+	import java.util.List;
+	import java.util.Map;
+	import org.coweb.UpdaterTypeMatcher;
+
+	public class ExampleUpdaterTypeMatcher implements UpdaterTypeMatcher {
+		private Map<String, List<String>> updaterTypeLookup = null;
+		public ExampleUpdaterTypeMatcher() {
+			updaterTypeLookup = new HashMap<String, List<String>>();
+			updaterTypeLookup.put("type1", Arrays.asList(new String[]{"type1", "type3"}));
+			updaterTypeLookup.put("type2", Arrays.asList(new String[]{"type2", "type4"}));
+			updaterTypeLookup.put("type3", Arrays.asList(new String[]{"type3"}));
+			updaterTypeLookup.put("type4", Arrays.asList(new String[]{"type4"}));
+		}
+		public String match(String updateeType, List<String> availableUpdaterTypes) {
+			String match = null;
+			for (String availableUpdaterType : availableUpdaterTypes) {
+				List<String> matches = updaterTypeLookup.get(availableUpdaterType);
+				if (matches != null && matches.contains(updateeType)) {
+					match = availableUpdaterType;
+					break;
+				}
+			}
+			System.out.println("ExampleUpdaterTypeMatcher called to obtain a match for ["+updateeType+"] match = ["+match+"]");
+			return match;
+		}
+	}
+
+:file:`example.py`
+##################
+
+.. sourcecode:: python
+
+	import coweb.updater
+	import logging
+
+	log = logging.getLogger('example')
+
+	class ExampleUpdaterTypeMatcher(coweb.updater.UpdaterTypeMatcherBase):
+    	def __init__(self, container):
+        	coweb.updater.UpdaterTypeMatcherBase.__init__(self, container)
+        	self.lookup = {"type1" : ["type1", "type3"], "type2" : ["type2", "type4"], "type3" : ["type3"], "type4" : ["type4"]}
+
+    	def match(self, updateeType, availableUpdaterTypes):
+        	log.info('updateeType = %s', updateeType)
+        	for availableUpdaterType in availableUpdaterTypes:
+            	if availableUpdaterType in self.lookup.keys():
+                	matches = self.lookup[availableUpdaterType]
+                	if updateeType in matches:
+                    	log.info('%s matched to %s', updateeType, availableUpdaterType)
+                    	return availableUpdaterType
+            	else:
+                	log.info('availableUpdaterType %s is not in lookup table', availableUpdaterType)
+
+        	return None
+
+To configure the java UpdaterTypeMatcher modify the web applications web.xml and add an init-param to the coweb Admin servlet descriptor
+
+.. sourcecode:: xml
+
+  <servlet>
+    <servlet-name>admin</servlet-name>
+    <servlet-class>org.coweb.servlet.AdminServlet</servlet-class>
+    <init-param>
+      <param-name>updaterTypeMatcherClass</param-name>
+      <param-value>org.coweb.example.ExampleUpdaterTypeMatcher</param-value>
+    </init-param>
+    <load-on-startup>2</load-on-startup>
+  </servlet>
+
+To configure the python UpdaterTypeMatcher modify your run_server.tmpl file and add updaterTypeMatcherClass parameter to the on_configure block
+
+.. sourcecode:: python
+
+	class CoWebApp(coweb.AppContainer):
+    	def on_configure(self):
+        	# secret key for signing auth cookies
+        	self.webSecretKey = '${webSecretKey}'
+        	# match admin url to what java version uses
+        	self.webAdminUrl = self.webRoot + 'cowebx-apps/admin'
+        	# match static url to what java uses
+        	self.webStaticRoot = self.webRoot + 'cowebx-apps/'
+        	# provide custom updater type matcher
+        	self.updaterTypeMatcherClass = updater.ExampleUpdaterTypeMatcher
+
+You should now be able to specify an 'updaterType' on the shopping list applications URL and see logging information indicating which updater type was selected for late joiners.
+
 Going further
 ~~~~~~~~~~~~~
 
