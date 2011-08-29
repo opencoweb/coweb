@@ -55,6 +55,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
         return this.manager;
     }
 
+	public SessionHandlerDelegate getDelegate() {
+		return this.delegate;
+	}
+
     public boolean onMessage(ServerSession from, ServerChannel channel,
             ServerMessage.Mutable message) {
         // System.out.println("SessionHandler::onMessage");

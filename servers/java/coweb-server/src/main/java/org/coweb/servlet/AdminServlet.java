@@ -84,10 +84,19 @@ public class AdminServlet extends HttpServlet {
                 updaterTypeMatcherClass);
 	}
 	
+	@Override
+	public void doGet(HttpServletRequest req, HttpServletResponse resp) {
+		System.out.println("AdminServlet::gotGet ***********");
+		System.out.println(req.getRequestURL());
+		if(req.getRequestURL().indexOf("disconnect") != -1) {
+			this._handleDisconnect(req, resp);
+		}
+	}
 	
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 	throws ServletException, IOException {
+		
 		
 		resp.setContentType("appliation/json");
 
@@ -159,5 +168,22 @@ public class AdminServlet extends HttpServlet {
             writer.flush();
 		}
 		catch(Exception e) { ; }
+	}
+	
+	private void _handleDisconnect(HttpServletRequest req, HttpServletResponse resp) {
+		System.out.println("AdminServlet::_handleDisconnect ***********");
+		String path = req.getPathInfo();
+		System.out.println("path info = " + path);
+		if(path == null)
+			return;
+		
+		String[] paths = path.split("/");
+		if(paths == null || paths.length != 4)
+			return;
+		
+		String sessionId = paths[2];
+		String siteId = paths[3];
+		
+		this.sessionManager.disconnectClient(sessionId, siteId);
 	}
 }

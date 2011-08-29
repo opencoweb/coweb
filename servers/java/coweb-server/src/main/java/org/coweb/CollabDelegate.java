@@ -52,6 +52,22 @@ public class CollabDelegate extends DefaultDelegate {
 		}	
     }
 
+	public ServerSession getServerSessionFromSiteid(String siteStr) {
+		ServerSession client = null;
+		try {
+			int siteid = Integer.valueOf(siteStr);
+			String clientId = this.siteids.get(siteid);
+			
+			if(clientId == null)
+				return null;
+				
+			return this.clientids.get(clientId);
+		}
+		catch (Exception e) { ; }
+		
+		return null;
+	}
+
     @Override
     public boolean onSync(ServerSession client, Message message) {
         if(this.ensureUpdater(client)) {

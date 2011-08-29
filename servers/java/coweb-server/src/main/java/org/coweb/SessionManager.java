@@ -177,8 +177,9 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
      * @return SessionHandler
      */
     public SessionHandler getSessionHandler(String confkey, boolean collab, boolean cacheState) {
-		
+	
     	String key = confkey + ":" + collab + ":" + cacheState;
+		System.out.println("SessionManager::getSessionHandler for " + key);
     	return this.sessions.get(key);
     }
     
@@ -291,6 +292,29 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     	
     	handler = null;
     }
+
+	public void disconnectClient(String sessionId, String siteId) {
+		System.out.println("SessionManager::disconnectClient *********");
+		System.out.println("sessionId = " + sessionId + " siteId = " + siteId);
+		SessionHandler handler = this.getSessionHandler(sessionId);
+		if(handler == null) {
+			System.out.println("handler not found for sessionId");
+			return;
+		}
+			
+		SessionHandlerDelegate delegate = handler.getDelegate();
+		if(!(delegate instanceof CollabDelegate))
+			return;
+			
+		ServerSession client = ((CollabDelegate)delegate).getServerSessionFromSiteid(siteId);
+		if(client != null) {
+			System.out.println("ServerSession found about to call disconnect");
+			client.disconnect();
+		}
+		else {
+			System.out.println("ServerSession not found from handler delegate");
+		}
+	}
 
 	
 	@Override
