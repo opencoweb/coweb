@@ -214,6 +214,10 @@ define([
                 op = this._engine.push(false, topic, value, type, position, 
                     site, sites, order);
             } catch(e) {
+                console.log('topic ',topic);
+                console.log('value ',position);
+                console.log('type ',position);
+                console.log('position ',position);
                 console.warn('UnmanagedHubListener: failed to push op into engine ' +
                     e.message);
                 // @todo: we're out of sync now probably, fail the session?
