@@ -103,6 +103,10 @@ public class DefaultDelegate implements SessionHandlerDelegate {
         return;
     }
 
+	public ArrayList<ServerSession> getAttendees() {
+		return null;
+	}
+
     public boolean onClientRemove(ServerSession client) {
         this.serviceHandler.removeUserFromAll(client);
 

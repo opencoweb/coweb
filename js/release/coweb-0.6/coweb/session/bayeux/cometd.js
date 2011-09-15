@@ -1,1 +1,53 @@
-define(["coweb/util/xhr","org/cometd"],function(a,b){b.JSON.toJSON=JSON.stringify,b.JSON.fromJSON=JSON.parse;var c=new b.Cometd,d=function(){var c=new b.LongPollingTransport,d=b.Transport.derive(c);d.xhrSend=function(b){b.method="POST",b.headers=b.headers||{},b.headers["Content-Type"]="application/json;charset=UTF-8";var c=a.send(b);c.then(function(a){b.onSuccess(a.xhr.responseText)},function(a){var c=new Error("failed loading "+a.url+" status: "+a.xhr.status);b.onError(a.xhr.statusText,c)});return c.xhr};return d};c.registerTransport("long-polling",new d),c.registerExtension("ack",new b.AckExtension);return c})
+//
+// Binding for CometD that uses pure browser features, no toolkits.
+//
+// Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+// Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
+//
+/*jslint white:false, bitwise:true, eqeqeq:true, immed:true, nomen:false, 
+  onevar:false, plusplus:false, undef:true, browser:true, devel:true, 
+  forin:false, sub:false*/
+/*global define */
+define([
+    'coweb/util/xhr',
+    'org/cometd'
+], function(xhr, cometd) {
+    // use browser native functions, http://caniuse.com/#search=JSON
+    cometd.JSON.toJSON = JSON.stringify;
+    cometd.JSON.fromJSON = JSON.parse;
+    
+    // build default instance
+    var c = new cometd.Cometd();
+
+    // implement abstract methods in required transports
+    var LongPollingTransport = function() {
+        var _super = new cometd.LongPollingTransport();
+        var that = cometd.Transport.derive(_super);
+        // implement abstract method
+        that.xhrSend = function(packet) {
+            packet.method = 'POST';
+            packet.headers = packet.headers || {};
+            packet.headers['Content-Type'] = 'application/json;charset=UTF-8';
+            var promise = xhr.send(packet);
+            promise.then(function(args) {
+                packet.onSuccess(args.xhr.responseText);
+            }, function(args) {
+                var err = new Error('failed loading '+args.url+' status: '+args.xhr.status);
+                packet.onError(args.xhr.statusText, err);
+            });
+            return promise.xhr;
+        };
+        return that;
+    };
+
+    // register transports
+    // @todo: websocket disabled for now, make this a config option
+    // if (window.WebSocket) {
+    //     cometd.registerTransport('websocket', new org.cometd.WebSocketTransport());
+    // }
+    c.registerTransport('long-polling', new LongPollingTransport());
+    
+    // register required extension
+    c.registerExtension('ack', new cometd.AckExtension());
+    return c;
+});

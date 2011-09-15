@@ -22,6 +22,8 @@ define([
      * @param {String} args.adminUrl Target of prepare POST
      */
     var SessionBridge = function(args) {
+		console.log('new session bridge');
+		console.log(args);
         // state constants
         this.DISCONNECTING = 0;
         this.IDLE = 1;

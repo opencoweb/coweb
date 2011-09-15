@@ -4,7 +4,7 @@
  */
 package org.coweb;
 
-import java.io.Writer;
+import java.io.PrintWriter;
 import java.io.IOException;
 
 import org.cometd.bayeux.server.ServerMessage;
@@ -18,45 +18,50 @@ import org.cometd.bayeux.server.ServerMessage.Mutable;
  */
 public class CowebExtension implements BayeuxServer.Extension {
 	
-	private Writer outgoing = null;
-	private Writer incoming = null;
+	private PrintWriter outgoing = null;
+	private PrintWriter incoming = null;
 	
 	private static String NEWLINE = System.getProperty("line.separator");
 	
-	public CowebExtension(Writer incoming, Writer outgoing) {
+	public CowebExtension(PrintWriter incoming, PrintWriter outgoing) {
         this.outgoing = outgoing;
         this.incoming = incoming;
 	}
 	
-	private void writeMessage(String msg, Writer w) {
+	private void writeMessage(String msg, PrintWriter w) {
 		try {
-			w.write(msg);
-			w.write(NEWLINE);
+			w.println(msg);
+			w.println();
+			//w.write(NEWLINE);
 			w.flush();
 		}
-		catch(IOException e) { ; }
+		catch(Exception e) { ; }
 	}
 
 	@Override
 	public boolean rcv(ServerSession client, Mutable msg) {	
+		if(client != null)
+			this.incoming.println("received message from " + client.getId());
 		this.writeMessage(msg.toString(), this.incoming);	
 		return true;
 	}
 
 	@Override
 	public boolean rcvMeta(ServerSession client, Mutable msg) {
-		this.writeMessage(msg.toString(), this.incoming);	
+		//this.writeMessage(msg.toString(), this.incoming);	
 		return true;
 	}
 
 	@Override
 	public boolean sendMeta(ServerSession arg0, Mutable msg) {
-		this.writeMessage(msg.toString(), this.outgoing);
+		//this.writeMessage(msg.toString(), this.outgoing);
 		return true;
 	}
 
 	@Override
 	public boolean send(ServerSession from, ServerSession to, ServerMessage.Mutable msg) {
+		if(to != null)
+			this.outgoing.println("sending message to " + to.getId());
 		this.writeMessage(msg.toString(), this.outgoing);
 		return true;
 	}

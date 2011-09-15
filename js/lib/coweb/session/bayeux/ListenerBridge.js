@@ -55,9 +55,15 @@ define([
         // messages queued during update
         this._updateQueue = [];
         // initial roster, cleared after first read of it
-        this._roster = null;        
+        this._roster = null;   
+		
+		this.syncChannel = '/session/sync/*';
+		this.syncAppChannel = '/session/sync/app';
+		this.syncEngineChannel = '/session/sync/engine';
+		this.rosterChannel = "/session/roster/*";
     };
     var proto = ListenerBridge.prototype;
+
 
     /**
      * Publishes a local coweb event to the /session/sync Bayeux channel.
@@ -69,10 +75,11 @@ define([
      * @param {Number[]} context Event integer array context vector
      */
     proto.postSync = function(topic, value, type, position, context) {
+		console.log('here here hereh we got it');
         // don't send events if we're not updated yet
         if(this._state !== this.UPDATED) { return; }        
         // publish to server
-        cometd.publish('/session/sync/app', {
+        cometd.publish(this.syncAppChannel, {
             topic : topic, 
             value : value,
             type : type,
@@ -92,7 +99,9 @@ define([
         // don't send events if we're not updated yet
         if(this._state !== this.UPDATED) { return; }        
         // publish to server
-        cometd.publish('/session/sync/engine', {context : context});
+        //cometd.publish('/service/session/sync/engine', {context : context});
+		cometd.publish(this.syncEngineChannel, {context : context});
+   
         return true;
     };
 
@@ -198,6 +207,7 @@ define([
             delete this._serviceSubs[service];
         }
     };
+
     
     /**
      * Triggers the start of the procedure to update the local, late-joining 
@@ -208,6 +218,13 @@ define([
      * @returns {Promise} Resolved after the app updates to the received state
      */
     proto.initiateUpdate = function() {
+		if(this._bridge.prepResponse.sessionIdInChannel) {
+			this.syncChannel = '/session/'+this._bridge.prepResponse.sessionid+'/sync/*';
+			this.syncAppChannel = '/session/'+this._bridge.prepResponse.sessionid+'/sync/app';
+			this.syncEngineChannel = '/session/'+this._bridge.prepResponse.sessionid+'/sync/engine';
+			this.rosterChannel = '/session/'+this._bridge.prepResponse.sessionid+'roster/*';
+		}
+		
         this._updatePromise = new Promise();
 
         // start listening for subscribe responses so we can track subscription
@@ -224,10 +241,11 @@ define([
         // batch these subscribes
         cometd.batch(this, function() {
             // subscribe to roster list
-            this._rosterToken = cometd.subscribe('/session/roster/*', 
+            this._rosterToken = cometd.subscribe(this.rosterChannel, 
                 this, '_onSessionRoster');
             // subscribe to sync events
-            this._syncToken = cometd.subscribe('/session/sync/*', 
+            //this._syncToken = cometd.subscribe('/service/session/sync/*', 
+			this._syncToken = cometd.subscribe(this.syncChannel, 
                 this, '_onSessionSync');
             // start the joining process
             this._joinToken = cometd.subscribe('/service/session/join/*', 

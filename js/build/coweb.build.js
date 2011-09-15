@@ -7,7 +7,8 @@
 //
 ({
     baseUrl: "../lib/",
-    dir: "../release/coweb-latest",
+    dir: "../release/coweb-latest", 
+    optimize: "none",
     modules: [
         {
             name: "coweb/main",

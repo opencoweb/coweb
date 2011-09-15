@@ -23,12 +23,29 @@ public class SessionHandler implements ServerChannel.MessageListener {
     private SessionManager manager = null;
     private SessionHandlerDelegate delegate = null;
     private long order = 0;
+
+	private String syncAppChannel = null;
+	private String syncEngineChannel = null;
+	private String rosterAvailableChannel = null;
+	private String rosterUnavailableChannel = null;
+
+	private ArrayList<ServerSession> attendees = new ArrayList<ServerSession>();
     
-    public SessionHandler(String confkey,
+	public SessionHandler(String confkey,
             boolean collab,
             boolean cacheState,
             SessionHandlerDelegate delegate,
             UpdaterTypeMatcher updaterTypeMatcher) {
+	
+		this(confkey, collab, cacheState, delegate, updaterTypeMatcher, true);
+	}
+	
+    public SessionHandler(String confkey,
+            boolean collab,
+            boolean cacheState,
+            SessionHandlerDelegate delegate,
+            UpdaterTypeMatcher updaterTypeMatcher,
+			boolean appendSessionIdToChannel) {
 
         this.collab = collab;
         this.cacheState = cacheState;
@@ -38,11 +55,39 @@ public class SessionHandler implements ServerChannel.MessageListener {
         this.delegate = delegate;
 
         this.manager = SessionManager.getInstance();
-        BayeuxServer server = this.manager.getBayeux();
-        ServerChannel sync = server.getChannel("/session/sync/app");
+        this.server = this.manager.getBayeux();
+		
+		if(appendSessionIdToChannel == true) {
+			this.syncAppChannel = "/session/"+this.sessionId+"/sync/app";
+			this.syncEngineChannel = "/session/"+this.sessionId+"/sync/engine";
+			this.rosterAvailableChannel = "/session/"+this.sessionId+"/roster/available";
+			this.rosterUnavailableChannel = "/session/"+this.sessionId+"/roster/unavailable";
+
+		}
+		else {
+			this.syncAppChannel = "/session/sync/app";
+			this.syncEngineChannel = "/session/sync/engine";
+			this.rosterUnavailableChannel = "/session/roster/unavailable";
+			this.rosterAvailableChannel = "/session/roster/available";
+		}
+		
+		ServerChannel.Initializer initializer = new ServerChannel.Initializer()
+        {
+            @Override
+            public void configureChannel(ConfigurableServerChannel channel)
+            {
+                channel.setPersistent(true);
+                channel.setLazy(false);
+            }
+        };
+        this.server.createIfAbsent(this.syncAppChannel, initializer);
+        this.server.createIfAbsent(this.syncEngineChannel, initializer);
+		
+        ServerChannel sync = server.getChannel(this.syncAppChannel);
         sync.addListener(this);
-        sync = server.getChannel("/session/sync/engine");
+        sync = server.getChannel(this.syncEngineChannel);
         sync.addListener(this);
+		
 
         this.delegate.init(this, cacheState, updaterTypeMatcher);
     }
@@ -58,19 +103,41 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	public SessionHandlerDelegate getDelegate() {
 		return this.delegate;
 	}
+	
+	public ArrayList<ServerSession> getAttendees() {
+		return this.attendees;
+	}
+	
+	public String getRosterAvailableChannel() {
+		return this.rosterAvailableChannel;
+	}
 
+	public String getRosterUnavailableChannel() {
+		return this.rosterUnavailableChannel;
+	}
+	
     public boolean onMessage(ServerSession from, ServerChannel channel,
             ServerMessage.Mutable message) {
-        // System.out.println("SessionHandler::onMessage");
-        // System.out.println(message.getJSON());
+        //System.out.println("SessionHandler::onMessage");
+		//System.out.println("session id = " + this.sessionId);
+        //System.out.println(message.getJSON());
         
         Integer siteId = (Integer)from.getAttribute("siteid");
+		//System.out.println(siteId);
+		
+		String msgSessionId = (String)from.getAttribute("sessionid");
+		//System.out.println("msgSessionId = " + msgSessionId);
+		if(!msgSessionId.equals(this.sessionId)) {
+			System.out.println("NOT MY MESSAGE, FUCK OFF");
+			return true;
+		}
+    	
         Map<String, Object> data = message.getDataAsMap();
         data.put("siteId", siteId);
 
         if(this.delegate.onSync(from, message)) {
             String channelName = message.getChannel();
-            if(channelName.equals("/session/sync/app")) {
+            if(channelName.equals(this.syncAppChannel)) {
                 // put total order on message
                 data.put("order", this.order++);
                 // forward app sync events to bots, not engine
@@ -86,6 +153,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
         return true;
     }
     
+
     public void onPublish(ServerSession remote, Message message) {
         //System.out.println("SessionHandler::onPublish");
         //System.out.println(message.getJSON());
@@ -119,6 +187,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
             this.delegate.onSubscribeService(serverSession, message);
         }
         else if(channel.endsWith("/session/updater")) {
+			this.attendees.add(serverSession);
             this.delegate.onUpdaterSubscribe(serverSession, message);
         }
     }
@@ -138,6 +207,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
     }
 
     public void onPurgingClient(ServerSession client) {
+		this.attendees.remove(client);
         if(this.delegate.onClientRemove(client)) {
             this.endSession();
         }
@@ -204,12 +274,13 @@ public class SessionHandler implements ServerChannel.MessageListener {
     
     public void endSession() {
         System.out.println("SessionHandler::endSession ***********");
-        BayeuxServer server = this.manager.getBayeux();
-        ServerChannel sync = server.getChannel("/session/sync/app");
-        sync.removeListener(this);
-        sync = server.getChannel("/session/sync/engine");
+		
+        ServerChannel sync = this.server.getChannel(this.syncAppChannel);
         sync.removeListener(this);
 
+        sync = server.getChannel(this.syncEngineChannel);
+        sync.removeListener(this);
+		
         this.delegate.onEndSession();
         this.delegate = null;
 

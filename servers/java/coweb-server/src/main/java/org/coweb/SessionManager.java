@@ -61,23 +61,16 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
         this.addService("/meta/subscribe", "handleSubscribed");
         this.addService("/meta/unsubscribe", "handleUnsubscribed");
         this.addService("/session/roster/*", "handleMessage");
-		//this.addService("/session/sync", "handleMessage");
+		//this.addService("/service/session/sync/app", "handleAppSyncMessage");
+		//this.addService("/service/session/sync/engine", "handleEngineSyncMessage");
 		this.addService("/service/session/join/*", "handleMessage");
 		this.addService("/service/session/updater", "handleMessage");
 		this.addService("/service/bot/**", "handleMessage");
 		this.addService("/bot/**", "handleMessage");
 
-        ServerChannel.Initializer initializer = new ServerChannel.Initializer()
-        {
-            @Override
-            public void configureChannel(ConfigurableServerChannel channel)
-            {
-                channel.setPersistent(true);
-                channel.setLazy(false);
-            }
-        };
-        bayeux.createIfAbsent("/session/sync/app", initializer);
-        bayeux.createIfAbsent("/session/sync/engine", initializer);
+		
+        
+		
 			
         bayeux.addListener(this);
     }
@@ -218,7 +211,8 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     		handler.onUnsubscribe(serverSession, message);
     	}
     }
-     
+
+    
     public void handleMessage(ServerSession remote, Message message) {
     	//System.out.println("SessionManager::handleMessage");
     	//System.out.println(message);
@@ -246,7 +240,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
      * @param collab
      * @return
      */
-    public SessionHandler createSession(String confkey, boolean collab, boolean cacheState) {
+    public SessionHandler createSession(String confkey, boolean collab, boolean cacheState, boolean sessionIdInChannel) {
     	System.out.println("SessionManager::createSession ************");
         System.out.println("delegateClass = " + this.delegateClass);
     	//System.out.println("collab = " + collab);
@@ -272,8 +266,8 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
             }catch(Exception e) {
             	updaterTypeMatcher = new DefaultUpdaterTypeMatcher();
             }
-            
-    		handler = new SessionHandler(confkey, collab, cacheState, delegate, updaterTypeMatcher);
+
+    		handler = new SessionHandler(confkey, collab, cacheState, delegate, updaterTypeMatcher, sessionIdInChannel);
     		this.sessions.put(confkey + ":" + collab + ":" + cacheState, handler);
     	}
     	

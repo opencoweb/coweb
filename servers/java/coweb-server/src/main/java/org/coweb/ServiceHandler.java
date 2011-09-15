@@ -22,7 +22,7 @@ public class ServiceHandler {
 	private Map<String, Transport> brokers = new HashMap<String, Transport>();
 	
 	public ServiceHandler(String sessionId) {
-		
+		System.out.println("ServiceHandler new Instance " + sessionId);
 		this.sessionId = sessionId;
 		SessionManager manager = SessionManager.getInstance();
 		this.bayeuxServer = manager.getBayeux();
@@ -31,7 +31,7 @@ public class ServiceHandler {
 	
 	public Transport getServiceBroker(String serviceName) {
 		
-		//System.out.println("ServiceHandler::getServiceBroker for " + serviceName);
+		System.out.println("ServiceHandler::getServiceBroker for " + serviceName);
 		Transport broker = this.brokers.get(serviceName);
 		if(broker != null) 
 			return broker;

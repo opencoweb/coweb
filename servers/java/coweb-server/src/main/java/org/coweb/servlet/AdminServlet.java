@@ -5,6 +5,7 @@
 package org.coweb.servlet;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import org.cometd.server.ext.AcknowledgedMessagesExtension;
 import org.coweb.SessionHandler;
 import org.coweb.SessionManager;
 import org.coweb.CowebSecurityPolicy;
+import org.coweb.CowebExtension;
 
 import org.eclipse.jetty.util.ajax.JSON;
 
@@ -39,6 +41,7 @@ public class AdminServlet extends HttpServlet {
 
     private SessionManager sessionManager = null;
     private CowebSecurityPolicy securityPolicy = null;
+	private boolean sessionIdInChannel = true;
 
 	@Override
 	public void init() throws ServletException {
@@ -50,6 +53,18 @@ public class AdminServlet extends HttpServlet {
 		BayeuxServer bayeux = 
             (BayeuxServer)servletContext.getAttribute(BayeuxServer.ATTRIBUTE);
 	    bayeux.addExtension(new AcknowledgedMessagesExtension());
+		PrintWriter inWriter = null;
+		PrintWriter outWriter = null;
+		
+		try {
+			outWriter = new PrintWriter("/Users/bburns/dev/bayeaux.out");
+			inWriter = new PrintWriter("/Users/bburns/dev/bayeaux.in");
+		}
+		catch(Exception e) { 
+			e.printStackTrace(); 
+		}
+		
+		bayeux.addExtension(new CowebExtension(inWriter, outWriter));
 
         ServletConfig config = this.getServletConfig();
 
@@ -59,6 +74,11 @@ public class AdminServlet extends HttpServlet {
         String securityClass = config.getInitParameter("securityClass");
         //Get the UpdaterTypeMatcher for this application
         String updaterTypeMatcherClass = config.getInitParameter("updaterTypeMatcherClass");
+
+		String sessionIdInChannelParam = config.getInitParameter("sessionIdInChannel");
+		if(sessionIdInChannelParam != null && sessionIdInChannelParam.equals("1")) {
+			this.sessionIdInChannel = true;
+		}
 
         //Create the security policy.  Default to CowebSecurityPolicy.
         if(securityClass == null)
@@ -146,7 +166,7 @@ public class AdminServlet extends HttpServlet {
 		SessionHandler handler = 
             this.sessionManager.getSessionHandler(confKey, collab, cacheState);
 		if(handler == null) {
-			handler = this.sessionManager.createSession(confKey, collab, cacheState);
+			handler = this.sessionManager.createSession(confKey, collab, cacheState, this.sessionIdInChannel);
 		}
 			
 		String sessionId = handler.getSessionId();
@@ -160,6 +180,7 @@ public class AdminServlet extends HttpServlet {
 			jsonResp.put("username", username);
 			jsonResp.put("key", confKey);
 			jsonResp.put("collab", new Boolean(collab));
+			jsonResp.put("sessionIdInChannel", new Boolean(this.sessionIdInChannel));
 			jsonResp.put("info", new HashMap());
 
             String jsonStr = JSON.toString(jsonResp);
@@ -171,9 +192,9 @@ public class AdminServlet extends HttpServlet {
 	}
 	
 	private void _handleDisconnect(HttpServletRequest req, HttpServletResponse resp) {
-		System.out.println("AdminServlet::_handleDisconnect ***********");
+		//System.out.println("AdminServlet::_handleDisconnect ***********");
 		String path = req.getPathInfo();
-		System.out.println("path info = " + path);
+		//System.out.println("path info = " + path);
 		if(path == null)
 			return;
 		

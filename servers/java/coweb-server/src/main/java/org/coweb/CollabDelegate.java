@@ -226,6 +226,7 @@ public class CollabDelegate extends DefaultDelegate {
 	private void sendRosterAvailable(ServerSession client) {
         //System.out.println("CollabSessionHandler::sendRosterAvailable");
         /* create channel */
+		/*
         BayeuxServer server = this.sessionManager.getBayeux();
 		ServerChannel.Initializer initializer = new ServerChannel.Initializer()
         {
@@ -242,6 +243,7 @@ public class CollabDelegate extends DefaultDelegate {
             //System.out.println("channel is null shit");
             return;
         }
+		*/
 
 		ServerSession from = this.sessionManager.getServerSession();
 		
@@ -251,10 +253,13 @@ public class CollabDelegate extends DefaultDelegate {
 		Map<String, Object> data = new HashMap<String,Object>();
         data.put("siteId", siteId);
         data.put("username", username);
-
-        //System.out.println(data);
 		
-		channel.publish(from, data, null);
+		String rosterAvailableChannel = this.sessionHandler.getRosterAvailableChannel();
+		for(ServerSession c: this.sessionHandler.getAttendees()) {
+			c.deliver(from, rosterAvailableChannel, data, null);
+		}
+        //System.out.println(data);		
+		//channel.publish(from, data, null);
 	}
 	
 	private void sendRosterUnavailable(ServerSession client) {
@@ -270,10 +275,10 @@ public class CollabDelegate extends DefaultDelegate {
             }
         };
         
-        server.createIfAbsent("/session/roster/unavailable", initializer);
-        ServerChannel channel = server.getChannel("/session/roster/unavailable");
+		String rosterUnavailableChannel = this.sessionHandler.getRosterUnavailableChannel();
+        server.createIfAbsent(rosterUnavailableChannel, initializer);
+        ServerChannel channel = server.getChannel(rosterUnavailableChannel);
         if(channel == null) {
-            //System.out.println("channel is null shit");
             return;
         }
 
