@@ -53,18 +53,6 @@ public class AdminServlet extends HttpServlet {
 		BayeuxServer bayeux = 
             (BayeuxServer)servletContext.getAttribute(BayeuxServer.ATTRIBUTE);
 	    bayeux.addExtension(new AcknowledgedMessagesExtension());
-		PrintWriter inWriter = null;
-		PrintWriter outWriter = null;
-		
-		try {
-			outWriter = new PrintWriter("/Users/bburns/dev/bayeaux.out");
-			inWriter = new PrintWriter("/Users/bburns/dev/bayeaux.in");
-		}
-		catch(Exception e) { 
-			e.printStackTrace(); 
-		}
-		
-		bayeux.addExtension(new CowebExtension(inWriter, outWriter));
 
         ServletConfig config = this.getServletConfig();
 
@@ -96,7 +84,7 @@ public class AdminServlet extends HttpServlet {
         //set the coweb security policty
 	    bayeux.setSecurityPolicy(securityPolicy);
 	  
-        System.out.println("delegateClass = " + delegateClass); 
+        //System.out.println("delegateClass = " + delegateClass); 
         //create the session manager. 
 	    this.sessionManager = SessionManager.newInstance(servletContext, 
                 bayeux,
@@ -106,8 +94,8 @@ public class AdminServlet extends HttpServlet {
 	
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) {
-		System.out.println("AdminServlet::gotGet ***********");
-		System.out.println(req.getRequestURL());
+		//System.out.println("AdminServlet::gotGet ***********");
+		//System.out.println(req.getRequestURL());
 		if(req.getRequestURL().indexOf("disconnect") != -1) {
 			this._handleDisconnect(req, resp);
 		}
