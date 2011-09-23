@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletConfig;
@@ -100,11 +102,40 @@ public class AdminServlet extends HttpServlet {
 	}
 	
 	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp) {
+	public void doGet(HttpServletRequest req, HttpServletResponse resp) 
+	throws ServletException, IOException {
+	
 		//System.out.println("AdminServlet::gotGet ***********");
 		//System.out.println(req.getRequestURL());
 		if(req.getRequestURL().indexOf("disconnect") != -1) {
 			this._handleDisconnect(req, resp);
+			return;
+		}
+		
+		if(req.getRequestURL().indexOf("sessions") != -1) {
+			ArrayList<Object> sessionsList = new ArrayList<Object>();
+			HashMap<String, Object> ret = new HashMap<String, Object>();
+			
+			Collection<SessionHandler> sessions = this.sessionManager.getAllSessions();
+			int length = 0;
+			if(sessions != null) {
+				length = sessions.size();
+				for(SessionHandler sessionHandler : sessions) {
+					HashMap<String, Object> sessionJson = new HashMap<String, Object>();
+					sessionJson.put("requestUrl", sessionHandler.getRequestUrl());
+					sessionJson.put("confKey", sessionHandler.getConfKey());
+					sessionsList.add(sessionJson);
+				}	
+			}
+			
+			ret.put("sessions", sessionsList);
+			ret.put("length", new Integer(length));
+			String jsonStr = JSON.toString(ret);
+			
+			java.io.PrintWriter writer = resp.getWriter();
+			writer.print(jsonStr);
+            writer.flush();
+			return;
 		}
 	}
 	
@@ -124,11 +155,11 @@ public class AdminServlet extends HttpServlet {
 		boolean collab = false;
 		boolean cacheState = false;
 		boolean generatedCowebkey = false;
+		Map<String, Object> jsonObj = null;
 		
 		try {
-			Map<String, Object> jsonObj = 
-                (Map<String, Object>)JSON.parse(req.getReader());
-			//System.out.println(jsonObj);
+            jsonObj = (Map<String, Object>)JSON.parse(req.getReader());
+			System.out.println(jsonObj);
 			confKey = (String)jsonObj.get("key");
 			if(confKey == null) {
                 String errMsg = "No confkey in prep request.";
@@ -178,6 +209,11 @@ public class AdminServlet extends HttpServlet {
 		if(handler == null) {
 			handler = this.sessionManager.createSession(confKey, collab, cacheState, this.sessionIdInChannel);
 		}
+		
+		String requestUrl = (jsonObj.containsKey("requesturl")) ? (String)jsonObj.get("requesturl") : "";
+		requestUrl += (generatedCowebkey) ? "#/cowebkey/" + confKey : "";
+		
+		handler.setRequestUrl(requestUrl);
 			
 		String sessionId = handler.getSessionId();
 		String base = this.getServletContext().getContextPath();

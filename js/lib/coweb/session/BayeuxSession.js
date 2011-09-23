@@ -197,6 +197,7 @@ define([
         }
         params = params || {};
 
+		var requestUrl = decodeURI(window.location.host + window.location.pathname + window.location.search);
         // get url params
         var urlParams = {};
         var defaultKey = false;
@@ -221,7 +222,7 @@ define([
 				var key = this._cowebkeyFromHash();
 				if(!key) {
                 	// default to use the full url minus the hash value
-                	params.key = decodeURI(window.location.host + window.location.pathname + window.location.search);
+                	params.key = requestUrl;
 					// this tells the server the key was generated
 					// and not specified in the requesting url.
 					defaultKey = true;
@@ -254,7 +255,7 @@ define([
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
-        this._bridge.prepare(params.key, params.collab, this._cacheState, defaultKey)
+        this._bridge.prepare(params.key, params.collab, this._cacheState, defaultKey, requestUrl)
             .then('_onPrepared', '_onPrepareError', this);
         // start listening to disconnections
         this._bridge.disconnectPromise.then('_onDisconnected', null, this);

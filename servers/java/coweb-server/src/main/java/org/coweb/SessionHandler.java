@@ -28,6 +28,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private String syncEngineChannel = null;
 	private String rosterAvailableChannel = null;
 	private String rosterUnavailableChannel = null;
+	
+	private String requestUrl = null;
 
 	private ArrayList<ServerSession> attendees = new ArrayList<ServerSession>();
     
@@ -92,6 +94,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
         this.delegate.init(this, cacheState, updaterTypeMatcher);
     }
 
+	public String getRequestUrl() {
+		return this.requestUrl;
+	}
+	
+	public void setRequestUrl(String url) {
+		this.requestUrl = url;
+	}
+	
     public ServiceHandler getServiceHandler() {
         return this.serviceHandler;
     }

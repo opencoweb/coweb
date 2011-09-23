@@ -91,9 +91,10 @@ define([
      * to request a session with access to services only
 	 * @params {Boolean} defaultKey Tells the server if the cowebkey was
 	 * generated or specified in the url.
+	 * @params {String} requestUrl The url of the page making this prep request.
      * @returns {Promise} Resolved on response from server
      */
-    proto.prepare = function(key, collab, cacheState, defaultKey) {
+    proto.prepare = function(key, collab, cacheState, defaultKey, requestUrl) {
         // make sure we're idle
         if(this._state !== this.IDLE) {
             throw new Error(this.id + ': cannot prepare in non-idle state');
@@ -106,7 +107,8 @@ define([
             key : key,
             collab : collab,
             cacheState : cacheState,
-            defaultKey : defaultKey
+            defaultKey : defaultKey,
+			requesturl : requestUrl
         };
         var args = {
             method : 'POST',

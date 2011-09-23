@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.StringTokenizer;
-
+import java.util.Collection;
 import java.util.Collections;
 
 import javax.servlet.ServletContext;
@@ -67,11 +67,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
 		this.addService("/service/session/updater", "handleMessage");
 		this.addService("/service/bot/**", "handleMessage");
 		this.addService("/bot/**", "handleMessage");
-
-		
-        
-		
-			
+				
         bayeux.addListener(this);
     }
     
@@ -156,6 +152,10 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     	return this.getSessionHandler(sessionId);
     }
     
+	public Collection<SessionHandler> getAllSessions() {
+		return this.sessions.values();
+	}
+	
     public SessionHandler getSessionHandler(ServerSession client) {
     	
     	String sessionId = (String)client.getAttribute("sessionid");
