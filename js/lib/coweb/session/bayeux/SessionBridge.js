@@ -22,8 +22,8 @@ define([
      * @param {String} args.adminUrl Target of prepare POST
      */
     var SessionBridge = function(args) {
-		console.log('new session bridge');
-		console.log(args);
+		//console.log('new session bridge');
+		//console.log(args);
         // state constants
         this.DISCONNECTING = 0;
         this.IDLE = 1;
@@ -89,9 +89,11 @@ define([
      * @params {Boolean} collab True to request a cooperative session, false
      * @params {Boolean} cacheState True to turn state caching on
      * to request a session with access to services only
+	 * @params {Boolean} defaultKey Tells the server if the cowebkey was
+	 * generated or specified in the url.
      * @returns {Promise} Resolved on response from server
      */
-    proto.prepare = function(key, collab, cacheState) {
+    proto.prepare = function(key, collab, cacheState, defaultKey) {
         // make sure we're idle
         if(this._state !== this.IDLE) {
             throw new Error(this.id + ': cannot prepare in non-idle state');
@@ -103,7 +105,8 @@ define([
         var data = {
             key : key,
             collab : collab,
-            cacheState : cacheState
+            cacheState : cacheState,
+            defaultKey : defaultKey
         };
         var args = {
             method : 'POST',

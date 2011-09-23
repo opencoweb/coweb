@@ -41,7 +41,9 @@ public class AdminServlet extends HttpServlet {
 
     private SessionManager sessionManager = null;
     private CowebSecurityPolicy securityPolicy = null;
-	private boolean sessionIdInChannel = true;
+	private boolean sessionIdInChannel = false;
+	
+	private boolean generateRandomCowebkey = false;
 
 	@Override
 	public void init() throws ServletException {
@@ -66,6 +68,11 @@ public class AdminServlet extends HttpServlet {
 		String sessionIdInChannelParam = config.getInitParameter("sessionIdInChannel");
 		if(sessionIdInChannelParam != null && sessionIdInChannelParam.equals("1")) {
 			this.sessionIdInChannel = true;
+		}
+		
+		String generateRandomCowebkeyParam = config.getInitParameter("generateRandomCowebkey");
+		if(generateRandomCowebkeyParam != null && generateRandomCowebkeyParam.equals("1")) {
+			this.generateRandomCowebkey = true;
 		}
 
         //Create the security policy.  Default to CowebSecurityPolicy.
@@ -113,12 +120,15 @@ public class AdminServlet extends HttpServlet {
             username = "anonymous";
 
 		String confKey = null;
+		String originalKey = null;
 		boolean collab = false;
 		boolean cacheState = false;
+		boolean generatedCowebkey = false;
 		
 		try {
 			Map<String, Object> jsonObj = 
                 (Map<String, Object>)JSON.parse(req.getReader());
+			//System.out.println(jsonObj);
 			confKey = (String)jsonObj.get("key");
 			if(confKey == null) {
                 String errMsg = "No confkey in prep request.";
@@ -144,6 +154,18 @@ public class AdminServlet extends HttpServlet {
 			if(!securityPolicy.canAdminRequest(username, confKey, collab))
 				resp.sendError(HttpServletResponse.SC_FORBIDDEN, 
 						"user " + username + "not allowed");
+			
+			originalKey = confKey;
+			
+			if(this.generateRandomCowebkey &&
+			   jsonObj.containsKey("defaultKey") &&
+			   ((Boolean)jsonObj.get("defaultKey")).booleanValue() == true)
+		 	{
+				confKey = this.generateRandomCowebkey(confKey);
+				//System.out.println("Generating coweb key " + confKey);
+				generatedCowebkey = true;
+			}
+			
 		}
 		catch(Exception e) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "bad json");
@@ -166,10 +188,13 @@ public class AdminServlet extends HttpServlet {
 			jsonResp.put("sessionurl",base+"/cometd");
 			jsonResp.put("sessionid", sessionId);
 			jsonResp.put("username", username);
-			jsonResp.put("key", confKey);
+			jsonResp.put("key", originalKey);
 			jsonResp.put("collab", new Boolean(collab));
 			jsonResp.put("sessionIdInChannel", new Boolean(this.sessionIdInChannel));
 			jsonResp.put("info", new HashMap());
+			if(generatedCowebkey) {
+				jsonResp.put("generatedcowebkey", confKey);
+			}
 
             String jsonStr = JSON.toString(jsonResp);
             java.io.PrintWriter writer = resp.getWriter();
@@ -177,6 +202,10 @@ public class AdminServlet extends HttpServlet {
             writer.flush();
 		}
 		catch(Exception e) { ; }
+	}
+	
+	private String generateRandomCowebkey(String key) {
+		return SessionHandler.hashURI(key);
 	}
 	
 	private void _handleDisconnect(HttpServletRequest req, HttpServletResponse resp) {

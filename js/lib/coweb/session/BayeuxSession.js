@@ -199,6 +199,7 @@ define([
 
         // get url params
         var urlParams = {};
+        var defaultKey = false;
         var searchText = window.location.search.substring(1);
         var searchSegs = searchText.split('&');
         for(var i=0, l=searchSegs.length; i<l; i++) {
@@ -217,8 +218,17 @@ define([
                 // use the key from the url
                 params.key = urlParams.cowebkey;
             } else {
-                // default to use the full url minus the hash value
-                params.key = decodeURI(window.location.host + window.location.pathname + window.location.search);
+				var key = this._cowebkeyFromHash();
+				if(!key) {
+                	// default to use the full url minus the hash value
+                	params.key = decodeURI(window.location.host + window.location.pathname + window.location.search);
+					// this tells the server the key was generated
+					// and not specified in the requesting url.
+					defaultKey = true;
+				}
+				else {
+					params.key = key;
+				}
             }            
         }
         
@@ -244,7 +254,7 @@ define([
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
-        this._bridge.prepare(params.key, params.collab, this._cacheState)
+        this._bridge.prepare(params.key, params.collab, this._cacheState, defaultKey)
             .then('_onPrepared', '_onPrepareError', this);
         // start listening to disconnections
         this._bridge.disconnectPromise.then('_onDisconnected', null, this);
@@ -255,6 +265,31 @@ define([
         // return promise
         return this._prepParams.promise;
     };
+
+	proto._cowebkeyFromHash = function() {
+		var hash = window.location.hash;
+		if(!hash || hash.indexOf('cowebkey') == -1) {
+			return null;
+		}
+		
+		var parts = hash.split('/');
+		if(!parts || parts.length == 0) {
+			return null;
+		}
+		
+		for(var i=0; i<parts.length; i++) {
+			if(parts[i] == 'cowebkey') {
+				if(i+1 >= parts.length) {
+					return null;
+				}
+				else {
+					return parts[i+1];
+				}
+			}
+		}
+		
+		return null;		
+	};
     
     /**
      * @private
@@ -262,7 +297,16 @@ define([
     proto._onPrepared = function(params) {
         // store response
         this._prepParams.response = JSON.parse(JSON.stringify(params));
-        // attach phase to response
+
+		//check for a generated coweb key and apply hash to window location.
+		var generatedCowebkey = this._prepParams.response['generatedcowebkey'];
+		if(generatedCowebkey) {
+			var hash = "/cowebkey/" + generatedCowebkey;
+			hash = (window.location.hash) ? window.location.hash + hash : "#" + hash;
+			
+			window.location.hash = hash;	
+		}
+		        // attach phase to response
         this._prepParams.response.phase = 'prepare';
 
         if(this._prepParams.autoJoin) {
