@@ -94,7 +94,7 @@ define([
 	 * @params {String} requestUrl The url of the page making this prep request.
      * @returns {Promise} Resolved on response from server
      */
-    proto.prepare = function(key, collab, cacheState, defaultKey, requestUrl) {
+    proto.prepare = function(key, collab, cacheState, defaultKey, requestUrl, sessionName) {
         // make sure we're idle
         if(this._state !== this.IDLE) {
             throw new Error(this.id + ': cannot prepare in non-idle state');
@@ -108,7 +108,8 @@ define([
             collab : collab,
             cacheState : cacheState,
             defaultKey : defaultKey,
-			requesturl : requestUrl
+			requesturl : requestUrl,
+			sessionName : sessionName
         };
         var args = {
             method : 'POST',

@@ -30,6 +30,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private String rosterUnavailableChannel = null;
 	
 	private String requestUrl = null;
+	private String sessionName = null;
 
 	private ArrayList<ServerSession> attendees = new ArrayList<ServerSession>();
     
@@ -100,6 +101,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	
 	public void setRequestUrl(String url) {
 		this.requestUrl = url;
+	}
+	
+	public String getSessionName() {
+		return this.sessionName;
+	}
+	
+	public void setSessionName(String name) {
+		this.sessionName = name;
 	}
 	
     public ServiceHandler getServiceHandler() {

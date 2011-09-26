@@ -201,6 +201,7 @@ define([
         // get url params
         var urlParams = {};
         var defaultKey = false;
+		var sessionName = "";
         var searchText = window.location.search.substring(1);
         var searchSegs = searchText.split('&');
         for(var i=0, l=searchSegs.length; i<l; i++) {
@@ -230,9 +231,15 @@ define([
 				else {
 					params.key = key;
 				}
-            }            
+            }
+
+            
         }
         
+		if(urlParams.sessionName != undefined) {
+			sessionName = urlParams.sessionName;
+		}
+		
         if(params.autoJoin === undefined) {
             // auto join by default
             params.autoJoin = true;
@@ -255,7 +262,7 @@ define([
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
-        this._bridge.prepare(params.key, params.collab, this._cacheState, defaultKey, requestUrl)
+        this._bridge.prepare(params.key, params.collab, this._cacheState, defaultKey, requestUrl, sessionName)
             .then('_onPrepared', '_onPrepareError', this);
         // start listening to disconnections
         this._bridge.disconnectPromise.then('_onDisconnected', null, this);

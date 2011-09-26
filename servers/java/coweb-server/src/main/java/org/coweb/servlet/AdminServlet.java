@@ -124,6 +124,7 @@ public class AdminServlet extends HttpServlet {
 					HashMap<String, Object> sessionJson = new HashMap<String, Object>();
 					sessionJson.put("requestUrl", sessionHandler.getRequestUrl());
 					sessionJson.put("confKey", sessionHandler.getConfKey());
+					sessionJson.put("sessionName", sessionHandler.getSessionName());
 					sessionsList.add(sessionJson);
 				}	
 			}
@@ -155,6 +156,7 @@ public class AdminServlet extends HttpServlet {
 		boolean collab = false;
 		boolean cacheState = false;
 		boolean generatedCowebkey = false;
+		String sessionName = null;
 		Map<String, Object> jsonObj = null;
 		
 		try {
@@ -197,24 +199,29 @@ public class AdminServlet extends HttpServlet {
 				generatedCowebkey = true;
 			}
 			
+			if(jsonObj.containsKey("sessionName")) {
+				sessionName = (String)jsonObj.get("sessionName");
+			}
+			
 		}
 		catch(Exception e) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "bad json");
 			return;
 		}
 		
-		
 		SessionHandler handler = 
             this.sessionManager.getSessionHandler(confKey, collab, cacheState);
 		if(handler == null) {
 			handler = this.sessionManager.createSession(confKey, collab, cacheState, this.sessionIdInChannel);
+			if(sessionName != null) {
+				handler.setSessionName(sessionName);
+			}
 		}
 		
 		String requestUrl = (jsonObj.containsKey("requesturl")) ? (String)jsonObj.get("requesturl") : "";
 		requestUrl += (generatedCowebkey) ? "#/cowebkey/" + confKey : "";
-		
 		handler.setRequestUrl(requestUrl);
-			
+				
 		String sessionId = handler.getSessionId();
 		String base = this.getServletContext().getContextPath();
 		HashMap<String, Object> jsonResp = new HashMap<String, Object>();
