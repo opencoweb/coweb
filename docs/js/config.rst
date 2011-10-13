@@ -18,7 +18,7 @@ A web application can configure the various implementations of the JavaScript AP
 
    String base URL to use as the prefix for any other absolute URL in this configuration. Does not affect relative URLs. Defaults to an empty string.
    
-   .. versionadded:: 0.6
+   .. versionadded:: 0.7
 
 .. attribute:: cowebConfig.collabImpl
 

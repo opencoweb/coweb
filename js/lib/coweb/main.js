@@ -60,7 +60,7 @@ define([
 
     // factory interface
     return {
-        VERSION : '0.6',
+        VERSION : '0.7',
 
         /**
          * Get the singleton cowebConfig.sessionImpl implementation of 
