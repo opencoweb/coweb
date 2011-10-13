@@ -4,7 +4,7 @@ REQUIREJS_VERSION="0.24.0"
 OAAHUB_VERSION="1.0_build117_v1.0"
 
 COMETD_URL="http://download.cometd.org/cometd-${COMETD_VERSION}-distribution.tar.gz"
-OAAHUB_URL="http://superb-sea2.dl.sourceforge.net/project/openajaxallianc/OpenAjaxHub/OpenAjaxHub${OAAHUB_VERSION}/OpenAjaxHub${OAAHUB_VERSION}.zip"
+OAAHUB_URL="http://iweb.dl.sourceforge.net/project/openajaxallianc/OpenAjaxHub/OpenAjaxHub${OAAHUB_VERSION}/OpenAjaxHub${OAAHUB_VERSION}.zip"
 REQUIREJS_URL="http://requirejs.org/docs/release/${REQUIREJS_VERSION}/minified/require.js"
 REQUIREJS_SRC_URL="http://requirejs.org/docs/release/${REQUIREJS_VERSION}/requirejs-${REQUIREJS_VERSION}.zip"
 COMETD_TAR="cometd-${COMETD_VERSION}-distribution.tar.gz"
