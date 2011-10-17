@@ -75,7 +75,6 @@ define([
      * @param {Number[]} context Event integer array context vector
      */
     proto.postSync = function(topic, value, type, position, context) {
-		console.log('here here hereh we got it');
         // don't send events if we're not updated yet
         if(this._state !== this.UPDATED) { return; }        
         // publish to server
