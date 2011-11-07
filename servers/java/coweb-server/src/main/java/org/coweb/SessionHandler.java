@@ -147,7 +147,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		String msgSessionId = (String)from.getAttribute("sessionid");
 		//System.out.println("msgSessionId = " + msgSessionId);
 		if(!msgSessionId.equals(this.sessionId)) {
-			System.out.println("NOT MY MESSAGE, FUCK OFF");
 			return true;
 		}
     	
