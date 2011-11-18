@@ -9,7 +9,7 @@
   forin:false, sub:false*/
 /*global define cowebConfig*/
 if(typeof cowebConfig === 'undefined') {
-    var cowebConfig = {};
+    cowebConfig = {};
 }
 
 // mix defaults into coweb config where left undefined
