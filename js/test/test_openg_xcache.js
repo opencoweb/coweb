@@ -15,7 +15,7 @@ define([
         }
     });
 
-    test('two site insert lag', 0, function() {
+    test('two site insert lag', 4, function() {
         var a = new util.OpEngClient(0, {symbol : '1 2'});
         var b = new util.OpEngClient(1, {symbol : '1 2'});
     

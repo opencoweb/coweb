@@ -16,6 +16,7 @@ module('op engine random puzzles', {
 
 test('two site random puzzles', 0, function() {
     return;
+    console.log("dojo = ",dojo);
     for(var i=0.01; i < 0.8; i+=0.01) {
         var log = tests.util.randomOperations(2, 15, ['topic1'], i);
         // make sure all sites have processed all events

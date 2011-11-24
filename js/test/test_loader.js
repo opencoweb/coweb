@@ -62,7 +62,7 @@ define([
         this.server.start();
     });
     
-    test('loader failure', 0, function() {
+    test('loader failure', 2, function() {
         var loader = new SimpleLoader('test2');
         loader.onRun = function() {
             ok(true, 'running');

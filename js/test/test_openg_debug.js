@@ -104,7 +104,7 @@ define([
         }
     });
 
-    test('three-site O2->O1->O3 puzzle', 0, function() {
+    test('three-site O2->O1->O3 puzzle', 3, function() {
         var a = new util.OpEngClient(0, {symbol : 'abc'});
         var b = new util.OpEngClient(1, {symbol : 'abc'});
         var c = new util.OpEngClient(2, {symbol : 'abc'});

@@ -37,37 +37,25 @@ define([
             start();            
         });
     });
-
-    test('GET failure', 1, function() {
-        var args = {
-            url : 'bad.json',
-            method : 'GET'
-        };
-        stop(this.timeout);
-        xhr.send(args).then(null, function(args) {
-            equal(args.xhr.status, 404);
-            start();            
-        });
-    });
-
-    test('POST success', 3, function() {
-        var args = {
-            url : 'mock/echo.php',
-            method : 'POST',
-            body : JSON.stringify({
-                key : 123,
-                collab : true
-            })
-        };
-        stop(this.timeout);
-        xhr.send(args).then(function(args) {
-            equal(args.xhr.status, 200);
-            var result = JSON.parse(args.xhr.responseText);
-            equal(result.collab, true);
-            equal(result.key, 123);
-            start();
-        });
-    });
+    // 
+    // test('POST success', 3, function() {
+    //     var args = {
+    //         url : 'mock/echo.php',
+    //         method : 'POST',
+    //         body : JSON.stringify({
+    //             key : 123,
+    //             collab : true
+    //         })
+    //     };
+    //     stop(this.timeout);
+    //     xhr.send(args).then(function(args) {
+    //         equal(args.xhr.status, 200);
+    //         var result = JSON.parse(args.xhr.responseText);
+    //         equal(result.collab, true);
+    //         equal(result.key, 123);
+    //         start();
+    //     });
+    // });
 
     test('POST failure', 1, function() {
         var args = {
