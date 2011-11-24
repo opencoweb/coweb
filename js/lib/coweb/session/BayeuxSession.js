@@ -66,6 +66,7 @@ define([
             window.attachEvent('onbeforeunload', destroy);
             window.attachEvent('onunload', destroy);
         }
+        console.log('testing');
     };
 
     /**
