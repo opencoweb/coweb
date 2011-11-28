@@ -10,6 +10,9 @@
         <requiredProperty key="cowebVersion">
             <defaultValue>${coweb-version}</defaultValue>
         </requiredProperty>
+        <requiredProperty key="cowebJSArtifactId">
+            <defaultValue>coweb-javascript</defaultValue>
+        </requiredProperty>
     </requiredProperties>
 
     <fileSets>

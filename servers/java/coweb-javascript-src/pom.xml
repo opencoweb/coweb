@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.opencoweb</groupId>
+        <artifactId>coweb-java</artifactId>
+        <version>0.7</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.opencoweb</groupId>
+    <artifactId>coweb-javascript-src</artifactId>
+    <name>OpenCoweb :: Java :: JavaScript :: Src</name>
+    <packaging>war</packaging>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <configuration>
+                            <tasks>
+                                <copy todir="target/coweb-javascript-src-${project.version}">
+                                    <fileset dir="../../../js/release/coweb-src-${project.version}">
+                                    </fileset>
+                                </copy>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

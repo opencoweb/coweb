@@ -1,0 +1,51 @@
+NOTICES AND INFORMATION
+=======================
+
+OpenCoweb
+
+The Open Cooperative Web Framework, herein referred to as OpenCoweb, license
+agreement and any applicable information on the web download page for OpenCoweb
+products refers Licensee to this file for details concerning notices applicable
+to code included in the products listed above ("the Program"). 
+
+Packaged builds of the Program located in coweb/js/release include the 
+following third-party code that is not covered under the OpenCoweb License:
+
+- OpenAjax Hub
+- CometD
+- RequireJS
+
+The copyright and licenses of these third-party products are reproduced below.
+
+*******************************************************************************
+
+OpenAjax Hub 1.0
+
+Copyright (c) 2006-2008 OpenAjax Alliance
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0 . Unless required by
+applicable law or agreed to in writing, software distributed under the License
+is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License.
+
+*******************************************************************************
+
+cometD 2.1.0 (cometd-javascript common)
+
+Copyright (c) 2005-2011 The Dojo Foundation. All rights reserved.
+
+Dual licensed under the Apache License 2.0 at
+http://www.apache.org/licenses/LICENSE-2.0 and the MIT license at
+http://www.opensource.org/licenses/mit-license.php.
+
+*******************************************************************************
+
+RequireJS 0.23.0
+
+Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
+
+Available via the MIT new BSD license at 
+https://github.com/jrburke/requirejs/blob/0.23.0/LICENSE.
