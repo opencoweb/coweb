@@ -14,7 +14,7 @@ define([
         }
     });
 
-    test('garbage collection #1', 0, function() {
+    test('garbage collection #1', 6, function() {
         var a = new util.OpEngClient(0, {symbol : ''});
         var b = new util.OpEngClient(1, {symbol : ''});
         // don't thaw c yet, just create it

@@ -81,7 +81,8 @@ echo "return OpenAjax;
 mv amd "$OAAHUB_PATH"
 
 # wrap cometd for amd
-echo "define(function () {" > amd
+echo "define(function () {
+if (typeof dojo !== 'undefined' && !dojo.provide) { dojo.provide = function() {}; this.org = this.org || {}; org.cometd = {}; }" > amd
 cat "$COMETD_PATH" >> amd
 cat "$COMETDACK_PATH" >> amd
 echo "return org.cometd;

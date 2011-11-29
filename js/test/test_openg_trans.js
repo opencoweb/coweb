@@ -14,7 +14,7 @@ define([
         }
     });
 
-    test('update and update', 0, function() {
+    test('update and update', 6, function() {
         var a = new util.OpEngClient(0, {symbol : 'ab'});
         var b = new util.OpEngClient(1, {symbol : 'ab'});
         var op;
@@ -44,7 +44,7 @@ define([
         equals(b.state.symbol, 'CA');    
     });
 
-    test('update and insert', 0, function() {
+    test('update and insert', 6, function() {
         var a = new util.OpEngClient(0, {symbol : 'ab'});
         var b = new util.OpEngClient(1, {symbol : 'ab'});
         var op;
@@ -74,7 +74,7 @@ define([
         equals(b.state.symbol, 'DBAC');    
     });
 
-    test('update and delete', 0, function() {
+    test('update and delete', 6, function() {
         var a = new util.OpEngClient(0, {symbol : 'ab'});
         var b = new util.OpEngClient(1, {symbol : 'ab'});
         var op;
@@ -104,7 +104,7 @@ define([
         equals(b.state.symbol, '');    
     });
 
-    test('insert and insert', 0, function() {
+    test('insert and insert', 6, function() {
         var a = new util.OpEngClient(0, {symbol : 'ab'});
         var b = new util.OpEngClient(1, {symbol : 'ab'});
         var op;
@@ -133,7 +133,7 @@ define([
         equals(b.state.symbol, 'BDaCAb'); 
     });
 
-    test('insert and delete', 0, function() {
+    test('insert and delete', 6, function() {
         var a = new util.OpEngClient(0, {symbol : 'ab'});
         var b = new util.OpEngClient(1, {symbol : 'ab'});
         var op;
@@ -161,7 +161,7 @@ define([
         equals(b.state.symbol, 'AbD'); 
     });
 
-    test('delete and delete', 0, function() {
+    test('delete and delete', 8, function() {
         var a = new util.OpEngClient(0, {symbol : 'abcd'});
         var b = new util.OpEngClient(1, {symbol : 'abcd'});
         var op;

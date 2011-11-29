@@ -44,7 +44,7 @@
                     <overlays>
                         <overlay>
                             <groupId>org.opencoweb</groupId>
-                            <artifactId>coweb-javascript</artifactId>
+                            <artifactId>${cowebJSArtifactId}</artifactId>
                             <type>war</type>
                             <excludes>
                                 <exclude>META-INF/**</exclude>
@@ -71,7 +71,7 @@
         </dependency>
         <dependency>
             <groupId>org.opencoweb</groupId>
-            <artifactId>coweb-javascript</artifactId>
+            <artifactId>${cowebJSArtifactId}</artifactId>
             <version>${coweb-version}</version>
             <type>war</type>
         </dependency>

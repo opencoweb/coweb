@@ -167,7 +167,7 @@ define([
         this.server.start();
     });
 
-    test('server error while preparing', 0, function() {
+    test('server error while preparing', 1, function() {
         var self = this;
         var server = this.server;
     
@@ -301,7 +301,7 @@ define([
         }
     });
 
-    test('auth error while joining', 0, function() {
+    test('auth error while joining', 1, function() {
         var self = this;
         var server = this.server;
 
@@ -328,7 +328,7 @@ define([
         this.server.start();
     });
 
-    test('server error while joining', 0, function() {
+    test('server error while joining', 1, function() {
         var self = this;
         var server = this.server;
 
@@ -404,7 +404,7 @@ define([
         this.server.start();
     });
 
-    test('server error while updating', 0, function() {
+    test('server error while updating', 1, function() {
         var self = this;
         var server = this.server;
     

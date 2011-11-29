@@ -151,7 +151,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		String msgSessionId = (String)from.getAttribute("sessionid");
 		//System.out.println("msgSessionId = " + msgSessionId);
 		if(!msgSessionId.equals(this.sessionId)) {
+
 			log.severe("Received message not belonging to this session " + msgSessionId);
+
 			return true;
 		}
     	
