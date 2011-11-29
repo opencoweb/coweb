@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.BayeuxServer;
@@ -16,6 +17,8 @@ import org.coweb.bots.transport.Transport;
 
 
 public class ServiceHandler {
+	
+	private static final Logger log = Logger.getLogger(ServiceHandler.class.getName());
 	
 	private String sessionId = null;
 	private BayeuxServer bayeuxServer = null;

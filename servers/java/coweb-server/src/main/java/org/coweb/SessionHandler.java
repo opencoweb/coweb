@@ -3,6 +3,8 @@ package org.coweb;
 import java.util.ArrayList;
 import java.util.Map;
 
+import java.util.logging.Logger;
+
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerSession;
@@ -14,6 +16,8 @@ import java.security.MessageDigest;
 
 public class SessionHandler implements ServerChannel.MessageListener {
     
+	private static final Logger log = Logger.getLogger(SessionHandler.class.getName());
+
     private String confKey = null;
     private boolean collab = true;
     private boolean cacheState = false;
@@ -147,7 +151,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		String msgSessionId = (String)from.getAttribute("sessionid");
 		//System.out.println("msgSessionId = " + msgSessionId);
 		if(!msgSessionId.equals(this.sessionId)) {
-			System.out.println("NOT MY MESSAGE, FUCK OFF");
+			log.severe("Received message not belonging to this session " + msgSessionId);
 			return true;
 		}
     	
@@ -187,6 +191,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
             }
         }
         catch(Exception e) {
+			log.severe("error receiving publish message");
+			log.severe(message.getJSON());
             e.printStackTrace();
         }
     }
@@ -292,7 +298,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
     }
     
     public void endSession() {
-        System.out.println("SessionHandler::endSession ***********");
+        //System.out.println("SessionHandler::endSession ***********");
+		log.info("end session");
 		
         ServerChannel sync = this.server.getChannel(this.syncAppChannel);
         sync.removeListener(this);

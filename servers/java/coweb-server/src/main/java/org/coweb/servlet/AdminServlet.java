@@ -6,11 +6,14 @@ package org.coweb.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.File;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletConfig;
@@ -38,6 +41,7 @@ import org.eclipse.jetty.util.ajax.JSON;
 public class AdminServlet extends HttpServlet {
 	
 	private static final long serialVersionUID = 1L;
+	private static final Logger log = Logger.getLogger(AdminServlet.class.getName());
 	
 	public static final String SESSMGR_ATTRIBUTE = "session.attribute";
 
@@ -51,6 +55,7 @@ public class AdminServlet extends HttpServlet {
 	public void init() throws ServletException {
 		super.init();
 		
+		log.info("servlet init");
 		ServletContext servletContext = this.getServletContext();
 
         //get the bayeux server and register the bayeux ack extension.
@@ -66,6 +71,19 @@ public class AdminServlet extends HttpServlet {
         String securityClass = config.getInitParameter("securityClass");
         //Get the UpdaterTypeMatcher for this application
         String updaterTypeMatcherClass = config.getInitParameter("updaterTypeMatcherClass");
+
+		String captureIncoming = config.getInitParameter("captureIncoming");
+		String captureOutgoing = config.getInitParameter("captureOutgoing");
+		
+		if(captureIncoming != null || captureOutgoing != null) {
+			try {
+				CowebExtension cowebExtension = new CowebExtension(captureIncoming, captureOutgoing);
+				bayeux.addExtension(cowebExtension);
+			}
+			catch(Exception e) {
+				log.info(e.getMessage());
+			}		
+		}
 
 		String sessionIdInChannelParam = config.getInitParameter("sessionIdInChannel");
 		if(sessionIdInChannelParam != null && sessionIdInChannelParam.equals("1")) {
@@ -107,12 +125,15 @@ public class AdminServlet extends HttpServlet {
 	
 		//System.out.println("AdminServlet::gotGet ***********");
 		//System.out.println(req.getRequestURL());
+		log.info("received admin rest call");
 		if(req.getRequestURL().indexOf("disconnect") != -1) {
+			log.info("received disconnect rest call");
 			this._handleDisconnect(req, resp);
 			return;
 		}
 		
 		if(req.getRequestURL().indexOf("sessions") != -1) {
+			log.info("received sessions rest call");
 			ArrayList<Object> sessionsList = new ArrayList<Object>();
 			HashMap<String, Object> ret = new HashMap<String, Object>();
 			
@@ -144,7 +165,7 @@ public class AdminServlet extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 	throws ServletException, IOException {
 		
-		
+		log.info("received prep request 0.7");
 		resp.setContentType("appliation/json");
 
 		String username = req.getRemoteUser();
@@ -161,7 +182,6 @@ public class AdminServlet extends HttpServlet {
 		
 		try {
             jsonObj = (Map<String, Object>)JSON.parse(req.getReader());
-			System.out.println(jsonObj);
 			confKey = (String)jsonObj.get("key");
 			if(confKey == null) {
                 String errMsg = "No confkey in prep request.";
@@ -205,6 +225,7 @@ public class AdminServlet extends HttpServlet {
 			
 		}
 		catch(Exception e) {
+			log.severe("error processing prep request: " + e.getMessage());
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "bad json");
 			return;
 		}
@@ -244,7 +265,9 @@ public class AdminServlet extends HttpServlet {
             writer.print(jsonStr);
             writer.flush();
 		}
-		catch(Exception e) { ; }
+		catch(Exception e) { 
+			log.severe("error creating prep response: " + e.getMessage()); 
+		}
 	}
 	
 	private String generateRandomCowebkey(String key) {

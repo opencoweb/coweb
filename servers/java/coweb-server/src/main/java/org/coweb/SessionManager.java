@@ -13,6 +13,8 @@ import java.util.StringTokenizer;
 import java.util.Collection;
 import java.util.Collections;
 
+import java.util.logging.Logger;
+
 import javax.servlet.ServletContext;
 
 import org.cometd.server.AbstractService;
@@ -28,6 +30,8 @@ import org.cometd.bayeux.server.ServerSession;
 
 public class SessionManager extends AbstractService implements BayeuxServer.SessionListener
 {
+	private static final Logger log = Logger.getLogger(SessionManager.class.getName());
+	
 	private Map<String, SessionHandler> sessions = Collections.synchronizedMap(new HashMap<String, SessionHandler>());
 	
 	private static SessionManager singleton = null;
@@ -172,7 +176,8 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     public SessionHandler getSessionHandler(String confkey, boolean collab, boolean cacheState) {
 	
     	String key = confkey + ":" + collab + ":" + cacheState;
-		System.out.println("SessionManager::getSessionHandler for " + key);
+		//System.out.println("SessionManager::getSessionHandler for " + key);
+		log.info("getSessionHandler key = " + key);
     	return this.sessions.get(key);
     }
     
@@ -241,8 +246,8 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
      * @return
      */
     public SessionHandler createSession(String confkey, boolean collab, boolean cacheState, boolean sessionIdInChannel) {
-    	System.out.println("SessionManager::createSession ************");
-        System.out.println("delegateClass = " + this.delegateClass);
+    	log.info("SessionManager::createSession ************");
+        log.info("delegateClass = " + this.delegateClass);
     	//System.out.println("collab = " + collab);
     	SessionHandler handler = this.getSessionHandler(confkey, collab, cacheState);
     
@@ -254,11 +259,9 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
                     (SessionHandlerDelegate)this.delegateClass.newInstance();
             }
             catch(Exception e) {
-                System.out.println("SessionManager::createSession delegate class is null");
+                log.info("SessionManager::createSession delegate class is null");
                 delegate = new DefaultDelegate();
             }
-
-            System.out.println("delegate = " + delegate);
             
             UpdaterTypeMatcher updaterTypeMatcher = null;
             try {
@@ -280,19 +283,19 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     
     public void removeSessionHandler(String confkey, boolean collab, boolean cacheState) {
 
-    	System.out.println("SessionManager::removeSessionHandler ***********");
+    	log.info("SessionManager::removeSessionHandler ***********");
     	SessionHandler handler = this.sessions.remove(confkey+":" + collab + ":" + cacheState);
-    	System.out.println("handler = " + handler);
+    	log.info("handler = " + handler);
     	
     	handler = null;
     }
 
 	public void disconnectClient(String sessionId, String siteId) {
-		System.out.println("SessionManager::disconnectClient *********");
-		System.out.println("sessionId = " + sessionId + " siteId = " + siteId);
+		log.info("SessionManager::disconnectClient *********");
+		log.info("sessionId = " + sessionId + " siteId = " + siteId);
 		SessionHandler handler = this.getSessionHandler(sessionId);
 		if(handler == null) {
-			System.out.println("handler not found for sessionId");
+			log.severe("handler not found for sessionId = " + sessionId + " siteId = " + siteId);
 			return;
 		}
 			
@@ -302,11 +305,11 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
 			
 		ServerSession client = ((CollabDelegate)delegate).getServerSessionFromSiteid(siteId);
 		if(client != null) {
-			System.out.println("ServerSession found about to call disconnect");
+			log.info("ServerSession found about to call disconnect");
 			client.disconnect();
 		}
 		else {
-			System.out.println("ServerSession not found from handler delegate");
+			log.severe("ServerSession not found from handler delegate sessionId = " + sessionId);
 		}
 	}
 

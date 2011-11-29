@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import java.util.logging.Logger;
+
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ServerSession;
@@ -21,6 +23,8 @@ import org.cometd.bayeux.server.BayeuxServer;
 
 
 public class CollabDelegate extends DefaultDelegate {
+
+	private static final Logger log = Logger.getLogger(CollabDelegate.class.getName());
 
 	private Map<String,ServerSession> updatees = 
         new HashMap<String, ServerSession>();
@@ -84,14 +88,14 @@ public class CollabDelegate extends DefaultDelegate {
 
     @Override
     public void onClientJoin(ServerSession client, Message message) {
-        System.out.println("CollabDelegate::onClientJoin *************");
+        log.info("CollabDelegate::onClientJoin *************");
 		int siteId = this.getSiteForClient(client);
 		
 		if(siteId == -1) {
 			siteId = this.addSiteForClient(client);
 		}
 
-		System.out.println("siteId = " + siteId);
+		log.info("siteId = " + siteId);
 		Map<Integer,String> roster = this.getRosterList(client);
 		//ArrayList<Object>data = new ArrayList<Object>();
 		Object[]data = new Object[0];
@@ -104,7 +108,7 @@ public class CollabDelegate extends DefaultDelegate {
 		Map<String, Object> cobwebData = (Map<String, Object>)ext.get("coweb");
 		String updaterType = (String)cobwebData.get("updaterType");
 		client.setAttribute("updaterType", updaterType);
-        System.out.println("updaterType = "+updaterType);
+        log.info("updaterType = "+updaterType);
 		
 		if(this.updaters.isEmpty()) {
 			this.addUpdater(client, false);
@@ -181,13 +185,13 @@ public class CollabDelegate extends DefaultDelegate {
     @Override
     public boolean onClientRemove(ServerSession client) {
 
-        System.out.println("CollabDelegate::onClientRemove ********");
-        System.out.println("siteId = " + client.getAttribute("siteid"));
+        log.info("CollabDelegate::onClientRemove ********");
+        log.info("siteId = " + client.getAttribute("siteid"));
         super.onClientRemove(client);
 
         this.removeUpdater(client);
 		if(this.getUpdaterCount() == 0) {
-            System.out.println("removing last updater, ending coweb session");
+            log.info("removing last updater, ending coweb session");
             return true;
         }
 
@@ -328,16 +332,16 @@ public class CollabDelegate extends DefaultDelegate {
 	private int removeSiteForClient(ServerSession client) {
 
         if(client == null) {
-            System.out.println("CollabDelegate::removeSiteForClient ******* client is null *******");
+            log.severe("removeSiteForClient ******* client is null *******");
             return -1;
         }
 
         int siteid = this.siteids.indexOf(client.getId());
         if(siteid == -1) {
-            System.out.println("CollabDelegate::removeSiteForClient ****** Cannot find client in siteids list *******");
+            log.severe("removeSiteForClient ****** Cannot find client in siteids list *******");
             Integer i = (Integer)client.getAttribute("siteid");
             if(i == null) {
-                System.out.println("******* Client Does not have siteId attribute - Ghost *******");
+                log.severe("******* Client Does not have siteId attribute - Ghost *******");
             }
             return -1;
         }
@@ -360,7 +364,7 @@ public class CollabDelegate extends DefaultDelegate {
 	}
 	
 	private void assignUpdater(ServerSession updatee, String updaterType) {
-        System.out.println("CollabDelegate::assignUpdater *****************");
+        log.info("CollabDelegate::assignUpdater *****************");
 		ServerSession from = this.sessionManager.getServerSession();
 		if(this.updaters.isEmpty()) {
 			this.addUpdater(updatee, false);
@@ -382,7 +386,7 @@ public class CollabDelegate extends DefaultDelegate {
 					updater = this.clientids.get(id);
 					if (updater.getAttribute("updaterType").equals(matchedType)) {
 						updaterId = id;
-				        System.out.println("found an updater type matched to ["+matchedType+"]");
+				        log.info("found an updater type matched to ["+matchedType+"]");
 						break;
 					}
 				}
@@ -391,12 +395,12 @@ public class CollabDelegate extends DefaultDelegate {
 		if (updaterId == null) {
 			Random r = new Random();
 			int idx = r.nextInt(this.updaters.size());
-	        System.out.println("using default updater type");
+	        log.info("using default updater type");
 			Object[] keys = this.updaters.keySet().toArray();
 			updaterId = (String)keys[idx];
 			updater = this.clientids.get(updaterId);
 		}
-        System.out.println("assigning updater " + updater.getAttribute("siteid") + " to " + updatee.getAttribute("siteid"));    
+        log.info("assigning updater " + updater.getAttribute("siteid") + " to " + updatee.getAttribute("siteid"));    
 		SecureRandom s = new SecureRandom();
 		String token = new BigInteger(130, s).toString(32);
 		

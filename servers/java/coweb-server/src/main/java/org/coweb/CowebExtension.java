@@ -6,6 +6,7 @@ package org.coweb;
 
 import java.io.PrintWriter;
 import java.io.IOException;
+import java.io.File;
 
 import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ServerSession;
@@ -23,9 +24,35 @@ public class CowebExtension implements BayeuxServer.Extension {
 	
 	private static String NEWLINE = System.getProperty("line.separator");
 	
-	public CowebExtension(PrintWriter incoming, PrintWriter outgoing) {
-        this.outgoing = outgoing;
-        this.incoming = incoming;
+
+	public CowebExtension() { ; }
+
+	
+	public CowebExtension(String incomingFileName, String outgoingFileName) {
+		
+		try {
+			if(incomingFileName != null) {
+				this.incoming = new PrintWriter(new File(incomingFileName));
+			}
+
+			if(incomingFileName != null && outgoingFileName != null && incomingFileName.equals(outgoingFileName)) {
+				this.outgoing = this.incoming;
+			}
+			else if(outgoingFileName != null) {
+				this.outgoing = new PrintWriter(new File(outgoingFileName));
+			}
+		}
+		catch(Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public void setOutgoing(String fileName) {
+		this.outgoing = outgoing;
+	}
+	
+	public void setIncoming(String fileName) {
+		this.incoming = incoming;
 	}
 	
 	private void writeMessage(String msg, PrintWriter w) {
