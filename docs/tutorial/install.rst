@@ -23,7 +23,7 @@ There are no steps to take to install the Java server. Maven automatically downl
 Deploying a coweb application
 #############################
 
-There are several ways to deploy a coweb application.
+There are several ways to deploy a coweb application. The quickest way to begin developing is to generate a preconfigured application (option #1). The most barebones method is to generate a project from scratch (option #2), allowing for total control over every aspect of the application. Finally, one can simply deploy the demos and go from there.
 
 Generate a preconfigured coweb application (option #1)
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -192,7 +192,7 @@ Instead of using `pip`_, You can manually run the distutils :file:`setup.py` to 
 Deploying a coweb application
 #############################
 
-There are several ways to deploy a coweb application.
+There are several ways to deploy a coweb application. The quickest way to begin developing is to generate a preconfigured application (option #1). The most barebones method is to generate a project from scratch (option #2), allowing for total control over every aspect of the application. Finally, one can simply deploy the demos and go from there.
 
 Generate a preconfigured coweb application (option #1)
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -234,9 +234,9 @@ The http://github.com/opencoweb/coweb-boilerplates repository on GitHub contains
 Generate a new coweb application from scratch (option #2)
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-You can use the convenience scripts to deploy a fresh coweb application in your virtual environment.
+You can use the included convenience scripts to deploy a fresh coweb application in your virtual environment.
 
-.. note:: A fresh, from-scratch coweb application is already created for you when deploying a Python server above. Follow these for any additional fresh coweb applications you desire.
+.. note:: A fresh, from-scratch coweb application is already created for you when deploying a Python server above. Follow these instructions for any additional fresh coweb applications you wish to generate.
 
 #. If you installed the :py:mod:`coweb` package in a virtual environment, activate that environment. Otherwise, skip this step.
 
