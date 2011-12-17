@@ -55,7 +55,7 @@ As noted in :doc:`concepts`, the JavaScript portions of the |coweb api| follow t
 
 #. The application HTML page loads.
 #. The page includes a script tag that loads an AMD loader.
-#. The application uses the AMD loader to load the `coweb/main` module and any other dependencies it may have (e.g., its own modules, third-party libraries).
+#. The application uses the AMD loader to load the `coweb/main` module and any other dependencies it may have (e.g., cowebx widgets, its own modules, third-party libraries).
 #. The application initializes one or more :class:`CollabInterface` instances (e.g., one per cooperative widget) and subscribes for various notifications (e.g., session ready, coweb sync events).
 #. After the DOM load event, the application initializes the :class:`SessionInterface` singleton and uses it to prepare the session.
 #. When the :class:`SessionInterface` finishes preparing, joining, and updating, all :class:`CollabInterface.subscribeReady` callbacks fire.
