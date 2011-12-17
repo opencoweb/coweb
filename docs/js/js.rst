@@ -15,4 +15,5 @@ The JavaScript API also includes some extra components which can ease the develo
    config
    session
    collab
+   widgets
    extra
