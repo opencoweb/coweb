@@ -12,20 +12,31 @@ import org.cometd.bayeux.server.ServerChannel;
 import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 
+import org.coweb.oe.OperationEngine;
+import org.coweb.oe.OperationEngineException;
+
+import java.io.IOException;
 import java.security.MessageDigest;
 
+/**
+ * SessionHandler receives and handles all coweb protocol messages belonging to this session.
+ * Maintains a ServiceHandler for all incoming bot messages.
+ * Maintains a Moderator.
+ */
 public class SessionHandler implements ServerChannel.MessageListener {
     
 	private static final Logger log = Logger.getLogger(SessionHandler.class.getName());
 
     private String confKey = null;
-    private boolean collab = true;
     private boolean cacheState = false;
     private String sessionId = null;
     private ServiceHandler serviceHandler = null;
     private BayeuxServer server = null;
-    private SessionManager manager = null;
-    private SessionHandlerDelegate delegate = null;
+    
+    private LateJoinHandler lateJoinHandler = null;
+    private SessionModerator sessionModerator = null;
+    private OperationEngine operationEngine = null;
+    
     private long order = 0;
 
 	private String syncAppChannel = null;
@@ -38,45 +49,22 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 	private ArrayList<ServerSession> attendees = new ArrayList<ServerSession>();
     
-	public SessionHandler(String confkey,
-            boolean collab,
-            boolean cacheState,
-            SessionHandlerDelegate delegate,
-            UpdaterTypeMatcher updaterTypeMatcher) {
 	
-		this(confkey, collab, cacheState, delegate, updaterTypeMatcher, true);
-	}
-	
-    public SessionHandler(String confkey,
-            boolean collab,
-            boolean cacheState,
-            SessionHandlerDelegate delegate,
-            UpdaterTypeMatcher updaterTypeMatcher,
-			boolean appendSessionIdToChannel) {
-
-        this.collab = collab;
-        this.cacheState = cacheState;
-        this.confKey = confkey;
-        this.sessionId = hashURI(confkey);
-        this.serviceHandler = new ServiceHandler(this.sessionId);
-        this.delegate = delegate;
-
-        this.manager = SessionManager.getInstance();
-        this.server = this.manager.getBayeux();
+	public SessionHandler(String confkey, Map<String, Object> config) {
 		
-		if(appendSessionIdToChannel == true) {
-			this.syncAppChannel = "/session/"+this.sessionId+"/sync/app";
-			this.syncEngineChannel = "/session/"+this.sessionId+"/sync/engine";
-			this.rosterAvailableChannel = "/session/"+this.sessionId+"/roster/available";
-			this.rosterUnavailableChannel = "/session/"+this.sessionId+"/roster/unavailable";
+		this.confKey = confkey;	 
+		this.sessionId = hashURI(confkey);
+        this.serviceHandler = new ServiceHandler(this.sessionId, config);
+        
+        this.server = SessionManager.getInstance().getBayeux();
+		
+		this.syncAppChannel = "/session/" + this.sessionId + "/sync/app";
+		this.syncEngineChannel = "/session/" + this.sessionId + "/sync/engine";
+		this.rosterAvailableChannel = "/session/" + this.sessionId
+				+ "/roster/available";
+		this.rosterUnavailableChannel = "/session/" + this.sessionId
+				+ "/roster/unavailable";
 
-		}
-		else {
-			this.syncAppChannel = "/session/sync/app";
-			this.syncEngineChannel = "/session/sync/engine";
-			this.rosterUnavailableChannel = "/session/roster/unavailable";
-			this.rosterAvailableChannel = "/session/roster/available";
-		}
 		
 		ServerChannel.Initializer initializer = new ServerChannel.Initializer()
         {
@@ -95,13 +83,45 @@ public class SessionHandler implements ServerChannel.MessageListener {
         sync = server.getChannel(this.syncEngineChannel);
         sync.addListener(this);
 		
-
-        this.delegate.init(this, cacheState, updaterTypeMatcher);
+        this.sessionModerator = SessionModerator.newInstance(this, config);
+        
+        //create the late join handler.  clients will be updaters by default.
+        LateJoinHandler lh = null;        
+        if(config.containsKey("moderatorIsUpdater") &&
+          ((Boolean)config.get("moderatorIsUpdater")).booleanValue()) 
+        {
+        	lh = new ModeratorLateJoinHandler(this, config);
+        }
+        else
+        	lh = new LateJoinHandler(this, config);
+        
+        this.lateJoinHandler = lh;  
+        
+		// create the OT engine only if turned on in the config.
+		if (config.containsKey("operationEngine") && 
+		   ((Boolean) config.get("operationEngine")).booleanValue())
+		{
+			ServerSession modSession = (ServerSession)this.sessionModerator.getServerSession();
+			Integer siteId = (Integer)modSession.getAttribute("siteid");
+			
+			try {
+				this.operationEngine = new OperationEngine(siteId.intValue());
+			} catch (OperationEngineException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+    
+    public SessionModerator getSessionModerator() {
+    	return this.sessionModerator;
     }
 
+    
 	public String getRequestUrl() {
 		return this.requestUrl;
 	}
+	
 	
 	public void setRequestUrl(String url) {
 		this.requestUrl = url;
@@ -119,14 +139,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
         return this.serviceHandler;
     }
 
-    public SessionManager getSessionManager() {
-        return this.manager;
-    }
-
-	public SessionHandlerDelegate getDelegate() {
-		return this.delegate;
-	}
-	
+    
 	public ArrayList<ServerSession> getAttendees() {
 		return this.attendees;
 	}
@@ -139,17 +152,39 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		return this.rosterUnavailableChannel;
 	}
 	
+	public String getConfKey() {
+		return this.confKey;
+	}
+
+	public String getSessionId() {
+		return this.sessionId;
+	}
+
+	public boolean isCachingState() {
+		return this.cacheState;
+	}
+
+	public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("{\"confkey\":");
+        sb.append(this.confKey);
+        sb.append(",\"sessionid\":");
+        sb.append(this.sessionId);
+        sb.append("}");
+        
+        return sb.toString();
+    }
+	
+	public ServerSession getServerSessionFromSiteid(String siteStr) {
+    	return this.lateJoinHandler.getServerSessionFromSiteid(siteStr);
+    }
+	
     public boolean onMessage(ServerSession from, ServerChannel channel,
             ServerMessage.Mutable message) {
-        //System.out.println("SessionHandler::onMessage");
-		//System.out.println("session id = " + this.sessionId);
-        //System.out.println(message.getJSON());
         
         Integer siteId = (Integer)from.getAttribute("siteid");
-		//System.out.println(siteId);
 		
 		String msgSessionId = (String)from.getAttribute("sessionid");
-		//System.out.println("msgSessionId = " + msgSessionId);
 		if(!msgSessionId.equals(this.sessionId)) {
 
 			log.severe("Received message not belonging to this session " + msgSessionId);
@@ -159,37 +194,48 @@ public class SessionHandler implements ServerChannel.MessageListener {
     	
         Map<String, Object> data = message.getDataAsMap();
         data.put("siteId", siteId);
-
-        if(this.delegate.onSync(from, message)) {
-            String channelName = message.getChannel();
-            if(channelName.equals(this.syncAppChannel)) {
-                // put total order on message
-                data.put("order", this.order++);
-                // forward app sync events to bots, not engine
-                try {
-                     this.serviceHandler.forwardSyncEvent(from, message);
-                }
-                catch(Exception e) { e.printStackTrace(); }
-            }
-        } else {
-			return false;
-		}
         
+        String channelName = message.getChannel();
+        if(channelName.equals(this.syncAppChannel)) {
+            // put total order on message
+            data.put("order", this.order++);
+            
+            if(this.operationEngine != null) {
+            	//TODO 
+            	//need to call operation engine.
+            }
+            
+            this.sessionModerator.onSync(from, message);
+            try {
+            	this.serviceHandler.forwardSyncEvent(from, message);
+            }
+            catch(Exception e) { e.printStackTrace(); }
+        }
+        else if(channelName.equals(this.syncEngineChannel)) {
+        	//TODO
+        	//need to call operation engine.
+        }
+            
         return true;
     }
     
 
-    public void onPublish(ServerSession remote, Message message) {
-        //System.out.println("SessionHandler::onPublish");
-        //System.out.println(message.getJSON());
-        
+    public void onPublish(ServerSession remote, Message message) {       
         String channel = message.getChannel();
         try {
             if(channel.startsWith("/service/bot")) {
-                this.delegate.onServiceRequest(remote, message);
+                Map<String, Object> data = message.getDataAsMap();
+    			String topic = (String)data.get("topic");
+    			if(!topic.startsWith("coweb.engine.sync"))
+    				if(this.sessionModerator.canClientMakeServiceRequest(remote, message))
+    					this.serviceHandler.forwardUserRequest(remote, message);
+    				else {
+    					//TODO
+    					//send error message.
+    				}
             }
             else if(channel.equals("/service/session/updater")) {
-                this.delegate.onUpdaterSendState(remote, message);
+                this.lateJoinHandler.onUpdaterSendState(remote, message);
             }
         }
         catch(Exception e) {
@@ -199,35 +245,39 @@ public class SessionHandler implements ServerChannel.MessageListener {
         }
     }
     
-    public void onSubscribe(ServerSession serverSession, Message message) {
-        //System.out.println("SessionHandler::onSubscribe");
-        //System.out.println(channel);
-        
+    public void onSubscribe(ServerSession serverSession, Message message) throws IOException {
         String channel = (String)message.get(Message.SUBSCRIPTION_FIELD);
         if(channel.equals("/service/session/join/*")) {
-            this.delegate.onClientJoin(serverSession, message);
+        	if(this.sessionModerator.canClientJoinSession(serverSession))
+        		this.lateJoinHandler.onClientJoin(serverSession, message);
+        	else {
+        		//TODO
+        		//need to send error message.
+        	}
         }
-        else if(channel.startsWith("/service/bot")) {
-            this.delegate.onSubscribeService(serverSession, message);
-        }
-        else if(channel.startsWith("/bot")) {
-            this.delegate.onSubscribeService(serverSession, message);
+        else if(channel.startsWith("/service/bot") ||
+        		channel.startsWith("/bot")) {
+        	if(this.sessionModerator.canClientSubscribeService(serverSession)) 
+        		this.serviceHandler.subscribeUser(serverSession, message);
+        	else {
+        		//TODO
+        		//need to send error message.
+        	}
         }
         else if(channel.endsWith("/session/updater")) {
 			this.attendees.add(serverSession);
-            this.delegate.onUpdaterSubscribe(serverSession, message);
+            this.lateJoinHandler.onUpdaterSubscribe(serverSession, message);
+            this.sessionModerator.onClientJoinSession(serverSession);
         }
     }
     
-    public void onUnsubscribe(ServerSession serverSession, Message message) {
-        // System.out.println("SessionHandler::onUnsubscribe");
-        String channel = (String)message.get(Message.SUBSCRIPTION_FIELD);
-        // System.out.println(channel);
-        if(channel.startsWith("/service/bot")) {
-            this.delegate.onUnsubscribeService(serverSession, message);
-        }
-        else if(channel.startsWith("/bot")) {
-            this.delegate.onUnsubscribeService(serverSession, message);
+    public void onUnsubscribe(ServerSession serverSession, Message message) throws IOException {
+
+    	String channel = (String)message.get(Message.SUBSCRIPTION_FIELD);
+        if(channel.startsWith("/service/bot") ||
+           channel.startsWith("/bot")) 
+        {
+            this.serviceHandler.unSubscribeUser(serverSession, message);
         }
         
         return;
@@ -235,40 +285,16 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
     public void onPurgingClient(ServerSession client) {
 		this.attendees.remove(client);
-        if(this.delegate.onClientRemove(client)) {
+		
+		this.sessionModerator.onClientLeaveSession(client);
+		boolean last = this.lateJoinHandler.onClientRemove(client);
+		
+        if(last) {
             this.endSession();
         }
     }
     
-    public String toString() {
-        StringBuffer sb = new StringBuffer();
-        sb.append("{\"confkey\":");
-        sb.append(this.confKey);
-        sb.append(",\"sessionid\":");
-        sb.append(this.sessionId);
-        sb.append(",\"collab\":");
-        sb.append(this.collab);
-        sb.append("}");
-        
-        return sb.toString();
-    }
-            
-    public String getConfKey() {
-        return this.confKey;
-    }
     
-    public String getSessionId() {
-        return this.sessionId;
-    }
-    
-    public boolean isCollab() {
-        return this.collab;
-    }
-    
-    public boolean isCachingState() {
-    	return this.cacheState;
-    }
-
     public static String hashURI(String url) {
         
         String hash = null;
@@ -308,14 +334,19 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
         sync = server.getChannel(this.syncEngineChannel);
         sync.removeListener(this);
-		
-        this.delegate.onEndSession();
-        this.delegate = null;
-
+        
+		this.sessionModerator.onSessionEnd();
+        this.lateJoinHandler.onEndSession();
         this.serviceHandler.shutdown();
+        
+        //lets make sure shit goes out with garbage
         this.serviceHandler = null;
+        this.lateJoinHandler = null;
+        this.sessionModerator = null;
 
         SessionManager manager = SessionManager.getInstance();
         manager.removeSessionHandler(this);
     }
+    
+    
 }

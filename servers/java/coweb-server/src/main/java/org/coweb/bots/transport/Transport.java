@@ -6,7 +6,6 @@ package org.coweb.bots.transport;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Properties;
 
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.BayeuxServer;
@@ -16,7 +15,7 @@ import org.coweb.SessionManager;
 
 public abstract class Transport {
 	
-	protected Properties botConfig = null;
+	protected Map<String, Object> botConfig = null;
 	
 	protected String serviceName = null;
 	protected String sessionId = null;
@@ -30,14 +29,14 @@ public abstract class Transport {
 		this.server = manager.getServerSession();
 	}
 	
-	public Transport(Properties botConfig, String sessionId) {
+	public Transport(Map<String, Object> botConfig, String sessionId) {
 		this.botConfig = botConfig;
 		this.sessionId = sessionId;	
 	}
 	
-	public void setBotConfig(Properties botConfig) {
+	public void setBotConfig(Map<String, Object> botConfig) {
 		this.botConfig = botConfig;
-		this.serviceName = botConfig.getProperty("service");
+		this.serviceName = (String)botConfig.get("service");
 	}
 	
 	public void setSessionId(String sessionId) {

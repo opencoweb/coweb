@@ -90,8 +90,8 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
                 username = "anonymous";
             
             allowed = this.canSubscribeToSession(username, 
-            		handler.getConfKey(),
-            		handler.isCollab());
+            		handler.getConfKey());
+            		
 
             if(allowed) {
             	client.setAttribute("username", username);

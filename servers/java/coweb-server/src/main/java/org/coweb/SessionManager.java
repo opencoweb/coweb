@@ -1,28 +1,21 @@
 /**
- * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+  * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
  * Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
  */
 package org.coweb;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Collection;
 import java.util.Collections;
 
 import java.util.logging.Logger;
 
-import javax.servlet.ServletContext;
-
 import org.cometd.server.AbstractService;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.BayeuxServer;
-import org.cometd.bayeux.server.ConfigurableServerChannel;
-import org.cometd.bayeux.server.ServerChannel;
-import org.cometd.bayeux.server.ServerMessage.Mutable;
 import org.cometd.bayeux.server.ServerSession;
 
 
@@ -31,42 +24,19 @@ import org.cometd.bayeux.server.ServerSession;
 public class SessionManager extends AbstractService implements BayeuxServer.SessionListener
 {
 	private static final Logger log = Logger.getLogger(SessionManager.class.getName());
-	
-	private Map<String, SessionHandler> sessions = Collections.synchronizedMap(new HashMap<String, SessionHandler>());
-	
 	private static SessionManager singleton = null;
-	private ServletContext servletContext = null;
-    private Class delegateClass = null;
-    private Class updaterTypeMatcherClass = null;
+
+	private Map<String, SessionHandler> sessions = Collections.synchronizedMap(new HashMap<String, SessionHandler>());
+	private Map<String, Object> config = null;
 	
-    private SessionManager(BayeuxServer bayeux, 
-            ServletContext context,
-            String delegate,
-            String updaterTypeMatcher)
-    {
+	
+    private SessionManager(BayeuxServer bayeux, Map<String, Object> config) {
         super(bayeux, "session");
-        this.servletContext = context;
-        //this.addService("/meta/handshake", "handleHandshake");
- 
-        try {
-            this.delegateClass = Class.forName(delegate);
-        }
-        catch(Exception e) {
-            //TODO Better error handling.
-            e.printStackTrace();
-        }
-        try {
-            this.updaterTypeMatcherClass = Class.forName(updaterTypeMatcher);
-        }
-        catch(Exception e) {
-            //TODO Better error handling.
-            e.printStackTrace();
-        }
+        
+        this.config = config;
         this.addService("/meta/subscribe", "handleSubscribed");
         this.addService("/meta/unsubscribe", "handleUnsubscribed");
         this.addService("/session/roster/*", "handleMessage");
-		//this.addService("/service/session/sync/app", "handleAppSyncMessage");
-		//this.addService("/service/session/sync/engine", "handleEngineSyncMessage");
 		this.addService("/service/session/join/*", "handleMessage");
 		this.addService("/service/session/updater", "handleMessage");
 		this.addService("/service/bot/**", "handleMessage");
@@ -75,24 +45,13 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
         bayeux.addListener(this);
     }
     
-    public static SessionManager newInstance(ServletContext servletContext,
-            BayeuxServer bayeux,
-            String delegate, 
-            String updaterTypeMatcher) {
-
+ 
+    public static SessionManager newInstance(Map<String, Object> config, BayeuxServer bayeux) {
+            
         if(singleton != null)
             return singleton;
 
-        if(servletContext == null)
-            return null;
-
-        if(delegate == null)
-            delegate = "org.coweb.CollabDelegate";
-
-        if (updaterTypeMatcher == null) {
-        	updaterTypeMatcher = "org.coweb.DefaultUpdaterTypeMatcher";
-        }
-        singleton = new SessionManager(bayeux, servletContext, delegate, updaterTypeMatcher);
+        singleton = new SessionManager(bayeux, config);
         singleton.setSeeOwnPublishes(false);
 
     	return singleton;
@@ -102,20 +61,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
         return singleton;
     }
     
-    public Properties loadPropertyFile(String name) {
-    	
-    	InputStream in = this.servletContext.getResourceAsStream(name);
-        //System.out.println("loadPropertyFile " + name);
-        //System.out.println("stream = " + in);
-    	Properties p = new Properties();
-    	try {
-			p.load(in);
-		} catch (IOException e) {
-			p = null;
-		}
-		
-		return p;
-    }
+    
     
     /**
      * Parses the sessionId from the channel.
@@ -139,7 +85,8 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     	if(ext == null)
     		return null;
     	
-    	Map<String,Object> cowebExt = (Map<String,Object>)ext.get("coweb");
+    	@SuppressWarnings("unchecked")
+		Map<String,Object> cowebExt = (Map<String,Object>)ext.get("coweb");
     	if(cowebExt == null)
     		return null;
     	
@@ -173,9 +120,9 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
      * @param collab True if this is a collaborative session
      * @return SessionHandler
      */
-    public SessionHandler getSessionHandler(String confkey, boolean collab, boolean cacheState) {
+    public SessionHandler getSessionHandler(String confkey, boolean cacheState) {
 	
-    	String key = confkey + ":" + collab + ":" + cacheState;
+    	String key = confkey + ":" + cacheState;
 		//System.out.println("SessionManager::getSessionHandler for " + key);
 		log.info("getSessionHandler key = " + key);
     	return this.sessions.get(key);
@@ -195,7 +142,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     	return null;
     }
     
-    public void handleSubscribed(ServerSession serverSession, Message message) {
+    public void handleSubscribed(ServerSession serverSession, Message message) throws IOException {
     	//System.out.println("SessionManager::handleSubscribed");
     	//System.out.println(message);
     	
@@ -206,11 +153,8 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
     		handler.onSubscribe(serverSession, message);
     }
     
-    public void handleUnsubscribed(ServerSession serverSession, Message message) {
-    	//System.out.println("SessionManager::unsubscribed");
-    	//System.out.println(message.getChannel());
-    	//SessionHandler handler = this.getSessionHandler((String)message.get(Message.SUBSCRIPTION_FIELD));
-			
+    public void handleUnsubscribed(ServerSession serverSession, Message message) throws IOException {
+    	
     	SessionHandler handler = this.getSessionHandler(message);
     	if(handler != null) {
     		handler.onUnsubscribe(serverSession, message);
@@ -219,8 +163,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
 
     
     public void handleMessage(ServerSession remote, Message message) {
-    	//System.out.println("SessionManager::handleMessage");
-    	//System.out.println(message);
+    	
     	String sessionId = (String)remote.getAttribute("sessionid");
     	SessionHandler handler = null;
     	if(sessionId == null)
@@ -243,48 +186,27 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
      * 
      * @param confkey
      * @param collab
-     * @return
      */
-    public SessionHandler createSession(String confkey, boolean collab, boolean cacheState, boolean sessionIdInChannel) {
+    public SessionHandler createSession(String confkey) {
     	log.info("SessionManager::createSession ************");
-        log.info("delegateClass = " + this.delegateClass);
-    	//System.out.println("collab = " + collab);
-    	SessionHandler handler = this.getSessionHandler(confkey, collab, cacheState);
+    	SessionHandler handler = this.getSessionHandler(confkey);
     
     	if(handler == null) {
-    		
-            SessionHandlerDelegate delegate;
-            try {
-                delegate = 
-                    (SessionHandlerDelegate)this.delegateClass.newInstance();
-            }
-            catch(Exception e) {
-                log.info("SessionManager::createSession delegate class is null");
-                delegate = new DefaultDelegate();
-            }
-            
-            UpdaterTypeMatcher updaterTypeMatcher = null;
-            try {
-            	updaterTypeMatcher = (UpdaterTypeMatcher)this.updaterTypeMatcherClass.newInstance();
-            }catch(Exception e) {
-            	updaterTypeMatcher = new DefaultUpdaterTypeMatcher();
-            }
-
-    		handler = new SessionHandler(confkey, collab, cacheState, delegate, updaterTypeMatcher, sessionIdInChannel);
-    		this.sessions.put(confkey + ":" + collab + ":" + cacheState, handler);
+    		handler = new SessionHandler(confkey, this.config);
+    		this.sessions.put(confkey, handler);
     	}
     	
     	return handler;
     }
     
     public void removeSessionHandler(SessionHandler handler) {
-    	this.removeSessionHandler(handler.getConfKey(), handler.isCollab(), handler.isCachingState());
+    	this.removeSessionHandler(handler.getConfKey(), handler.isCachingState());
     }
     
-    public void removeSessionHandler(String confkey, boolean collab, boolean cacheState) {
+    public void removeSessionHandler(String confkey, boolean cacheState) {
 
     	log.info("SessionManager::removeSessionHandler ***********");
-    	SessionHandler handler = this.sessions.remove(confkey+":" + collab + ":" + cacheState);
+    	SessionHandler handler = this.sessions.remove(confkey+":" + cacheState);
     	log.info("handler = " + handler);
     	
     	handler = null;
@@ -299,11 +221,7 @@ public class SessionManager extends AbstractService implements BayeuxServer.Sess
 			return;
 		}
 			
-		SessionHandlerDelegate delegate = handler.getDelegate();
-		if(!(delegate instanceof CollabDelegate))
-			return;
-			
-		ServerSession client = ((CollabDelegate)delegate).getServerSessionFromSiteid(siteId);
+		ServerSession client = handler.getServerSessionFromSiteid(siteId);
 		if(client != null) {
 			log.info("ServerSession found about to call disconnect");
 			client.disconnect();

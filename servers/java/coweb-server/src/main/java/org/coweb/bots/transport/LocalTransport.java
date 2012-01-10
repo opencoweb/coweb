@@ -7,7 +7,6 @@ package org.coweb.bots.transport;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.ArrayList;
 
 import org.cometd.bayeux.Message;
@@ -37,8 +36,6 @@ public class LocalTransport extends Transport implements Proxy {
 			Message message,
 			boolean pub) throws IOException {
 		
-		//System.out.println("LocalTransport::subscribeUser");
-		String channel = (String)message.get(Message.SUBSCRIPTION_FIELD);
 		if(this.bot == null) {
 			this.bot = this.getBotInstance();
 			if(this.bot == null)
@@ -61,7 +58,6 @@ public class LocalTransport extends Transport implements Proxy {
 		//System.out.println("LocalTransport::unSubscribeUser");
 		
 		if(this.bot == null) {
-			String channel = (String)message.get(Message.SUBSCRIPTION_FIELD);
 			this.bot = this.getBotInstance();
 			if(this.bot == null)
 				throw new IOException("unable to locate bot " + this.serviceName);
@@ -92,6 +88,7 @@ public class LocalTransport extends Transport implements Proxy {
 		//System.out.println("message = " + message);
 		
 		Map<String, Object> data = message.getDataAsMap();
+		@SuppressWarnings("unchecked")
 		Map<String, Object> params = (Map<String, Object>)data.get("value");
 		String replyToken = (String)data.get("topic");
 		String username = (String)client.getAttribute("username");
@@ -187,13 +184,13 @@ public class LocalTransport extends Transport implements Proxy {
 	
 	private Bot getBotInstance() throws IOException {
 
-		String className = this.botConfig.getProperty("class");
+		String className = (String)this.botConfig.get("class");
 		if(className == null)
 			throw new IOException("Error parsing bot descriptor");
 
 		try {
-			Class clazz = Class.forName(className);
-			bot = (Bot)clazz.newInstance();
+			Class<? extends Bot> clazz = Class.forName(className).asSubclass(Bot.class);
+			bot = clazz.newInstance();
 			bot.setProxy(this);
 			bot.init();
 

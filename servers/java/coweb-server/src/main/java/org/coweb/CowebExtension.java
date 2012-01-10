@@ -4,8 +4,8 @@
  */
 package org.coweb;
 
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.io.IOException;
 import java.io.File;
 
 import org.cometd.bayeux.server.ServerMessage;
@@ -22,7 +22,6 @@ public class CowebExtension implements BayeuxServer.Extension {
 	private PrintWriter outgoing = null;
 	private PrintWriter incoming = null;
 	
-	private static String NEWLINE = System.getProperty("line.separator");
 	
 
 	public CowebExtension() { ; }
@@ -47,12 +46,12 @@ public class CowebExtension implements BayeuxServer.Extension {
 		}
 	}
 	
-	public void setOutgoing(String fileName) {
-		this.outgoing = outgoing;
+	public void setOutgoing(String fileName) throws FileNotFoundException {
+		this.outgoing = new PrintWriter(new File(fileName));
 	}
 	
-	public void setIncoming(String fileName) {
-		this.incoming = incoming;
+	public void setIncoming(String fileName) throws FileNotFoundException {
+		this.incoming = new PrintWriter(new File(fileName));
 	}
 	
 	private void writeMessage(String msg, PrintWriter w) {

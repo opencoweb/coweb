@@ -7,11 +7,9 @@ package org.coweb;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.cometd.bayeux.Message;
-import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.bayeux.server.ServerSession;
 import org.coweb.bots.transport.Transport;
 
@@ -21,27 +19,40 @@ public class ServiceHandler {
 	private static final Logger log = Logger.getLogger(ServiceHandler.class.getName());
 	
 	private String sessionId = null;
-	private BayeuxServer bayeuxServer = null;
 	private Map<String, Transport> brokers = new HashMap<String, Transport>();
+	private Map<String, Object> cowebConfig = null;
 	
-	public ServiceHandler(String sessionId) {
+	public ServiceHandler(String sessionId, Map<String, Object> config) {
 		System.out.println("ServiceHandler new Instance " + sessionId);
 		this.sessionId = sessionId;
-		SessionManager manager = SessionManager.getInstance();
-		this.bayeuxServer = manager.getBayeux();
+		this.cowebConfig = config;
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	public Transport getServiceBroker(String serviceName) {
 		
-		System.out.println("ServiceHandler::getServiceBroker for " + serviceName);
+		log.info("ServiceHandler::getServiceBroker for " + serviceName);
 		Transport broker = this.brokers.get(serviceName);
 		if(broker != null) 
 			return broker;
+				
+		log.info(this.cowebConfig.get("bots").toString());
+		Object[] botConfigs = (Object[])this.cowebConfig.get("bots");
+		if(botConfigs == null) {
+			return null;
+		}
 		
-		SessionManager manager = SessionManager.getInstance();
+		Map<String, Object> botConfig = null;
+		for(int i=0; i<botConfigs.length; i++) {
+			botConfig = (Map<String, Object>)botConfigs[i];
+			String s = (String)botConfig.get("service");
+			
+			if(s.equals(serviceName)) {
+				break;
+			}
+		}
 		
-		Properties botConfig = manager.loadPropertyFile("/WEB-INF/"+serviceName+".properties");
 		if(botConfig == null)
 			return null;
 		
@@ -54,8 +65,10 @@ public class ServiceHandler {
         }
 
 		try {
-			Class clazz = Class.forName(brokerStr);
-			broker = (Transport)clazz.newInstance();
+			
+			//Class clazz = Class.forName(brokerStr);
+			Class<? extends Transport> clazz = Class.forName(brokerStr).asSubclass(Transport.class);
+			broker = clazz.newInstance();
 		}
 		catch(Exception e) {
 			e.printStackTrace();

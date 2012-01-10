@@ -4,9 +4,12 @@
  */
 package org.coweb.servlet;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 
 import java.util.Map;
 import java.util.HashMap;
@@ -31,6 +34,7 @@ import org.coweb.CowebExtension;
 
 import org.eclipse.jetty.util.ajax.JSON;
 
+
 /**
  * The servlet that handles session prepare requests.  This servlet will
  * will reply with the session info for the client.  If a session does not
@@ -47,10 +51,12 @@ public class AdminServlet extends HttpServlet {
 
     private SessionManager sessionManager = null;
     private CowebSecurityPolicy securityPolicy = null;
-	private boolean sessionIdInChannel = false;
 	
-	private boolean generateRandomCowebkey = false;
-
+    /**
+     * Loads the coweb config file and creates the security manager and
+     * session manager.  The session manager is registered to listen
+     * for all bayeux traffic.
+     */
 	@Override
 	public void init() throws ServletException {
 		super.init();
@@ -63,18 +69,22 @@ public class AdminServlet extends HttpServlet {
             (BayeuxServer)servletContext.getAttribute(BayeuxServer.ATTRIBUTE);
 	    bayeux.addExtension(new AcknowledgedMessagesExtension());
 
+	    //parse the coweb configuration file for this application.
         ServletConfig config = this.getServletConfig();
+        Map<String, Object> cowebConfig = null;
+        try {
+			cowebConfig = this.getCowebConfigOptions(config);
+		} catch (Exception e1) {
+			e1.printStackTrace();
+			cowebConfig = new HashMap<String, Object>();
+		}
+        
+        log.info("cowebConfig = " + cowebConfig.toString());
 
-        //Get the SessionDelegateClass for this application
-        String delegateClass = config.getInitParameter("delegateClass");
-        //Get the SecurityPolicy for this application
-        String securityClass = config.getInitParameter("securityClass");
-        //Get the UpdaterTypeMatcher for this application
-        String updaterTypeMatcherClass = config.getInitParameter("updaterTypeMatcherClass");
-
-		String captureIncoming = config.getInitParameter("captureIncoming");
-		String captureOutgoing = config.getInitParameter("captureOutgoing");
-		
+        //setup any debug options for capturing incoming and outgoing 
+        //bayeux traffic.
+		String captureIncoming = (String)cowebConfig.get("captureIncoming");
+		String captureOutgoing = (String)cowebConfig.get("captureOutgoing");
 		if(captureIncoming != null || captureOutgoing != null) {
 			try {
 				CowebExtension cowebExtension = new CowebExtension(captureIncoming, captureOutgoing);
@@ -85,22 +95,15 @@ public class AdminServlet extends HttpServlet {
 			}		
 		}
 
-		String sessionIdInChannelParam = config.getInitParameter("sessionIdInChannel");
-		if(sessionIdInChannelParam != null && sessionIdInChannelParam.equals("1")) {
-			this.sessionIdInChannel = true;
-		}
 		
-		String generateRandomCowebkeyParam = config.getInitParameter("generateRandomCowebkey");
-		if(generateRandomCowebkeyParam != null && generateRandomCowebkeyParam.equals("1")) {
-			this.generateRandomCowebkey = true;
-		}
-
         //Create the security policy.  Default to CowebSecurityPolicy.
+		//Get the SecurityPolicy for this application
+        String securityClass = (String)cowebConfig.get("securityClass");
         if(securityClass == null)
             securityPolicy = new CowebSecurityPolicy();
         else {
             try {
-                Class clazz = Class.forName(securityClass);
+                Class<? extends CowebSecurityPolicy> clazz = Class.forName(securityClass).asSubclass(CowebSecurityPolicy.class);
                 securityPolicy = (CowebSecurityPolicy)clazz.newInstance();
             }
             catch(Exception e) {
@@ -111,12 +114,9 @@ public class AdminServlet extends HttpServlet {
         //set the coweb security policty
 	    bayeux.setSecurityPolicy(securityPolicy);
 	  
-        //System.out.println("delegateClass = " + delegateClass); 
-        //create the session manager. 
-	    this.sessionManager = SessionManager.newInstance(servletContext, 
-                bayeux,
-                delegateClass,
-                updaterTypeMatcherClass);
+	    //create the SessionManager instance.  The SessionManager also listens to all bayeux
+	    //traffic.
+	    this.sessionManager = SessionManager.newInstance(cowebConfig, bayeux);
 	}
 	
 	@Override
@@ -161,6 +161,12 @@ public class AdminServlet extends HttpServlet {
 		}
 	}
 	
+	/**
+	 * Clients will send a post to the admin servlet to join a session.  If a session
+	 * does not already exist, one will be created.  See the protocol documentation
+	 * for the correct format of the prep request.
+	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 	throws ServletException, IOException {
@@ -172,57 +178,10 @@ public class AdminServlet extends HttpServlet {
         if(username == null)
             username = "anonymous";
 
-		String confKey = null;
-		String originalKey = null;
-		boolean collab = false;
-		boolean cacheState = false;
-		boolean generatedCowebkey = false;
-		String sessionName = null;
 		Map<String, Object> jsonObj = null;
 		
 		try {
             jsonObj = (Map<String, Object>)JSON.parse(req.getReader());
-			confKey = (String)jsonObj.get("key");
-			if(confKey == null) {
-                String errMsg = "No confkey in prep request.";
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST, errMsg);
-				return;
-			}
-			
-			if(jsonObj.containsKey("collab")) {
-				if(((Boolean)jsonObj.get("collab")).booleanValue() == true) {
-					collab = true;
-				}
-			}
-
-			if(jsonObj.containsKey("cacheState")) {
-				if(((Boolean)jsonObj.get("cacheState")).booleanValue() == true) {
-					cacheState = true;
-				}
-			}
-
-            //TODO need to call the security policy to see if this user is 
-            //allowed to send prep requests and allow any further processing
-            //as an extension point.
-			if(!securityPolicy.canAdminRequest(username, confKey, collab))
-				resp.sendError(HttpServletResponse.SC_FORBIDDEN, 
-						"user " + username + "not allowed");
-			
-			originalKey = confKey;
-			
-			if(this.generateRandomCowebkey &&
-			   jsonObj.containsKey("defaultKey") &&
-			   ((Boolean)jsonObj.get("defaultKey")).booleanValue() == true)
-		 	{
-				confKey = this.generateRandomCowebkey(confKey);
-				//System.out.println("Generating coweb key " + confKey);
-				generatedCowebkey = true;
-			}
-			
-			if(jsonObj.containsKey("sessionName")) {
-				sessionName = (String)jsonObj.get("sessionName");
-			}
-			
 		}
 		catch(Exception e) {
 			log.severe("error processing prep request: " + e.getMessage());
@@ -230,21 +189,46 @@ public class AdminServlet extends HttpServlet {
 			return;
 		}
 		
-		SessionHandler handler = 
-            this.sessionManager.getSessionHandler(confKey, collab, cacheState);
-		if(handler == null) {
-			handler = this.sessionManager.createSession(confKey, collab, cacheState, this.sessionIdInChannel);
-			if(sessionName != null) {
-				handler.setSessionName(sessionName);
-			}
+		//get the requesting url.  This param is optional.
+		String requestUrl = (jsonObj.containsKey("requesturl")) ? (String)jsonObj.get("requesturl") : "";
+		//if the conference key is null, we will auto generate one.
+		String confKey = (String)jsonObj.get("key");
+		if(confKey == null) {
+			log.info("confKey is null generating one...");
+			confKey = SessionHandler.hashURI(Long.toString(System.currentTimeMillis()));
+			requestUrl += "#/cowebkey/" + confKey;
+		}
+		log.info("confKey = " + confKey);
+		log.info("request url = " + requestUrl);
+
+		
+		//TODO need to call the security policy to see if this user is 
+        //allowed to send prep requests and allow any further processing
+        //as an extension point.
+		if(!securityPolicy.canAdminRequest(username, confKey, true))
+			resp.sendError(HttpServletResponse.SC_FORBIDDEN, 
+					"user " + username + "not allowed");
+		
+		//grab the session name.  optional param.
+		String sessionName = null;
+		if(jsonObj.containsKey("sessionName")) {
+			sessionName = (String)jsonObj.get("sessionName");
 		}
 		
-		String requestUrl = (jsonObj.containsKey("requesturl")) ? (String)jsonObj.get("requesturl") : "";
-		requestUrl += (generatedCowebkey) ? "#/cowebkey/" + confKey : "";
-		handler.setRequestUrl(requestUrl);
+		//see if we have a session for this key already.  If not create one.
+		SessionHandler handler = this.sessionManager.getSessionHandler(confKey);
+		if(handler == null) {
+			handler = this.sessionManager.createSession(confKey);
+			handler.setSessionName(sessionName);
+			handler.setRequestUrl(requestUrl);
+		}
+		
 				
 		String sessionId = handler.getSessionId();
+		
+		//get our base url, to tell clients where the bayeux servlet is.
 		String base = this.getServletContext().getContextPath();
+		
 		HashMap<String, Object> jsonResp = new HashMap<String, Object>();
 	
         //Send the prep response back to the client.    
@@ -252,13 +236,10 @@ public class AdminServlet extends HttpServlet {
 			jsonResp.put("sessionurl",base+"/cometd");
 			jsonResp.put("sessionid", sessionId);
 			jsonResp.put("username", username);
-			jsonResp.put("key", originalKey);
-			jsonResp.put("collab", new Boolean(collab));
-			jsonResp.put("sessionIdInChannel", new Boolean(this.sessionIdInChannel));
-			jsonResp.put("info", new HashMap());
-			if(generatedCowebkey) {
-				jsonResp.put("generatedcowebkey", confKey);
-			}
+			jsonResp.put("key", confKey);
+			jsonResp.put("collab", new Boolean(true));
+			jsonResp.put("info", new HashMap<String, Object>());
+			
 
             String jsonStr = JSON.toString(jsonResp);
             java.io.PrintWriter writer = resp.getWriter();
@@ -270,9 +251,6 @@ public class AdminServlet extends HttpServlet {
 		}
 	}
 	
-	private String generateRandomCowebkey(String key) {
-		return SessionHandler.hashURI(key);
-	}
 	
 	private void _handleDisconnect(HttpServletRequest req, HttpServletResponse resp) {
 		//System.out.println("AdminServlet::_handleDisconnect ***********");
@@ -289,5 +267,61 @@ public class AdminServlet extends HttpServlet {
 		String siteId = paths[3];
 		
 		this.sessionManager.disconnectClient(sessionId, siteId);
+	}
+	
+	private Map<String, Object> getCowebConfigOptions(ServletConfig config) 
+			throws Exception {
+		String configURI = config.getInitParameter("ConfigURI");
+		if(configURI == null) {
+			return this.getConfigOptionsFromInitParams(config);
+		}
+		
+		return this.getConfigOptionsFromFile(configURI, config);
+	}
+	
+	/**
+	 * We need to phase out the init params and move to json config file.
+	 * This is here for backward compatability.
+	 * @param config
+	 * @return
+	 */
+	private Map<String, Object> getConfigOptionsFromInitParams(ServletConfig config) {
+		HashMap<String, Object> ops = new HashMap<String, Object>();
+		
+        String securityClass = config.getInitParameter("securityClass");
+        if(securityClass != null)
+        	ops.put("securityClass", securityClass);
+        
+        //Get the UpdaterTypeMatcher for this application
+        String updaterTypeMatcherClass = config.getInitParameter("updaterTypeMatcherClass");
+        if(updaterTypeMatcherClass != null)
+        	ops.put("updaterTypeMatcherClass", updaterTypeMatcherClass);
+
+		String captureIncoming = config.getInitParameter("captureIncoming");
+		if(captureIncoming != null) 
+			ops.put("captureIncoming", captureIncoming);
+		
+		String captureOutgoing = config.getInitParameter("captureOutgoing");
+		if(captureOutgoing != null)
+			ops.put("captureOutgoing", captureOutgoing);
+		
+		return ops;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getConfigOptionsFromFile(String filePath, ServletConfig servletConfig) 
+	{
+		
+		InputStream in = servletConfig.getServletContext().getResourceAsStream(filePath);
+
+		log.info("loading configuration file " + filePath);
+		try {
+			return (Map<String, Object>) JSON.parse(new InputStreamReader(in));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 }

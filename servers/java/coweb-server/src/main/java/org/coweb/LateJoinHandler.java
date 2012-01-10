@@ -1,7 +1,3 @@
-/**
- * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
- * Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
- */
 package org.coweb;
 
 import java.math.BigInteger;
@@ -11,25 +7,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
 import java.util.logging.Logger;
 
 import org.cometd.bayeux.Message;
+import org.cometd.bayeux.server.BayeuxServer;
+import org.cometd.bayeux.server.ConfigurableServerChannel;
+import org.cometd.bayeux.server.ServerChannel;
 import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ServerSession;
-import org.cometd.bayeux.server.ServerChannel;
-import org.cometd.bayeux.server.ConfigurableServerChannel;
-import org.cometd.bayeux.server.BayeuxServer;
+//import org.coweb.LateJoinHandler.BatchUpdateMessage;
 
-
-public class CollabDelegate extends DefaultDelegate {
-
-	private static final Logger log = Logger.getLogger(CollabDelegate.class.getName());
+public class LateJoinHandler {
+	
+	protected SessionHandler sessionHandler = null;
+    protected ServiceHandler serviceHandler = null;
+    protected SessionManager sessionManager = null;
+    protected SessionModerator sessionModerator = null;
+    protected UpdaterTypeMatcher updaterTypeMatcher = null;
+    protected boolean cacheState = true;
+	
+	private static final Logger log = Logger.getLogger(LateJoinHandler.class.getName());
 
 	private Map<String,ServerSession> updatees = 
         new HashMap<String, ServerSession>();
 
-	private Map<String,List<String>> updaters = 
+	protected Map<String,List<String>> updaters = 
         new HashMap<String, List<String>>();
 
     /**
@@ -37,7 +39,7 @@ public class CollabDelegate extends DefaultDelegate {
      * is an available siteid, otherwise the slot is filled with
      * ServerSession's clientid.
      */
-	private ArrayList<String> siteids = new ArrayList<String>(5);
+	protected ArrayList<String> siteids = new ArrayList<String>(5);
 
 	private Object[] lastState = null;
 
@@ -47,17 +49,36 @@ public class CollabDelegate extends DefaultDelegate {
 	private Map<String,ServerSession> clientids = 
         new HashMap<String,ServerSession>();
 
-
-    public CollabDelegate() {
-        super();
-        this.siteids.add(0, "reserved");
+	
+	public LateJoinHandler(SessionHandler sessionHandler, Map<String, Object> config) {
+		this.siteids.add(0, "reserved");
 		for(int i=1; i<5; i++) {
 			this.siteids.add(i, null);
-		}	
-    }
-
+		}
+		
+		this.sessionHandler = sessionHandler;
+        this.serviceHandler = this.sessionHandler.getServiceHandler();
+        this.sessionManager = SessionManager.getInstance();
+        
+        if(config.containsKey("cacheState")) {
+        	this.cacheState = ((Boolean)config.get("cacheState")).booleanValue();
+        }
+        
+        String classStr = "org.coweb.DefaultUpdaterTypeMatcher";
+        if(config.containsKey("updaterTypeMatcher")) {
+        	classStr = (String)config.get("updaterTypeMatcher");
+        }
+        
+        try {
+        	Class<? extends UpdaterTypeMatcher> c = Class.forName(classStr).asSubclass(UpdaterTypeMatcher.class);
+        	this.updaterTypeMatcher = c.newInstance();
+        }
+        catch(Exception e) {
+        	e.printStackTrace();
+        }        
+	}
+	
 	public ServerSession getServerSessionFromSiteid(String siteStr) {
-		ServerSession client = null;
 		try {
 			int siteid = Integer.valueOf(siteStr);
 			String clientId = this.siteids.get(siteid);
@@ -72,21 +93,7 @@ public class CollabDelegate extends DefaultDelegate {
 		return null;
 	}
 
-    @Override
-    public boolean onSync(ServerSession client, Message message) {
-        if(this.ensureUpdater(client)) {
-            this.clearLastState();
-        }
-        else {
-            //System.out.println("CollabDelegate::onSync remove bad client");
-            this.sessionHandler.removeBadClient(client);
-            return false;
-        }
-
-        return super.onSync(client, message);
-    }
-
-    @Override
+        
     public void onClientJoin(ServerSession client, Message message) {
         log.info("CollabDelegate::onClientJoin *************");
 		int siteId = this.getSiteForClient(client);
@@ -130,7 +137,6 @@ public class CollabDelegate extends DefaultDelegate {
 			    sendState));
     }
 
-    @Override
     public void onUpdaterSendState(ServerSession client, Message message) {
         String clientId = client.getId();
 		Map<String, Object> data = message.getDataAsMap();
@@ -174,7 +180,7 @@ public class CollabDelegate extends DefaultDelegate {
 		updatee.deliver(this.sessionManager.getServerSession(), msg);
     }
 
-    @Override
+    
     public void onUpdaterSubscribe(ServerSession client, Message message) {
         this.addUpdater(client, true);
     }
@@ -182,12 +188,10 @@ public class CollabDelegate extends DefaultDelegate {
     /**
      * returns true if this was the last updater.
      */
-    @Override
     public boolean onClientRemove(ServerSession client) {
 
         log.info("CollabDelegate::onClientRemove ********");
         log.info("siteId = " + client.getAttribute("siteid"));
-        super.onClientRemove(client);
 
         this.removeUpdater(client);
 		if(this.getUpdaterCount() == 0) {
@@ -198,7 +202,6 @@ public class CollabDelegate extends DefaultDelegate {
         return false;
     }
 
-    @Override
 	public boolean onEndSession() {
 		this.updatees.clear();
 		this.updaters.clear();
@@ -209,7 +212,7 @@ public class CollabDelegate extends DefaultDelegate {
         return true;
 	}
 
-    private void addUpdater(ServerSession serverSession, boolean notify) {
+    protected void addUpdater(ServerSession serverSession, boolean notify) {
 		String clientId = serverSession.getId();
 		
 		//check if this client is already an updater and ignore unless this is
@@ -228,26 +231,6 @@ public class CollabDelegate extends DefaultDelegate {
 	}
 	
 	private void sendRosterAvailable(ServerSession client) {
-        //System.out.println("CollabSessionHandler::sendRosterAvailable");
-        /* create channel */
-		/*
-        BayeuxServer server = this.sessionManager.getBayeux();
-		ServerChannel.Initializer initializer = new ServerChannel.Initializer()
-        {
-            @Override
-            public void configureChannel(ConfigurableServerChannel channel)
-            {
-                channel.setPersistent(true);
-            }
-        };
-        
-        server.createIfAbsent("/session/roster/available", initializer);
-        ServerChannel channel = server.getChannel("/session/roster/available");
-        if(channel == null) {
-            //System.out.println("channel is null shit");
-            return;
-        }
-		*/
 
 		ServerSession from = this.sessionManager.getServerSession();
 		
@@ -262,11 +245,10 @@ public class CollabDelegate extends DefaultDelegate {
 		for(ServerSession c: this.sessionHandler.getAttendees()) {
 			c.deliver(from, rosterAvailableChannel, data, null);
 		}
-        //System.out.println(data);		
-		//channel.publish(from, data, null);
+        
 	}
 	
-	private void sendRosterUnavailable(ServerSession client) {
+	protected void sendRosterUnavailable(ServerSession client) {
 	    //System.out.println("CollabSessionHandler::sendRosterAvailable");
         /* create channel */
         BayeuxServer server = this.sessionManager.getBayeux();
@@ -304,7 +286,7 @@ public class CollabDelegate extends DefaultDelegate {
 		return "CollabSessionHandler";
 	}
 	
-	private int getSiteForClient(ServerSession client) {
+	protected int getSiteForClient(ServerSession client) {
 		if(this.siteids.contains(client.getId())) {
 			return this.siteids.indexOf(client.getId());
 		}
@@ -312,7 +294,7 @@ public class CollabDelegate extends DefaultDelegate {
 		return -1;
 	}
 	
-	private int addSiteForClient(ServerSession client) {
+	protected int addSiteForClient(ServerSession client) {
 		
 		int index = this.siteids.indexOf(null);
 		if(index == -1) {
@@ -329,7 +311,7 @@ public class CollabDelegate extends DefaultDelegate {
 		return index;
 	}
 	
-	private int removeSiteForClient(ServerSession client) {
+	protected int removeSiteForClient(ServerSession client) {
 
         if(client == null) {
             log.severe("removeSiteForClient ******* client is null *******");
@@ -350,7 +332,7 @@ public class CollabDelegate extends DefaultDelegate {
 		return siteid;
 	}
 	
-	private Map<Integer, String> getRosterList(ServerSession client) {
+	protected Map<Integer, String> getRosterList(ServerSession client) {
 		
 		Map<Integer, String> roster = new HashMap<Integer,String>();
 		
@@ -414,15 +396,8 @@ public class CollabDelegate extends DefaultDelegate {
 				null);
 	}
 	
-	private boolean ensureUpdater(ServerSession serverSession) {
-		return this.updaters.containsKey(serverSession.getId());
-	}
-
-    private void clearLastState() {
-		this.lastState = null;
-	}
 	
-	private void removeUpdater(ServerSession client) {
+	protected void removeUpdater(ServerSession client) {
         //System.out.println("CollabDelegate::removeUpdater " + client);
 		this.removeSiteForClient(client);
 		
@@ -470,7 +445,7 @@ public class CollabDelegate extends DefaultDelegate {
 		return availableUpdaterTypes;
 	}
 	
-	private class BatchUpdateMessage implements Runnable {
+	class BatchUpdateMessage implements Runnable {
 		
 		private ServerSession client = null;
 		private Object[] data = null;
@@ -503,4 +478,5 @@ public class CollabDelegate extends DefaultDelegate {
 			}
 		}
 	}
+
 }
