@@ -15,7 +15,7 @@ public class UpdateOperation extends Operation {
      * @param {UpdateOperation} op Update to include in this op
      * @returns {UpdateOperation} This instance
      */
-	public Operation transform(Operation op) {
+	public Operation transformWithUpdate(Operation op) {
 		if((op.position != this.position) || (!op.key.equals(this.key))) {
             return this;
         }
@@ -26,5 +26,39 @@ public class UpdateOperation extends Operation {
             this.value = op.value;
         }
         return this;
+	}
+	
+	/**
+     * Transforms this update to include the effect of an insert.
+     *
+     * @param {InsertOperation} op Insert to include in this op
+     * @returns {UpdateOperation} This instance
+     */
+	public Operation transformWithInsert(Operation op) {
+		if(!this.key.equals(op.key)) {
+            return this;
+        }
+        if(this.position >= op.position) {
+            ++this.position;
+        }
+        return this;
+	}
+	
+	/**
+     * Transforms this update to include the effect of a delete.
+     *
+     * @param {DeleteOperation} op Delete to include in this op
+     * @returns {UpdateOperation} This instance
+     */
+	public Operation transformWithDelete(Operation op) {
+		if (!this.key.equals(op.key)) {
+			return this;
+		}
+		if (this.position > op.position) {
+			--this.position;
+		} else if (this.position == op.position) {
+			return null;
+		}
+		return this;
 	}
 }

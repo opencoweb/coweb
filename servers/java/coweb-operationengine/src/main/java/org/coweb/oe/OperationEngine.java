@@ -103,7 +103,7 @@ public class OperationEngine {
 	 * @returns {Operation} Subclass instance matching the given type
 	 */
 	public Operation createOp(boolean local, String key, String value,
-			String type, int position, int site, ContextVector cv, int order) throws OperationEngineException {
+			String type, int position, int site, int[] cv, int order) throws OperationEngineException {
 		Map<String, Object> args = new HashMap<String, Object>();
 		if (local) {
 			args.put("key", key);
@@ -116,13 +116,13 @@ public class OperationEngine {
 			// build cv from raw sites array
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			map.put("sites", cv);
-			cv = new ContextVector(map);
+			ContextVector contextVector = new ContextVector(map);
 
 			args.put("key", key);
 			args.put("position", new Integer(position));
 			args.put("value", value);
 			args.put("siteId", new Integer(site));
-			args.put("contextVector", cv);
+			args.put("contextVector", contextVector);
 			args.put("order", order);
 			args.put("local", false);
 		}
@@ -137,7 +137,7 @@ public class OperationEngine {
 	 * @throws OperationEngineException 
 	 */
 	public Operation push(boolean local, String key, String value, String type,
-			int position, int site, ContextVector cv, int order) throws OperationEngineException {
+			int position, int site, int[] cv, int order) throws OperationEngineException {
 
 		Operation op = this.createOp(local, key, value, type, position, site,
 				cv, order);
@@ -458,5 +458,9 @@ public class OperationEngine {
 		// op is always a copy because we never entered this method if no
 		// transform was needed
 		return op;
+	}
+	
+	public int getSiteId() {
+		return this.siteId;
 	}
 }

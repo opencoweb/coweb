@@ -123,8 +123,12 @@ public abstract class Operation {
 		}
 	}
 	
-	public abstract Operation transform(Operation op);
 	
+	public abstract Operation transformWithDelete(Operation op);
+	
+	public abstract Operation transformWithInsert(Operation op);
+	
+	public abstract Operation transformWithUpdate(Operation op);
 	
 	
 	/**
@@ -346,7 +350,17 @@ public abstract class Operation {
             throw new OperationEngineException("attempt to transform immutable op");
         }
     	
-    	Operation rv = this.transform(op);
+    	Operation rv = null;
+    	if(op.type.equals("delete")) {
+    		rv = this.transformWithDelete(op);
+    	}
+    	else if(op.type.equals("insert")) {
+    		rv = this.transformWithInsert(op);
+    	}
+    	else if(op.type.equals("update")) {
+    		rv = this.transformWithUpdate(op);
+    	}
+    	
     	if(rv != null) {
     		this.upgradeContextTo(op);
     	}
@@ -378,6 +392,14 @@ public abstract class Operation {
 		return this.seqId;
 	}
 
+	public String getValue() {
+		return this.value;
+	}
+	
+	public int getPosition() {
+		return this.position;
+	}
+	
 	public ContextVector getContextVector() {
 		return this.contextVector;
 	}
