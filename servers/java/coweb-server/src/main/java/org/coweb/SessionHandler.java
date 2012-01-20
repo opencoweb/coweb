@@ -87,8 +87,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		if (config.containsKey("moderatorIsUpdater")
 				&& ((Boolean) config.get("moderatorIsUpdater")).booleanValue()) {
 			lh = new ModeratorLateJoinHandler(this, config);
-		} else
+		} else {
+			log.info("creating LateJoinHandler");
 			lh = new LateJoinHandler(this, config);
+		}
 
 		this.lateJoinHandler = lh;
 
@@ -104,6 +106,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			} catch (OperationEngineException e) {
 				e.printStackTrace();
 			}
+		}
+		else {
+			log.info("No op engine for this session");
 		}
 	}
 
@@ -183,6 +188,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 			return true;
 		}
+		
+		this.lateJoinHandler.clearCacheState();
 
 		Map<String, Object> data = message.getDataAsMap();
 		data.put("siteId", siteId);

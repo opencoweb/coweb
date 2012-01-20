@@ -115,16 +115,11 @@ public class SessionManager extends AbstractService implements
 	 * 
 	 * @param confkey
 	 *            The conference key
-	 * @param collab
-	 *            True if this is a collaborative session
+	 *
 	 * @return SessionHandler
 	 */
-	public SessionHandler getSessionHandler(String confkey, boolean cacheState) {
-
-		String key = confkey + ":" + cacheState;
-		// System.out.println("SessionManager::getSessionHandler for " + key);
-		log.info("getSessionHandler key = " + key);
-		return this.sessions.get(key);
+	public SessionHandler getSessionHandlerByConfkey(String confkey) {
+		return this.sessions.get(confkey);
 	}
 
 	public SessionHandler getSessionHandler(String sessionId) {

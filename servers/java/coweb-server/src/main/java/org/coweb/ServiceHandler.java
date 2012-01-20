@@ -31,12 +31,12 @@ public class ServiceHandler {
 	@SuppressWarnings("unchecked")
 	public Transport getServiceBroker(String serviceName) {
 
-		log.info("ServiceHandler::getServiceBroker for " + serviceName);
+		//log.info("ServiceHandler::getServiceBroker for " + serviceName);
 		Transport broker = this.brokers.get(serviceName);
 		if (broker != null)
 			return broker;
 
-		log.info(this.cowebConfig.get("bots").toString());
+		//log.info(this.cowebConfig.get("bots").toString());
 		Object[] botConfigs = (Object[]) this.cowebConfig.get("bots");
 		if (botConfigs == null) {
 			return null;

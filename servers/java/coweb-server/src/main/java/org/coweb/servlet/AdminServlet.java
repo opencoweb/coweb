@@ -216,7 +216,7 @@ public class AdminServlet extends HttpServlet {
 		}
 
 		// see if we have a session for this key already. If not create one.
-		SessionHandler handler = this.sessionManager.getSessionHandler(confKey);
+		SessionHandler handler = this.sessionManager.getSessionHandlerByConfkey(confKey);
 		if (handler == null) {
 			handler = this.sessionManager.createSession(confKey);
 			handler.setSessionName(sessionName);

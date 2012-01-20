@@ -92,16 +92,20 @@ public class LateJoinHandler {
 
 		return null;
 	}
+	
+	public void clearCacheState() {
+		this.lastState = null;
+	}
 
 	public void onClientJoin(ServerSession client, Message message) {
-		log.info("CollabDelegate::onClientJoin *************");
 		int siteId = this.getSiteForClient(client);
+		log.info("client site id = " + siteId);
 
 		if (siteId == -1) {
 			siteId = this.addSiteForClient(client);
+			log.info("new site id = " + siteId);
 		}
 
-		log.info("siteId = " + siteId);
 		Map<Integer, String> roster = this.getRosterList(client);
 		// ArrayList<Object>data = new ArrayList<Object>();
 		Object[] data = new Object[0];
@@ -132,6 +136,7 @@ public class LateJoinHandler {
 	}
 
 	public void onUpdaterSendState(ServerSession client, Message message) {
+		//log.info(message.getJSON());
 		String clientId = client.getId();
 		Map<String, Object> data = message.getDataAsMap();
 
@@ -166,8 +171,10 @@ public class LateJoinHandler {
 
 		msg.setChannel("/service/session/join/state");
 		if (this.cacheState) {
+			log.info("sending cached state");
 			msg.setData(this.lastState);
 		} else {
+			log.info("sending state from updater");
 			msg.setData((Object[]) data.get("state"));
 		}
 		msg.setLazy(false);
@@ -184,7 +191,6 @@ public class LateJoinHandler {
 	 */
 	public boolean onClientRemove(ServerSession client) {
 
-		log.info("CollabDelegate::onClientRemove ********");
 		log.info("siteId = " + client.getAttribute("siteid"));
 
 		this.removeUpdater(client);
@@ -277,7 +283,7 @@ public class LateJoinHandler {
 	}
 
 	public String toString() {
-		return "CollabSessionHandler";
+		return "LateJoinHandler";
 	}
 
 	protected int getSiteForClient(ServerSession client) {
@@ -339,7 +345,7 @@ public class LateJoinHandler {
 	}
 
 	private void assignUpdater(ServerSession updatee, String updaterType) {
-		log.info("CollabDelegate::assignUpdater *****************");
+		log.info("assignUpdater *****************");
 		ServerSession from = this.sessionManager.getServerSession();
 		if (this.updaters.isEmpty()) {
 			this.addUpdater(updatee, false);
