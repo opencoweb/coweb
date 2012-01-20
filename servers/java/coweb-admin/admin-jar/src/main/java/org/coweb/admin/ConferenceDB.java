@@ -17,6 +17,7 @@ import org.coweb.admin.acls.SessionAcls;
 public class ConferenceDB {
 
     private static String ALL = "ALL";
+    /*
     private static String appQuery = 
         "SELECT * " +
         "FROM applicationacls " +
@@ -31,7 +32,7 @@ public class ConferenceDB {
         "JOIN applications ON applications.appid = applicationacls.appid  " +
         "WHERE (username = ? AND acls & ?) " +
         "ORDER BY title COLLATE NOCASE";
-
+	*/
     private static String REG_APP_QUERY = 
     	"INSERT INTO applications (title, description, appurl, thumbnailurl) " +
     	"VALUES (?, ?, ?, ?)";
@@ -44,6 +45,7 @@ public class ConferenceDB {
     	"INSERT INTO sessions (appid, title, description, creator) " +
 		"VALUES (?, ?, ?, ?)";
     
+	/*
     private final static String SESSION_QUERY =
     	"SELECT sessions.sessionid as sessionid, " +
                 "sessions.title as title, " +
@@ -63,7 +65,8 @@ public class ConferenceDB {
             "(sessions.sessionid = sessionfavorites.sessionid " +
             "AND sessionfavorites.username = ?) " +
             "WHERE (sessions.sessionid = ?)";
-    
+    */
+	
     private static String SESSIONS_QUERY = 
             "SELECT sessions.sessionid as sessionid, " +
                 "sessions.title as title, " + 

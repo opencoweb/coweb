@@ -1,6 +1,5 @@
 package org.coweb.admin.security;
 
-import javax.ejb.EJB;
 
 import org.coweb.CowebSecurityPolicy;
 import org.coweb.SessionHandler;
@@ -62,8 +61,7 @@ public class SecurityPolicy extends CowebSecurityPolicy {
     	SessionHandler handler = manager.getSessionHandler(sessionid);
     	
     	return this.canSubscribeToSession(username,
-    			handler.getConfKey(),
-    			handler.isCollab());
+    			handler.getConfKey());
     }
     
     /**

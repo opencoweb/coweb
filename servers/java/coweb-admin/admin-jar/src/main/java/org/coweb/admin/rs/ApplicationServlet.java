@@ -38,7 +38,7 @@ public class ApplicationServlet extends HttpServlet {
             cowebAdmin = new AdminImpl();
         else {
             try {
-                Class clazz = Class.forName(adminClass);
+                Class<? extends Admin> clazz = Class.forName(adminClass).asSubclass(Admin.class);
                 cowebAdmin = (Admin)clazz.newInstance();
             }
             catch(Exception e) {
@@ -181,6 +181,7 @@ public class ApplicationServlet extends HttpServlet {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void createSession(HttpServletRequest req, HttpServletResponse resp)
 	throws ServletException {
 		try {
@@ -222,8 +223,8 @@ public class ApplicationServlet extends HttpServlet {
 		
 		try {
 			String name = getServletContext().getServletContextName();
-			Map<String, Object> application = 
-                cowebAdmin.getApplication(req.getRemoteUser(), name);
+			//Map<String, Object> application = 
+            //    cowebAdmin.getApplication(req.getRemoteUser(), name);
 			JSONObject json = new JSONObject(name);
 			json.write(resp.getWriter());
 		}
@@ -268,8 +269,10 @@ public class ApplicationServlet extends HttpServlet {
 	
 	private void updateSession(HttpServletRequest req, HttpServletResponse resp)
 	throws ServletException {
+		/*
 		ServletContext ctx = getServletContext();
 		String title = ctx.getServletContextName();
+		*/
 	}
 	
 	private void updateApplication(HttpServletRequest req, HttpServletResponse resp)

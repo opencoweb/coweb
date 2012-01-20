@@ -5,8 +5,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.annotation.PostConstruct;
-import javax.annotation.security.DeclareRoles;
-import javax.annotation.security.RolesAllowed;
+
 
 import javax.sql.DataSource;
 import java.sql.Connection;
