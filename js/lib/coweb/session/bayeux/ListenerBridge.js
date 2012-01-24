@@ -217,12 +217,11 @@ define([
      * @returns {Promise} Resolved after the app updates to the received state
      */
     proto.initiateUpdate = function() {
-	
 		//the session id to the channel names.
 		this.syncChannel = '/session/'+this._bridge.prepResponse.sessionid+'/sync/*';
 		this.syncAppChannel = '/session/'+this._bridge.prepResponse.sessionid+'/sync/app';
 		this.syncEngineChannel = '/session/'+this._bridge.prepResponse.sessionid+'/sync/engine';
-		this.rosterChannel = '/session/'+this._bridge.prepResponse.sessionid+'roster/*';
+		this.rosterChannel = '/session/'+this._bridge.prepResponse.sessionid+'/roster/*';
 		
         this._updatePromise = new Promise();
 

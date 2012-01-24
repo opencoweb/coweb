@@ -231,7 +231,7 @@ public class LateJoinHandler {
 	}
 
 	private void sendRosterAvailable(ServerSession client) {
-
+		log.info("sending roster available");
 		ServerSession from = this.sessionManager.getServerSession();
 
 		Integer siteId = (Integer) client.getAttribute("siteid");

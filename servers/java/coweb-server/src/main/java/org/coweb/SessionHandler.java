@@ -212,7 +212,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 			this.sessionModerator.onSync(data);
 			try {
-				this.serviceHandler.forwardSyncEvent(from, message);
+				String topic = (String)data.get("topic");
+				if(!topic.startsWith("coweb.engine.sync"))
+					this.serviceHandler.forwardSyncEvent(from, message);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -266,6 +268,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				// need to send error message.
 			}
 		} else if (channel.endsWith("/session/updater")) {
+			log.info("client subscribes to /session/updater");
 			this.attendees.add(serverSession);
 			this.lateJoinHandler.onUpdaterSubscribe(serverSession, message);
 			this.sessionModerator.onClientJoinSession(serverSession);
