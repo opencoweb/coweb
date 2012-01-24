@@ -59,7 +59,7 @@ fi
 
 
 # go to temp folder
-WORK_PATH=`mktemp -d -t coweb`
+WORK_PATH=`mktemp -d -t cowebXXXXXX`
 # unpack cometd
 tar xzf "$TMP_PATH/$COMETD_TAR" -C "$WORK_PATH"
 # unpack oaa hub
