@@ -17,6 +17,7 @@ coweb-archetype
 coweb-bots
 coweb-javascript
 coweb-server
+coweb-operationengine
 "
 for MODULE in $MODULES; do
     TARGET="$OPWD/$MODULE/target"

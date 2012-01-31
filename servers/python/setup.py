@@ -11,7 +11,7 @@ import os
 import shutil
 import subprocess
 
-VERSION = '0.7'
+VERSION = '0.8'
 
 isSDist = len(sys.argv) > 1 and sys.argv[1] == 'sdist'
 srcDir = os.path.join(os.environ['PWD'], '../../js/release/coweb-%s' % VERSION)
