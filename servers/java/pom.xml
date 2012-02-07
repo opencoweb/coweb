@@ -56,7 +56,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <cometd-version>2.4.0.RC1</cometd-version>
+        <cometd-version>2.4.0</cometd-version>
         <coweb-version>0.8</coweb-version>
     </properties>
 
