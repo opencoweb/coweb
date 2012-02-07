@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 
 import org.cometd.server.AbstractService;
 import org.cometd.bayeux.Message;
+import org.cometd.bayeux.Session;
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.bayeux.server.ServerSession;
 
@@ -217,7 +218,7 @@ public class SessionManager extends AbstractService implements
 			return;
 		}
 
-		ServerSession client = handler.getServerSessionFromSiteid(siteId);
+		Session client = handler.getServerSessionFromSiteid(siteId);
 		if (client != null) {
 			log.info("ServerSession found about to call disconnect");
 			client.disconnect();

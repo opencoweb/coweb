@@ -60,6 +60,7 @@ public abstract class SessionModerator {
 		String sessionId = sessionHandler.getSessionId();
 		this.serverSession = server.newLocalSession(sessionId);
 		this.serverSession.setAttribute("sessionId", sessionId);
+		this.serverSession.handshake();
 	}
 
 	public LocalSession getServerSession() {

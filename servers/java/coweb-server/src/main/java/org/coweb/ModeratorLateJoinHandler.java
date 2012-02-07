@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.cometd.bayeux.Message;
+import org.cometd.bayeux.Session;
 import org.cometd.bayeux.server.ServerSession;
 
 public class ModeratorLateJoinHandler extends LateJoinHandler {
@@ -18,8 +19,7 @@ public class ModeratorLateJoinHandler extends LateJoinHandler {
 
 		// get the moderator
 		this.moderator = sessionHandler.getSessionModerator();
-		ServerSession client = (ServerSession) this.moderator
-				.getServerSession();
+		Session client = (Session) this.moderator.getServerSession();
 
 		// make sure the moderator has joined the conference and has a site
 		// id before anyone joins.

@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.bayeux.Message;
+import org.cometd.bayeux.Session;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.bayeux.server.ServerChannel;
 import org.cometd.bayeux.server.ServerMessage;
@@ -171,7 +172,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		return sb.toString();
 	}
 
-	public ServerSession getServerSessionFromSiteid(String siteStr) {
+	public Session getServerSessionFromSiteid(String siteStr) {
 		return this.lateJoinHandler.getServerSessionFromSiteid(siteStr);
 	}
 

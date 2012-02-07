@@ -15,6 +15,7 @@ import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerChannel;
 import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ServerSession;
+import org.cometd.bayeux.Session;
 
 //import org.coweb.LateJoinHandler.BatchUpdateMessage;
 
@@ -30,7 +31,7 @@ public class LateJoinHandler {
 	private static final Logger log = Logger.getLogger(LateJoinHandler.class
 			.getName());
 
-	private Map<String, ServerSession> updatees = new HashMap<String, ServerSession>();
+	private Map<String, Session> updatees = new HashMap<String, Session>();
 
 	protected Map<String, List<String>> updaters = new HashMap<String, List<String>>();
 
@@ -45,7 +46,7 @@ public class LateJoinHandler {
 	/**
 	 * Map of bayeux client id to ServerSession
 	 */
-	private Map<String, ServerSession> clientids = new HashMap<String, ServerSession>();
+	private Map<String, Session> clientids = new HashMap<String, Session>();
 
 	public LateJoinHandler(SessionHandler sessionHandler,
 			Map<String, Object> config) {
@@ -77,7 +78,7 @@ public class LateJoinHandler {
 		}
 	}
 
-	public ServerSession getServerSessionFromSiteid(String siteStr) {
+	public Session getServerSessionFromSiteid(String siteStr) {
 		try {
 			int siteid = Integer.valueOf(siteStr);
 			String clientId = this.siteids.get(siteid);
@@ -157,13 +158,15 @@ public class LateJoinHandler {
 			return;
 		}
 
-		ServerSession updatee = this.updatees.get(token);
+		ServerSession updatee = (ServerSession)this.updatees.get(token);
 		if (updatee == null)
 			return;
 
 		this.updatees.remove(token);
 		if (this.cacheState) {
 			this.lastState = (Object[]) data.get("state");
+			System.out.println("got state from client");
+			System.out.println(lastState);
 		}
 
 		ServerMessage.Mutable msg = this.sessionManager.getBayeux()
@@ -212,7 +215,7 @@ public class LateJoinHandler {
 		return true;
 	}
 
-	protected void addUpdater(ServerSession serverSession, boolean notify) {
+	protected void addUpdater(Session serverSession, boolean notify) {
 		String clientId = serverSession.getId();
 
 		// check if this client is already an updater and ignore unless this is
@@ -230,7 +233,7 @@ public class LateJoinHandler {
 		}
 	}
 
-	private void sendRosterAvailable(ServerSession client) {
+	private void sendRosterAvailable(Session client) {
 		log.info("sending roster available");
 		ServerSession from = this.sessionManager.getServerSession();
 
@@ -294,7 +297,7 @@ public class LateJoinHandler {
 		return -1;
 	}
 
-	protected int addSiteForClient(ServerSession client) {
+	protected int addSiteForClient(Session client) {
 
 		int index = this.siteids.indexOf(null);
 		if (index == -1) {
@@ -336,7 +339,7 @@ public class LateJoinHandler {
 		Map<Integer, String> roster = new HashMap<Integer, String>();
 
 		for (String clientId : this.updaters.keySet()) {
-			ServerSession c = this.clientids.get(clientId);
+			Session c = this.clientids.get(clientId);
 			Integer siteId = (Integer) c.getAttribute("siteid");
 			roster.put(siteId, (String) c.getAttribute("username"));
 		}
@@ -344,20 +347,20 @@ public class LateJoinHandler {
 		return roster;
 	}
 
-	private void assignUpdater(ServerSession updatee, String updaterType) {
+	private void assignUpdater(Session updatee, String updaterType) {
 		log.info("assignUpdater *****************");
 		ServerSession from = this.sessionManager.getServerSession();
 		if (this.updaters.isEmpty()) {
 			this.addUpdater(updatee, false);
 
-			updatee.deliver(from, "/service/session/join/state",
+			((ServerSession)updatee).deliver(from, "/service/session/join/state",
 					new ArrayList<String>(), null);
 
 			return;
 		}
 
 		String updaterId = null;
-		ServerSession updater = null;
+		Session updater = null;
 		if (!updaterType.equals("default")) {
 			String matchedType = updaterTypeMatcher.match(updaterType,
 					getAvailableUpdaterTypes());
@@ -390,7 +393,7 @@ public class LateJoinHandler {
 		(this.updaters.get(updaterId)).add(token);
 		this.updatees.put(token, updatee);
 
-		updater.deliver(from, "/service/session/updater", token, null);
+		((ServerSession)updater).deliver(from, "/service/session/updater", token, null);
 	}
 
 	protected void removeUpdater(ServerSession client) {
@@ -401,7 +404,7 @@ public class LateJoinHandler {
 		this.updaters.remove(client.getId());
 		if (tokenList == null) {
 			for (String token : this.updatees.keySet()) {
-				ServerSession updatee = this.updatees.get(token);
+				Session updatee = this.updatees.get(token);
 				if (updatee.getId().equals(client.getId())) {
 					this.updatees.remove(token);
 				}
@@ -412,7 +415,7 @@ public class LateJoinHandler {
 			if (!tokenList.isEmpty()) {
 				// System.out.println("this updater was updating someone");
 				for (String token : tokenList) {
-					ServerSession updatee = this.updatees.get(token);
+					Session updatee = this.updatees.get(token);
 					if (updatee == null)
 						continue;
 
@@ -435,7 +438,7 @@ public class LateJoinHandler {
 	private List<String> getAvailableUpdaterTypes() {
 		List<String> availableUpdaterTypes = new ArrayList<String>();
 		for (String id : this.updaters.keySet()) {
-			ServerSession updater = this.clientids.get(id);
+			Session updater = this.clientids.get(id);
 			availableUpdaterTypes.add((String) updater
 					.getAttribute("updaterType"));
 		}
