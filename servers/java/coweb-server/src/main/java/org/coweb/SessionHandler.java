@@ -51,9 +51,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 	private ArrayList<ServerSession> attendees = new ArrayList<ServerSession>();
 
-	public SessionHandler(String confkey, Map<String, Object> config) {
+	public SessionHandler(String confkey, boolean cacheState, Map<String, Object> config) {
 
 		this.confKey = confkey;
+		this.cacheState = cacheState;
 		this.sessionId = hashURI(confkey);
 		this.serviceHandler = new ServiceHandler(this.sessionId, config);
 
