@@ -179,9 +179,14 @@ public class AdminServlet extends HttpServlet {
 			username = "anonymous";
 
 		Map<String, Object> jsonObj = null;
-
+		boolean cacheState = false;
 		try {
 			jsonObj = (Map<String, Object>) JSON.parse(req.getReader());
+			if(jsonObj.containsKey("cacheState")) {
+				if(((Boolean)jsonObj.get("cacheState")).booleanValue() == true) {
+                    cacheState = true;
+                }
+            }
 		} catch (Exception e) {
 			log.severe("error processing prep request: " + e.getMessage());
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "bad json");
@@ -216,9 +221,9 @@ public class AdminServlet extends HttpServlet {
 		}
 
 		// see if we have a session for this key already. If not create one.
-		SessionHandler handler = this.sessionManager.getSessionHandlerByConfkey(confKey);
+		SessionHandler handler = this.sessionManager.getSessionHandlerByConfkey(confKey, cacheState);
 		if (handler == null) {
-			handler = this.sessionManager.createSession(confKey);
+			handler = this.sessionManager.createSession(confKey, cacheState);
 			handler.setSessionName(sessionName);
 			handler.setRequestUrl(requestUrl);
 		}

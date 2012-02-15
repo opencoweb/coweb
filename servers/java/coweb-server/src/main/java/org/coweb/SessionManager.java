@@ -119,8 +119,8 @@ public class SessionManager extends AbstractService implements
 	 *
 	 * @return SessionHandler
 	 */
-	public SessionHandler getSessionHandlerByConfkey(String confkey) {
-		return this.sessions.get(confkey);
+	public SessionHandler getSessionHandlerByConfkey(String confkey, boolean cacheState) {
+		return this.sessions.get(confkey+":"+cacheState);
 	}
 
 	public SessionHandler getSessionHandler(String sessionId) {
@@ -181,13 +181,13 @@ public class SessionManager extends AbstractService implements
 	 * @param confkey
 	 * @param collab
 	 */
-	public SessionHandler createSession(String confkey) {
+	public SessionHandler createSession(String confkey, boolean cacheState) {
 		log.info("SessionManager::createSession ************");
 		SessionHandler handler = this.getSessionHandler(confkey);
 
 		if (handler == null) {
-			handler = new SessionHandler(confkey, this.config);
-			this.sessions.put(confkey, handler);
+			handler = new SessionHandler(confkey, cacheState, this.config);
+			this.sessions.put(confkey+ ":" + handler.isCachingState(), handler);
 		}
 
 		return handler;
