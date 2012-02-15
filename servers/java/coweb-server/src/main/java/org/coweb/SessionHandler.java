@@ -220,7 +220,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				e.printStackTrace();
 			}
 		} else if (channelName.equals(this.syncEngineChannel)) {
-			this.operationEngine.engineSyncInbound(data);
+			if(operationEngine != null)
+				this.operationEngine.engineSyncInbound(data);
 		}
 
 		return true;
