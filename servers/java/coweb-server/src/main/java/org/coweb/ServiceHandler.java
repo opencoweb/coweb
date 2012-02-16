@@ -152,7 +152,7 @@ public class ServiceHandler {
 
 	public void forwardUserRequest(ServerSession client, Message message)
 			throws IOException {
-		// System.out.println("ServiceHandler::forwardUserRequest");
+		log.info(message.toString());
 		String serviceName = getServiceNameFromMessage(message, false);
 		if (serviceName == null)
 			throw new IOException("improper request channel "

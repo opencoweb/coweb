@@ -54,7 +54,8 @@ public class ContextDifference {
             arr.addElement(key);
         }
         
-        return (String[])arr.toArray();
+        String[] strArr = new String[arr.size()];
+        return arr.toArray(strArr);
 	}
     
     /**

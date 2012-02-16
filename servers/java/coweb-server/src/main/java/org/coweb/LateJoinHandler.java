@@ -16,6 +16,7 @@ import org.cometd.bayeux.server.ServerChannel;
 import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.bayeux.Session;
+import org.eclipse.jetty.util.ajax.JSON;
 
 //import org.coweb.LateJoinHandler.BatchUpdateMessage;
 
@@ -76,6 +77,18 @@ public class LateJoinHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		// get the moderator
+		this.sessionModerator = sessionHandler.getSessionModerator();
+		Session client = (Session) this.sessionModerator.getServerSession();
+
+		// make sure the moderator has joined the conference and has a site
+		// id before anyone joins.  User slot 0 for moderator.
+		this.siteids.set(0, client.getId());
+		client.setAttribute("siteid", new Integer(0));
+		this.clientids.put(client.getId(), client);
+
+		//this.addUpdater(client, false);
 	}
 
 	public Session getServerSessionFromSiteid(String siteStr) {
@@ -166,7 +179,8 @@ public class LateJoinHandler {
 		if (this.cacheState) {
 			this.lastState = (Object[]) data.get("state");
 			System.out.println("got state from client");
-			System.out.println(lastState);
+			System.out.println(JSON.toString(this.lastState));
+			
 		}
 
 		ServerMessage.Mutable msg = this.sessionManager.getBayeux()
@@ -197,7 +211,7 @@ public class LateJoinHandler {
 		log.info("siteId = " + client.getAttribute("siteid"));
 
 		this.removeUpdater(client);
-		if (this.getUpdaterCount() == 0) {
+		if (this.getUpdaterCount() == 1) {
 			log.info("removing last updater, ending coweb session");
 			return true;
 		}
@@ -379,6 +393,7 @@ public class LateJoinHandler {
 		if (updaterId == null) {
 			Random r = new Random();
 			int idx = r.nextInt(this.updaters.size());
+			
 			log.info("using default updater type");
 			Object[] keys = this.updaters.keySet().toArray();
 			updaterId = (String) keys[idx];

@@ -4,27 +4,16 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.cometd.bayeux.Message;
-import org.cometd.bayeux.Session;
 import org.cometd.bayeux.server.ServerSession;
 
 public class ModeratorLateJoinHandler extends LateJoinHandler {
 	private static final Logger log = Logger
 			.getLogger(ModeratorLateJoinHandler.class.getName());
 
-	private SessionModerator moderator = null;
 
 	public ModeratorLateJoinHandler(SessionHandler sessionHandler,
 			Map<String, Object> config) {
-		super(sessionHandler, config);
-
-		// get the moderator
-		this.moderator = sessionHandler.getSessionModerator();
-		Session client = (Session) this.moderator.getServerSession();
-
-		// make sure the moderator has joined the conference and has a site
-		// id before anyone joins.
-		this.addSiteForClient(client);
-		this.addUpdater(client, false);
+		super(sessionHandler, config);	
 	}
 
 	@Override
@@ -38,7 +27,7 @@ public class ModeratorLateJoinHandler extends LateJoinHandler {
 
 		log.info("siteId = " + siteId);
 		Map<Integer, String> roster = this.getRosterList(client);
-		Object[] data = this.moderator.getLateJoinState();
+		Object[] data = this.sessionModerator.getLateJoinState();
 
 		if (this.updaters.isEmpty())
 			this.addUpdater(client, false);

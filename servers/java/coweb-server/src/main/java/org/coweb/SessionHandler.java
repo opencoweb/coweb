@@ -99,11 +99,12 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		// create the OT engine only if turned on in the config.
 		if (config.containsKey("operationEngine")
 				&& ((Boolean) config.get("operationEngine")).booleanValue()) {
-			ServerSession modSession = (ServerSession) this.sessionModerator
+			Session modSession = (Session) this.sessionModerator
 					.getServerSession();
 			Integer siteId = (Integer) modSession.getAttribute("siteid");
 
 			try {
+				log.info("creating operation engine with siteId = " + siteId);
 				this.operationEngine = new OperationEngineHandler(this, siteId.intValue());
 			} catch (OperationEngineException e) {
 				e.printStackTrace();
@@ -202,17 +203,19 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			data.put("order", this.order++);
 
 			if (this.operationEngine != null) {
-				// TODO
-				// need to call operation engine.
-				try {
-					data = this.operationEngine.syncInbound(data);
-				} catch (OperationEngineException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				
+				log.info("data before operation engine");
+				log.info(data.toString());
+				Map<String, Object> syncEvent = this.operationEngine.syncInbound(data);
+				if (syncEvent != null) {
+					this.sessionModerator.onSync(syncEvent);
+
+					log.info("data after operation engine");
+					log.info(syncEvent.toString());
 				}
+
 			}
 
-			this.sessionModerator.onSync(data);
 			try {
 				String topic = (String)data.get("topic");
 				if(!topic.startsWith("coweb.engine.sync"))
@@ -221,8 +224,11 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				e.printStackTrace();
 			}
 		} else if (channelName.equals(this.syncEngineChannel)) {
-			if(operationEngine != null)
+			if(operationEngine != null) {
+				log.info("sending engine sync to operation engine");
+				log.info(data.toString());
 				this.operationEngine.engineSyncInbound(data);
+			}
 		}
 
 		return true;
@@ -360,10 +366,11 @@ public class SessionHandler implements ServerChannel.MessageListener {
      * @param int[] context int array context vector for this site
      */
 	public void postEngineSync(int[] sites) {
+		log.info("sites = " + sites);
 		ServerChannel sync = this.server.getChannel(this.syncEngineChannel);
 		
 		HashMap<String, Object> data = new HashMap<String, Object>();
-		data.put("sites", sites);
+		data.put("context", sites);
 		
 		sync.publish(this.sessionModerator.getServerSession(), data, null);
 	}

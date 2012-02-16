@@ -55,7 +55,7 @@ public class ContextVector {
 	public ContextVector copy() throws OperationEngineException {
 		
 		HashMap<String, Object> args = new HashMap<String, Object>();
-		args.put("contextVecotr", this);
+		args.put("contextVector", this);
 		
 		return new ContextVector(args);
 	}

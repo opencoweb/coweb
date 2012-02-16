@@ -1,6 +1,7 @@
 package org.coweb;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -47,6 +48,8 @@ public class OperationEngineHandler {
 		this.syncTimer = new Timer();
 		this.syncTimer.scheduleAtFixedRate(new SyncTask(), new Date(), 10000);
 	}
+	
+	
 
 	/**
      * Called by the session when a coweb event is received from a remote app.
@@ -61,41 +64,45 @@ public class OperationEngineHandler {
      *        Integer site Unique integer ID of the sending site
      *        int[] sites Context vector as an array of integers
      */
-	public Map<String, Object> syncInbound(Map<String, Object> data)
-			throws OperationEngineException {
-		
+	public Map<String, Object> syncInbound(Map<String, Object> data) {
+			
 		//get the topic
 		String topic = (String) data.get("topic");
 		
 		//get the value
-		@SuppressWarnings("unchecked")
-		Map<String, Object> val = (Map<String, Object>) data.get("value");
 		String value = null;
-		if (val != null) {
-			value = JSON.toString(val);
+		if(data.get("value") instanceof String) 
+			value = (String)data.get("value");
+		else {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> val = (Map<String, Object>) data.get("value");
+			if (val != null) {
+				value = JSON.toString(val);
+			}
 		}
+		
 
 		//get the type
 		String type = (String) data.get("type");
 
 		//get the position
-		Integer pos = (Integer) data.get("position");
+		Number pos = (Number) data.get("position");
 		int position = 0;
 		if (pos != null)
 			position = pos.intValue();
 
 		//get the site
-		Integer ste = (Integer) data.get("site");
+		Number ste = (Number) data.get("siteId");
 		int site = 0;
 		if (ste != null) {
 			site = ste.intValue();
 		}
 
 		//get the sites array
-		int[] sites = (int[]) data.get("sites");
+		int[] sites = this.getSites(data);
 
 		//get the order
-		Integer ord = (Integer) data.get("order");
+		Number ord = (Number) data.get("order");
 		int order = 0;
 		if (ord != null)
 			order = ord.intValue();
@@ -103,29 +110,39 @@ public class OperationEngineHandler {
 		//push the operation onto the op engine.
 		Operation op = null;
 		if (sites != null && type != null) {
-			op = this.engine.push(false, topic, value, type, position,
-					site, sites, order);
+			try {
+				op = this.engine.push(false, topic, value, type, position,
+						site, sites, order);
+			} catch (OperationEngineException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return null;
+			}
 
 			if (op == null)
-				return data;
+				return null;
 
 			value = op.getValue();
 			position = op.getPosition();
 		} else if (site == this.engine.getSiteId()) {
 			// op was echo'ed from server for op engine, but type null means
 			// op engine doesn't care about this message anyway so drop it
-			return data;
+			return null;
 		}
 
 		// value is always json-encoded to avoid ref sharing problems with ops
 		// stored inside the op engine history buffer, so decode it and
 		// pack it into a hub event
-		data.put("position", new Integer(position));
-		data.put("type", type);
-		data.put("value", JSON.parse(value));
-		data.put("site", site);
+		HashMap<String, Object> hashMap = new HashMap<String, Object>();
+		hashMap.put("position", new Integer(position));
+		hashMap.put("type", type);
+		hashMap.put("value", JSON.parse(value));
+		hashMap.put("site", site);
+		
+		this.shouldPurge = true;
+		this.shouldSync = true;
 
-		return data;
+		return hashMap;
 	}
 	
 	/**
@@ -139,8 +156,9 @@ public class OperationEngineHandler {
      *        int[] sites Context vector as an array of integers
      */
 	public void engineSyncInbound(Map<String, Object> data) {
-		int[] sites = (int[]) data.get("sites");
-		Integer ste = (Integer) data.get("site");
+		int[] sites = this.getSites(data);
+		
+		Integer ste = (Integer) data.get("siteId");
 		int site = -1;
 		if (ste != null) {
 			site = ste.intValue();
@@ -160,6 +178,18 @@ public class OperationEngineHandler {
         }
         // we've received remote info, allow purge
         this.shouldPurge = true;
+	}
+	
+	private int[] getSites(Map<String, Object> data) {
+		int[] sites = null;
+		Object[] objArr = (Object[])data.get("context");
+		if(objArr != null) {
+			sites = new int[objArr.length];
+			for(int i=0; i<objArr.length; i++)
+				 sites[i] = ((Number)objArr[i]).intValue();
+		}
+		
+		return sites;
 	}
 	
 	/**

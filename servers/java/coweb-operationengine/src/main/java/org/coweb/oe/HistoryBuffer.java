@@ -84,7 +84,8 @@ public class HistoryBuffer {
         }
         
         // sort by total order
-        Operation[] arr = (Operation[])opsStack.toArray();
+        Operation[] arr = new Operation[opsStack.size()];
+        arr = opsStack.toArray(arr);
         Arrays.sort(arr, new Comparator<Operation>() {
         	public int compare(Operation a, Operation b) {
         		return a.compareByOrder(b);
@@ -180,7 +181,8 @@ public class HistoryBuffer {
 	public Stack<Operation> getContextSortedOperations() {
 		
 		Collection<Operation> collection = this.ops.values();
-		Operation[] arr = (Operation[])collection.toArray();
+		Operation[] arr = new Operation[collection.size()];
+		arr = collection.toArray(arr);
 		
 		Arrays.sort(arr, new Comparator<Operation>() {
 			public int compare(Operation a, Operation b) {
