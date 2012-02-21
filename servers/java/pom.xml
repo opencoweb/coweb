@@ -61,13 +61,14 @@
     </properties>
 
     <modules>
-	    <module>coweb-operationengine</module>
+	<module>coweb-operationengine</module>
         <module>coweb-bots</module>
         <module>coweb-server</module>
         <module>coweb-javascript</module>
         <module>coweb-javascript-src</module>
         <module>coweb-archetype</module>
         <module>coweb-admin</module>
+        <module>coweb-build</module>
     </modules>
 
     <build>
