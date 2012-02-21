@@ -6,7 +6,7 @@
     <title>OpenCoweb JS tests</title>
     <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
     <script src="http://code.jquery.com/jquery-latest.js"></script>
-    <script src="http://code.jquery.com/qunit/git/qunit.js"></script>
+    <script src="qunit.js"></script>
     <script src="../lib/require.js"></script>
     <script type="text/javascript">
     // don't run until requirejs says run
@@ -27,13 +27,13 @@
       'test_openg_xcache',
       //'test_openg_random',
       'test_openg_debug',
-      'test_xhr',
+      // 'test_xhr',
       'test_promise',
       'test_attendance',
-      'test_loader',
+      // 'test_loader',
       'test_unhub_collab',
       'test_unhub_listener',
-      'test_session'
+      // 'test_session'
     ], function() {
         // start qunit
         require.ready(start);
