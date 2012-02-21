@@ -1,0 +1,100 @@
+<project name="jsbuild" default="dist" basedir=".">
+  <description>
+        Creates JS environment for opencoweb dependencies.
+  </description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+  <property name="tmp" location="tmp" />
+  <property name="lib" location="lib" />
+  <property name="workpath" location="workpath" />
+
+  <property name="COMETD_VERSION" value="2.4.0"/>
+  <property name="REQUIREJS_VERSION" value="0.24.0"/>
+  <property name="OAAHUB_VERSION" value="1.0_build117_v1.0"/>
+
+  <property name="COMETD_URL" value="http://download.cometd.org/cometd-${COMETD_VERSION}-distribution.tar.gz"/>
+  <property name="OAAHUB_URL" value="http://iweb.dl.sourceforge.net/project/openajaxallianc/OpenAjaxHub/OpenAjaxHub${OAAHUB_VERSION}/OpenAjaxHub${OAAHUB_VERSION}.zip"/>
+  <property name="REQUIREJS_URL" value="http://requirejs.org/docs/release/${REQUIREJS_VERSION}/minified/require.js"/>
+  <property name="REQUIREJS_SRC_URL" value="http://requirejs.org/docs/release/${REQUIREJS_VERSION}/requirejs-${REQUIREJS_VERSION}.zip"/>
+  <property name="COMETD_TARGZ" value="cometd-${COMETD_VERSION}-distribution.tar.gz"/>
+  <property name="COMETD_TAR" value="cometd-${COMETD_VERSION}-distribution.tar"/>
+
+  <property name="OAAHUB_ZIP" value="OpenAjaxHub${OAAHUB_VERSION}.zip"/>
+  <property name="REQUIREJS_ZIP" value="requirejs-${REQUIREJS_VERSION}.zip"/>
+  <property name="DOJO_WAR_PATH" value="cometd-${COMETD_VERSION}/cometd-javascript/dojo/target/cometd-javascript-dojo-${COMETD_VERSION}.war"/>
+  <property name="OAAHUB_PATH" value="OpenAjaxHub${OAAHUB_VERSION}/release/OpenAjax.js"/>
+  <property name="COMETD_PATH" value="org/cometd.js"/>
+  <property name="COMETDACK_PATH" value="org/cometd/AckExtension.js"/>
+  <property name="REQUIREJS_PATH" value="requirejs-${REQUIREJS_VERSION}"/>
+  <property name="LIB_PATH" location="lib"/>
+  <property name="BUILD_PATH" location="build"/>
+  <property name="TMP_PATH" location="tmp"/>
+
+  <target name="init">
+	<mkdir dir="${tmp}" />
+	<mkdir dir="${workpath}" />
+  </target>
+
+  <target name="fetch" depends="init">
+	<get src="${COMETD_URL}" dest="${tmp}" verbose="off" skipexisting="true"/>
+	<get src="${OAAHUB_URL}" dest="${tmp}" verbose="off" skipexisting="true"/>
+	<get src="${REQUIREJS_URL}" dest="${tmp}" verbose="off" skipexisting="true"/>
+	<get src="${REQUIREJS_SRC_URL}" dest="${tmp}" verbose="off" skipexisting="true"/>
+  </target>
+
+  <target name="extract" depends="fetch">
+    <gunzip src="${tmp}/${COMETD_TARGZ}" dest="${workpath}" />
+    <untar src="${workpath}/${COMETD_TAR}" dest="${workpath}" overwrite="false" />
+    <unzip src="${tmp}/${OAAHUB_ZIP}" dest="${workpath}" overwrite="false" />
+    <unzip src="${tmp}/${REQUIREJS_ZIP}" dest="${workpath}" overwrite="false" />
+    <unwar src="${workpath}/${DOJO_WAR_PATH}" dest="${workpath}" overwrite="false" />   
+  </target>
+  
+  <target name="amd-openajax" depends="extract">
+	<concat destfile="${workpath}/amd">define(function () {</concat>
+	<concat destfile="${workpath}/amd" append="yes">
+		<fileset file="${workpath}/${OAAHUB_PATH}" />
+	</concat>
+	<concat destfile="${workpath}/amd" append="yes">return org.cometd; });</concat>
+	<move file="${workpath}/amd" tofile="${workpath}/${OAAHUB_PATH}" />
+  </target>
+
+  <target name="amd-cometd" depends="extract">
+	<concat destfile="${workpath}/amd">define(function () {
+    if (typeof dojo !== 'undefined' &amp;&amp; !dojo.provide) { dojo.provide = function() {}; this.org = this.org || {}; org.cometd = {}; }
+	</concat>
+	<concat destfile="${workpath}/amd" append="yes">
+		<fileset file="${workpath}/${COMETD_PATH}" />
+	</concat>
+	<concat destfile="${workpath}/amd" append="yes">
+		<fileset file="${workpath}/${COMETDACK_PATH}" />
+	</concat>
+	<concat destfile="${workpath}/amd" append="yes">return org.cometd; 
+});
+	</concat>
+	<move file="${workpath}/amd" tofile="${workpath}/${COMETD_PATH}" />
+  </target>
+  
+  <target name="dist" depends="amd-openajax,amd-cometd" >
+	<delete dir="${lib}/org" />
+	<mkdir dir="${lib}/org" />
+	<move file="${workpath}/${COMETD_PATH}" todir="${lib}/org" />
+	<move file="${workpath}/${OAAHUB_PATH}" todir="${lib}/org" />
+	<copy file="${tmp}/require.js" todir="${lib}" />
+	<move file="${workpath}/${REQUIREJS_PATH}" todir="${build}" />
+	<chmod perm="777" >
+		<fileset dir="${build}/${REQUIREJS_PATH}" />
+	</chmod>
+  </target>
+
+
+  <target name="clean" description="clean up" >
+	<delete dir="${lib}/org" />
+	<delete file="${lib}/require.js" />
+    <delete dir="${workpath}"/>
+    <delete dir="${build}/${REQUIREJS_PATH}"/>
+    <delete dir="${tmp}"/>
+  </target>
+</project>
