@@ -45,7 +45,7 @@
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <phase>prepare-package</phase>
                         <configuration>
                             <tasks>
 									<property name="workpath" location="${project.build.directory}/tmp" />
@@ -82,6 +82,7 @@ if (typeof dojo !== 'undefined' &amp;&amp; !dojo.provide) { dojo.provide = funct
         <artifactId>cometd-javascript-common</artifactId>
         <version>${cometd-version}</version>
 		<type>war</type>
+		<scope>provided</scope>
 	</dependency>
     </dependencies>
 </project>
