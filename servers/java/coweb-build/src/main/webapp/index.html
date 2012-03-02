@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  	<head>
+    	<meta charset="utf-8" />
+    	<title>Cooperative App Example</title>
+    	<link rel="stylesheet" href="application.css" type="text/css" />
+    	<script type="text/javascript">
+			var dojoConfig = {
+				baseUrl: './',
+				async:true,
+				paths : {
+				   coweb : './lib/coweb',
+				   cowebx: './lib/cowebx',
+				   org : './lib/org'
+				},
+				packages:[{
+					name: 'dojo',
+					location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojo',
+					main:'main'
+				},
+				{
+					name: 'dijit',
+					location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit',
+					main:'main'
+				},
+				{
+					name: 'dojox',
+					location:'http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojox',
+					main:'main'
+				}]
+			};
+		</script>
+		<script type="text/javascript" src="http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dojo/dojo.js"></script>
+		<script type="text/javascript" src="main.js"></script>
+  	</head>
+  	<body class="claro">
+		<div dojoType="dijit.layout.BorderContainer" design="sidebar" gutters="true"
+		liveSplitters="true" id="borderContainer">
+		    <div dojoType="dijit.layout.ContentPane" splitter="true" region="leading"
+		    style="width: 100px;">
+		        Left Content
+		    </div>
+		    <div dojoType="dijit.layout.ContentPane" splitter="true" region="center">
+		        Center Content
+		    </div>
+		</div>
+  	</body>
+</html>
