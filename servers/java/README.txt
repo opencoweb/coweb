@@ -32,3 +32,28 @@ coweb-javascript
 
 coweb-server 
    Coweb server infrastructure.
+
+Eclipse/WTP
+===========
+
+The WAR output of the coweb-build maven module can be easily imported into an Eclipse/WTP
+Environment.
+
+1) Ensure step 1 of the Quick Install has been performed.
+
+2) Open Eclipse and via File->Import perform a "Web->War File" import of the
+"coweb-build-x.x.war" found in the "coweb/servers/java/coweb-build/target" directory.
+
+3) Add the Web Project to a WTP Server instance. If this is a Servlet 3.0 runtime
+   ensure that
+
+    <!--async-supported>true</async-supported> -->
+
+   is uncommented in the projects web.xml.
+
+4) Start the WTP Server instance and access the sample code via
+   (Assumes the name context root used for the web project is "/coweb-test")
+
+"http://localhost:8080/coweb-test/index.html"
+
+5) In the browsers console you should see coweb status updates logged.
