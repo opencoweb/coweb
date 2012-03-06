@@ -1,6 +1,7 @@
 package org.coweb;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -366,7 +367,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
      * @param int[] context int array context vector for this site
      */
 	public void postEngineSync(int[] sites) {
-		log.info("sites = " + sites);
+		log.info("sites = " + Arrays.toString(sites));
 		ServerChannel sync = this.server.getChannel(this.syncEngineChannel);
 		
 		HashMap<String, Object> data = new HashMap<String, Object>();
