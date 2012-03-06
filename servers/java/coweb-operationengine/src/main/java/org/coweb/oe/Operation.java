@@ -43,9 +43,23 @@ public abstract class Operation {
 	}
 	
 	public static String createHistoryKey(int site, int seq) {
-		return new Integer(site).toString() + new Integer(seq).toString();
+		return new Integer(site).toString() + "," + new Integer(seq).toString();
 	}
 	
+	@Override
+	public String toString() {
+		StringBuffer b = new StringBuffer();
+		b.append("{siteId : " + this.siteId);
+		b.append(",seqId : " + this.seqId);
+		b.append(",type :" + type);
+		b.append(",contextVector : " + this.contextVector);
+		b.append(",key : " + this.key);
+		b.append(",position : " + this.position);
+		b.append(",order : " + this.order);
+		b.append("}");
+		
+		return b.toString();
+	}
 	/**
      * Contains information about a local or remote event for transformation.
      *

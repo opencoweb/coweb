@@ -7,7 +7,13 @@ import java.util.Stack;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import java.util.logging.Logger;
+
+
 public class HistoryBuffer {
+	
+	private static final Logger log = Logger.getLogger(HistoryBuffer.class
+			.getName());
 	
 	private HashMap<String, Operation> ops = null;
 	private int size = 0;
@@ -15,6 +21,16 @@ public class HistoryBuffer {
 	public HistoryBuffer() {
 		this.ops = new HashMap<String, Operation>();
 		this.size = 0;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuffer b = new StringBuffer();
+		b.append("{ops : " + this.ops);
+		b.append(",size : " + this.size);
+		b.append("}");
+		
+		return b.toString();
 	}
 	
 	/**
@@ -68,12 +84,14 @@ public class HistoryBuffer {
 	public Stack<Operation> getOpsForDifference(ContextDifference cd) throws OperationEngineException {
 		// get the ops
         String[] keys = cd.getHistoryBufferKeys();
+        
         Vector<Operation> opsStack = new Vector<Operation>();
         int l = keys.length;
         String key;
         Operation op;
         
         for(int i=0; i < l; i++) {
+        	log.info("key = " + keys[i]);
             key = keys[i];
             op = this.ops.get(key);
             if(op == null) {

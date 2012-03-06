@@ -19,7 +19,8 @@ public class ContextVectorTable {
      *
      * @return {String} All context vectors in the table (for debug)
      */
-    public String toStringfunction() {
+	@Override
+    public String toString() {
         String[] arr = new String[this.cvt.size()];
         int l = this.cvt.size();
         for(int i = 0; i < l; i++) {

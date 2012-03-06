@@ -32,8 +32,12 @@ public class ContextVector {
      *
      * @returns {String} All integers in the vector (for debug)
      */
+	@Override
 	public String toString() {
-		return Arrays.toString(this.sites);
+		StringBuffer b = new StringBuffer();
+		b.append(Arrays.toString(this.sites));
+		
+		return b.toString();
 	}
 	
 	/**
@@ -115,12 +119,20 @@ public class ContextVector {
      *
      * @param {Number} count Desired integer size of the vector
      */
-	public void growTo(int site) {
+	public void growTo(int count) {
 		
-		int[] newSites = new int[site];
+		System.out.println("growTo before new count = " + count + " old array = " + this.toString());
+		int[] newSites = new int[count];
 		System.arraycopy(this.sites, 0, newSites, 0, this.sites.length);
+		for(int i=this.sites.length; i<count; i++) {
+			newSites[i] = 0;
+		}
+
 		
 		this.sites = newSites;
+		
+		System.out.println("growTo after = " + this.toString());
+
 	}
 	
 	/**
@@ -215,4 +227,6 @@ public class ContextVector {
 	public int[] getSites() {
 		return this.sites;
 	}
+	
+	
 }

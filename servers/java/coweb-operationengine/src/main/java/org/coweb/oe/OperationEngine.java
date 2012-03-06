@@ -29,6 +29,19 @@ public class OperationEngine {
 		this.cvt = new ContextVectorTable(this.cv, siteId);
 		this.hb = new HistoryBuffer();
 	}
+	
+	@Override
+	public String toString() {
+		StringBuffer b = new StringBuffer();
+		b.append("{siteId : " + siteId);
+		b.append(",ContextVector : " + this.cv);
+		b.append(",ContextVectorTable : " + this.cvt);
+		b.append(",HistoryBuffer : " + this.hb);
+		b.append(",siteCount : " + this.siteCount);
+		b.append("}");
+		
+		return b.toString();
+	}
 
 	/**
      * Gets the state of this engine instance to seed a new instance.
