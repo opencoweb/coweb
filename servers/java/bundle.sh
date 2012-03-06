@@ -18,6 +18,7 @@ coweb-bots
 coweb-javascript
 coweb-server
 coweb-operationengine
+coweb-build
 "
 for MODULE in $MODULES; do
     TARGET="$OPWD/$MODULE/target"
