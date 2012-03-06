@@ -211,7 +211,7 @@ public class LateJoinHandler {
 		log.info("siteId = " + client.getAttribute("siteid"));
 
 		this.removeUpdater(client);
-		if (this.getUpdaterCount() == 1) {
+		if (this.getUpdaterCount() == 0) {
 			log.info("removing last updater, ending coweb session");
 			return true;
 		}
