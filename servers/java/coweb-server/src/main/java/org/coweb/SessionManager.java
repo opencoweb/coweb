@@ -96,7 +96,7 @@ public class SessionManager extends AbstractService implements
 	public SessionHandler getSessionHandler(Message message) {
 
 		String sessionId = getSessionIdFromMessage(message);
-		// System.out.println("sessionId = " + sessionId);
+		log.fine("sessionId = " + sessionId);
 
 		return this.getSessionHandler(sessionId);
 	}
@@ -139,11 +139,11 @@ public class SessionManager extends AbstractService implements
 
 	public void handleSubscribed(ServerSession serverSession, Message message)
 			throws IOException {
-		// System.out.println("SessionManager::handleSubscribed");
-		// System.out.println(message);
+		log.fine("SessionManager::handleSubscribed");
+		log.fine(message.toString());
 
 		SessionHandler handler = this.getSessionHandler(message);
-		// System.out.println("handler = " + handler);
+		log.fine("handler = " + handler);
 
 		if (handler != null)
 			handler.onSubscribe(serverSession, message);
@@ -167,11 +167,11 @@ public class SessionManager extends AbstractService implements
 		else
 			handler = this.getSessionHandler(sessionId);
 
-		// System.out.println(handler);
 		if (handler != null) {
+			log.fine(handler.toString());
 			handler.onPublish(remote, message);
 		} else {
-			// System.out.println("could not find handler");
+			log.fine("could not find handler");
 		}
 	}
 
@@ -230,7 +230,7 @@ public class SessionManager extends AbstractService implements
 
 	@Override
 	public void sessionAdded(ServerSession client) {
-		// System.out.println("session added " + client);
+		log.fine("session added " + client);
 		return;
 		// TODO Auto-generated method stub
 
@@ -238,7 +238,7 @@ public class SessionManager extends AbstractService implements
 
 	@Override
 	public void sessionRemoved(ServerSession client, boolean timeout) {
-		// System.out.println("SessionManager::sessionRemoved");
+		log.fine("SessionManager::sessionRemoved");
 		String sessionId = (String) client.getAttribute("sessionid");
 		SessionHandler handler = this.getSessionHandler(sessionId);
 

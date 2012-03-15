@@ -8,16 +8,20 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerChannel;
 import org.cometd.bayeux.server.ServerSession;
 
+import org.coweb.SessionHandler;
 import org.coweb.bots.Bot;
 import org.coweb.bots.Proxy;
 
 public class LocalTransport extends Transport implements Proxy {
+	private static final Logger log = Logger.getLogger(LocalTransport.class
+			.getName());
 
 	private Bot bot = null;
 	private Map<String, ServerSession> clients = new HashMap<String, ServerSession>();
@@ -54,7 +58,7 @@ public class LocalTransport extends Transport implements Proxy {
 	public boolean unsubscribeUser(ServerSession client, Message message,
 			boolean pub) throws IOException {
 
-		// System.out.println("LocalTransport::unSubscribeUser");
+		log.fine("LocalTransport::unSubscribeUser");
 
 		if (this.bot == null) {
 			this.bot = this.getBotInstance();
@@ -74,7 +78,7 @@ public class LocalTransport extends Transport implements Proxy {
 
 	@Override
 	public void shutdown() {
-		// System.out.println("LocalTransport::shutdown");
+		log.fine("LocalTransport::shutdown");
 		this.clients.clear();
 		this.subscribers.clear();
 		if (this.bot != null)
@@ -84,8 +88,8 @@ public class LocalTransport extends Transport implements Proxy {
 	@Override
 	public boolean userRequest(ServerSession client, Message message)
 			throws IOException {
-		// System.out.println("LocalTransport::userRequest");
-		// System.out.println("message = " + message);
+		log.fine("LocalTransport::userRequest");
+		log.fine("message = " + message);
 
 		Map<String, Object> data = message.getDataAsMap();
 		@SuppressWarnings("unchecked")
@@ -109,8 +113,8 @@ public class LocalTransport extends Transport implements Proxy {
 	@Override
 	public boolean syncEvent(ServerSession client, Message message)
 			throws IOException {
-		// System.out.println("LocalTransport::syncEvent");
-		// System.out.println("message = " + message);
+		log.fine("LocalTransport::syncEvent");
+		log.fine("message = " + message);
 
 		Map<String, Object> data = message.getDataAsMap();
 
@@ -131,12 +135,12 @@ public class LocalTransport extends Transport implements Proxy {
 	@Override
 	public void reply(Bot bot, String replyToken, Map<String, Object> obj) {
 
-		// System.out.println("LocalTransport::reply");
-		// System.out.println("reply data = " + obj);
+		log.fine("LocalTransport::reply");
+		log.fine("reply data = " + obj);
 		ServerSession client = this.clients.get(replyToken);
 
 		if (client == null) {
-			// System.out.println("LocalTransport::error sending bot reply client not found");
+			log.fine("LocalTransport::error sending bot reply client not found");
 			// TODO send error.
 			return;
 		}
@@ -148,9 +152,9 @@ public class LocalTransport extends Transport implements Proxy {
 		// HashMap<String, Object> payload = new HashMap<String, Object>();
 		// payload.put("data", data);
 
-		// System.out.println("LocalTransport::reply");
-		// System.out.println("payload = " + data);
-		// System.out.println("replyToken = " + replyToken);
+		log.fine("LocalTransport::reply");
+		log.fine("payload = " + data);
+		log.fine("replyToken = " + replyToken);
 
 		client.deliver(this.server, "/service/bot/" + this.serviceName
 				+ "/response", data, null);
@@ -159,7 +163,7 @@ public class LocalTransport extends Transport implements Proxy {
 
 	@Override
 	public void publish(Bot bot, Map<String, Object> obj) {
-		// System.out.println("LocalTransport::publish");
+		log.fine("LocalTransport::publish");
 
 		HashMap<String, Object> data = new HashMap<String, Object>();
 		data.put("value", obj);
@@ -172,9 +176,9 @@ public class LocalTransport extends Transport implements Proxy {
 			client.deliver(this.server, channel.getId(), data, null);
 		}
 
-		// System.out.println("LocalTransport::publish");
-		// System.out.println(data);
-		// System.out.println("channel = " + channel);
+		log.fine("LocalTransport::publish");
+		log.fine(data.toString());
+		log.fine("channel = " + channel);
 		/*
 		 * Set<? extends ServerSession> clients = channel.getSubscribers();
 		 * for(ServerSession client: clients) {
