@@ -62,6 +62,7 @@ define([
             sessionInst = ConfigInitializer.sessionImpl ? new ConfigInitializer.sessionImpl() : new SessionImpl();
             // create the listener instance
             listenerInst = ConfigInitializer.listenerImpl ? new ConfigInitializer.listenerImpl() : new ListenerImpl();
+            listenerInst.init(sessionInst);
             // initialize the session
             sessionInst.init(cowebConfig, listenerInst);
             return sessionInst;
