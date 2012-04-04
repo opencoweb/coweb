@@ -10,6 +10,7 @@ import logging
 import urlparse
 # std lib
 import json
+import uuid
 # coweb
 import bayeux
 import session
@@ -41,9 +42,10 @@ class AdminHandler(tornado.web.RequestHandler):
         try:
             key = args['key']
         except KeyError:
+            key = uuid.uuid4().hex
             # no key given, abort
-            log.warn('admin rejected user %s prep, missing key', username)
-            raise tornado.web.HTTPError(400)
+            #log.warn('admin rejected user %s prep, missing key', username)
+            #raise tornado.web.HTTPError(400)
         # get collab flag
         collab = args.get('collab', True)
         cacheState = args.get('cacheState', False)

@@ -200,7 +200,7 @@ public class AdminServlet extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 
-		log.info("received prep request 0.8.1");
+		log.info("received prep request 0.8.2");
 		resp.setContentType("appliation/json");
 
 		String username = req.getRemoteUser();

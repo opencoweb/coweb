@@ -7,12 +7,16 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>coweb-admin</artifactId>
-    <packaging>pom</packaging>
-    <name>OpenCoweb :: Java :: Admin</name>
+    <groupId>org.opencoweb</groupId>
+    <artifactId>coweb-client</artifactId>
+    <name>OpenCoweb :: Java :: Client</name>
 
-    <modules>
-        <module>admin-archetype</module>
-        <module>admin-jar</module>
-  	</modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.cometd.java</groupId>
+            <artifactId>cometd-java-client</artifactId>
+            <version>${cometd-version}</version>
+        </dependency>
+    </dependencies>
+
 </project>
