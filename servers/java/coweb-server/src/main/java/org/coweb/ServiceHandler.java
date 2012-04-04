@@ -23,7 +23,7 @@ public class ServiceHandler {
 	private Map<String, Object> cowebConfig = null;
 
 	public ServiceHandler(String sessionId, Map<String, Object> config) {
-		System.out.println("ServiceHandler new Instance " + sessionId);
+		log.info("ServiceHandler new Instance " + sessionId);
 		this.sessionId = sessionId;
 		this.cowebConfig = config;
 	}
@@ -31,12 +31,12 @@ public class ServiceHandler {
 	@SuppressWarnings("unchecked")
 	public Transport getServiceBroker(String serviceName) {
 
-		//log.info("ServiceHandler::getServiceBroker for " + serviceName);
+		log.fine("ServiceHandler::getServiceBroker for " + serviceName);
 		Transport broker = this.brokers.get(serviceName);
 		if (broker != null)
 			return broker;
 
-		//log.info(this.cowebConfig.get("bots").toString());
+		log.fine(this.cowebConfig.get("bots").toString());
 		Object[] botConfigs = (Object[]) this.cowebConfig.get("bots");
 		if (botConfigs == null) {
 			return null;
@@ -94,7 +94,7 @@ public class ServiceHandler {
 
 	public void shutdown() {
 
-		// System.out.println("ServiceHandler::shutdown");
+		log.fine("ServiceHandler::shutdown");
 
 		for (Transport transport : this.brokers.values()) {
 			transport.shutdown();
@@ -106,7 +106,7 @@ public class ServiceHandler {
 	public void subscribeUser(ServerSession client, Message message)
 			throws IOException {
 
-		// System.out.println("ServiceHandler::subscribeUser");
+		log.fine("ServiceHandler::subscribeUser");
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		boolean pub = true;
 
@@ -130,7 +130,7 @@ public class ServiceHandler {
 	public void unSubscribeUser(ServerSession client, Message message)
 			throws IOException {
 
-		// System.out.println("ServiceHandler::unSubscribeUser");
+		log.fine("ServiceHandler::unSubscribeUser");
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		boolean pub = true;
 
@@ -169,7 +169,7 @@ public class ServiceHandler {
 
 	public void forwardSyncEvent(ServerSession client, Message message)
 			throws IOException {
-		// System.out.println("fowardSyncEvent");
+		log.fine("fowardSyncEvent");
 
 		for (Transport t : this.brokers.values()) {
 			t.syncEvent(client, message);

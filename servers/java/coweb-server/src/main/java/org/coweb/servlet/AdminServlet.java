@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
@@ -58,7 +60,6 @@ public class AdminServlet extends HttpServlet {
 	public void init() throws ServletException {
 		super.init();
 
-		log.info("servlet init");
 		ServletContext servletContext = this.getServletContext();
 
 		// get the bayeux server and register the bayeux ack extension.
@@ -75,7 +76,35 @@ public class AdminServlet extends HttpServlet {
 			e1.printStackTrace();
 			cowebConfig = new HashMap<String, Object>();
 		}
+		
+		int logLevel = 0;
 
+		if (cowebConfig.get("logLevel") != null) {
+			Long level = (Long)cowebConfig.get("logLevel");
+			logLevel = level.intValue();
+		}
+		
+		Logger parentLogger = Logger.getLogger("org.coweb");
+		parentLogger.setUseParentHandlers(false);
+		ConsoleHandler consoleHandler = new ConsoleHandler();
+		parentLogger.addHandler(consoleHandler);
+		
+		switch (logLevel) {
+			case 0:
+				parentLogger.setLevel(Level.WARNING);
+				consoleHandler.setLevel(Level.WARNING);
+				break;
+			case 1:	
+				parentLogger.setLevel(Level.INFO);
+				consoleHandler.setLevel(Level.INFO);
+				break;
+			case 2:	
+				parentLogger.setLevel(Level.FINE);
+				consoleHandler.setLevel(Level.FINE);
+				break;
+		}
+		
+		log.info("servlet init");
 		log.info("cowebConfig = " + cowebConfig.toString());
 
 		// setup any debug options for capturing incoming and outgoing
@@ -120,8 +149,8 @@ public class AdminServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 
-		// System.out.println("AdminServlet::gotGet ***********");
-		// System.out.println(req.getRequestURL());
+		log.fine("AdminServlet::gotGet ***********");
+		log.fine(req.getRequestURL().toString());
 		log.info("received admin rest call");
 		if (req.getRequestURL().indexOf("disconnect") != -1) {
 			log.info("received disconnect rest call");
@@ -255,9 +284,9 @@ public class AdminServlet extends HttpServlet {
 
 	private void _handleDisconnect(HttpServletRequest req,
 			HttpServletResponse resp) {
-		// System.out.println("AdminServlet::_handleDisconnect ***********");
+		log.fine("AdminServlet::_handleDisconnect ***********");
 		String path = req.getPathInfo();
-		// System.out.println("path info = " + path);
+		log.fine("path info = " + path);
 		if (path == null)
 			return;
 

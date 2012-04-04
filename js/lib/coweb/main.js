@@ -8,28 +8,13 @@
   onevar:false, plusplus:false, undef:true, browser:true, devel:true, 
   forin:false, sub:false*/
 /*global define cowebConfig*/
-if(typeof cowebConfig === 'undefined') {
-    cowebConfig = {};
-}
-
-// mix defaults into coweb config where left undefined
-cowebConfig = {
-    sessionImpl : cowebConfig.sessionImpl || 'coweb/session/BayeuxSession',
-    listenerImpl : cowebConfig.listenerImpl || 'coweb/listener/UnmanagedHubListener',
-    collabImpl : cowebConfig.collabImpl || 'coweb/collab/UnmanagedHubCollab',
-    debug : cowebConfig.debug || false,
-    baseUrl : cowebConfig.baseUrl || '',
-    adminUrl : cowebConfig.adminUrl || '/admin',
-    loginUrl : cowebConfig.loginUrl || '/login',
-    logoutUrl : cowebConfig.logoutUrl || '/logout',
-    cacheState : cowebConfig.cacheState || false
-};
 
 define([
-    cowebConfig.sessionImpl,
-    cowebConfig.listenerImpl,
-    cowebConfig.collabImpl
-], function(SessionImpl, ListenerImpl, CollabImpl) {
+    'coweb/session/BayeuxSession',
+    'coweb/listener/UnmanagedHubListener',
+    'coweb/collab/UnmanagedHubCollab',
+    './ConfigInitializer'
+], function(SessionImpl, ListenerImpl, CollabImpl, ConfigInitializer) {
     // session and listener instance singletons
     var sessionInst = null,
         listenerInst = null,
@@ -60,7 +45,7 @@ define([
 
     // factory interface
     return {
-        VERSION : '0.8',
+        VERSION : '0.8.1',
 
         /**
          * Get the singleton cowebConfig.sessionImpl implementation of 
@@ -74,9 +59,10 @@ define([
                 return sessionInst;
             }
             // create the session instance
-            sessionInst = new SessionImpl();
+            sessionInst = ConfigInitializer.sessionImpl ? new ConfigInitializer.sessionImpl() : new SessionImpl();
             // create the listener instance
-            listenerInst = new ListenerImpl();
+            listenerInst = ConfigInitializer.listenerImpl ? new ConfigInitializer.listenerImpl() : new ListenerImpl();
+            listenerInst.init(sessionInst);
             // initialize the session
             sessionInst.init(cowebConfig, listenerInst);
             return sessionInst;
@@ -90,7 +76,7 @@ define([
          */
         initCollab: function(params) {
             params = params || {};
-            var collabInst = new CollabImpl();
+            var collabInst = ConfigInitializer.collabImpl ? new ConfigInitializer.collabImpl() : new CollabImpl();
             collabInst.init(params);
             return collabInst;
         },

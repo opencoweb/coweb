@@ -52,6 +52,15 @@ define([
     var proto = UnmanagedHubListener.prototype;
 
     /**
+     * Stores session instance.
+     *
+     * @param {Object} session Session Instance
+     */
+    proto.init = function(session) {
+    	this._session = session;
+    };
+
+    /**
      * Starts listening for cooperative events on the OpenAjax Hub to forward
      * to the session.
      *
@@ -221,6 +230,7 @@ define([
                 console.warn('UnmanagedHubListener: failed to push op into engine ' +
                     e.message);
                 // @todo: we're out of sync now probably, fail the session?
+                this._session.destroy();
                 return;
             }
             // discard null operations; they should not be sent to app
@@ -329,6 +339,7 @@ define([
             // case this site is the only one in the session for now
             this._shouldPurge = true;
         } else if(err) {
+            this._session.destroy();
             // throw error back to the caller
             throw err;
         }
@@ -359,7 +370,8 @@ define([
             } catch(e) {
                 console.warn('UnmanagedHubListener: failed to thaw site ' + 
                     event.site + ' ' + e.message);
-                // @todo: op engine died, exit session?
+                this._session.destroy();
+				return;
             }
         } else if(type === 'unavailable') {
             // leaving user
@@ -371,7 +383,8 @@ define([
             } catch(x) {
                 console.warn('UnmanagedHubListener: failed to freeze site ' + 
                     event.site + ' ' + x.message);
-                // @todo: op engine died, exit session?
+                this._session.destroy();
+				return;
             }
         }
 
@@ -613,7 +626,7 @@ define([
             } catch(e) {
                 console.warn('UnmanagedHubListener: failed to recv engine state ' + 
                     e.message);
-                // @todo: engine dead, should exit session
+                this._session.destroy();
                 throw e;
             }
         } else {
@@ -626,6 +639,7 @@ define([
             } catch(x) {
                 console.warn('UnmanagedHubListener: failed to recv state ' + 
                     x.message);
+                this._session.destroy();
                 throw x;
             } finally {
                 this._mutex = false;

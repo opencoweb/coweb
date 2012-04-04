@@ -124,7 +124,7 @@ public class LateJoinHandler {
 		// ArrayList<Object>data = new ArrayList<Object>();
 		Object[] data = new Object[0];
 
-		// System.out.println("data = " + data);
+		log.fine("data = " + data);
 		boolean sendState = false;
 
 		Map<String, Object> ext = message.getExt();
@@ -178,8 +178,8 @@ public class LateJoinHandler {
 		this.updatees.remove(token);
 		if (this.cacheState) {
 			this.lastState = (Object[]) data.get("state");
-			System.out.println("got state from client");
-			System.out.println(JSON.toString(this.lastState));
+			log.fine("got state from client");
+			log.fine(JSON.toString(this.lastState));
 			
 		}
 
@@ -239,7 +239,7 @@ public class LateJoinHandler {
 		}
 
 		// serverSession.setAttribute("username", clientId);
-		// System.out.println("adding " + clientId + " to list of updaters");
+		log.fine("adding " + clientId + " to list of updaters");
 		this.updaters.put(clientId, new ArrayList<String>());
 
 		if (notify) {
@@ -267,7 +267,7 @@ public class LateJoinHandler {
 	}
 
 	protected void sendRosterUnavailable(ServerSession client) {
-		// System.out.println("CollabSessionHandler::sendRosterAvailable");
+		log.fine("CollabSessionHandler::sendRosterAvailable");
 		/* create channel */
 		BayeuxServer server = this.sessionManager.getBayeux();
 		ServerChannel.Initializer initializer = new ServerChannel.Initializer() {
@@ -294,7 +294,7 @@ public class LateJoinHandler {
 		data.put("siteId", siteId);
 		data.put("username", username);
 
-		// System.out.println(data);
+		log.fine(data.toString());
 
 		channel.publish(from, data, null);
 	}
@@ -412,7 +412,7 @@ public class LateJoinHandler {
 	}
 
 	protected void removeUpdater(ServerSession client) {
-		// System.out.println("CollabDelegate::removeUpdater " + client);
+		log.fine("CollabDelegate::removeUpdater " + client);
 		this.removeSiteForClient(client);
 
 		List<String> tokenList = this.updaters.get(client.getId());
@@ -425,10 +425,10 @@ public class LateJoinHandler {
 				}
 			}
 		} else {
-			// System.out.println("sending roster unavailable");
+			log.fine("sending roster unavailable");
 			this.sendRosterUnavailable(client);
 			if (!tokenList.isEmpty()) {
-				// System.out.println("this updater was updating someone");
+				log.fine("this updater was updating someone");
 				for (String token : tokenList) {
 					Session updatee = this.updatees.get(token);
 					if (updatee == null)

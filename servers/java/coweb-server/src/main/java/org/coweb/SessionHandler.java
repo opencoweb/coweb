@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
+ * Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
+ */
 package org.coweb;
 
 import java.util.ArrayList;
@@ -338,7 +342,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 
 	public void endSession() {
-		// System.out.println("SessionHandler::endSession ***********");
+		log.fine("SessionHandler::endSession ***********");
 		log.info("end session");
 
 		ServerChannel sync = this.server.getChannel(this.syncAppChannel);
