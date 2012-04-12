@@ -9,7 +9,7 @@
   onevar:false, plusplus:false, undef:true, browser:true, devel:true, 
   forin:false, sub:false*/
 /*global define*/
-define(function() {
+define(['org/requirejs/i18n!../nls/messages'],function(messages) {
     /**
      * @class Promise
      * @constructor
@@ -92,13 +92,13 @@ define(function() {
             if(callback && typeof callback !== 'function') {
                 callback = context[callback];
                 if(typeof callback !== 'function') {
-                    throw new Error('callback must be a function');
+                    throw new Error(messages.callbackfunction);
                 }
             }
             if(errback && typeof errback !== 'function') {
                 errback = context[errback];
                 if(typeof errback !== 'function') {
-                    throw new Error('errback must be a function');
+                    throw new Error(messages.errlbackfunction);
                 }
             }
             var listener = {
@@ -130,7 +130,7 @@ define(function() {
          */
         this.resolve = function(value) {
             if(fulfilled) {
-                throw new Error('promise already resolved');
+                throw new Error(messages.promisealreadyresolved);
             }
             fulfilled = true;
             result = value;
@@ -145,7 +145,7 @@ define(function() {
          */
         this.fail = function(err) {
             if(fulfilled) {
-                throw new Error('promise already resolved');
+                throw new Error(messages.promisealreadyresolved);
             }
             fulfilled = true;
             errored = true;

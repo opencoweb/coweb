@@ -10,8 +10,9 @@
 /*global define*/
 define([
     'coweb/jsoe/factory',
-    'coweb/jsoe/Operation'
-], function(factory, Operation) {
+    'coweb/jsoe/Operation',
+	'org/requirejs/i18n!../nls/messages'
+], function(factory, Operation, messages) {
     /**
      * Stores information about local and remote operations for future 
      * transformations.
@@ -76,7 +77,7 @@ define([
             var key = keys[i];
             var op = this.ops[key];
             if(op === undefined) {
-                throw new Error('missing op for context diff: i=' + i + 
+                throw new Error(messages.missingop + i + 
                     ' key=' + key + ' keys=' + keys.toString());
             }
             ops.push(op);
@@ -114,11 +115,11 @@ define([
         if(op.order === null || op.order === undefined || 
         op.order === Infinity) {
             // remote op must have order set by server
-            throw new Error('remote op missing total order');
+            throw new Error(messages.missingtotal);
         } else if(eop) {
             if(eop.order !== Infinity) {
                 // order should never repeat
-                throw new Error('duplicate op in total order: old='+eop.order +
+                throw new Error(messages.dupop+eop.order +
                     ' new='+op.order);
             }
             // server has responded with known total order for an op this site

@@ -15,11 +15,12 @@ define([
     'coweb/jsoe/ContextVector',
     'coweb/jsoe/HistoryBuffer',
     'coweb/jsoe/factory',
+	'org/requirejs/i18n!../nls/messages',
     // load subclasses to get them registered with the factory
     'coweb/jsoe/UpdateOperation',
     'coweb/jsoe/InsertOperation',
     'coweb/jsoe/DeleteOperation'
-], function(ContextVectorTable, ContextVector, HistoryBuffer, factory) {
+], function(ContextVectorTable, ContextVector, HistoryBuffer, factory, messages) {
     /**
      * Controls the operational transformation algorithm. Provides a public
      * API for operation processing, garbage collection, and engine 
@@ -386,7 +387,7 @@ define([
                     // transform needed to upgrade context of xop to op
                     xcd = op.contextVector.subtract(xop.contextVector);
                     if(!xcd.sites.length) {
-                        throw new Error('transform produced empty context diff');
+                        throw new Error(messages.emptycontextdiff);
                     }
                     // we'll get a copy back from the recursion
                     cxop = this._transform(xop, xcd);
@@ -404,7 +405,7 @@ define([
                 }
             }
             if(!op.contextVector.equals(xop.contextVector)) {
-                throw new Error('context vectors unequal after upgrade');
+                throw new Error(messages.vectorsunequal);
             }
             // make a copy of the op as is before transform
             cop = op.copy();            

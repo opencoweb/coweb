@@ -12,8 +12,9 @@ define([
     'coweb/session/bayeux/SessionBridge',
     'coweb/util/Promise',
     'coweb/util/xhr',
-    'coweb/util/lang'
-], function(SessionBridge, Promise, xhr, lang) {
+    'coweb/util/lang',
+	'org/requirejs/i18n!../nls/messages'
+], function(SessionBridge, Promise, xhr, lang, messages) {
     /**
      * @constructor
      */
@@ -152,7 +153,7 @@ define([
      */
     proto.login = function(username, password) {
         if(this._bridge.getState() !== this._bridge.IDLE) {
-            throw new Error('login() not valid in current state');
+            throw new Error(messages.logininvalid);
         }
         var p = new Promise();
         var args = {
@@ -193,7 +194,7 @@ define([
      */
     proto.prepare = function(params) {
         if(this._bridge.getState() !== this._bridge.IDLE) {
-            throw new Error('prepare() not valid in current state');
+            throw new Error(messages.prepareinvalid);
         }
         params = params || {};
 
@@ -363,7 +364,7 @@ define([
      */
     proto.join = function(params) {
         if(this._bridge.getState() !== this._bridge.PREPARED) {
-            throw new Error('join() not valid in current state');
+            throw new Error(messages.joininvalid);
         }
         params = params || {};
 
@@ -417,7 +418,7 @@ define([
      */
     proto.update = function(nextPromise) {
         if(this._bridge.getState() !== this._bridge.JOINED) {
-            throw new Error('update() not valid in current state');
+            throw new Error(messages.updateinvalid);
         }
 
         // indicate updating status

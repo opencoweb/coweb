@@ -10,8 +10,9 @@
 /*global define*/
 define([
     'coweb/main',
-    'coweb/util/Promise'
-], function(coweb, Promise) {
+    'coweb/util/Promise',
+	'org/requirejs/i18n!../nls/messages'
+], function(coweb, Promise, messages) {
     var attendance = {
         // all attendees, read-only externally
         users : {},
@@ -34,7 +35,7 @@ define([
             if(typeof callback !== 'function') {
                 callback = context[callback];
                 if(typeof callback !== 'function') {
-                    throw new Error('callback must be a function');
+                    throw new Error(messages.callbackfunction);
                 }
             }
             var id = this._subId;

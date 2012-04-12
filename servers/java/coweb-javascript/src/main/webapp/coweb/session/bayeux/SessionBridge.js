@@ -13,8 +13,9 @@ define([
     'coweb/session/bayeux/CowebExtension',
     'coweb/session/bayeux/ListenerBridge',
     'coweb/util/Promise',
-    'coweb/util/xhr'
-], function(cometd, CowebExtension, ListenerBridge, Promise, xhr) {
+    'coweb/util/xhr',
+	'org/requirejs/i18n!../../nls/messages'
+], function(cometd, CowebExtension, ListenerBridge, Promise, xhr, messages) {
     /**
      * @constructor
      * @param {Boolean} args.debug True if in debug more, false if not
@@ -95,7 +96,7 @@ define([
     proto.prepare = function(key, collab, cacheState, requestUrl, sessionName) {
         // make sure we're idle
         if(this._state !== this.IDLE) {
-            throw new Error(this.id + ': cannot prepare in non-idle state');
+            throw new Error(this.id + ': ' +messages.preparenonidlestate);
         }
         // build new disconnect promise
         this.disconnectPromise = new Promise();
@@ -162,7 +163,7 @@ define([
      */
     proto.join = function(updaterType) {
         if(this._state !== this.PREPARED) {
-            throw new Error(this.id + ': cannot join in unprepared state');
+            throw new Error(this.id + ': ' + messages.unpreparedstate);
         }
 
         this._joinPromise = new Promise();
@@ -278,7 +279,7 @@ define([
      */
     proto.update = function() {
         if(this._state !== this.JOINED) {
-            throw new Error(this.id + ': cannot update in unjoined state');
+            throw new Error(this.id + ': '+messages.unjoinedstate);
         }
         
         this._state = this.UPDATING;

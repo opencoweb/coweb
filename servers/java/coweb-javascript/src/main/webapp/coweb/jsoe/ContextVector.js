@@ -10,8 +10,9 @@
   forin:false, sub:false*/
 /*global define*/
 define([
-    'coweb/jsoe/ContextDifference'
-], function(ContextDifference) {
+    'coweb/jsoe/ContextDifference',
+	'org/requirejs/i18n!../nls/messages'
+], function(ContextDifference, messages) {
     /**
      * Represents the context in which an operation occurred at a site in 
      * terms of the operation sequence numbers already applied at that site or
@@ -43,7 +44,7 @@ define([
         } else if(args.state) {
             this.sites = args.state;
         } else {
-            throw new Error('uninitialized context vector');
+            throw new Error(messages.badcontentvector);
         }        
     };
 

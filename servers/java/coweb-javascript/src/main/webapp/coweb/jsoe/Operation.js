@@ -13,8 +13,9 @@
   forin:false, sub:false*/
 /*global define*/
 define([
-    'coweb/jsoe/ContextVector'
-], function(ContextVector) {
+    'coweb/jsoe/ContextVector',
+	'org/requirejs/i18n!../nls/messages'
+], function(ContextVector, messages) {
     /**
      * Contains information about a local or remote event for transformation.
      *
@@ -63,7 +64,7 @@ define([
             } else if(this.contextVector) {
                 this.seqId = this.contextVector.getSeqForSite(this.siteId) + 1;
             } else {
-                throw new Error('missing sequence id for new operation');
+                throw new Error(messages.missingseqid);
             }
             this.xCache = args.xCache;
             this.local = args.local || false;
@@ -100,9 +101,9 @@ define([
      */
     Operation.prototype.setState = function(arr) {
         if(arr[0] !== this.type) {
-            throw new Error('setState invoked with state from wrong op type');
+            throw new Error(messages.wrongoptype);
         } else if(this.immutable) {
-            throw new Error('op is immutable');
+            throw new Error(messages.opmutable);
         }
         // name args as required by constructor
         this.key = arr[1];
@@ -252,11 +253,11 @@ define([
      */
     Operation.prototype.transformWith = function(op) {
         if(this.immutable) {
-            throw new Error('attempt to transform immutable op');
+            throw new Error(messages.transformimmutableop);
         }
         var func = this[op.transformMethod()], rv;
         if(!func) {
-            throw new Error('operation cannot handle transform with type: '+ op.type);
+            throw new Error(messages.cannothandletransform + op.type);
         }
         // do the transform
         rv = func.apply(this, arguments);
@@ -277,7 +278,7 @@ define([
      */
     Operation.prototype.upgradeContextTo = function(op) {
         if(this.immutable) {
-            throw new Error('attempt to upgrade context of immutable op');
+            throw new Error(messages.upgradeimmutableop);
         }
         this.contextVector.setSeqForSite(op.siteId, op.seqId);
     };
@@ -289,7 +290,7 @@ define([
      * Abstract implementation always throws an exception if not overriden.
      */ 
     Operation.prototype.getTransformMethod = function() {
-        throw new Error('transformMethod not implemented');
+        throw new Error(messages.methodnotimplemented);
     };
 
     return Operation;

@@ -12,6 +12,10 @@
     <name>OpenCoweb :: Java :: JavaScript</name>
     <packaging>war</packaging>
 
+    <properties>
+	    <i18n-plugin-url>http://requirejs.org/docs/release/1.0.0/minified/i18n.js</i18n-plugin-url>
+	</properties>
+
     <build>
         <plugins>
 		    <plugin>
@@ -66,6 +70,9 @@ if (typeof dojo !== 'undefined' &amp;&amp; !dojo.provide) { dojo.provide = funct
 									
 							        <move file="${workpath}/amd" tofile="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd.js" />
 									<delete dir="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd" />
+
+									<mkdir dir="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs"/>
+									<get src="${i18n-plugin-url}" dest="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs/i18n.js"/>
 							  </tasks>
                         </configuration>
                         <goals>

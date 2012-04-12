@@ -11,8 +11,9 @@
 define([
     'coweb/topics',
     'coweb/util/Promise',
-    'org/OpenAjax'
-], function(topics, Promise, OpenAjax) {
+    'org/OpenAjax',
+	'org/requirejs/i18n!../nls/messages'
+], function(topics, Promise, OpenAjax, messages) {
     /**
      * @constructor
      */
@@ -32,7 +33,7 @@ define([
      */    
     proto.init = function(params) {
         if(!params || params.id === undefined) {
-            throw new Error('collab id required');
+            throw new Error(messages.nocollabid);
         }
         this.id = params.id;
     };
@@ -55,7 +56,7 @@ define([
         if(typeof callback !== 'function') {
             callback = context[callback];
             if(typeof callback !== 'function') {
-                throw new Error('callback must be a function');
+                throw new Error(messages.callbackfunction);
             }
         }
         var topic = topics.READY;
@@ -87,7 +88,7 @@ define([
         if(typeof callback !== 'function') {
             callback = context[callback];
             if(typeof callback !== 'function') {
-                throw new Error('callback must be a function');
+                throw new Error(messages.callbackfunction);
             }
         }
         var topic = topics.END;
@@ -119,7 +120,7 @@ define([
         if(typeof callback !== 'function') {
             callback = context[callback];
             if(typeof callback !== 'function') {
-                throw new Error('callback must be a function');
+                throw new Error(messages.callbackfunction);
             }
         }
         var topic = topics.SITE_JOIN;
@@ -151,7 +152,7 @@ define([
         if(typeof callback !== 'function') {
             callback = context[callback];
             if(typeof callback !== 'function') {
-                throw new Error('callback must be a function');
+                throw new Error(messages.callbackfunction);
             }
         }
         var topic = topics.SITE_LEAVE;
@@ -176,7 +177,7 @@ define([
      */
     proto.sendSync = function(name, value, type, position) {
         if(this.id === undefined) {
-            throw new Error('call init() first');
+            throw new Error(messages.callinitfirst);
         }
         if(type === undefined) {
             type = 'update';
@@ -206,10 +207,10 @@ define([
      */
     proto.subscribeSync = function(name, context, callback) {
         if(this.id === undefined) {
-            throw new Error('call init() first');
+            throw new Error(messages.callinitfirst);
         }
         if(!name) {
-            throw new Error('valid sync name required');
+            throw new Error(messages.validsyncname);
         }
         if(callback === undefined) {
             callback = context;
@@ -218,7 +219,7 @@ define([
         if(typeof callback !== 'function') {
             callback = context[callback];
             if(typeof callback !== 'function') {
-                throw new Error('callback must be a function');
+                throw new Error(messages.callbackfunction);
             }
         }
         var topic = topics.SYNC+name+'.'+this.id;
@@ -258,7 +259,7 @@ define([
         if(typeof callback !== 'function') {
             callback = context[callback];
             if(typeof callback !== 'function') {
-                throw new Error('callback must be a function');
+                throw new Error(messages.callbackfunction);
             }
         }
         var topic = topics.GET_STATE;
@@ -281,7 +282,7 @@ define([
      */
     proto.sendStateResponse = function(state, token) {
         if(this.id === undefined) {
-            throw new Error('call init() first');
+            throw new Error(messages.callinitfirst);
         }
         var params = {state : state, recipient : token};
         this._mutex = true;
@@ -305,7 +306,7 @@ define([
      */    
     proto.subscribeStateResponse = function(context, callback) {
         if(this.id === undefined) {
-            throw new Error('call init() first');
+            throw new Error(messages.callinitfirst);
         }
         if(callback === undefined) {
             callback = context;
@@ -314,7 +315,7 @@ define([
         if(typeof callback !== 'function') {
             callback = context[callback];
             if(typeof callback !== 'function') {
-                throw new Error('callback must be a function');
+                throw new Error(messages.callbackfunction);
             }
         }
         var topic = topics.SET_STATE+this.id;
@@ -351,7 +352,7 @@ define([
         if(typeof callback !== 'function') {
             callback = context[callback];
             if(typeof callback !== 'function') {
-                throw new Error('callback must be a function');
+                throw new Error(messages.callbackfunction);
             }
         }
         // build the service response topic
@@ -399,7 +400,7 @@ define([
      */    
     proto.postService = function(service, params, context, callback) {
         if(this.id === undefined) {
-            throw new Error('call init() first');
+            throw new Error(messages.callinitfirst);
         }
         if(callback === undefined) {
             callback = context;
@@ -408,7 +409,7 @@ define([
         if(typeof callback !== 'function') {
             callback = context[callback];
             if(typeof callback !== 'function') {
-                throw new Error('callback must be a function');
+                throw new Error(messages.callbackfunction);
             }
         }
         // subscribe to response event

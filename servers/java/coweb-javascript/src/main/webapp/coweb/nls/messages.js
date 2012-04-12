@@ -1,0 +1,32 @@
+define({
+    "root": {
+        "nocollabid" : "collab id required",
+        "callbackfunction" : "callback must be a function",
+        "callinitfirst" : "call init() first",
+        "validsyncname" : "valid sync name required",
+        "badcontentvector" : "uninitialized context vector",
+        "missingop" : "missing op for context diff: i=",
+        "missingtotal" : "remote op missing total order",
+        "dupop" : "duplicate op in total order: old=",
+        "missingseqid" : "missing sequence id for new operation",
+        "wrongoptype" : "setState invoked with state from wrong op type",
+        "opmutable" : "op is immutable",
+        "transformimmutableop" : "attempt to transform immutable op",
+        "cannothandletransform" : "operation cannot handle transform with type: ",
+        "upgradeimmutableop" : "attempt to upgrade context of immutable op",
+        "methodnotimplemented" : "transformMethod not implemented",
+        "emptycontextdiff" : "transform produced empty context diff",
+        "vectorsunequal" : "context vectors unequal after upgrade",
+        "failedloading" : "failed loading",
+        "failedsending" : "failed sending xhr to",
+        "unpreparedstate" : "cannot join in unprepared state",
+        "unjoinedstate" : "cannot update in unjoined state",
+        "errlbackfunction" : "errback must be a function",
+        "promisealreadyresolved" : "promise already resolved",
+        "preparenonidlestate" : "cannot prepare in non-idle state",
+        "logininvalid" : "login() not valid in current state",
+        "prepareinvalid" : "prepare() not valid in current state",
+        "joininvalid" : "join() not valid in current state",
+        "updateinvalid" : "update() not valid in current state"
+    }
+});

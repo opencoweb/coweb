@@ -7,7 +7,7 @@
   onevar:false, plusplus:false, undef:true, browser:true, devel:true, 
   forin:false, sub:false*/
 /*global define window*/
-define(['coweb/util/Promise'], function(Promise) {
+define(['coweb/util/Promise', 'org/requirejs/i18n!../nls/messages'], function(Promise, messages) {
     /**
      * @private
      */
@@ -64,7 +64,7 @@ define(['coweb/util/Promise'], function(Promise) {
                         promise.resolve(args);
                     } else {
                         // error on everything else
-                        args.error = new Error('failed loading '+args.url+' status:'+stat);
+                        args.error = new Error(messages.failedloading + ' '+args.url+' status:'+stat);
                         promise.fail(args);
                     }
                 }
@@ -75,7 +75,7 @@ define(['coweb/util/Promise'], function(Promise) {
                 _setHeaders(xhr, args.headers);
                 xhr.send(args.body || null);
             } catch(e) {
-                args.onError('failed sending xhr to '+args.url, e);
+                args.onError(messages.failedsending + ' '+args.url, e);
                 throw e;
             }
             return promise;

@@ -10,8 +10,9 @@
 /*global define */
 define([
     'coweb/util/xhr',
-    'org/cometd'
-], function(xhr, cometd) {
+    'org/cometd',
+	'org/requirejs/i18n!../../nls/messages'
+], function(xhr, cometd, messages) {
     // use browser native functions, http://caniuse.com/#search=JSON
     cometd.JSON.toJSON = JSON.stringify;
     cometd.JSON.fromJSON = JSON.parse;
@@ -32,7 +33,7 @@ define([
             promise.then(function(args) {
                 packet.onSuccess(args.xhr.responseText);
             }, function(args) {
-                var err = new Error('failed loading '+args.url+' status: '+args.xhr.status);
+                var err = new Error(messages.failedloading +' '+args.url+' status: '+args.xhr.status);
                 packet.onError(args.xhr.statusText, err);
             });
             return promise.xhr;
