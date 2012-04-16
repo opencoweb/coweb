@@ -78,10 +78,12 @@ The CometD servlet accepts all of the `CometD 2 Java Server configuration`_ opti
 Configuring coweb options
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The admin servlet accepts the following parameters configuring custom session management and security policies.
+coweb configuration is specified within a configuration json file. The path to this file is specified as an init parameter to the admin servlet.
 
-delegateClass
-   String name of a `org.coweb.SessionHandlerDelegate`_ subclass to use instead of the default `org.coweb.CollabDelegate`_ which governs the coweb protocol in a session.
+ConfigURI
+   The path to the location of the config json file. For example if the file cowebConfig.json is located in /WEB-INF of the WebApplication the value would be /WEB-INF/cowebConfig.json.
+
+The following are available properties that can be specified in the config json file :
 
 securityClass
    String name of a :class:`org.coweb.CowebSecurityPolicy` subclass to use instead of the base class which allows anonymous access to all sessions. 
@@ -89,15 +91,36 @@ securityClass
 updaterTypeMatcherClass
    String name of a :class:`org.coweb.UpdaterTypeMatcher` subclass to use to match an Updater Type for a late joiner.
 
+logLevel
+   Log Level value of the coweb logger. Valid values are 0 (WARNING), 1 (INFO) and 2 (FINE). The default is 0.
+
+captureIncoming
+   Path to a file where the captured incoming data will be written.
+
+captureOutgoing
+   Path to a file where the captured outgoing data will be written.
+
+moderatorIsUpdater
+   Use a server-side moderator.
+
+sessionModerator
+   String name of a :class:`org.coweb.SessionModerator` subclass to use for managing session moderation.
+
+operationEngine
+   Boolean indicating if servers-side operation engine should be used.
+
+cacheState
+   Boolean indicting if state should be cached.
+
+bots
+   Array of bot json configuration objects. Each bot configuration objects provides a "service" property which is the service name. It can optionally provide a "broker" property that is a name of a :class:`org.coweb.bots.Transport` subclass.
+
 Use cases
 ~~~~~~~~~
 
-The following examples demonstrate how deployment descriptor options enable alternative server configurations.
+The following examples demonstrate how coweb options enable alternative server configurations.
 
-Custom session security
-#######################
-
-Say a certain app deployment requires the coweb server to control user access to sessions and their abilities in the session. The admin servlet is configured with custom session delegate and security policy handlers to provide this level of control.
+First configure a json config file :
 
 .. sourcecode:: xml
 
@@ -106,15 +129,22 @@ Say a certain app deployment requires the coweb server to control user access to
       <servlet-class>org.coweb.servlet.AdminServlet</servlet-class>
       <load-on-startup>2</load-on-startup>
       <init-param>
-         <param-name>delegateClass</param-name>
-         <param-value>org.someorg.CustomSessionDelegate</param-value>
-      </init-param>
-      <init-param>
-         <param-name>securityClass</param-name>
-         <param-value>org.someorg.CustomSecurityPolicy</param-value>
-      </init-param>
-      <init-param>
-         <param-name>updaterTypeMatcherClass</param-name>
-         <param-value>org.someorg.CustomUpdaterTypeMatcher</param-value>
+	      <param-name>ConfigURI</param-name>
+	      <param-value>/WEB-INF/cowebConfig.json</param-value>
       </init-param>
    </servlet>
+
+Custom session security and Updater Type Matcher
+################################################
+
+Say a certain app deployment requires the coweb server to control user access to sessions and their abilities in the session. The cowebConfig.json file provides the details for custom session delegate and security policy handlers to provide this level of control. It also configures a custom Updater Type Matcher.
+
+Contents of the cowebConfig.json will look like the following :
+
+.. sourcecode:: json
+
+   {
+       "delegateClass": "org.someorg.CustomSessionDelegate",
+       "securityClass": "org.someorg.CustomSecurityPolicy",
+       "updaterTypeMatcherClass": "org.someorg.CustomUpdaterTypeMatcher"
+   }
