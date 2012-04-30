@@ -18,34 +18,25 @@ Widget catalog
 
 All widgets and widget examples conform to the `Asynchronous Module Definition`_ (AMD) format.
 
-Widgets requiring dojo
-######################
-
 RichTextEditor
-$$$$$$$$$$$$$$$$$$$
+##############
 
-A collaborative rich text editor with realtime synchronization across all clients and attendee list.
-
-:param node domNode: a DOM node to attach to
-:param string id: a unique id to use for collaboration channel
-
-Example initialization:
+   A collaborative rich text editor with realtime synchronization across all clients and attendee list. All parameters to this function are passed as name/value properties on a single `args` object. Only the `collabID` parameter is required.
 
 .. sourcecode:: javascript
-   require(['cowebx/dojo/RichTextEditor/TextEditor'], function(TextEditor) {
-      var editor = new TextEditor({ },dojo.byId('editorNode'));
+
+   require(['cowebx/dojo/RichTextEditor/RichTextEditor'], function(TextEditor) {
+      var editor = new TextEditor({collabID:'foobar'},dojo.byId('editorNode'));
    }
 
 .. function:: getValue( )
 
    Get the current text value of the editor
-
    :returns: string
 
 .. function:: insertChar(character, position)
 
    Insert char into editor programmatically.
-
    :param string character: character to insert
    :param int position: position to insert character at
    :returns: null
@@ -53,29 +44,23 @@ Example initialization:
 .. function:: deleteChar(position)
 
    Delete char from editor programmatically.
-
    :param int position: position of character to remove
    :returns: null
 
 .. function:: updateChar(character, position)
 
    Update char in editor programmatically.
-
    :param string character: character with which to replace position with
    :param int position: position to replace character at
    :returns: null
 
 BasicTextareaEditor
-$$$$$$$$$$$$$$$$$$$
+###################
 
-A collaborative textarea element with realtime synchronization across all clients.
-
-:param node domNode: a DOM node to attach to
-:param string id: a unique id to use for collaboration channel
-
-Example initialization:
+   A collaborative textarea element with realtime synchronization across all clients.
 
 .. sourcecode:: javascript
+
    require(['cowebx/dojo/BasicTextareaEditor/TextEditor'], function(TextEditor) {
       var editor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor'});
    }
@@ -83,13 +68,11 @@ Example initialization:
 .. function:: getValue( )
 
    Get the current text value of the editor
-
    :returns: string
 
 .. function:: insertChar(character, position)
 
    Insert char into editor programmatically.
-
    :param string character: character to insert
    :param int position: position to insert character at
    :returns: null
@@ -97,29 +80,22 @@ Example initialization:
 .. function:: deleteChar(position)
 
    Delete char from editor programmatically.
-
    :param int position: position of character to remove
    :returns: null
 
 .. function:: updateChar(character, position)
 
    Update char in editor programmatically.
-
    :param string character: character with which to replace position with
    :param int position: position to replace character at
-   :returns: null
 
 EnhancedTextareaEditor
-$$$$$$$$$$$$$$$$$$$
+######################
 
-A collaborative textarea element supporting whole-area styling with realtime synchronization across all clients.
-
-:param node domNode: a DOM node to attach to
-:param string id: a unique id to use for collaboration channel
-
-Example initialization:
+   A collaborative textarea element supporting whole-area styling with realtime synchronization across all clients.
 
 .. sourcecode:: javascript
+
    require(['cowebx/dojo/EnhancedTextareaEditor/TextEditor'], function(TextEditor) {
       var editor = new TextEditor({'domNode':dojo.byId('editorNode'),id:'textEditor'});
    }
@@ -127,13 +103,11 @@ Example initialization:
 .. function:: getValue( )
 
    A web application calls this method to get the current text value of the editor.
-
    :returns: string
 
 .. function:: insertChar(character, position)
 
    Insert char into editor programmatically.
-
    :param string character: character to insert
    :param int position: position to insert character at
    :returns: null
@@ -141,14 +115,35 @@ Example initialization:
 .. function:: deleteChar(position)
 
    Delete char from editor programmatically.
-
    :param int position: position of character to remove
    :returns: null
 
 .. function:: updateChar(character, position)
 
    Update char in editor programmatically.
-
    :param string character: character with which to replace position with
    :param int position: position to replace character at
    :returns: null
+
+GMap
+####
+
+   A collaborative Google Map with realtime synchronization across all clients.
+
+.. sourcecode:: javascript
+
+   require(['cowebx/dojo/GMap/GMap'], function(TextEditor) {
+      var map = new GMap({},domNode);
+   }
+
+ChatBox
+#######
+
+  A collaborative Chat Box with realtime synchronization across all clients.
+
+.. sourcecode:: javascript
+
+   require(['cowebx/dojo/ChatBox/ChatBox'], function(TextEditor) {
+      var chat = new ChatBox({},domNode);
+   }
+
