@@ -13,7 +13,6 @@ following third-party code that is not covered under the OpenCoweb License:
 
 - OpenAjax Hub
 - CometD
-- RequireJS
 
 The copyright and licenses of these third-party products are reproduced below.
 
@@ -33,19 +32,10 @@ governing permissions and limitations under the License.
 
 *******************************************************************************
 
-cometD 2.1.0 (cometd-javascript common)
+cometD 2.4.0 (cometd-javascript common)
 
 Copyright (c) 2005-2011 The Dojo Foundation. All rights reserved.
 
 Dual licensed under the Apache License 2.0 at
 http://www.apache.org/licenses/LICENSE-2.0 and the MIT license at
 http://www.opensource.org/licenses/mit-license.php.
-
-*******************************************************************************
-
-RequireJS 0.23.0
-
-Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
-
-Available via the MIT new BSD license at 
-https://github.com/jrburke/requirejs/blob/0.23.0/LICENSE.
