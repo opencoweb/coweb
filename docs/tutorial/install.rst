@@ -30,13 +30,15 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 The http://github.com/opencoweb/coweb-boilerplates repository on GitHub contains prebuilt snapshots of developer working environments. Follow these instructions if you want to deploy a prebuilt snapshot of a working coweb application on your own Java server. These instructions will also deploy the cowebx demos and widgets as well.
 
+.. note:: The following steps assume you are using the `dojo1.7-boilerplate` boilerplate.
+
 #. Clone the cowebx git repository into your desired project folder or download a snapshot of it from https://github.com/opencoweb/cowebx/tarball/master.
 #. Clone the coweb-boilerplates git repository into your desired project folder or download a snapshot of it from https://github.com/opencoweb/coweb-boilerplates/tarball/master.
 #. Copy the desired boiler plate into the cowebx webapp folder.
 
-.. sourcecode:: console
+   .. sourcecode:: console
 
-   $ cp -rf coweb-boilerplates/dojo1.7-boilerplate cowebx/cowebx-apps/src/main/webapp
+      $ cp -rf coweb-boilerplates/dojo1.7-boilerplate cowebx/cowebx-apps
 
 #. Use Maven to package and install the `cowebx` submodules.
 
@@ -49,10 +51,10 @@ The http://github.com/opencoweb/coweb-boilerplates repository on GitHub contains
 
    .. sourcecode:: console
 
-      $ cd cowebx-apps
+      $ cd cowebx-apps/dojo1.7-boilerplate
       $ mvn jetty:deploy-war
 
-By default, the `jetty:deploy-war` command makes your application accessible at http://localhost:8080/cowebx-apps/dojo1.7-boilerplate/. Specify the `-Djetty.port=PORT` option on the command line to run on a different port.
+By default, the `jetty:deploy-war` command makes your application accessible at http://localhost:8080/dojo1.7-boilerplate/. Specify the `-Djetty.port=PORT` option on the command line to run on a different port.
 
 Alternatively, you can take the resulting WAR file and deploy it on the servlet container of your choice.
 
@@ -90,7 +92,7 @@ After populating the project, you can package it and deploy it in-place using th
    $ mvn clean package
    $ mvn jetty:deploy-war
 
-By default, the `jetty:deploy-war` command makes your application accessible at http://localhost:8080/. Specify the `-Djetty.port=PORT` option on the command line to run on a different port.
+By default, the `jetty:deploy-war` command makes your application accessible at http://localhost:8080/myproject. Specify the `-Djetty.port=PORT` option on the command line to run on a different port.
 
 Alternatively, you can take the resulting WAR file and deploy it on the servlet container of your choice.
 
@@ -113,10 +115,17 @@ The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb e
 
    .. sourcecode:: console
 
-      $ cd cowebx-apps
+      $ cd cowebx-apps/launcher
       $ mvn jetty:deploy-war
 
 #. Visit http://localhost:8080/cowebx-apps in your browser to view the list of demos.
+
+#. Once you have installed the cowebx submodules (step 1 above), you can optionally deploy individual cowebx applications. Navigate to the desired application directory (ex: :file:`cowebx/cowebx-apps/comap`) and deploy the WAR.
+
+   .. sourcecode:: console
+
+       $ cd cowebx/cowebx-apps/comap
+       $ mvn jetty:deploy-war
 
 Python setup
 ~~~~~~~~~~~~

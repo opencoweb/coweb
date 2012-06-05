@@ -104,29 +104,59 @@ Seed the :file:`index.html` with the following markup. If you initialized the pr
        <meta charset="utf-8" />
        <title>Cooperative Shopping List Example</title>
        <link rel="stylesheet" href="colist.css" type="text/css" />
-       <script data-main="main" src="./lib/require.js"></script>
+       <script type="text/javascript" src="./config.js"></script>
+       <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dojo/dojo.js"></script>
+       <script type="text/javascript" src="./main.js"></script>
      </head>
      <body class="claro">
        <h1>Hello World!</h1>
      </body>
    </html>
-   
+
+:file:`config.js`
+#################
+
+Now, create a :file:`config.js` in the project folder. This file configures Dojo 1.7.0.
+
+.. sourcecode:: javascript
+
+    var dojoConfig = {
+        baseUrl: '/mycolist',
+        async:true,
+        
+        paths : {
+           coweb : 'lib/coweb',
+           cowebx: 'lib/cowebx',
+           org : 'lib/org'
+        },
+        
+        packages:[{
+            name: 'dojo',
+            location:'http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dojo',
+            main:'main'
+        },
+        {
+            name: 'dijit',
+            location:'http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dijit',
+            main:'main'
+        },
+        {
+            name: 'dojox',
+            location:'http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dojox',
+            main:'main'
+        }]
+    };
+
 :file:`main.js`
 ###############
 
-Next create a :file:`main.js` file in your project folder. This file will configure and bootstrap the RequireJS loader, the coweb JavaScript APIs, and the main application controller.
+Next create a :file:`main.js` file in your project folder. This file configures the coweb JavaScript APIs and loads the actual :file:`colist.js` (defined below) using Dojo's Asynchronous Module Definition (AMD) API.
 
 .. sourcecode:: javascript
 
    // session admin loop configured under same path as app page
    var cowebConfig = {adminUrl : './admin'};
-   // js libs initialized here too
-   require({
-       paths : {
-           coweb : 'lib/coweb',
-           org : 'lib/org'
-       }
-   }, ['colist']);
+   require(['colist']);
 
 :file:`colist.js`
 #################
@@ -135,20 +165,25 @@ Next create the :file:`colist.js` file in your project folder. This file will co
 
 .. sourcecode:: javascript
 
-   define([
-      'coweb/main',
-      'http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js'
-   ], function(coweb) {
-      dojo.ready(function() {
-         console.log('ready callback');
-      });
-   });
+    define([
+        'coweb/main',
+        'dojo/domReady!'
+    ], function(coweb) {
 
-The :func:`define` call indicates this JavaScript module is in AMD format. Its first parameter, an array, indicates other modules and/or plain scripts to load. `coweb/main` refers to the main module of the |coweb api|. The second script is a cross-domain, CDN hosted version of Dojo 1.6 that you will use to construct the shopping list UI. Dojo does not yet support AMD in its cross-domain builds, so the RequireJS loader treats it as a plain JavaScript file.
+        var app = {
+            init: function(){
+                console.log("ready callback");
+            }
+        };
 
-.. note:: This tutorial and the complete example use the CDN version of Dojo to limit the number of dependencies you must install. If you use Dojo 1.6 for your own applications, you should use a local, built copy of Dojo to improve your application's performance.
+        app.init();
+    });
 
-The :func:`dojo.ready` function registers a callback that will fire after the DOM finishes loading, all Dojo modules finish loading, and all declarative Dojo widgets in the DOM are instantiated. For the time being, the :func:`console.log` statement in the callback gives you something to check to ensure all of the dependencies are loading without error.
+The :func:`define` call indicates this JavaScript module is in AMD format. Its first parameter, an array, indicates other modules and/or plain scripts to load. `coweb/main` refers to the main module of the |coweb api|, and `dojo/domReady!` ensures that the module callback (the second argument to :func:`define`) will not be run until the DOM finishes loading. The arguments passed to the callback are the resolved dependencies.
+
+.. note:: This tutorial and the complete example use the CDN version of Dojo to limit the number of dependencies you must install. If you use Dojo 1.7.0 for your own applications, you should use a local, built copy of Dojo to improve your application's performance.
+
+For the time being, the :func:`console.log` statement in the callback gives you something to check to ensure all of the dependencies are loading without error.
 
 :file:`colist.css`
 ##################
@@ -157,10 +192,10 @@ Now create the :file:`colist.css` file in your project folder. You will define s
 
 .. sourcecode:: css
 
-   @import "http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/resources/dojo.css";
-   @import "http://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/claro/claro.css";
-   @import "http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojox/grid/resources/Grid.css";
-   @import "http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojox/grid/resources/claroGrid.css";
+   @import "http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dojo/resources/dojo.css";
+   @import "http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dijit/themes/claro/claro.css";
+   @import "http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dojox/grid/resources/Grid.css";
+   @import "http://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dojox/grid/resources/claroGrid.css";
 
 Checkpoint: Running the blank application
 #########################################
@@ -228,54 +263,66 @@ The grid table defines two columns labeled :guilabel:`Item` and :guilabel:`Amoun
 :file:`colist.js`
 #################
 
-Edit the :file:`colist.js` file. Within the :func:`define` function, above the call to :func:`dojo.ready`, add the following additional calls to import the required Dojo widgets.
+Edit the :file:`colist.js` file. You will add some modules dependencies to the first argument of :func:`define`. Right now, :file:`colist.js` only depends on `dojo`, so change the dependencies so the beginning of the file looks like the following. Your module function will also expand its argument list so that it can use the loaded modules.
 
 .. sourcecode:: javascript
 
-   dojo.require('dojox.grid.DataGrid');
-   dojo.require('dojo.data.ItemFileWriteStore');
-   dojo.require('dijit.form.Button');
-   dojo.require('dijit.layout.BorderContainer');
-   dojo.require('dijit.layout.ContentPane');
+    define([
+        'dojo',
+        'dijit/registry',
+        'coweb/main',
+        'dojox/grid/DataGrid',
+        'dojo/data/ItemFileWriteStore',
+        'cowebx/dojo/BusyDialog/BusyDialog',
+        'dijit/form/Button',
+        'dijit/layout/BorderContainer',
+        'dijit/layout/ContentPane'
+    ], function(dojo, dijit, coweb, DataGrid, ItemFileWriteStore, BusyDialog) {
 
-Next, replace the :func:`console.log` call in the :func:`dojo.ready` callback with the following code.
+Next, replace the `var app = { ... };` with the following:
 
 .. sourcecode:: javascript
 
-   // parse declarative widgets
-   dojo.parser.parse();
+    var app = {
+        init: function(){
+            // parse declarative widgets
+            dojo.parser.parse();
 
-   // configure the grid datastore, starting it empty
-   var emptyData = {identifier : 'id', label : 'name', items: []};
-   var dataStore = new dojo.data.ItemFileWriteStore({data : emptyData});
-   var grid = dijit.byId('grid');
-   grid.setStore(dataStore);
+            // configure the grid datastore, starting it empty
+            var emptyData = {identifier : 'id', label : 'name', items: []};
+            this.dataStore = new ItemFileWriteStore({data : emptyData});
+            this.grid = dijit.byId('grid');
+            this.grid.setStore(this.dataStore);
 
-   /**
-    * Adds a new row with default values to the local grid.
-    */
-   var rowId = 0;
-   var onAddRow = function() {
-      var id = rowId++; 
-      dataStore.newItem({
-         id: id,
-         name: 'New item',
-         amount: 0
-      });
-   };
+            // listen to and enable add/delete buttons
+            var addButton = dijit.byId('addRowButton');
+            var removeButton = dijit.byId('removeRowButton');
+            dojo.connect(addButton, 'onClick', this, 'onAddRow');
+            dojo.connect(removeButton, 'onClick', this, 'onRemoveRow');
 
-   /**
-    * Removes all selected rows from the grid.
-    */
-   var onRemoveRow = function() {
-      grid.removeSelectedRows();
-   };
-    
-   // listen to and enable add/delete buttons
-   var addButton = dijit.byId('addRowButton');
-   var removeButton = dijit.byId('removeRowButton');
-   dojo.connect(addButton, 'onClick', onAddRow);
-   dojo.connect(removeButton, 'onClick', onRemoveRow);
+        },
+
+        /**
+         * Adds a new row with default values to the local grid.
+         */
+        onAddRow: function() {
+            // make pseudo-unique ids
+            var date = new Date();
+            var id = String(Math.random()).substr(2) + String(date.getTime()); 
+            this.dataStore.newItem({
+                id: id,
+                name: 'New item',
+                amount: 0
+            });
+        },
+
+        /**
+         * Removes all selected rows from the grid.
+         */
+        onRemoveRow: function() {
+            this.grid.removeSelectedRows();
+        },
+    };
 
 When the DOM finishes loading, your ready callback parses the DOM for declarative Dojo widgets, creates a :class:`dojo.data.ItemFileWriteStore`, sets it as the model of the :class:`dojox.grid.DataGrid`, and registers the :func:`onAddRow` and :func:`onRemoveRow` as click handlers for the :guilabel:`Add Item` and :guilabel:`Delete Item` buttons in the markup.
 
@@ -329,12 +376,13 @@ Once satisfied that your shopping list works, you can begin making it cooperativ
 :file:`colist.js`
 #################
 
-Open the :file:`colist.js` file again. Add the following code to the bottom of the :file:`dojo.ready` callback.
+Open the :file:`colist.js` file again. Add the following code to the bottom of the init function.
 
 .. sourcecode:: javascript
 
    // get a session instance
    var sess = coweb.initSession();
+   BusyDialog.createBusy(sess);
    // log status notifications to ensure we're working
    sess.onStatusChange = function(status) {
       console.debug(status);
@@ -674,12 +722,19 @@ Open :file:`colist.js` and first add the string `CoopItemFileWriteStore` to modu
 
 .. sourcecode:: javascript
 
-   define([
-      'coweb/main',
-      'CoopItemFileWriteStore',
-      'http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js'
-   ], function(coweb, CoopItemFileWriteStore) {
-      // etc.
+    define([
+        'dojo',
+        'dijit/registry',
+        'coweb/main',
+        'dojox/grid/DataGrid',
+        'dojo/data/ItemFileWriteStore',
+        'cowebx/dojo/BusyDialog/BusyDialog',
+        'CoopItemFileWriteStore',
+        'dijit/form/Button',
+        'dijit/layout/BorderContainer',
+        'dijit/layout/ContentPane'
+    ], function(dojo, dijit, coweb, DataGrid, ItemFileWriteStore, BusyDialog, CoopItemFileWriteStore) {
+      // etc
    });
 
 Next, replace the :func:`onAddRow` function with the following:
@@ -690,7 +745,7 @@ Next, replace the :func:`onAddRow` function with the following:
        // make pseudo-unique ids
        var date = new Date();
        var id = String(Math.random()).substr(2) + String(date.getTime()); 
-       dataStore.newItem({
+       this.dataStore.newItem({
            id: id,
            name: 'New item',
            amount: 0
@@ -699,13 +754,13 @@ Next, replace the :func:`onAddRow` function with the following:
    
 The previous code assigned monotonically increasing IDs to new items. But after adding cooperation, remote users can end up creating new items at the same time. You must take care, therefore, to ensure two unique items do not receive the same ID. The new code generates pseudo-unique random IDs based on a random number and the current date and time.
 
-Now modify the body of your :func:`dojo.ready` callback to include the following additional lines instantiating a :class:`colist.CoopItemFileWriteStore` instance before the call to prepare the session.
+Now modify the body of your :func:`init` to include the following additional lines instantiating a :class:`colist.CoopItemFileWriteStore` instance before the call to prepare the session.
 
 .. sourcecode:: javascript
    
    // instantiate our cooperative datastore extension, giving it a 
    // reference to the dojo.data.ItemFileWriteStore object
-   var args = {dataStore : dataStore, id : 'colist_store'};
+   var args = {dataStore : this.dataStore, id : 'colist_store'};
    var coopDataStore = new CoopItemFileWriteStore(args);
 
 Checkpoint: Checking data store cooperation
@@ -982,97 +1037,113 @@ Open the :file:`colist.js` file for the last time. Add the `CoopGrid` module dep
 
 .. sourcecode:: javascript
 
-   define([
-      'coweb/main',
-      'CoopItemFileWriteStore',
-      'CoopGrid',
-      'http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js'
-   ], function(coweb, CoopItemFileWriteStore, CoopGrid) {
+    define([
+        'dojo',
+        'dijit/registry',
+        'coweb/main',
+        'dojox/grid/DataGrid',
+        'dojo/data/ItemFileWriteStore',
+        'cowebx/dojo/BusyDialog/BusyDialog',
+        'CoopItemFileWriteStore',
+        'CoopGrid',
+        'dijit/form/Button',
+        'dijit/layout/BorderContainer',
+        'dijit/layout/ContentPane'
+    ], function(dojo, dijit, coweb, DataGrid, ItemFileWriteStore, BusyDialog, CoopItemFileWriteStore, CoopGrid) {
       // etc.
    });
 
-Also, instantiate an instance of the class in the :func:`dojo.ready` callback. 
+Also, instantiate an instance of the class in :func:`init`.
 
 .. sourcecode:: javascript
 
    // instantiate our cooperative grid extension, giving it a reference
    // to the dojox.grid.DataGrid widget
-   args = {grid : grid, id : 'colist_grid'};
+   args = {grid : this.grid, id : 'colist_grid'};
    var coopGrid = new CoopGrid(args);
 
 After these edits, your completed file should look something like the following:
 
 .. sourcecode:: javascript
 
-   define([
-       'coweb/main',
-       'CoopGrid',
-       'CoopItemFileWriteStore',
-       'http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js'
-   ], function(coweb, CoopGrid, CoopItemFileWriteStore) {
-       dojo.require('cowebx.BusyDialog');
-       dojo.require('dojox.grid.DataGrid');
-       dojo.require('dojo.data.ItemFileWriteStore');
-       dojo.require('dijit.form.Button');
-       dojo.require('dijit.layout.BorderContainer');
-       dojo.require('dijit.layout.ContentPane');
+    define([
+        'dojo',
+        'dijit/registry',
+        'coweb/main',
+        'dojox/grid/DataGrid',
+        'dojo/data/ItemFileWriteStore',
+        'cowebx/dojo/BusyDialog/BusyDialog',
+        'CoopItemFileWriteStore',
+        'CoopGrid',
+        'dijit/form/Button',
+        'dijit/layout/BorderContainer',
+        'dijit/layout/ContentPane',
+        'dojo/domReady!'
+    ], function(dojo, dijit, coweb, DataGrid, ItemFileWriteStore, BusyDialog, CoopItemFileWriteStore, CoopGrid) {
 
-       // have to wrap class decl in ready when using dojo xd loader
-       dojo.ready(function() {
-           // parse declarative widgets
-           dojo.parser.parse();
+        var app = {
+            init: function(){
+                // parse declarative widgets
+                dojo.parser.parse();
 
-           // configure the grid datastore, starting it empty
-           var emptyData = {identifier : 'id', label : 'name', items: []};
-           var dataStore = new dojo.data.ItemFileWriteStore({data : emptyData});
-           var grid = dijit.byId('grid');
-           grid.setStore(dataStore);
-    
-           // instantiate our cooperative datastore extension, giving it a 
-           // reference to the dojo.data.ItemFileWriteStore object
-           var args = {dataStore : dataStore, id : 'colist_store'};
-           var coopDataStore = new CoopItemFileWriteStore(args);
-    
-           // instantiate our cooperative grid extension, giving it a reference
-           // to the dojox.grid.DataGrid widget
-           args = {grid : grid, id : 'colist_grid'};
-           var coopGrid = new CoopGrid(args);
-        
-           /**
-            * Adds a new row with default values to the local grid.
-            */
-           var onAddRow = function() {
-               // make pseudo-unique ids
-               var date = new Date();
-               var id = String(Math.random()).substr(2) + String(date.getTime()); 
-               dataStore.newItem({
-                   id: id,
-                   name: 'New item',
-                   amount: 0
-               });
-           };
+                // configure the grid datastore, starting it empty
+                var emptyData = {identifier : 'id', label : 'name', items: []};
+                this.dataStore = new ItemFileWriteStore({data : emptyData});
+                this.grid = dijit.byId('grid');
+                this.grid.setStore(this.dataStore);
 
-           /**
-            * Removes all selected rows from the grid.
-            */
-           var onRemoveRow = function() {
-               grid.removeSelectedRows();
-           };
+                // listen to and enable add/delete buttons
+                var addButton = dijit.byId('addRowButton');
+                var removeButton = dijit.byId('removeRowButton');
+                dojo.connect(addButton, 'onClick', this, 'onAddRow');
+                dojo.connect(removeButton, 'onClick', this, 'onRemoveRow');
 
-           // listen to and enable add/delete buttons
-           var addButton = dijit.byId('addRowButton');
-           var removeButton = dijit.byId('removeRowButton');
-           dojo.connect(addButton, 'onClick', onAddRow);
-           dojo.connect(removeButton, 'onClick', onRemoveRow);
-        
-           // get a session instance
-           var sess = coweb.initSession();
-           // use a dojo busy dialog to show progress joining/updating
-           cowebx.createBusy(sess);
-           // do the prep
-           sess.prepare();
-       });
-   });
+                var args = {dataStore : this.dataStore, id : 'colist_store'};
+                var coopDataStore = new CoopItemFileWriteStore(args);
+
+                args = {grid : this.grid, id : 'colist_grid'};
+                var coopGrid = new CoopGrid(args);
+
+                // get a session instance.
+                var sess = coweb.initSession();
+                BusyDialog.createBusy(sess);
+                // log status notifications to ensure we're working.
+                sess.onStatusChange = function(status) {
+                    console.debug(status);
+                };
+                // do the prep.
+                sess.prepare();
+
+            },
+
+            /**
+             * Adds a new row with default values to the local grid.
+             */
+            onAddRow: function() {
+                // make pseudo-unique ids
+                var date = new Date();
+                var id = String(Math.random()).substr(2) + String(date.getTime());
+                this.dataStore.newItem({
+                    id: id,
+                    name: 'New item',
+                    amount: 0
+                });
+            },
+
+            /**
+             * Removes all selected rows from the grid.
+             */
+            onRemoveRow: function() {
+                this.grid.removeSelectedRows();
+            },
+        };
+
+        // have to wrap class decl in ready when using dojo xd loader
+        dojo.ready(function() {
+            app.init();
+        });
+    });
+
 
 Checkpoint: Checking grid highlights
 ####################################
