@@ -14,8 +14,9 @@ define([
     'coweb/session/bayeux/ListenerBridge',
     'coweb/util/Promise',
     'coweb/util/xhr',
-	'org/requirejs/i18n!../../nls/messages'
-], function(cometd, CowebExtension, ListenerBridge, Promise, xhr, messages) {
+	'org/requirejs/i18n!../../nls/messages',
+	'coweb/topics'
+], function(cometd, CowebExtension, ListenerBridge, Promise, xhr, messages, topics) {
     /**
      * @constructor
      * @param {Boolean} args.debug True if in debug more, false if not
@@ -51,6 +52,8 @@ define([
         // info received from server
         this.prepResponse = null;
 
+		this._navigateListeners = [];
+
         // build listener bridge instance
         this._bridge = new ListenerBridge({
             debug: this._debug,
@@ -61,6 +64,31 @@ define([
     // save typing and lookup
     var proto = SessionBridge.prototype;
 
+	proto.addNavigateListener = function(listener) {
+		
+		for(var i=0; i<this._navigateListeners; i++) {
+			if(this._navigateListeners[i] === listener) {
+				return;
+			}
+		}
+			
+	    this._navigateListeners.push(listener);
+	};
+	
+	proto.fireNavigationEvent = function(obj) {
+		for(var i=0; i<this._navigateListeners.length; i++) {
+			this._navigateListeners[i].call(obj);
+		}
+	};
+	
+	proto.removeNavigateListener = function(listener) {
+		for(var i=0; i<this._navigateListeners; i++) {
+			if(this._navigateListeners[i] === listener) {
+				this._navigateListeners.splice(i, 1);
+				break;
+			}
+		}
+	};
     /**
      * Destroys the instance. Voids all promises without resolution. Attempts
      * a disconnect from the server if not idle.
@@ -186,6 +214,15 @@ define([
         return this._joinPromise;
     };
 
+	proto.navigate = function(url) {
+		cometd.publish(this._bridge.adminChannel, {
+			value: {
+				url: url
+			},
+			topic: topics.ADMIN
+		});
+	};
+	
     /**
      * Called on /meta/unsuccessful notification from the cometd client for
      * any error. Forces a disconnect to prevent attempts to reconnect with

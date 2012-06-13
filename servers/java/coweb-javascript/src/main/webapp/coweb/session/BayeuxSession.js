@@ -31,8 +31,18 @@ define([
         this._loginUrl = null;
         this._logoutUrl = null;
         this._cacheState = false;
+
+		this._navigateListeners = [];
     };
     var proto = BayeuxSession.prototype;
+
+	proto.addNavigateListener = function(listener) {
+		this._bridge.addNavigateListener(listener);
+	};
+	
+	proto.removeNavigateListener = function(listener) {
+		this._bridge.removeNavigateListener(listener);
+	};
 
     /**
      * Stores coweb configuration info and the ListenerInterface impl to use.
@@ -274,6 +284,10 @@ define([
         // return promise
         return this._prepParams.promise;
     };
+
+	proto.navigate = function(url) {
+		this._bridge.navigate(url);
+	};
 
 	proto._cowebkeyFromHash = function() {
 		var hash = window.location.hash;

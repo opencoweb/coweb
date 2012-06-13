@@ -35,7 +35,9 @@ define(function() {
         BUSY : p+'busy.change',
         // pausing and resuming topics
         PAUSE_TOPIC : p+'topics.pause',
-        RESUME_TOPIC : p+'topics.resume'
+        RESUME_TOPIC : p+'topics.resume',
+
+		ADMIN : p +'admin.navigate'
     };
 
 });

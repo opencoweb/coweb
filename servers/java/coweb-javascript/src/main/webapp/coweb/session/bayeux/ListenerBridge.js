@@ -11,8 +11,9 @@
 define([
     'coweb/session/bayeux/cometd',
     'coweb/util/Promise',
-    'coweb/util/lang'
-], function(cometd, Promise, lang) {
+    'coweb/util/lang',
+	'coweb/topics'
+], function(cometd, Promise, lang, topics) {
     /**
      * @constructor
      * @param {Object} args.listener ListenerInterface instance
@@ -36,6 +37,8 @@ define([
         this._updaterToken = null;
         // /session/sync/* subscription
         this._syncToken = null;
+		// /session/admin/ subscription
+		this._adminToken = null;
         // active requests for state
         this._stateReqs = {};
         // state of the join process
@@ -218,6 +221,7 @@ define([
      */
     proto.initiateUpdate = function() {
 		//the session id to the channel names.
+		this.adminChannel = '/session/'+this._bridge.prepResponse.sessionid+'/admin';
 		this.syncChannel = '/session/'+this._bridge.prepResponse.sessionid+'/sync/*';
 		this.syncAppChannel = '/session/'+this._bridge.prepResponse.sessionid+'/sync/app';
 		this.syncEngineChannel = '/session/'+this._bridge.prepResponse.sessionid+'/sync/engine';
@@ -245,6 +249,8 @@ define([
             //this._syncToken = cometd.subscribe('/service/session/sync/*', 
 			this._syncToken = cometd.subscribe(this.syncChannel, 
                 this, '_onSessionSync');
+			this._adminToken = cometd.subscribe(this.adminChannel, 
+				this, '_onSessionAdmin');
             // start the joining process
             this._joinToken = cometd.subscribe('/service/session/join/*', 
                 this, '_onServiceSessionJoin');
@@ -468,6 +474,18 @@ define([
             console.warn('bayeux.ListenerBridge: received unknown sync ' + ch);
         }
     };
+
+	proto._onSessionAdmin = function(msg) {
+		if(!msg.data.value.url) {
+			return;
+		}
+		
+		this._bridge.fireNavigationEvent(msg.data.value.url);
+		
+		setTimeout(function() {
+			window.location = msg.data.value.url;
+		}, 2000);
+	};
     
     /**
      * Called to handle a /session/roster/ message. Forwards it to the 
