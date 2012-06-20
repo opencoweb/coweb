@@ -77,7 +77,7 @@ define([
 	
 	proto.fireNavigationEvent = function(obj) {
 		for(var i=0; i<this._navigateListeners.length; i++) {
-			this._navigateListeners[i].call(obj);
+			this._navigateListeners[i](obj);
 		}
 	};
 	

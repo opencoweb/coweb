@@ -6,7 +6,7 @@
 		<sys:moduleId>
 			<sys:groupId>org.opencoweb</sys:groupId>
 			<sys:artifactId>AdminBean</sys:artifactId>
-			<sys:version>0.8.2</sys:version>
+			<sys:version>0.8.3-SNAPSHOT</sys:version>
 			<sys:type>car</sys:type>
 		</sys:moduleId>
 	</sys:environment>
