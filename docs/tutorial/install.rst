@@ -140,7 +140,7 @@ Installing the Python server
 A Python coweb server can be deployed either in a virtual environment or system-wide using distutils.
 
 Installing using pip and virtualenv (option #1)
-$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 If you want to create a virtualenv containing all the pre-requisites needed to develop and/or deploy your own coweb application, do the following:
 
