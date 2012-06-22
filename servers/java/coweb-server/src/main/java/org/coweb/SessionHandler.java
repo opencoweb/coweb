@@ -87,7 +87,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		sync = server.getChannel(this.syncEngineChannel);
 		sync.addListener(this);
 
-		this.sessionModerator = SessionModerator.newInstance(this, config);
+		this.sessionModerator = SessionModerator.newInstance(this, config, confKey);
 
 		// create the late join handler. clients will be updaters by default.
 		LateJoinHandler lh = null;
@@ -344,6 +344,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	public void endSession() {
 		log.fine("SessionHandler::endSession ***********");
 		log.info("end session");
+        System.out.println("SessionHandler::endSession key="+this.confKey);
 
 		ServerChannel sync = this.server.getChannel(this.syncAppChannel);
 		sync.removeListener(this);
@@ -377,6 +378,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		HashMap<String, Object> data = new HashMap<String, Object>();
 		data.put("context", sites);
 		
+        //System.out.printf("postEngineSync(%s): this.sessionModerator=%s\n",
+        //        this.confKey, this.sessionModerator);
 		sync.publish(this.sessionModerator.getServerSession(), data, null);
 	}
 }

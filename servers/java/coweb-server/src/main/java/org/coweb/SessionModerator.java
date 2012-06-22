@@ -1,6 +1,7 @@
 package org.coweb;
 
 import java.util.Map;
+import java.util.HashMap;
 
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.BayeuxServer;
@@ -16,7 +17,10 @@ import org.cometd.bayeux.server.ServerSession;
 public abstract class SessionModerator {
 
 	private static final String DefaultImpl = "org.coweb.DefaultSessionModerator";
-	private static SessionModerator instance = null;
+
+	/* Each cowebkey has one SessionModerator */
+	private static HashMap<String, SessionModerator> instancesMap =
+		new HashMap<String, SessionModerator>();
 
 	protected SessionHandler sessionHandler = null;
 	protected LocalSession serverSession = null;
@@ -30,9 +34,12 @@ public abstract class SessionModerator {
 	}
 
 	public static synchronized SessionModerator newInstance(
-			SessionHandler sessionHandler, Map<String, Object> config) {
+			SessionHandler sessionHandler, Map<String, Object> config, String confKey) {
 
-		if (SessionModerator.instance == null) {
+		/* Should there be one SessionModerator for each cowebkey? It looks like by
+		   using newInstance, atmost 1 SessionModerator object will *ever* be created. */
+		SessionModerator mod = SessionModerator.instancesMap.get(confKey);
+		if (null == mod) {
 			String classStr = (String) config.get("sessionModerator");
 			if (classStr == null) {
 				classStr = SessionModerator.DefaultImpl;
@@ -41,16 +48,16 @@ public abstract class SessionModerator {
 			try {
 				Class<? extends SessionModerator> c = Class.forName(classStr)
 						.asSubclass(SessionModerator.class);
-				SessionModerator mod = c.newInstance();
+				mod = c.newInstance();
 				mod.init(sessionHandler);
 
-				SessionModerator.instance = mod;
+				SessionModerator.instancesMap.put(confKey, mod);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 
-		return SessionModerator.instance;
+		return mod;
 	}
 
 	private void init(SessionHandler sessionHandler) {
