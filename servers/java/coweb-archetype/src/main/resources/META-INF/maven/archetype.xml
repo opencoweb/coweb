@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <archetype>
     <id>coweb-archetype</id>
-    <resources>
-        <resource>src/main/webapp/WEB-INF/web.xml</resource>
-        <resource>src/main/webapp/index.html</resource>
-        <resource>src/main/webapp/main.js</resource>
-    </resources>
+    <sources>
+        <source>src/main/webapp/WEB-INF/web.xml</source>
+        <source>src/main/webapp/index.html</source>
+        <source>src/main/webapp/main.js</source>
+        <source>src/main/webapp/config.js</source>
+    </sourcea>
 </archetype>
