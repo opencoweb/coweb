@@ -23,7 +23,10 @@ public abstract class SessionModerator {
 		new HashMap<String, SessionModerator>();
 
 	protected SessionHandler sessionHandler = null;
-	protected LocalSession serverSession = null;
+	/* Upon creating a LocalSession, a respective ServerSession object is created.
+	   Make sure both have the same attributes set. */
+	protected LocalSession localSession = null;
+	protected ServerSession serverSession = null;
 
 	protected SessionModerator() {
 		;
@@ -65,12 +68,19 @@ public abstract class SessionModerator {
 		BayeuxServer server = SessionManager.getInstance().getBayeux();
 
 		String sessionId = sessionHandler.getSessionId();
-		this.serverSession = server.newLocalSession(sessionId);
-		this.serverSession.setAttribute("sessionId", sessionId);
-		this.serverSession.handshake();
+		this.localSession = server.newLocalSession(sessionId);
+		this.localSession.setAttribute("sessionid", sessionId);
+		this.localSession.handshake();
+		this.serverSession = this.localSession.getServerSession();
+		/* Now duplicate the attributes in the ServerSession object. */
+		this.serverSession.setAttribute("sessionid", sessionId);
 	}
 
-	public LocalSession getServerSession() {
+	public LocalSession getLocalSession() {
+		return this.localSession;
+	}
+
+	public ServerSession getServerSession() {
 		return this.serverSession;
 	}
 

@@ -15,6 +15,7 @@ import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.Session;
 import org.cometd.bayeux.server.ServerSession;
+import org.cometd.bayeux.server.LocalSession;
 import org.cometd.bayeux.server.ServerChannel;
 import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
@@ -104,8 +105,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		// create the OT engine only if turned on in the config.
 		if (config.containsKey("operationEngine")
 				&& ((Boolean) config.get("operationEngine")).booleanValue()) {
-			Session modSession = (Session) this.sessionModerator
-					.getServerSession();
+			LocalSession modSession = this.sessionModerator.getLocalSession();
 			Integer siteId = (Integer) modSession.getAttribute("siteid");
 
 			try {
@@ -232,6 +232,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			if(operationEngine != null) {
 				log.info("sending engine sync to operation engine");
 				log.info(data.toString());
+				Object o = data.get("context");
+				System.out.printf("******* context name=%s\n%s\n",o.getClass().getName(),o);
 				this.operationEngine.engineSyncInbound(data);
 			}
 		}
@@ -380,6 +382,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		
         //System.out.printf("postEngineSync(%s): this.sessionModerator=%s\n",
         //        this.confKey, this.sessionModerator);
-		sync.publish(this.sessionModerator.getServerSession(), data, null);
+		// TODO ServerSession or LocalSession???
+		sync.publish(this.sessionModerator.getLocalSession(), data, null);
 	}
 }

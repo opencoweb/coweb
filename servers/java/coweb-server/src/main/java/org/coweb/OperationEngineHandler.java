@@ -185,13 +185,20 @@ public class OperationEngineHandler {
 	
 	private int[] getSites(Map<String, Object> data) {
 		int[] sites = null;
-		Object[] objArr = (Object[])data.get("context");
+		/* data.get("context") is an int[], not Integer[]. */
+		/*Object[] objArr = (Object[])data.get("context");
 		if(objArr != null) {
 			sites = new int[objArr.length];
 			for(int i=0; i<objArr.length; i++)
 				 sites[i] = ((Number)objArr[i]).intValue();
 		}
 		
+		return sites;*/
+		int[] arr = (int[])data.get("context");
+		if (null != arr) {
+			sites = new int[arr.length];
+			System.arraycopy(arr, 0, sites, 0, sites.length);
+		}
 		return sites;
 	}
 	

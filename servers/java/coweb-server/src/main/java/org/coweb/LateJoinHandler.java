@@ -15,6 +15,7 @@ import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerChannel;
 import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ServerSession;
+import org.cometd.bayeux.server.LocalSession;
 import org.cometd.bayeux.Session;
 import org.eclipse.jetty.util.ajax.JSON;
 
@@ -78,15 +79,17 @@ public class LateJoinHandler {
 			e.printStackTrace();
 		}
 		
-		// get the moderator
+		// get the moderator.
 		this.sessionModerator = sessionHandler.getSessionModerator();
-		Session client = (Session) this.sessionModerator.getServerSession();
+		LocalSession client = this.sessionModerator.getLocalSession();
+		ServerSession clientServerSession = this.sessionModerator.getServerSession();
 
 		// make sure the moderator has joined the conference and has a site
 		// id before anyone joins.  User slot 0 for moderator.
 		this.siteids.set(0, client.getId());
 		client.setAttribute("siteid", new Integer(0));
-		this.clientids.put(client.getId(), client);
+		clientServerSession.setAttribute("siteid", new Integer(0));
+		this.clientids.put(client.getId(), (Session)client);
 
 		//this.addUpdater(client, false);
 	}
@@ -320,8 +323,8 @@ public class LateJoinHandler {
 			this.siteids.add(index, client.getId());
 		} else
 			this.siteids.set(index, client.getId());
-
-		client.setAttribute("siteid", new Integer(index));
+ 
+		client.setAttribute("siteid", new Integer(index)); // TODO
 		this.clientids.put(client.getId(), client);
 
 		return index;
