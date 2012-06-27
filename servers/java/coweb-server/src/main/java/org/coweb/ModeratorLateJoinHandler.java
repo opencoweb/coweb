@@ -32,21 +32,29 @@ public class ModeratorLateJoinHandler extends LateJoinHandler {
 		Map<Integer, String> roster = this.getRosterList(client);
 
 		// Construct message: 1) app data, 2) engine state, 3) pause state.
-		Object[] appData = this.sessionModerator.getLateJoinState();
-		// Can we do this better? not have to copy the array...TODO
-		Object[] data = new Object[appData.length + 2];
-		System.arraycopy(appData, 0, data, 0, appData.length);
+		Map<String, Object> collabs = this.sessionModerator.getLateJoinState();
+		Object[] data = new Object[collabs.size() + 2];
 
+		// 1) app data.
+		int cnt = 0;
+		for (Map.Entry<String, Object> collab: collabs.entrySet()) {
+			HashMap<String, Object> hm = new HashMap<String, Object>();
+			hm.put("topic", "coweb.state.set." + collab.getKey());
+			hm.put("value", collab.getValue());
+			data[cnt++] = hm;
+		}
+
+		// 2) engine state.
 		HashMap<String, Object> engState = new HashMap<String, Object>();
 		engState.put("topic", "coweb.engine.state");
 		engState.put("value", this.sessionHandler.getEngineState());
+		data[cnt++] = engState;
 
+		// 3) pauses state.
 		HashMap<String, Object> pauseState = new HashMap<String, Object>(); // TODO pause.state??
 		pauseState.put("topic", "coweb.pause.state");
 		pauseState.put("value", new Object[0]);
-
-		data[data.length - 2] = engState;
-		data[data.length - 1] = pauseState;
+		data[cnt++] = pauseState;
 
 		if (this.updaters.isEmpty())
 			this.addUpdater(client, false);

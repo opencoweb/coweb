@@ -126,13 +126,16 @@ public abstract class SessionModerator {
 
 	/**
 	  *
-	  * Should return only the application state required for a client to begin
-	  * working on the collaborative application. Sent topics should all be
-	  * `coweb.state.set.*`.
+	  * Return a mapping of collab element IDs to application state. For example,
+	  * for a conference session with two collaborative elements ("foo" and "bar"),
+	  * this method will return a map with the pairs ("foo", fooStateObj) and
+	  * ("bar", barStateObj).
 	  *
-	  * @return application join state
+	  * null should not be returned.
+	  *
+	  * @return collab application state map
 	  */
-	public abstract Object[] getLateJoinState();
+	public abstract Map<String, Object> getLateJoinState();
 
 	public abstract boolean canClientJoinSession(ServerSession client);
 

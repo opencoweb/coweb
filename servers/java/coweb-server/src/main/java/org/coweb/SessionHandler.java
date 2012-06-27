@@ -87,10 +87,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		sync = server.getChannel(this.syncEngineChannel);
 		sync.addListener(this);
 
-		boolean canModeratorUpdate = true;
 		this.sessionModerator = SessionModerator.newInstance(this, (String)config.get("sessionModerator"), confKey);
 		if (null == this.sessionModerator) {
-			canModeratorUpdate = false;
+			config.put("moderatorIsUpdater", false);
 			/* Perhaps config.get("sessionModerator") had an exception or didn't exist,
 			   so either we try to create default implementation of moderator, or throw an exception. */
 			log.severe("SessionModerator.newInstance(" + config.get("sessionModerator") +
@@ -103,9 +102,12 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		}
 
 		// create the late join handler. clients will be updaters by default.
+		boolean mustUseEngine = false;
 		LateJoinHandler lh = null;
-		if (canModeratorUpdate && config.containsKey("moderatorIsUpdater") &&
+		if (config.containsKey("moderatorIsUpdater") &&
 				((Boolean) config.get("moderatorIsUpdater")).booleanValue()) {
+			// If moderator is updater, the OperationEngine *must* be used!
+			mustUseEngine = true;
 			lh = new ModeratorLateJoinHandler(this, config);
 		} else {
 			log.info("creating LateJoinHandler");
@@ -114,9 +116,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 		this.lateJoinHandler = lh;
 
-		// create the OT engine only if turned on in the config.
-		if (config.containsKey("operationEngine")
-				&& ((Boolean) config.get("operationEngine")).booleanValue()) {
+		// create the OT engine only if turned on in the config, or moderatorIsUpdater.
+		boolean useEngine = config.containsKey("operationEngine") && 
+			((Boolean) config.get("operationEngine")).booleanValue();
+		if (!useEngine && mustUseEngine) {
+			log.warning("Must use OperationEngine because moderatorIsUpdater==true, even though operationEngine is not set.");
+			useEngine = true;
+		}
+		if (useEngine) {
 			LocalSession modSession = this.sessionModerator.getLocalSession();
 			Integer siteId = (Integer) modSession.getAttribute("siteid");
 

@@ -4,6 +4,7 @@
 package org.coweb;
 
 import java.util.Map;
+import java.util.HashMap;
 
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerSession;
@@ -43,8 +44,8 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * @see org.coweb.SessionModerator#getLateJoinState()
 	 */
 	@Override
-	public Object[] getLateJoinState() {
-		return null;
+	public Map<String, Object> getLateJoinState() {
+		return new HashMap<String, Object>();
 	}
 
 	/*
