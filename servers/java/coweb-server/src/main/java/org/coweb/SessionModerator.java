@@ -83,8 +83,7 @@ public abstract class SessionModerator {
 		this.localSession.setAttribute("sessionid", sessionId);
 		this.localSession.handshake();
 		this.serverSession = this.localSession.getServerSession();
-		/* Now duplicate the attributes in the ServerSession object. */
-		this.serverSession.setAttribute("sessionid", sessionId);
+		this.setSessionAttribute("sessionid", sessionId);
 	}
 
 	public LocalSession getLocalSession() {
@@ -93,6 +92,22 @@ public abstract class SessionModerator {
 
 	public ServerSession getServerSession() {
 		return this.serverSession;
+	}
+
+	/**
+	  *
+	  * A SessionModerator is special - it has an associated ServerSession like all
+	  * "clients," but also has a LocalSession. Attributes will typically be synchronized.
+	  * so use this method to set an attribute in both Session objects.
+	  *
+	  * For any attributes that SHOULD not be shared, use getLocalSession or getServerSession
+	  * and set the attribute on that object only.
+	  *
+	  * @see org.cometd.bayeux.Session#setAttribute
+	  */
+	public void setSessionAttribute(String key, Object val) {
+		this.localSession.setAttribute(key, val);
+		this.serverSession.setAttribute(key, val);
 	}
 
 	/**
@@ -109,6 +124,14 @@ public abstract class SessionModerator {
 	 */
 	public abstract boolean onSync(Map<String, Object> data);
 
+	/**
+	  *
+	  * Should return only the application state required for a client to begin
+	  * working on the collaborative application. Sent topics should all be
+	  * `coweb.state.set.*`.
+	  *
+	  * @return application join state
+	  */
 	public abstract Object[] getLateJoinState();
 
 	public abstract boolean canClientJoinSession(ServerSession client);

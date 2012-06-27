@@ -83,15 +83,13 @@ public class LateJoinHandler {
 		
 		// get the moderator
 		this.sessionModerator = sessionHandler.getSessionModerator();
-		LocalSession client = this.sessionModerator.getLocalSession();
-		ServerSession clientServerSession = this.sessionModerator.getServerSession();
+		ServerSession client = this.sessionModerator.getServerSession();
 
 		// make sure the moderator has joined the conference and has a site
 		// id before anyone joins.  User slot 0 for moderator.
 		this.siteids.set(0, client.getId());
-		client.setAttribute("siteid", new Integer(0));
-		clientServerSession.setAttribute("siteid", new Integer(0));
-		this.clientids.put(client.getId(), clientServerSession);
+		this.sessionModerator.setSessionAttribute("siteid", new Integer(0));
+		this.clientids.put(client.getId(), client);
 
 		//this.addUpdater(client, false);
 	}
@@ -150,8 +148,8 @@ public class LateJoinHandler {
 			sendState = true;
 		}
 
-		client.batch(new BatchUpdateMessage(client, data, roster, siteId,
-				sendState));
+		client.batch(new BatchUpdateMessage(client, siteId, roster, data,
+					sendState));
 	}
 
 	public void onUpdaterSendState(ServerSession client, Message message) {
@@ -413,7 +411,7 @@ public class LateJoinHandler {
 		(this.updaters.get(updaterId)).add(token);
 		this.updatees.put(token, updatee);
 
-		((ServerSession)updater).deliver(from, "/service/session/updater", token, null);
+		updater.deliver(from, "/service/session/updater", token, null);
 	}
 
 	protected void removeUpdater(ServerSession client) {
@@ -468,17 +466,32 @@ public class LateJoinHandler {
 	class BatchUpdateMessage implements Runnable {
 
 		private ServerSession client = null;
-		private Object[] data = null;
+		private Object data = null;
 		private Map<Integer, String> roster = null;
 		private int siteId = -1;
 		private boolean sendState = false;
 
-		BatchUpdateMessage(ServerSession client, Object[] data,
-				Map<Integer, String> roster, int siteId, boolean sendState) {
+		/**
+		  *
+		  * Sends all the important information to a client upon joining.
+		  * The data parameter should be an Object[] with three elements:
+		  *   <ul>
+		  *     <li> [{topic: coweb.state.set.collab_name, value: application state}, ...] (this will be an array)
+		  *     <li> {topic: coweb.engine.state, value: TODO}
+		  *     <li> {topic: coweb.pause.state, value: TODO}
+		  *   </ul>
+		  *
+		  * @param siteId site id
+		  * @param roster current session roster
+		  * @param data session state
+		  * @param sendState whether or not to send session state
+		  */
+		BatchUpdateMessage(ServerSession client, int siteId, Map<Integer, String> roster, 
+				Object data, boolean sendState) {
 			this.client = client;
-			this.data = data;
-			this.roster = roster;
 			this.siteId = siteId;
+			this.roster = roster;
+			this.data = data;
 			this.sendState = sendState;
 		}
 

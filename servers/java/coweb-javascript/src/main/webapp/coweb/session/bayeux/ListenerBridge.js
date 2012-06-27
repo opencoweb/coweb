@@ -111,6 +111,10 @@ define([
      * Publishes a local snapshot of the shared state to the 
      * /service/session/updater Bayeux channel.
      *
+	 * State will accumulate in an internal array until postStateResponse
+	 * is called with a topic that evaluates to false, in which case the
+	 * state array is actually published.
+     *
      * @param {String} topic String topic identifying the portion of the state
      * @param {Object} value JSON-encodable object
      * @param {String} recipient Opaque ID created by the server identifying

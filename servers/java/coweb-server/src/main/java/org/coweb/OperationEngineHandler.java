@@ -194,6 +194,14 @@ public class OperationEngineHandler {
 		
 		return sites;
 	}
+
+	/**
+	  *
+	  * @ return 4 element Object array of engine state.
+	  */
+	public Object[] getEngineState() {
+		return this.engine.getState();
+	}
 	
 	/**
      * Called on a timer to purge the local op engine history buffer if the

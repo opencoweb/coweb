@@ -395,4 +395,15 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		// We publish *from* the LocalSession.
 		sync.publish(this.sessionModerator.getLocalSession(), data, null);
 	}
+
+	/**
+	  *
+	  * Retreives the four element Object engine state array and returns it.
+	  *
+	  * return engine state array
+	  */
+	public Object[] getEngineState() {
+		return this.operationEngine.getEngineState();
+	}
+
 }
