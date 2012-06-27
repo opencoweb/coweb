@@ -16,6 +16,9 @@ import org.cometd.bayeux.server.ServerSession;
  */
 public abstract class SessionModerator {
 
+	/**
+	  * The default SessionModerator implementation used by {@link org.coweb.SessionModerator#newInstance}.
+	  */
 	private static final String DefaultImpl = "org.coweb.DefaultSessionModerator";
 
 	/* Each cowebkey has one SessionModerator */
@@ -36,14 +39,23 @@ public abstract class SessionModerator {
 
 	}
 
+	/** 
+	  * Returns the SessionModerator instance for a given confKey.
+	  * The session moderator is either 1) given by the parameter classStr or
+	  * 2) SessionModerator.DefaultImpl if classStr is null.
+	  *
+	  * @param sessionHandler used to initialize the newly created SessionModerator, if one was created
+	  * @param classStr SessionModerator implementation to create
+	  * @param confKey cowebkey
+	  * @return	null if the SessionModerator class fails to be constructed or initialized.
+	  */
 	public static synchronized SessionModerator newInstance(
-			SessionHandler sessionHandler, Map<String, Object> config, String confKey) {
+			SessionHandler sessionHandler, String classStr, String confKey) {
 
 		/* Should there be one SessionModerator for each cowebkey? It looks like by
 		   using newInstance, atmost 1 SessionModerator object will *ever* be created. */
 		SessionModerator mod = SessionModerator.instancesMap.get(confKey);
 		if (null == mod) {
-			String classStr = (String) config.get("sessionModerator");
 			if (classStr == null) {
 				classStr = SessionModerator.DefaultImpl;
 			}
@@ -53,7 +65,6 @@ public abstract class SessionModerator {
 						.asSubclass(SessionModerator.class);
 				mod = c.newInstance();
 				mod.init(sessionHandler);
-
 				SessionModerator.instancesMap.put(confKey, mod);
 			} catch (Exception e) {
 				e.printStackTrace();

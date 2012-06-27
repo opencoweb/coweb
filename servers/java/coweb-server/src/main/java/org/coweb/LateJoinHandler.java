@@ -16,7 +16,6 @@ import org.cometd.bayeux.server.ServerChannel;
 import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.bayeux.server.LocalSession;
-import org.cometd.bayeux.Session;
 import org.eclipse.jetty.util.ajax.JSON;
 
 //import org.coweb.LateJoinHandler.BatchUpdateMessage;
@@ -33,22 +32,25 @@ public class LateJoinHandler {
 	private static final Logger log = Logger.getLogger(LateJoinHandler.class
 			.getName());
 
-	private Map<String, Session> updatees = new HashMap<String, Session>();
+	private Map<String, ServerSession> updatees = new HashMap<String, ServerSession>();
 
 	protected Map<String, List<String>> updaters = new HashMap<String, List<String>>();
 
 	/**
 	 * List of available siteids. An index with a null value is an available
-	 * siteid, otherwise the slot is filled with ServerSession's clientid.
+	 * siteid, otherwise the slot is filled with ServerSession's clientid (i.e.
+	 * {@link org.cometd.bayeux.Session#getId}).
 	 */
 	protected ArrayList<String> siteids = new ArrayList<String>(5);
 
 	private Object[] lastState = null;
 
 	/**
-	 * Map of bayeux client id to ServerSession
+	 * Map of bayeux client id to ServerSession. "clientId" is defined as the return value
+	 * of {@link org.cometd.bayeux.Session#getId}. For LocalSession/ServerSession pairs, the
+	 * values are identical (e.g. for the SessionModerator Session pair).
 	 */
-	private Map<String, Session> clientids = new HashMap<String, Session>();
+	private Map<String, ServerSession> clientids = new HashMap<String, ServerSession>();
 
 	public LateJoinHandler(SessionHandler sessionHandler,
 			Map<String, Object> config) {
@@ -79,7 +81,7 @@ public class LateJoinHandler {
 			e.printStackTrace();
 		}
 		
-		// get the moderator.
+		// get the moderator
 		this.sessionModerator = sessionHandler.getSessionModerator();
 		LocalSession client = this.sessionModerator.getLocalSession();
 		ServerSession clientServerSession = this.sessionModerator.getServerSession();
@@ -89,12 +91,12 @@ public class LateJoinHandler {
 		this.siteids.set(0, client.getId());
 		client.setAttribute("siteid", new Integer(0));
 		clientServerSession.setAttribute("siteid", new Integer(0));
-		this.clientids.put(client.getId(), (Session)client);
+		this.clientids.put(client.getId(), clientServerSession);
 
 		//this.addUpdater(client, false);
 	}
 
-	public Session getServerSessionFromSiteid(String siteStr) {
+	public ServerSession getServerSessionFromSiteid(String siteStr) {
 		try {
 			int siteid = Integer.valueOf(siteStr);
 			String clientId = this.siteids.get(siteid);
@@ -174,7 +176,7 @@ public class LateJoinHandler {
 			return;
 		}
 
-		ServerSession updatee = (ServerSession)this.updatees.get(token);
+		ServerSession updatee = this.updatees.get(token);
 		if (updatee == null)
 			return;
 
@@ -232,7 +234,7 @@ public class LateJoinHandler {
 		return true;
 	}
 
-	protected void addUpdater(Session serverSession, boolean notify) {
+	protected void addUpdater(ServerSession serverSession, boolean notify) {
 		String clientId = serverSession.getId();
 
 		// check if this client is already an updater and ignore unless this is
@@ -250,7 +252,7 @@ public class LateJoinHandler {
 		}
 	}
 
-	private void sendRosterAvailable(Session client) {
+	private void sendRosterAvailable(ServerSession client) {
 		log.info("sending roster available");
 		ServerSession from = this.sessionManager.getServerSession();
 
@@ -314,7 +316,7 @@ public class LateJoinHandler {
 		return -1;
 	}
 
-	protected int addSiteForClient(Session client) {
+	protected int addSiteForClient(ServerSession client) {
 
 		int index = this.siteids.indexOf(null);
 		if (index == -1) {
@@ -323,8 +325,8 @@ public class LateJoinHandler {
 			this.siteids.add(index, client.getId());
 		} else
 			this.siteids.set(index, client.getId());
- 
-		client.setAttribute("siteid", new Integer(index)); // TODO
+
+		client.setAttribute("siteid", new Integer(index));
 		this.clientids.put(client.getId(), client);
 
 		return index;
@@ -356,7 +358,7 @@ public class LateJoinHandler {
 		Map<Integer, String> roster = new HashMap<Integer, String>();
 
 		for (String clientId : this.updaters.keySet()) {
-			Session c = this.clientids.get(clientId);
+			ServerSession c = this.clientids.get(clientId);
 			Integer siteId = (Integer) c.getAttribute("siteid");
 			roster.put(siteId, (String) c.getAttribute("username"));
 		}
@@ -364,7 +366,7 @@ public class LateJoinHandler {
 		return roster;
 	}
 
-	private void assignUpdater(Session updatee, String updaterType) {
+	private void assignUpdater(ServerSession updatee, String updaterType) {
 		log.info("assignUpdater *****************");
 		ServerSession from = this.sessionManager.getServerSession();
 		if (this.updaters.isEmpty()) {
@@ -377,7 +379,7 @@ public class LateJoinHandler {
 		}
 
 		String updaterId = null;
-		Session updater = null;
+		ServerSession updater = null;
 		if (!updaterType.equals("default")) {
 			String matchedType = updaterTypeMatcher.match(updaterType,
 					getAvailableUpdaterTypes());
@@ -422,7 +424,7 @@ public class LateJoinHandler {
 		this.updaters.remove(client.getId());
 		if (tokenList == null) {
 			for (String token : this.updatees.keySet()) {
-				Session updatee = this.updatees.get(token);
+				ServerSession updatee = this.updatees.get(token);
 				if (updatee.getId().equals(client.getId())) {
 					this.updatees.remove(token);
 				}
@@ -433,7 +435,7 @@ public class LateJoinHandler {
 			if (!tokenList.isEmpty()) {
 				log.fine("this updater was updating someone");
 				for (String token : tokenList) {
-					Session updatee = this.updatees.get(token);
+					ServerSession updatee = this.updatees.get(token);
 					if (updatee == null)
 						continue;
 
@@ -456,7 +458,7 @@ public class LateJoinHandler {
 	private List<String> getAvailableUpdaterTypes() {
 		List<String> availableUpdaterTypes = new ArrayList<String>();
 		for (String id : this.updaters.keySet()) {
-			Session updater = this.clientids.get(id);
+			ServerSession updater = this.clientids.get(id);
 			availableUpdaterTypes.add((String) updater
 					.getAttribute("updaterType"));
 		}

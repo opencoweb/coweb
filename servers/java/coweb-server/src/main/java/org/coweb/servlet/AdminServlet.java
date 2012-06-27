@@ -30,6 +30,7 @@ import org.coweb.SessionHandler;
 import org.coweb.SessionManager;
 import org.coweb.CowebSecurityPolicy;
 import org.coweb.CowebExtension;
+import org.coweb.CowebException;
 
 import org.eclipse.jetty.util.ajax.JSON;
 
@@ -239,9 +240,11 @@ public class AdminServlet extends HttpServlet {
 		// TODO need to call the security policy to see if this user is
 		// allowed to send prep requests and allow any further processing
 		// as an extension point.
-		if (!securityPolicy.canAdminRequest(username, confKey, true))
+		if (!securityPolicy.canAdminRequest(username, confKey, true)) {
 			resp.sendError(HttpServletResponse.SC_FORBIDDEN, "user " + username
 					+ "not allowed");
+			return;
+		}
 
 		// grab the session name. optional param.
 		String sessionName = null;
@@ -252,9 +255,16 @@ public class AdminServlet extends HttpServlet {
 		// see if we have a session for this key already. If not create one.
 		SessionHandler handler = this.sessionManager.getSessionHandlerByConfkey(confKey, cacheState);
 		if (handler == null) {
-			handler = this.sessionManager.createSession(confKey, cacheState);
-			handler.setSessionName(sessionName);
-			handler.setRequestUrl(requestUrl);
+			try {
+				handler = this.sessionManager.createSession(confKey, cacheState);
+				handler.setSessionName(sessionName);
+				handler.setRequestUrl(requestUrl);
+			} catch (CowebException ce) {
+				ce.printStackTrace();
+				log.severe("Exception creating SessionHandler: " + ce.getMessage());
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to create session.");
+				return;
+			}
 		}
 
 		String sessionId = handler.getSessionId();

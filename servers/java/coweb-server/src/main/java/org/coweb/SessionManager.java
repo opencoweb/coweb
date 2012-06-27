@@ -27,6 +27,7 @@ public class SessionManager extends AbstractService implements
 			.getName());
 	private static SessionManager singleton = null;
 
+	/* Map from <confKey>:<cacheState> to SessionHandler. */
 	private Map<String, SessionHandler> sessions = Collections
 			.synchronizedMap(new HashMap<String, SessionHandler>());
 	private Map<String, Object> config = null;
@@ -218,7 +219,7 @@ public class SessionManager extends AbstractService implements
 			return;
 		}
 
-		Session client = handler.getServerSessionFromSiteid(siteId);
+		ServerSession client = handler.getServerSessionFromSiteid(siteId);
 		if (client != null) {
 			log.info("ServerSession found about to call disconnect");
 			client.disconnect();

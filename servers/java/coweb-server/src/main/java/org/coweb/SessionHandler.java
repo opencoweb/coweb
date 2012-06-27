@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.bayeux.Message;
-import org.cometd.bayeux.Session;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.bayeux.server.LocalSession;
 import org.cometd.bayeux.server.ServerChannel;
@@ -88,12 +87,25 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		sync = server.getChannel(this.syncEngineChannel);
 		sync.addListener(this);
 
-		this.sessionModerator = SessionModerator.newInstance(this, config, confKey);
+		boolean canModeratorUpdate = true;
+		this.sessionModerator = SessionModerator.newInstance(this, (String)config.get("sessionModerator"), confKey);
+		if (null == this.sessionModerator) {
+			canModeratorUpdate = false;
+			/* Perhaps config.get("sessionModerator") had an exception or didn't exist,
+			   so either we try to create default implementation of moderator, or throw an exception. */
+			log.severe("SessionModerator.newInstance(" + config.get("sessionModerator") +
+					") failed, reverting to trying to create default implementation.");
+			this.sessionModerator = SessionModerator.newInstance(this, null, confKey);
+			if (null == this.sessionModerator) {
+				throw new CowebException("Create SessionModerator", "");
+			}
+			log.severe("SessionModerator created default implementation, but moderator can no longer be updater.");
+		}
 
 		// create the late join handler. clients will be updaters by default.
 		LateJoinHandler lh = null;
-		if (config.containsKey("moderatorIsUpdater")
-				&& ((Boolean) config.get("moderatorIsUpdater")).booleanValue()) {
+		if (canModeratorUpdate && config.containsKey("moderatorIsUpdater") &&
+				((Boolean) config.get("moderatorIsUpdater")).booleanValue()) {
 			lh = new ModeratorLateJoinHandler(this, config);
 		} else {
 			log.info("creating LateJoinHandler");
@@ -179,7 +191,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		return sb.toString();
 	}
 
-	public Session getServerSessionFromSiteid(String siteStr) {
+	public ServerSession getServerSessionFromSiteid(String siteStr) {
 		return this.lateJoinHandler.getServerSessionFromSiteid(siteStr);
 	}
 
@@ -232,8 +244,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			if(operationEngine != null) {
 				log.info("sending engine sync to operation engine");
 				log.info(data.toString());
-				Object o = data.get("context");
-				System.out.printf("******* context name=%s\n%s\n",o.getClass().getName(),o);
 				this.operationEngine.engineSyncInbound(data);
 			}
 		}
@@ -373,7 +383,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
      *
      * @param int[] context int array context vector for this site
      */
-	public void postEngineSync(int[] sites) {
+	public void postEngineSync(Integer[] sites) {
 		log.info("sites = " + Arrays.toString(sites));
 		ServerChannel sync = this.server.getChannel(this.syncEngineChannel);
 		
@@ -382,7 +392,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		
         //System.out.printf("postEngineSync(%s): this.sessionModerator=%s\n",
         //        this.confKey, this.sessionModerator);
-		// TODO ServerSession or LocalSession???
+		// We publish *from* the LocalSession.
 		sync.publish(this.sessionModerator.getLocalSession(), data, null);
 	}
 }

@@ -185,20 +185,13 @@ public class OperationEngineHandler {
 	
 	private int[] getSites(Map<String, Object> data) {
 		int[] sites = null;
-		/* data.get("context") is an int[], not Integer[]. */
-		/*Object[] objArr = (Object[])data.get("context");
+		Object[] objArr = (Object[])data.get("context");
 		if(objArr != null) {
 			sites = new int[objArr.length];
 			for(int i=0; i<objArr.length; i++)
 				 sites[i] = ((Number)objArr[i]).intValue();
 		}
 		
-		return sites;*/
-		int[] arr = (int[])data.get("context");
-		if (null != arr) {
-			sites = new int[arr.length];
-			System.arraycopy(arr, 0, sites, 0, sites.length);
-		}
 		return sites;
 	}
 	
@@ -238,7 +231,14 @@ public class OperationEngineHandler {
 			
 			try {
 				ContextVector cv = engine.copyContextVector();
-				sessionHandler.postEngineSync(cv.getSites());
+				/* Must convert to Integer[] from int[], because the receiver of this
+				   message expects Integer[]. */
+				int cnt = 0;
+				int[] sites = cv.getSites();
+				Integer[] arr = new Integer[sites.length];
+				for (int i: sites)
+					arr[cnt++] = i;
+				sessionHandler.postEngineSync(arr);
 			} catch (OperationEngineException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
