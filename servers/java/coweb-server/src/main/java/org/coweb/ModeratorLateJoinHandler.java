@@ -31,11 +31,11 @@ public class ModeratorLateJoinHandler extends LateJoinHandler {
 		log.info("siteId = " + siteId);
 		Map<Integer, String> roster = this.getRosterList(client);
 
-		// Construct message: 1) app data, 2) engine state, 3) pause state.
+		// Construct message: 1) app data, 2) engine state, 3) paused sync buffer.
 		Map<String, Object> collabs = this.sessionModerator.getLateJoinState();
-		Object[] data = new Object[collabs.size() + 2];
+		Object[] data = new Object[collabs.size() + 1]; // +2 if we actually send the paused sync buffer.
 
-		// 1) app data.
+		// 1) App data.
 		int cnt = 0;
 		for (Map.Entry<String, Object> collab: collabs.entrySet()) {
 			HashMap<String, Object> hm = new HashMap<String, Object>();
@@ -44,17 +44,18 @@ public class ModeratorLateJoinHandler extends LateJoinHandler {
 			data[cnt++] = hm;
 		}
 
-		// 2) engine state.
+		// 2) Engine state.
 		HashMap<String, Object> engState = new HashMap<String, Object>();
 		engState.put("topic", "coweb.engine.state");
 		engState.put("value", this.sessionHandler.getEngineState());
 		data[cnt++] = engState;
 
-		// 3) pauses state.
-		HashMap<String, Object> pauseState = new HashMap<String, Object>(); // TODO pause.state??
+		/* 3) Paused sync buffer. Since the moderator never pauses itself from processing sync events, we can safely
+		  ignore sending this (we would be sending an empty array otherwise). */
+		/* HashMap<String, Object> pauseState = new HashMap<String, Object>();
 		pauseState.put("topic", "coweb.pause.state");
 		pauseState.put("value", new Object[0]);
-		data[cnt++] = pauseState;
+		data[cnt++] = pauseState; */
 
 		if (this.updaters.isEmpty())
 			this.addUpdater(client, false);

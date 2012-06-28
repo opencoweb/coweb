@@ -87,14 +87,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		sync = server.getChannel(this.syncEngineChannel);
 		sync.addListener(this);
 
-		this.sessionModerator = SessionModerator.newInstance(this, (String)config.get("sessionModerator"), confKey);
+		this.sessionModerator = SessionModerator.getInstance(this, (String)config.get("sessionModerator"), confKey);
 		if (null == this.sessionModerator) {
 			config.put("moderatorIsUpdater", false);
 			/* Perhaps config.get("sessionModerator") had an exception or didn't exist,
 			   so either we try to create default implementation of moderator, or throw an exception. */
 			log.severe("SessionModerator.newInstance(" + config.get("sessionModerator") +
 					") failed, reverting to trying to create default implementation.");
-			this.sessionModerator = SessionModerator.newInstance(this, null, confKey);
+			this.sessionModerator = SessionModerator.getInstance(this, null, confKey);
 			if (null == this.sessionModerator) {
 				throw new CowebException("Create SessionModerator", "");
 			}
@@ -370,7 +370,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		sync = server.getChannel(this.syncEngineChannel);
 		sync.removeListener(this);
 
+		// The following ordering must be observed!
 		this.sessionModerator.onSessionEnd();
+		this.operationEngine.shutdown();
 		this.lateJoinHandler.onEndSession();
 		this.serviceHandler.shutdown();
 

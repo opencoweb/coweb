@@ -32,6 +32,10 @@ public class OperationEngineHandler {
 	private Timer purgeTimer = null;
 	private Timer syncTimer = null;
 
+	// Keep these around incase we need to stop the events from firing.
+	private PurgeTask purgeTask = null;
+	private SyncTask syncTask = null;
+
 	public OperationEngineHandler(SessionHandler sessionHandler, int siteId) throws OperationEngineException {
 		
 		this.sessionHandler = sessionHandler;
@@ -42,14 +46,14 @@ public class OperationEngineHandler {
 		
 		//schedule the purge thread.
 		this.purgeTimer = new Timer();
-		this.purgeTimer.scheduleAtFixedRate(new PurgeTask(), new Date(), 10000);
+		this.purgeTask = new PurgeTask();
+		this.purgeTimer.scheduleAtFixedRate(this.purgeTask, new Date(), 10000);
 		
 		//schedule the engine sync thread.
 		this.syncTimer = new Timer();
-		this.syncTimer.scheduleAtFixedRate(new SyncTask(), new Date(), 10000);
+		this.syncTask = new SyncTask();
+		this.syncTimer.scheduleAtFixedRate(this.syncTask, new Date(), 10000);
 	}
-	
-	
 
 	/**
      * Called by the session when a coweb event is received from a remote app.
@@ -62,7 +66,7 @@ public class OperationEngineHandler {
      *        String|null type Operation type
      *        Integer position Operation linear position
      *        Integer site Unique integer ID of the sending site
-     *        int[] sites Context vector as an array of integers
+     *        Integer[] sites Context vector as an array of integers (use {@link OperationEngineHandler#getSites} to convert from Integer[] to int[])
      */
 	public Map<String, Object> syncInbound(Map<String, Object> data) {
 			
@@ -196,11 +200,23 @@ public class OperationEngineHandler {
 	}
 
 	/**
-	  *
-	  * @ return 4 element Object array of engine state.
+	  * Wrapper for access to {@link org.coweb.oe.OperationEngine#getState}.
+	  * 
+	  * @return engine state
 	  */
 	public Object[] getEngineState() {
 		return this.engine.getState();
+	}
+
+	/**
+	  * Called whenever the SessionHandler that owns this OperationEngineHandler is ending. All
+	  * TimerTasks are stopped from repeating.
+	  *
+	  * Only package level access.
+	  */
+	void shutdown() {
+		this.purgeTask.cancel();
+		this.syncTask.cancel();
 	}
 	
 	/**
@@ -255,4 +271,5 @@ public class OperationEngineHandler {
 			shouldSync = false;
 		}
 	}
+
 }
