@@ -202,6 +202,12 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		return this.lateJoinHandler.getServerSessionFromSiteid(siteStr);
 	}
 
+	/**
+	  * Called whenever a client sends a message to the cometd server.
+	  *
+	  * The cometd implementation is free to have multiple threads invoke onMessage
+	  * for different incoming messages, so be aware of mutual exclusion issues.
+	  */
 	public boolean onMessage(ServerSession from, ServerChannel channel,
 			ServerMessage.Mutable message) {
 
@@ -221,6 +227,12 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		Map<String, Object> data = message.getDataAsMap();
 		data.put("siteId", siteId);
 
+		/* Some of the following code must acquire this.operationEngine's lock.
+		   OperationEngine must only be accessed by one client at a time.
+
+		   Note that the moderator's onSync method is already declared with execute
+		   with mutual exclusion.
+		 */
 		String channelName = message.getChannel();
 		if (channelName.equals(this.syncAppChannel)) {
 			// put total order on message
@@ -228,14 +240,16 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 			if (this.operationEngine != null) {
 				
-				log.info("data before operation engine");
-				log.info(data.toString());
-				Map<String, Object> syncEvent = this.operationEngine.syncInbound(data);
-				if (syncEvent != null) {
-					this.sessionModerator.onSync(syncEvent);
+				synchronized (this.operationEngine) {
+					log.info("data before operation engine");
+					log.info(data.toString());
+					Map<String, Object> syncEvent = this.operationEngine.syncInbound(data);
+					if (syncEvent != null) {
+						this.sessionModerator.onSync(syncEvent);
 
-					log.info("data after operation engine");
-					log.info(syncEvent.toString());
+						log.info("data after operation engine");
+						log.info(syncEvent.toString());
+					}
 				}
 
 			}
@@ -249,9 +263,11 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			}
 		} else if (channelName.equals(this.syncEngineChannel)) {
 			if(operationEngine != null) {
-				log.info("sending engine sync to operation engine");
-				log.info(data.toString());
-				this.operationEngine.engineSyncInbound(data);
+				synchronized (this.operationEngine) {
+					log.info("sending engine sync to operation engine");
+					log.info(data.toString());
+					this.operationEngine.engineSyncInbound(data);
+				}
 			}
 		}
 
@@ -325,6 +341,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		this.sessionModerator.onClientLeaveSession(client);
 		boolean last = this.lateJoinHandler.onClientRemove(client);
 
+		System.out.println("Puring client last="+last);
 		if (last) {
 			this.endSession();
 		}
@@ -409,7 +426,11 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	  * return engine state array
 	  */
 	public Object[] getEngineState() {
-		return this.operationEngine.getEngineState();
+		Object[] ret;
+		synchronized (this.operationEngine) {
+			ret = this.operationEngine.getEngineState();
+		}
+		return ret;
 	}
 
 }

@@ -280,7 +280,8 @@ public abstract class Operation {
         int diff = cache.size() - (siteCount-1);
         if(diff > 0) {
             // if overflow, remove oldest op(s)
-        	Operation[] arr = (Operation[])cache.toArray();
+        	Operation[] arr = new Operation[cache.size()];
+			arr = cache.toArray(arr);
         	Operation[] newArr = Arrays.copyOf(arr, diff);
         	
         	cache.removeAllElements();

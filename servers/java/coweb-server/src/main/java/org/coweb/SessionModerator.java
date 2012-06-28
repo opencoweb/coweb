@@ -13,6 +13,12 @@ import org.cometd.bayeux.server.ServerSession;
  * 
  * 1. Sync events through OT. 2. Moderator Impl. 3. Moderator handles late join.
  * #1 must be true. 4.
+ *
+ * Note that the users of this class make no guarantee about the number of threads that might operate
+ * on a SessionModerator object. Thus, implementors of SessionModerator subclasses must ensure the thread
+ * safety of the implementation. For example, the {@link SessionModerator#onSync} method likely needs to
+ * be declared synchronized.
+ *
  */
 public abstract class SessionModerator {
 
