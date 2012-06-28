@@ -9,10 +9,12 @@ var cowebConfig = {
     adminUrl : './admin'
 };
 
-require({moduleUrl : 'lib'}, ['coweb/main'], function(coweb) {
+require({moduleUrl : 'lib'},
+        ['coweb/main','dojo'],
+function(coweb, dojo) {
     // do application setup here
     
-    require.ready(function() {
+    dojo.ready(function() {
         // on page load, prepare, join, and update in a session
         var sess = coweb.initSession();
         sess.prepare();
