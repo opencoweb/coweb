@@ -389,14 +389,16 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 		// The following ordering must be observed!
 		this.sessionModerator.onSessionEnd();
-		this.operationEngine.shutdown();
+		if (null != this.operationEngine)
+			this.operationEngine.shutdown();
 		this.lateJoinHandler.onEndSession();
 		this.serviceHandler.shutdown();
 
 		// just to make sure we are not pinning anything down.
-		this.serviceHandler = null;
-		this.lateJoinHandler = null;
 		this.sessionModerator = null;
+		this.operationEngine = null;
+		this.lateJoinHandler = null;
+		this.serviceHandler = null;
 
 		SessionManager manager = SessionManager.getInstance();
 		manager.removeSessionHandler(this);
