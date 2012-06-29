@@ -6,6 +6,10 @@ Creating a cooperative shopping list
 
 This tutorial explains how to build a cooperative shopping list application step-by-step. You start the tutorial by creating a single-user shopping list based on the Dojo :class:`dojox.grid.DataGrid` widget and :class:`dojo.data.ItemFileWriteStore` data store. Working through the tutorial, you will incrementally add coweb features including cooperative editing of list items, support for latecomers to the session, and basic awareness of where other users are editing.
 
+.. note:: 
+
+    Following this tutorial *should* produce a logically equivalent version of the OCW demo found in :file:`cowebx/cowebx-apps/colist`.
+
 The goal: A cooperative shopping list
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -15,7 +19,6 @@ To get started, first consider the application requirements. Note that these are
 #. Any user can add, delete, or change any list item at any time.
 #. Each cell in the list can hold free-form text editable by the user.
 #. Edits to list items take effect when the user hits :kbd:`Enter`, not character-by-character.
-#. Users can sort their views of the list independently of one another.
 #. The list highlights rows that have remote user input focus.
 
 The final version of our application will look something like the following.
@@ -28,14 +31,16 @@ The final version of our application will look something like the following.
 Setup a coweb server instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The shopping list application requires a coweb server to operate. If you deployed the Java :file:`cowebx-apps.war` file or created a Python demo virtualenv according to the :doc:`install` instructions, your server environment has a copy of the completed application. You should view it now to better understand the features you are implementing. The default URL for the complete app is `http://your.domain:8080/cowebx-apps/colist/index.html`.
+The shopping list application requires a coweb server to operate. If you deployed the Java :file:`launcher.war` file (the :file:`cowebx/cowebx-apps/launcher` module), your server environment has a copy of the completed application. You should view it now to better understand the features you are implementing. The default URL for the complete app is `http://your.domain:8080/colist`.
 
-If you plan to develop your own copy of the shopping list application, you should create and deploy your code in a new Java WAR or a fresh coweb Python virtualenv. Follow the instructions below to setup a workspace for development.
+Note you can also bring up the colist application by itself (:file:`launcher.war` brings up *all* OCW demos, but the WAR file generated from the :file:`cowebx/cowebx-apps/colist` module will also deploy the colist application to `http://your.domain:8080/colist`).
+
+If you plan to develop your own copy of the shopping list application, you should create and deploy your code in a new Java WAR. Follow the instructions below to setup a workspace for development.
 
 Java
 ####
 
-#. Use the :ref:`coweb Maven archetype <maven-archetype>` to initialize a new `mycolist` project.
+#. Use the :ref:`coweb Maven archetype <maven-archetype>` to initialize a new `mycolist` project. Choose an appropriate groupId (e.g. ``com.yourdomain``) and artifactId (e.g. ``mycolist``).
 
    .. sourcecode:: console
 
@@ -51,35 +56,6 @@ Java
       $ cd mycolist
       $ mvn jetty:deploy-war -Djetty.port=9001
 
-Python
-######
-
-.. note:: 
-
-	If you completed the Developer Setup on the OpenCoweb wiki page on GitHub, you can skip to the next section titled 'Starting with a blank page'.
-
-#. Install the Python server package and scripts to a :ref:`virtualenv <virtualenv-install>` or :ref:`system-wide <distutils-install>`.
-#. Deploy an initial coweb application using the :file:`pycoweb` script.
-
-   .. sourcecode:: console
-   
-      $ pycoweb deploy /desired/project/path/mycolist -t simple
-
-#. Edit the generated :file:`/desired/project/path/mycolist/bin/run_server.py` container script, adding the following two lines to its :py:meth:`coweb.AppContainer.on_configure` method.
-
-   .. sourcecode:: python
-   
-      # match admin url to what java version uses
-      self.webAdminUrl = self.webRoot + 'mycolist/admin'
-      # match static url to what java uses
-      self.webStaticRoot = self.webRoot + 'mycolist/'
-
-#. Run the coweb server. Remember to activate the virtualenv first if you installed to one. Pick a custom port if the default (8080) conflicts with another server.
-
-   .. sourcecode:: console
-   
-      $ run_server.py --port=9001
-
 Starting with a blank page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -92,7 +68,7 @@ First, create an :file:`index.html` in your project folder if on does not alread
 
 .. note:: 
 
-   For a Java project, all web files live under the :file:`mycolist/src/main/webapp` folder created by the archetype. For a Python project, all web files live in the root of the :file:`mycolist/www` folder created by the deploy script.
+   For a Java project, all web files live under the :file:`mycolist/src/main/webapp` folder created by the archetype.
 
 Seed the :file:`index.html` with the following markup. If you initialized the project using the Maven archetype, replace the default content.
 
@@ -161,27 +137,34 @@ Next create a :file:`main.js` file in your project folder. This file configures 
 :file:`colist.js`
 #################
 
-Next create the :file:`colist.js` file in your project folder. This file will contain the application specific code that runs on page load. By the end of the tutorial, it will initialize local widgets and join the application to a coweb session. Start by seeding the file with the following content.
+Next create the :file:`colist.js` file in your project folder. This file will contain the application specific code that runs on page load. By the end of the tutorial, it will initialize local widgets, join the application to a coweb session, and send/receive OCW sync events. Start by seeding the file with the following content.
 
 .. sourcecode:: javascript
 
     define([
-        'coweb/main',
-        'dojo/domReady!'
+        "dojo",
+        "coweb/main",
     ], function(coweb) {
 
-        var app = {
-            init: function(){
-                console.log("ready callback");
-            }
+        var CoListApp = function() {
+        };
+        var proto = CoListApp.prototype;
+
+        proto.init = function() {
+            console.log("ready callback");
         };
 
-        app.init();
+        var app = new CoListApp();
+        dojo.ready(function() {
+            app.init();
+        });
     });
 
-The :func:`define` call indicates this JavaScript module is in AMD format. Its first parameter, an array, indicates other modules and/or plain scripts to load. `coweb/main` refers to the main module of the |coweb api|, and `dojo/domReady!` ensures that the module callback (the second argument to :func:`define`) will not be run until the DOM finishes loading. The arguments passed to the callback are the resolved dependencies.
+The :func:`define` call indicates this JavaScript module is in AMD format. Its first parameter, an array, indicates other modules and/or plain scripts to load. `dojo` contains basic Dojo library code, and `coweb/main` refers to the main module of the |coweb api|. The arguments passed to the callback are the resolved dependencies.
 
 .. note:: This tutorial and the complete example use the CDN version of Dojo to limit the number of dependencies you must install. If you use Dojo 1.7.0 for your own applications, you should use a local, built copy of Dojo to improve your application's performance.
+
+Calling :func:`dojo.ready` will wait for the DOM to finish loading the web page, then invoke the callback.
 
 For the time being, the :func:`console.log` statement in the callback gives you something to check to ensure all of the dependencies are loading without error.
 
@@ -200,7 +183,7 @@ Now create the :file:`colist.css` file in your project folder. You will define s
 Checkpoint: Running the blank application
 #########################################
 
-You should test your application at this point to ensure you can access it in a web browser after deploying it. If you're working with Java, run your build script and deploy your :file:`mycolist.war` file in your servlet container. If you're working with Python, do nothing other than start the server. Visit the application in your browser at http://localhost:9001/mycolist/index.html, modifying the port as appropriate to where your server is running.
+You should test your application at this point to ensure you can access it in a web browser after deploying it. Run your build script and deploy your :file:`mycolist.war` file in your servlet container. Visit the application in your browser at http://localhost:9001/mycolist/index.html, modifying the port as appropriate to where your server is running.
 
 If everything is working properly, the following should be possible in your application:
 
@@ -225,36 +208,36 @@ Open the :file:`index.html` file again. Remove the placeholder `<h1>` you added 
 
 .. sourcecode:: html
 
-   <div dojoType="dijit.layout.BorderContainer" 
-           design="headline" 
-           gutters="false" 
-           liveSplitters="false"
-           id="container">
-      <div dojoType="dijit.layout.ContentPane"
-           region="top"
-           id="controls">
-        <button id="addRowButton"
-                type="button"
-      	        dojoType="dijit.form.Button">Add Item</button>
-      	<button id="removeRowButton"
-      	        type="button"
-      	        dojoType="dijit.form.Button">Delete Item</button>
-      </div>
-      <table id="grid"
-             dojoType="dojox.grid.DataGrid"
-             autoWidth="true" 
-             rowSelector="20px"
-             disabled="true"
-             columnReordering="true"
-             region="center">
-        <thead>
-          <tr>
-            <th width="400px" field="name" editable="true">Item</th>
-            <th width="200px" field="amount" editable="true">Amount</th>
-          </tr>
-        </thead>
-      </table>
-   </div>
+    <div dojoType="dijit.layout.BorderContainer" 
+            design="headline" 
+            gutters="false" 
+            liveSplitters="false"
+            id="container">
+        <div dojoType="dijit.layout.ContentPane"
+                region="top"
+                id="controls">
+            <button id="addRowButton"
+                    type="button"
+                      dojoType="dijit.form.Button">Add Item</button>
+              <button id="removeRowButton"
+                      type="button"
+                      dojoType="dijit.form.Button">Delete Item</button>
+        </div>
+        <table id="grid"
+                 dojoType="dojox.grid.DataGrid"
+                 autoWidth="false" 
+                 rowSelector="20px"
+                 disabled="true"
+                 columnReordering="true"
+                 region="center">
+            <thead>
+              <tr>
+                <th width="80%" field="name" editable="true">Item</th>
+                <th width="20%" field="amount" editable="true">Amount</th>
+              </tr>
+            </thead>
+        </table>
+    </div>
 
 The :class:`dijit.layout.BorderContainer` splits the application template area into regions. A :class:`dijit.layout.ContentPane` containing the add and remove :class:`dijit.form.Button` widgets occupies the top region. The :class:`dojox.grid.DataGrid` fills the center region.
 
@@ -263,68 +246,106 @@ The grid table defines two columns labeled :guilabel:`Item` and :guilabel:`Amoun
 :file:`colist.js`
 #################
 
-Edit the :file:`colist.js` file. You will add some modules dependencies to the first argument of :func:`define`. Right now, :file:`colist.js` only depends on `dojo`, so change the dependencies so the beginning of the file looks like the following. Your module function will also expand its argument list so that it can use the loaded modules.
+Edit the :file:`colist.js` file. You will add some modules dependencies to the first argument of :func:`define`. Right now, :file:`colist.js` only depends on `dojo` and `coweb/main`, so change the dependencies so the beginning of the file looks like the following. Your module function will also expand its argument list so that it can use the loaded modules.
 
 .. sourcecode:: javascript
 
     define([
-        'dojo',
-        'dijit/registry',
-        'coweb/main',
-        'dojox/grid/DataGrid',
-        'dojo/data/ItemFileWriteStore',
-        'cowebx/dojo/BusyDialog/BusyDialog',
-        'dijit/form/Button',
-        'dijit/layout/BorderContainer',
-        'dijit/layout/ContentPane'
-    ], function(dojo, dijit, coweb, DataGrid, ItemFileWriteStore, BusyDialog) {
+        "dojo",
+        "dijit/registry",
+        "coweb/main",
+        "dojox/grid/DataGrid",
+        "dojo/data/ItemFileWriteStore",
+        "cowebx/dojo/BusyDialog/BusyDialog",
+        "dojo/_base/array",
+        "dijit/form/Button",
+        "dijit/layout/BorderContainer",
+        "dijit/layout/ContentPane"
+    ], function(dojo, dijit, coweb, DataGrid, ItemFileWriteStore, BusyDialog, arrays) {
 
-Next, replace the `var app = { ... };` with the following:
+Next, change the :func:`CoListApp.prototype.init` function contents to the following.
 
 .. sourcecode:: javascript
 
-    var app = {
-        init: function(){
-            // parse declarative widgets
-            dojo.parser.parse();
+    proto.init = function() {
+        // Parse declarative widgets.
+        dojo.parser.parse();
 
-            // configure the grid datastore, starting it empty
-            var emptyData = {identifier : 'id', label : 'name', items: []};
-            this.dataStore = new ItemFileWriteStore({data : emptyData});
-            this.grid = dijit.byId('grid');
-            this.grid.setStore(this.dataStore);
+        this.grid = dijit.byId("grid");
+        this.grid.canSort = function() { return false; } // Disable column sorting.
+        this.dataStore = null; // This will be set each time by buildList.
+        this.dsHandles = {}; // See _dsConnect.
 
-            // listen to and enable add/delete buttons
-            var addButton = dijit.byId('addRowButton');
-            var removeButton = dijit.byId('removeRowButton');
-            dojo.connect(addButton, 'onClick', this, 'onAddRow');
-            dojo.connect(removeButton, 'onClick', this, 'onRemoveRow');
+        this.initCollab();
 
-        },
+        /* This is what we store internally - the list state is an array of objects.
+           Each object has three properties: id, name, and amount. */
+        this.bgData = [];
+        this.buildList()
 
-        /**
-         * Adds a new row with default values to the local grid.
-         */
-        onAddRow: function() {
-            // make pseudo-unique ids
-            var date = new Date();
-            var id = String(Math.random()).substr(2) + String(date.getTime()); 
-            this.dataStore.newItem({
-                id: id,
-                name: 'New item',
-                amount: 0
-            });
-        },
+        // Map from DataGrid row ID to its position in the grid. See onRemoveRow and onLocalDelete.
+        this.removed = {};
 
-        /**
-         * Removes all selected rows from the grid.
-         */
-        onRemoveRow: function() {
-            this.grid.removeSelectedRows();
-        },
+        // Listen to and enable add/delete buttons.
+        var addButton = dijit.byId("addRowButton");
+        var removeButton = dijit.byId("removeRowButton");
+        dojo.connect(addButton, "onClick", this, "onAddRow");
+        dojo.connect(removeButton, "onClick", this, "onRemoveRow");
+
     };
 
-When the DOM finishes loading, your ready callback parses the DOM for declarative Dojo widgets, creates a :class:`dojo.data.ItemFileWriteStore`, sets it as the model of the :class:`dojox.grid.DataGrid`, and registers the :func:`onAddRow` and :func:`onRemoveRow` as click handlers for the :guilabel:`Add Item` and :guilabel:`Delete Item` buttons in the markup.
+Add the following to the CoListApp prototype.
+
+.. sourcecode:: javascript
+
+    /**
+     * Adds a new row with default values to the local grid. Note that we don't send the event to
+     * remove clients yet - see ItemFileWriteStore.onNew and the app.onLocalInsert callback.
+     */
+    proto.onAddRow = function() {
+        // make pseudo-unique ids
+        var date = new Date();
+        var id = String(Math.random()).substr(2) + String(date.getTime());
+        this.dataStore.newItem({
+            id: id,
+            name: "New item",
+            amount: 0
+        });
+    };
+
+    /**
+     * Removes all selected rows from the grid. Note that we don't send the event to remove clients
+     * yet - see ItemFileWriteStore.onDelete and the app.onLocalDelete callback.
+     */
+    proto.onRemoveRow = function() {
+        var selected = this.grid.selection.getSelected();
+        // Remember the positions of the removed elements.
+        arrays.forEach(selected, function(item) {
+            this.removed[this.dataStore.getIdentity(item)] = this.grid.getItemIndex(item);
+        }, this);
+        this.grid.removeSelectedRows();
+    };
+
+    /**
+      * Uses this.bgData to re-build the DataGrid.
+      */
+    proto.buildList = function() {
+        var emptyData = {data:{identifier:"id", label:"name", items:[]}};
+        var store = new ItemFileWriteStore(emptyData);
+        arrays.forEach(this.bgData, function(at) {
+            store.newItem(at);
+        });
+
+        this.dataStore = store;
+        this.grid.setStore(store);
+    };
+
+    /**
+      * To be filled in later in the tutorial.
+      */
+    proto.initCollab = function() { };
+
+When the DOM finishes loading and :func:`app.init()` is called, Dojo parses the DOM for declarative Dojo widgets, initializes some internal state, and sets up the initial grid state. :func:`app.init()` also registers callbacks for the Add and Remove buttons.
 
 :file:`colist.css`
 ##################
@@ -355,6 +376,35 @@ Open the :file:`colist.css` file. Add the following style rules to center the gr
        text-align: left;
    }
 
+:file:`pom.xml`
+###############
+
+Now, open the :file:`pom.xml` file in the project root directory. The BusyDialog object is a OCW widget found in the package ``cowebx-widgets-dojo``. Add the following **overlay** to the **overlays** section.
+
+.. sourcecode:: xml
+
+    <overlay>
+        <groupId>org.opencoweb.cowebx</groupId>
+        <artifactId>cowebx-widgets-dojo</artifactId>
+        <type>war</type>
+        <excludes>
+            <exclude>META-INF/**</exclude>
+            <exclude>WEB-INF/**</exclude>
+        </excludes>
+        <targetPath>lib/cowebx/dojo</targetPath>
+    </overlay>
+
+Add the following dependency at the end of the file with the rest of the dependencies.
+
+.. sourcecode:: xml
+
+    <dependency>
+        <groupId>org.opencoweb.cowebx</groupId>
+        <artifactId>cowebx-widgets-dojo</artifactId>
+        <version>${coweb-version}</version>
+        <type>war</type>
+    </dependency>
+
 Checkpoint: Running the standalone app
 ######################################
 
@@ -363,8 +413,6 @@ You should test your application now to ensure the shopping list widgets work. T
 #. You can click the :guilabel:`Add` button to create a new row in the grid.
 #. You can double-click cells in the :guilabel:`Item` and :guilabel:`Amount` columns and edit their contents.
 #. You can use the :kbd:`Tab` key to put focus in the grid, the arrow keys to move focus among the grid cells, and the :kbd:`Enter` key to start editing the focused cell.
-#. You can click a column header to sort the rows by the values in that column. 
-#. You can use the :kbd:`Tab` key to put focus on a column header, the arrow keys to move focus among the columns, and the :kbd:`Enter` key to sort by the focused column.
 #. You can drag and drop the column headers to reorder them.
 #. You can use the mouse and keyboard to select one or more rows and then click the :guilabel:`Delete` button to remove them.
 
@@ -380,15 +428,13 @@ Open the :file:`colist.js` file again. Add the following code to the bottom of t
 
 .. sourcecode:: javascript
 
-   // get a session instance
-   var sess = coweb.initSession();
-   BusyDialog.createBusy(sess);
-   // log status notifications to ensure we're working
-   sess.onStatusChange = function(status) {
-      console.debug(status);
-   };
-   // do the prep
-   sess.prepare();
+    // Get a session instance.
+    var sess = coweb.initSession();
+    sess.onStatusChange = function(status) {
+        console.log(status);
+    }
+    BusyDialog.createBusy(sess); // This is a widget in cowebx-widgets-dojo. Make sure to have the dependency in the pom.xml.
+    sess.prepare();
         
 This code initializes the :class:`SessionInterface` and initiates the session :ref:`prepare <proto-session-prepare>`, :ref:`join <proto-session-join>`, and :ref:`update <proto-session-update>` sequence summarized below:
 
@@ -410,111 +456,92 @@ Fortunately, the :class:`dojo.data.ItemFileWriteStore` class supports callbacks 
 
 As for conflict resolution and consistency, the application can rely solely on the operation engine in the coweb framework. If the application passes proper values to :func:`CollabInterface.sendSync`, the engine will deliver results to :func:`CollabInterface.subscribeSync` callbacks transformed to resolve conflicts.
 
-:file:`CoopItemFileWriteStore.js`
-#################################
 
-Create a new file named :file:`CoopItemFileWriteStore.js` in your application folder. In this file, include the following lines to define it as a module with a dependency on the `coweb/main` module.
+:file:`colist.js`
+#################
 
-.. sourcecode:: javascript
-
-   define([
-      'coweb/main'
-   ], function(coweb) {
-      var CoopItemFileWriteStore;
-      
-      // class def to go here
-      
-      return CoopItemFileWriteStore;
-   });
-
-Next, define a class within the module body that will hold a reference to a :class:`dojo.data.ItemFileWriteStore` instance. The following sections flesh-out the details of this class.
-
-Initialization
-++++++++++++++
-
-Set :class:`CoopItemFileWriteStore` to a constructor that stores the passed arguments in instance variables. Also, initialize the :class:`CollabInterface` instance the widget will use to send and receive cooperative events.
+To get started, fill in the :func:`CoListApp.prototype.initCollab` method.
 
 .. sourcecode:: javascript
 
-   CoopItemFileWriteStore = function(args) {
-      this.dataStore = args.dataStore;
-      this.id = args.id;
-         if(!this.dataStore || !this.id) {
-            throw new Error('missing dataStore or id argument');
-      }
-      // initialize collab interface using the dojo widget id as the
-      // id for the collab instance
-      this.collab = coweb.initCollab({id : this.id});
-      // listen for datastore 'change' messages sent by remote instances of 
-      // this widget; the change messages include item ids to allow coweb to
-      // check consistency on a per-item basis, rather than per-grid, so we
-      // include the * here to listen to all change messages
-      this.collab.subscribeSync('change.*', this, 'onRemoteChange');
-   };
-   
-Look at the :func:`CollabInterface.subscribeSync` call. The first parameter indicates the name of the remote, cooperative event to observe. In this case, the instance wants to observe all remote events that start with `change.` followed by any text up to the next period. As you will see below, our callbacks for local changes send events in the form `change.<item id>` whenever an item is added, updated, or removed in the local data store. In effect, this :func:`CollabInterface.subscribeSync` call is registering for notifications of remote additions, updates, or removals in remote data stores.
 
-Next add a method named :func:`_dsConnect`. You will use this private method repeatedly throughout the code to connect and disconnect callbacks to and from the local data store instance.
+    /**
+      * Creates our application's lone collaborative element: the shopping list.
+      * Also, connect callbacks for collab events.
+      *
+      * If our application had other collaborative elements (a text editor, chat box, etc).
+      * we would initialize other collab objects, for example with coweb.initCollab({id: "texteditor"}).
+      */
+    proto.initCollab = function() {
+        // Create a collab object for our shopping list.
+        this.collab = coweb.initCollab({id : "shoppinglist"});
+        /* Listen to remove sync events with a topic of `change`. Our shopping list will
+           only send updates through this one topic so that the OT engine can detect list
+           operation conflicts. */
+        this.collab.subscribeSync("change", this, "onRemoteChange");
+
+    };
+
+Look at the :func:`CollabInterface.subscribeSync` call. The first parameter indicates the name of the remote, cooperative event to observe. In this case, the instance wants to observe all remote events with topic `change`. As you will see below, our callbacks for local changes send events with topic `change` whenever an item is added, updated, or removed in the local data store. In effect, this :func:`CollabInterface.subscribeSync` call is registering for notifications of remote additions, updates, or removals in remote data stores.
+
+Next add method :func:`_dsConnect`, :func:`_connectAll`, :func:`_disconnectAll`. You will use this private method repeatedly throughout the code to connect and disconnect callbacks to and from the local data store instance.
 
 .. sourcecode:: javascript
 
-   /**
-    * Connects or disconnects the observer method on this instance to one
-    * of the data store events.
-    *
-    * @param connect True to connect, false to disconnect
-    * @param type 'insert', 'update', or 'delete'
-    */
-   CoopItemFileWriteStore.prototype._dsConnect = function(connect, type) {
-      if(connect) {
-         // get info about the data store and local functions
-         var funcs = this.typeToFuncs[type];
-         // do the connect
-         var h = dojo.connect(this.dataStore, funcs.ds, this, funcs.coop);
-         // store the connect handle so we can disconnect later
-         this.dsHandles[type] = h;
-      } else {
-         // disconnect using the previously stored handle
-         dojo.disconnect(this.dsHandles[type]);
-         // delete the handle
-         this.dsHandles[type] = null;
-      }
-   };
+    /**
+      * Disconnect all listeners from the data store.
+      */
+    proto._disconnectAll = function() {
+        this._dsConnect(false, "insert");
+        this._dsConnect(false, "update");
+        this._dsConnect(false, "delete");
+    };
+
+    /**
+      * Connect all listeners to the data store.
+      */
+    proto._connectAll = function() {
+        this._dsConnect(true, "insert");
+        this._dsConnect(true, "update");
+        this._dsConnect(true, "delete");
+    };
+
+    /**
+      * Static object that maps data store events to methods on this instance for
+      * ease of connecting and disconnecting data store listeners.
+      */
+    CoListApp.typeToFuncs = {
+        "update": {ds : "onSet", coop: "onLocalUpdate"},
+        "insert": {ds : "onNew", coop: "onLocalInsert"},
+        "delete": {ds : "onDelete", coop: "onLocalDelete"}
+    };
+
+    /**
+     * Connects or disconnects the observer method on this instance to one
+     * of the data store events.
+     *
+     * @param connect True to connect, false to disconnect
+     * @param type "insert", "update", or "delete"
+     */
+    proto._dsConnect = function(connect, type) {
+        if (connect) {
+            // get info about the data store and local functions
+            var funcs = CoListApp.typeToFuncs[type];
+            // do the connect
+            var h = dojo.connect(this.dataStore, funcs.ds, this, funcs.coop);
+            // store the connect handle so we can disconnect later
+            this.dsHandles[type] = h;
+        } else {
+            if (!this.dsHandles[type])
+                return;
+            // disconnect using the previously stored handle
+            dojo.disconnect(this.dsHandles[type]);
+            // delete the handle
+            this.dsHandles[type] = null;
+        }
+    };
 
 The method uses :func:`dojo.connect` and :func:`dojo.disconnect` to enable and disable the callback methods you will define shortly. The `type` parameter identifies which data store notification / callback pair should be enabled or disabled.
-
-Edit the constructor to initialize the :attr:`typeToFuncs` and :attr:`dsHandles` instance variables. Also, connect the widget to insert, update, and delete notifications from the data store immediately.
-
-.. sourcecode:: javascript
-
-   var CoopItemFileWriteStore = function(args) {
-      this.dataStore = args.dataStore;
-      this.id = args.id;
-      if(!this.dataStore || !this.id) {
-         throw new Error('missing dataStore or id argument');
-      }
-      // stores dojo.connect handles for observers of the data store
-      this.dsHandles = {};
-      // maps data store events to methods on this instance for ease of
-      // connecting and disconnecting data store listeners
-      this.typeToFuncs = {
-         update: {ds : 'onSet', coop: 'onLocalUpdate'},
-         insert: {ds : 'onNew', coop: 'onLocalInsert'},
-         'delete': {ds : 'onDelete', coop: 'onLocalDelete'}
-      };
-      // subscribe to local datastore events to start
-      this._dsConnect(true, 'insert');
-      this._dsConnect(true, 'update');
-      this._dsConnect(true, 'delete');
-      // initialize collab interface using the dojo widget id as the
-      // id for the collab instance
-      this.collab = coweb.initCollab({id : this.id});
-      // listen for datastore 'change' messages sent by remote instances of 
-      // this widget; the change messages include item ids to allow coweb to
-      // check consistency on a per-item basis, rather than per-grid, so we
-      // include the * here to listen to all change messages
-      this.collab.subscribeSync('change.*', this, 'onRemoteChange');
-   };
 
 Callbacks for local changes
 +++++++++++++++++++++++++++
@@ -523,22 +550,22 @@ You should now add the methods responsible for sending information about local c
 
 .. sourcecode:: javascript
 
-   /**
-    * Serializes a flat item in the data store to a regular JS object with 
-    * name/value properties.
-    *
-    * @param item Item from the data store
-    * @return row Object
-    */
-   CoopItemFileWriteStore.prototype._itemToRow = function(item) {
-      var row = {};
-      dojo.forEach(this.dataStore.getAttributes(item), function(attr) {
-         row[attr] = this.dataStore.getValue(item, attr);
-      }, this);
-      return row;
-   };
+    /**
+     * Serializes a flat item in the data store to a regular JS object with 
+     * name/value properties.
+     *
+     * @param item Item from the data store
+     * @return row Object
+     */
+    proto._itemToRow = function(item) {
+        var row = {};
+        arrays.forEach(this.dataStore.getAttributes(item), function(attr) {
+            row[attr] = this.dataStore.getValue(item, attr);
+        }, this);
+        return row;
+    };
 
-This method takes any item from the data store as a parameter, loops over all of its attributes, and adds their names and values to a regular JavaScript object. The coweb framework can JSON-encode the new object to send to remote users whereas it cannot JSON-encode the original item.
+This method takes any item from the data store as a parameter, loops over all of its attributes, and adds their names and values to a regular JavaScript object. The coweb framework can JSON-encode the new object to send to remote users whereas it cannot JSON-encode the original item, because the item has circular references.
 
 Next define the callback methods for changes in the local :class:`dojo.data.ItemFileWriteStore` instance. The three callback names should match those stated in the :attr:`typesToFuncs` object (:func:`onLocalInsert`, :func:`onLocalUpdate`, :func:`onLocalDelete`) and their signatures should match those of the data store methods to which they are connected (:func:`onNew`, :func:`onSet`, :func:`onDelete`).
 
@@ -551,23 +578,23 @@ Next define the callback methods for changes in the local :class:`dojo.data.Item
      * @param item New item object
      * @param parentInfo Unused
      */
-    CoopItemFileWriteStore.prototype.onLocalInsert = function(item, parentInfo) {
+    proto.onLocalInsert = function(item, parentInfo) {
         // get all attribute values
         var row = this._itemToRow(item);
-        var value = {};
-        value.row = row;
-        // name includes row id for conflict resolution
+        var value = {row:row};
+
         var id = this.dataStore.getIdentity(item);
-        var name = 'change.'+id;
-        this.collab.sendSync(name, value, 'insert');
+        var pos = this.grid.getItemIndex(item);
+        this.bgData.splice(pos, 0, row);
+        this.collab.sendSync("change", value, "insert", pos);
     };
 
-When a new item appears in the data store, this :func:`onLocalInsert` method first collects its values using :func:`_itemToRow`. Second, it packages the `row` object as the value to transmit. Third, it gets the identity assigned to the new item and builds the event name using it. Finally, it invokes the :func:`CollabInterface.sendSync` method to send the cooperative event to remote instances.
+When a new item appears in the data store, this :func:`onLocalInsert` method first collects its values using :func:`_itemToRow`. Second, it packages the `row` object as the value to transmit. Third, it gets the identity and position of the new item. Finally, it invokes the :func:`CollabInterface.sendSync` method to send the cooperative event to remote instances.
 
 .. sourcecode:: javascript
 
     /**
-     * Called when an attribute of an existing item in the local data store 
+     * Called when an attribute of an existing item in the local data store
      * changes value. Sends the item data and the name of the attribute that
      * changed to remote data stores.
      *
@@ -576,18 +603,20 @@ When a new item appears in the data store, this :func:`onLocalInsert` method fir
      * @param oldValue Previous value of the attr
      * @param newValue New value of the attr
      */
-    CoopItemFileWriteStore.prototype.onLocalUpdate = function(item, attr, oldValue, newValue) {
+    proto.onLocalUpdate = function(item, attr, oldValue, newValue) {
         // get all attribute values
         var row = this._itemToRow(item);
+
         // store whole row in case remote needs to reconstruct after delete
         // but indicate which attribute changed for the common update case
         var value = {};
         value.row = row;
         value.attr = attr;
-        // name includes row id for conflict resolution
+
         var id = this.dataStore.getIdentity(item);
-        var name = 'change.'+id;
-        this.collab.sendSync(name, value, 'update');
+        var pos = this.grid.getItemIndex(item);
+        this.bgData[pos][attr] = row[attr];
+        this.collab.sendSync("change", value, "update", pos);
     };
 
 When the attribute of an item in the data store changes value, this :func:`onLocalUpdate` method serializes and sends the item in much same manner as :func:`onLocalInsert`. The only difference is that this method includes the name of the attribute that changed in addition to the `row` data to assist remote instances in determining what changed.
@@ -600,22 +629,35 @@ When the attribute of an item in the data store changes value, this :func:`onLoc
      *
      * @param item Deleted item
      */
-    CoopItemFileWriteStore.prototype.onLocalDelete = function(item) {
-        var value = {};
+    proto.onLocalDelete = function(item) {
+        // get all attribute values
         // name includes row id for conflict resolution
         var id = this.dataStore.getIdentity(item);
-        var name = 'change.'+id;
-        this.collab.sendSync(name, value, 'delete');
+        var pos = this.removed[id];
+        delete this.removed[id];
+        this.bgData.splice(pos, 1);
+        // Update this.removed data structure in case any positions need to be re-aligned.
+        for (var k in this.removed) {
+            if (this.removed[k] > pos)
+                --this.removed[k];
+        }
+        this.collab.sendSync("change", null, "delete", pos);
     };
 
-When an item disappears from the data store, this :func:`onLocalDelete` method notifies remote instances of the deletion. Unlike the two methods above, it does not include the values of the removed item as they are no longer needed.
+When an item disappears from the data store, this :func:`onLocalDelete` method notifies remote instances of the deletion. Unlike the two methods above, it does not include the values of the removed item as they are no longer needed. The position is obtained by looking up the ``this.removed`` map - see :func:`onRemoveRow`.
+
+Finally, add the following line to the end of :func:`buildList` to actually connect the :func:`onLocalInsert`, :func:`onLocalUpdate`, and :func:`onLocalDelete` callbacks to data store changes.
+
+.. sourcecode:: javascript
+
+    this._connectAll();
 
 Callbacks for remote changes
 ++++++++++++++++++++++++++++
 
 Just as the class must inform remote instances of local data store changes, it must also listen for messages about remote changes and integrate them into the local data store. You should now define the methods that will observe and process remote changes.
 
-In the constructor, you subscribed a method named :func:`onRemoteChange` as the callback for `change.*` cooperative events. Define this method as follows:
+In :func:`initCollab`, you subscribed a method named :func:`onRemoteChange` as the callback for `change` cooperative events. Define this method as follows:
 
 .. sourcecode:: javascript
 
@@ -623,20 +665,17 @@ In the constructor, you subscribed a method named :func:`onRemoteChange` as the 
      * Called when a remote data store changes in some manner. Dispatches to
      * local methods for insert, update, delete handling.
      *
-     * @param topic Full sync topic including the id of the item that changed
-     * @param value Item data sent by remote data store
+     * @param args Cooperative web event
      */
-    CoopItemFileWriteStore.prototype.onRemoteChange = function(args) {
-       var value = args.value;
-       // retrieve the row id from the name
-       var id = args.name.split('.')[1];
-       if(args.type === 'insert') {
-         this.onRemoteInsert(id, value);
-       } else if(args.type === 'update') {
-         this.onRemoteUpdate(id, value);
-       } else if(args.type === 'delete') {
-         this.onRemoteDelete(id);
-       }
+    proto.onRemoteChange = function(args) {
+        var value = args.value;
+        if (args.type === "insert") {
+            this.onRemoteInsert(value, args.position);
+        } else if (args.type === "update") {
+            this.onRemoteUpdate(value, args.position);
+        } else if (args.type === "delete") {
+            this.onRemoteDelete(args.position);
+        }
     };
 
 The code in this method looks at the `type` property of the event value and dispatches to more specific methods shown below. Remember, the `type` was set by the code in :func:`onLocalInsert`, :func:`onLocalUpdate`, or :func:`onLocalDelete`: whichever sent the cooperative event.
@@ -644,25 +683,21 @@ The code in this method looks at the `type` property of the event value and disp
 Now define the method to add remotely created items to the local data store.
 
 .. sourcecode:: javascript
-    
+
     /**
      * Called when a new item appears in a remote data store. Creates an item
      * with the same id and value in the local data store.
      *
-     * @param id Identity assigned to the item in the creating data store
      * @param value Item data sent by remote data store
+     * @param position Where to insert the new item.
      */
-    CoopItemFileWriteStore.prototype.onRemoteInsert = function(id, value) {
-        // stop listening to local inserts
-        this._dsConnect(false, 'insert');
-        this.dataStore.newItem(value.row);
-        // resume listening to local inserts
-        this._dsConnect(true, 'insert');
+    proto.onRemoteInsert = function(value, position) {
+        // This is the unfortunate case we must rebuild the data grid (since I can't insert at arbitrary position...).
+        this.bgData.splice(position, 0, value.row);
+        this.buildList();
     };
 
-The second line of code in this method adds the name/value pairs of the item properties packaged in `value.row` to the local data store. But before adding the item, the code is careful to disconnect the listener for local data store changes to avoid a cooperative event storm. If left connected, the :func:`onLocalInsert` method would get invoked, the code in that method would send a duplicate event to remote instances, those instances would do the same, ad infinitum. After invoking :func:`newItem`, the code reconnects the listener for local events.
-
-Note this approach to avoiding echoed events only works because :class:`dojo.data.ItemFileWriteStore` invokes our :func:`onLocalInsert` method synchronously within :func:`newItem`. If the addition of the item or the callback was asynchronous (as is the case in other data store implementations), the code would need another method of avoiding event ping-pong (e.g., including a remote flag on the item.)
+Remote inserts are simple - add the new row data in the internal ``bgData`` array, then rebuild the list. We must rebuild the list, because Dojo's DataGrid does not make it a simple task to insert a row at an arbitrary position.
 
 Now define the methods needed to incorporate remote changes to existing items and remove remotely deleted items.
 
@@ -673,95 +708,38 @@ Now define the methods needed to incorporate remote changes to existing items an
      * Updates the attribute value of the item with the same id in the local
      * data store.
      *
-     * @param id Identity of the item that changed
      * @param value Item data sent by remote data store
+     * @param position Which item to update.
      */
-    CoopItemFileWriteStore.prototype.onRemoteUpdate = function(id, value) {
-        // fetch the item by its id
-        this.dataStore.fetchItemByIdentity({
-            identity : id, 
-            scope : this,
-            onItem : function(item) {
-                // stop listening to local updates
-                this._dsConnect(false, 'update');
-                var attr = value.attr;
-                this.dataStore.setValue(item, attr, value.row[attr]);
-                // resume listening to local updates
-                this._dsConnect(true, 'update');
-            }
-        });
+    proto.onRemoteUpdate = function(value, position) {
+        var item = this.grid.getItem(position);
+        this._dsConnect(false, "update");
+
+        var attr = value.attr;
+        var newVal = value.row[attr];
+        this.bgData[position][attr] = newVal;
+        this.dataStore.setValue(item, attr, newVal);
+
+        this._dsConnect(true, "update");
     };
 
     /**
      * Called when an item disappears from a remote data store. Removes the
      * item with the same id from the local data store.
      *
-     * @param id Identity of the item that was deleted
+     * @param position Which item to delete.
      */
-    CoopItemFileWriteStore.prototype.onRemoteDelete = function(id) {
-        // fetch the item by its id
-        this.dataStore.fetchItemByIdentity({
-            identity : id, 
-            scope : this,
-            onItem : function(item) {
-                // stop listening to local deletes
-                this._dsConnect(false, 'delete');
-                this.dataStore.deleteItem(item);
-                // resume listening to local deletes
-                this._dsConnect(true, 'delete');
-            }
-        });
+    proto.onRemoteDelete = function(position) {
+        var item = this.grid.getItem(position);
+        this._dsConnect(false, "delete");
+
+        this.bgData.splice(position, 1);
+        this.dataStore.deleteItem(item);
+
+        this._dsConnect(true, "delete");
     };
 
-The code in these methods is more complex because the :class:`dojo.data.Identity` API supports both synchronous and asynchronous data stores. Again, the disconnect / reconnect approach to avoiding event ping-pong only works properly because the :class:`dojo.data.ItemFileWriteStore` implementations of :func:`fetchItemByIdentity`, :func:`setValue`, and :func:`deleteItem` are synchronous.
-
-:file:`colist.js`
-#################
-
-Open :file:`colist.js` and first add the string `CoopItemFileWriteStore` to module dependency list.
-
-.. sourcecode:: javascript
-
-    define([
-        'dojo',
-        'dijit/registry',
-        'coweb/main',
-        'dojox/grid/DataGrid',
-        'dojo/data/ItemFileWriteStore',
-        'cowebx/dojo/BusyDialog/BusyDialog',
-        'CoopItemFileWriteStore',
-        'dijit/form/Button',
-        'dijit/layout/BorderContainer',
-        'dijit/layout/ContentPane'
-    ], function(dojo, dijit, coweb, DataGrid, ItemFileWriteStore, BusyDialog, CoopItemFileWriteStore) {
-      // etc
-   });
-
-Next, replace the :func:`onAddRow` function with the following:
-
-.. sourcecode:: javascript
-
-   var onAddRow = function() {
-       // make pseudo-unique ids
-       var date = new Date();
-       var id = String(Math.random()).substr(2) + String(date.getTime()); 
-       this.dataStore.newItem({
-           id: id,
-           name: 'New item',
-           amount: 0
-       });
-   };
-   
-The previous code assigned monotonically increasing IDs to new items. But after adding cooperation, remote users can end up creating new items at the same time. You must take care, therefore, to ensure two unique items do not receive the same ID. The new code generates pseudo-unique random IDs based on a random number and the current date and time.
-
-Now modify the body of your :func:`init` to include the following additional lines instantiating a :class:`colist.CoopItemFileWriteStore` instance before the call to prepare the session.
-
-.. sourcecode:: javascript
-   
-   // instantiate our cooperative datastore extension, giving it a 
-   // reference to the dojo.data.ItemFileWriteStore object
-   var args = {dataStore : this.dataStore, id : 'colist_store'};
-   var coopDataStore = new CoopItemFileWriteStore(args);
+The code in these two functions is a little more complicated - we update the ``bgData`` array, but then we must update the DataGrid data store so the client sees the change to the shopping list. This is better than having to rebuild the entire list as we did for a remote insert.
 
 Checkpoint: Checking data store cooperation
 ###########################################
@@ -779,20 +757,20 @@ Supporting late-joiners
 
 With the current code, people who join a session late do not see any items added to the shopping list before they joined. The list stays in its empty, initial state. You should now add the necessary callbacks so that a late joining data store instance can initialize to the current state. To accomplish this, you must also define the callback that allows data store instances already in the session to provide their state to late comers.
 
-:file:`CoopItemFileWriteStore.js`
+:file:`colist.js`
 #################################
 
-Open the :file:`CoopItemFileWriteStore.js` file. At the bottom of the constructor, add the following lines of code to register the full state request and response callbacks.
+Open the :file:`colist.js` file. At the bottom of :func:`initCollab`, add the following lines of code to register the full state request and response callbacks.
 
 .. sourcecode:: javascript
 
-   // listen for requests from remote applications joining the session
-   // when they ask for the full state of this widget
-   this.collab.subscribeStateRequest(this, 'onGetFullState');
-   // listen for responses from remote applications when this application
-   // instance joins a session so it can bring itself up to the current 
-   // state
-   this.collab.subscribeStateResponse(this, 'onSetFullState');
+        /* Listen for requests from remote applications joining the session when they ask
+           for the full state of this widget. */
+        this.collab.subscribeStateRequest(this, "onGetFullState");
+
+        /* Listen for responses from remote applications when this application instance
+           joins a session so it can bring itself up to the current state. */
+        this.collab.subscribeStateResponse(this, "onSetFullState");
 
 Next, define the :func:`onGetFullState` callback function you just registered. The coweb framework invokes this method when a remote instance of this class is joining the session and needs to synchronize its state.
 
@@ -800,25 +778,16 @@ Next, define the :func:`onGetFullState` callback function you just registered. T
 
     /**
      * Called when a remote instance of this widget is joining a session and
-     * wants to get up to speed. This instance sends the joining one a 
+     * wants to get up to speed. This instance sends the joining one a
      * serialized array of all the items in the data store.
      *
-     * @param params Object with properties for the ready event (see doc)
+     * @param token Object with properties for the ready event (see doc).
      */
-    CoopItemFileWriteStore.prototype.onGetFullState = function(token) {
-        // collect all items
-        var rows = [];
-        this.dataStore.fetch({
-            scope: this,
-            onItem: function(item) {                
-                var row = this._itemToRow(item);
-                rows.push(row);
-            }
-        });
-        this.collab.sendStateResponse(rows, token);
+    proto.onGetFullState = function(token) {
+        this.collab.sendStateResponse(this.bgData, token);
     };
 
-When invoked, this callback uses our :func:`_itemToRow` method to serialize all of the content in the data store. It then invokes the :func:`CollabInterface.sendStateResponse` method to send the state to the joining instance. The token passed to this callback and provided to :func:`sendStateResponse` pairs the request for state with the eventual response.
+When invokved, this callback simply sends the internal state of the shopping list (the ``bgData`` array). The token passed to this callback and provided to :func:`sendStateResponse` pairs the request for state with the eventual response.
 
 Now implement the :func:`onSetFullState` callback you registered in the constructor. The coweb framework invokes this method when this instance is joining an on-going session and receives full state from a remote instance.
 
@@ -829,20 +798,14 @@ Now implement the :func:`onSetFullState` callback you registered in the construc
      * to get up to speed. A remote instance provides this widget with an
      * array of all the items in the data store.
      *
-     * @param rows Array of row objects to be inserted as items
+     * @param bgData Array of row objects to be inserted as items.
      */
-    CoopItemFileWriteStore.prototype.onSetFullState = function(rows) {
-        // stop listening to local insert events from the data store else
-        // we'll echo all of the insert back to others in the session!
-        // via our onLocalInsert callback
-        this._dsConnect(false, 'insert');
-        // add all rows to the data store as items
-        dojo.forEach(rows, this.dataStore.newItem, this.dataStore);
-        // now resume listening for inserts
-        this._dsConnect(true, 'insert');
+    proto.onSetFullState = function(bgData) {
+        this.bgData = bgData;
+        this.buildList();
     };
 
-This callback unserializes the rows received from a remote :func:`onGetFullState` method. It adds all of the rows to the data store as items after ensuring its local :func:`onLocalInsert` callback is not inadvertently invoked for each item.
+Again, this callback is really simple - it keeps a reference to the delivered ``bgData`` array, then rebuilds the Data Grid.
 
 Checkpoint: Testing data store improvements
 ###########################################
@@ -1038,112 +1001,28 @@ Open the :file:`colist.js` file for the last time. Add the `CoopGrid` module dep
 .. sourcecode:: javascript
 
     define([
-        'dojo',
-        'dijit/registry',
-        'coweb/main',
-        'dojox/grid/DataGrid',
-        'dojo/data/ItemFileWriteStore',
-        'cowebx/dojo/BusyDialog/BusyDialog',
-        'CoopItemFileWriteStore',
-        'CoopGrid',
-        'dijit/form/Button',
-        'dijit/layout/BorderContainer',
-        'dijit/layout/ContentPane'
-    ], function(dojo, dijit, coweb, DataGrid, ItemFileWriteStore, BusyDialog, CoopItemFileWriteStore, CoopGrid) {
+        "dojo",
+        "dijit/registry",
+        "coweb/main",
+        "dojox/grid/DataGrid",
+        "dojo/data/ItemFileWriteStore",
+        "cowebx/dojo/BusyDialog/BusyDialog",
+        "dojo/_base/array",
+        "CoopGrid",
+        "dijit/form/Button",
+        "dijit/layout/BorderContainer",
+        "dijit/layout/ContentPane"
+    ], function(dojo, dijit, coweb, DataGrid, ItemFileWriteStore, BusyDialog, arrays, CoopGrid) {
       // etc.
    });
 
-Also, instantiate an instance of the class in :func:`init`.
+Also, instantiate an instance of the class in :func:`init` (at the end of the function is fine).
 
 .. sourcecode:: javascript
 
-   // instantiate our cooperative grid extension, giving it a reference
-   // to the dojox.grid.DataGrid widget
-   args = {grid : this.grid, id : 'colist_grid'};
-   var coopGrid = new CoopGrid(args);
-
-After these edits, your completed file should look something like the following:
-
-.. sourcecode:: javascript
-
-    define([
-        'dojo',
-        'dijit/registry',
-        'coweb/main',
-        'dojox/grid/DataGrid',
-        'dojo/data/ItemFileWriteStore',
-        'cowebx/dojo/BusyDialog/BusyDialog',
-        'CoopItemFileWriteStore',
-        'CoopGrid',
-        'dijit/form/Button',
-        'dijit/layout/BorderContainer',
-        'dijit/layout/ContentPane',
-        'dojo/domReady!'
-    ], function(dojo, dijit, coweb, DataGrid, ItemFileWriteStore, BusyDialog, CoopItemFileWriteStore, CoopGrid) {
-
-        var app = {
-            init: function(){
-                // parse declarative widgets
-                dojo.parser.parse();
-
-                // configure the grid datastore, starting it empty
-                var emptyData = {identifier : 'id', label : 'name', items: []};
-                this.dataStore = new ItemFileWriteStore({data : emptyData});
-                this.grid = dijit.byId('grid');
-                this.grid.setStore(this.dataStore);
-
-                // listen to and enable add/delete buttons
-                var addButton = dijit.byId('addRowButton');
-                var removeButton = dijit.byId('removeRowButton');
-                dojo.connect(addButton, 'onClick', this, 'onAddRow');
-                dojo.connect(removeButton, 'onClick', this, 'onRemoveRow');
-
-                var args = {dataStore : this.dataStore, id : 'colist_store'};
-                var coopDataStore = new CoopItemFileWriteStore(args);
-
-                args = {grid : this.grid, id : 'colist_grid'};
-                var coopGrid = new CoopGrid(args);
-
-                // get a session instance.
-                var sess = coweb.initSession();
-                BusyDialog.createBusy(sess);
-                // log status notifications to ensure we're working.
-                sess.onStatusChange = function(status) {
-                    console.debug(status);
-                };
-                // do the prep.
-                sess.prepare();
-
-            },
-
-            /**
-             * Adds a new row with default values to the local grid.
-             */
-            onAddRow: function() {
-                // make pseudo-unique ids
-                var date = new Date();
-                var id = String(Math.random()).substr(2) + String(date.getTime());
-                this.dataStore.newItem({
-                    id: id,
-                    name: 'New item',
-                    amount: 0
-                });
-            },
-
-            /**
-             * Removes all selected rows from the grid.
-             */
-            onRemoveRow: function() {
-                this.grid.removeSelectedRows();
-            },
-        };
-
-        // have to wrap class decl in ready when using dojo xd loader
-        dojo.ready(function() {
-            app.init();
-        });
-    });
-
+    // Instantiate our cooperative grid extension, giving it a reference to the dojox.grid.DataGrid widget.
+    args = {grid : this.grid, id : "colist_grid"};
+    var coopGrid = new CoopGrid(args);
 
 Checkpoint: Checking grid highlights
 ####################################
@@ -1177,6 +1056,8 @@ For the shopping list application we are first going to enable it to specify the
         return urlParams;
     }
 
+In :func:`init`, add the following before the call to ``sess.prepare()``.
+
 .. sourcecode:: javascript
 
     var urlParams = getURLParams();
@@ -1184,100 +1065,65 @@ For the shopping list application we are first going to enable it to specify the
     // do the prep
     sess.prepare({updaterType: updaterType});
 
-Now that an updater type can be specified by clients a custom Updater Type Matcher can be written that will be able to select the type of updater to be used based on the type of the updatee. The following is a java and a python example that demonstrates a custom matcher that looks for 4 different types (type1, type2, type3, type4). type1 will be matched for type1 and also type3, type2 will be matched for type2 and type4. type3 and type4 will only match their own type.
+Now that an updater type can be specified by clients, a custom Updater Type Matcher can be written that will be able to select the type of updater based on the type of the updatee. The following is a java example that demonstrates a custom matcher that looks for 4 different types (type1, type2, type3, type4). type1 will be matched for type1 and also type3, type2 will be matched for type2 and type4. type3 and type4 will only match their own type.
 
-:file:`ExampleUpdaterTypeMatcher.java`
-######################################
+:file:`src/main/java/com/yourdomain/ExampleUpdaterTypeMatcher.java`
+###################################################################
 
 .. sourcecode:: java
 
-	import java.util.Arrays;
-	import java.util.HashMap;
-	import java.util.List;
-	import java.util.Map;
-	import org.coweb.UpdaterTypeMatcher;
+    package com.yourdomain;
 
-	public class ExampleUpdaterTypeMatcher implements UpdaterTypeMatcher {
-		private Map<String, List<String>> updaterTypeLookup = null;
-		public ExampleUpdaterTypeMatcher() {
-			updaterTypeLookup = new HashMap<String, List<String>>();
-			updaterTypeLookup.put("type1", Arrays.asList(new String[]{"type1", "type3"}));
-			updaterTypeLookup.put("type2", Arrays.asList(new String[]{"type2", "type4"}));
-			updaterTypeLookup.put("type3", Arrays.asList(new String[]{"type3"}));
-			updaterTypeLookup.put("type4", Arrays.asList(new String[]{"type4"}));
-		}
-		public String match(String updateeType, List<String> availableUpdaterTypes) {
-			String match = null;
-			for (String availableUpdaterType : availableUpdaterTypes) {
-				List<String> matches = updaterTypeLookup.get(availableUpdaterType);
-				if (matches != null && matches.contains(updateeType)) {
-					match = availableUpdaterType;
-					break;
-				}
-			}
-			System.out.println("ExampleUpdaterTypeMatcher called to obtain a match for ["+updateeType+"] match = ["+match+"]");
-			return match;
-		}
-	}
+    import java.util.Arrays;
+    import java.util.HashMap;
+    import java.util.List;
+    import java.util.Map;
+    import org.coweb.UpdaterTypeMatcher;
 
-:file:`example.py`
-##################
+    public class ExampleUpdaterTypeMatcher implements UpdaterTypeMatcher {
+        private Map<String, List<String>> updaterTypeLookup = null;
+        public ExampleUpdaterTypeMatcher() {
+            updaterTypeLookup = new HashMap<String, List<String>>();
+            updaterTypeLookup.put("type1", Arrays.asList(new String[]{"type1", "type3"}));
+            updaterTypeLookup.put("type2", Arrays.asList(new String[]{"type2", "type4"}));
+            updaterTypeLookup.put("type3", Arrays.asList(new String[]{"type3"}));
+            updaterTypeLookup.put("type4", Arrays.asList(new String[]{"type4"}));
+        }
+        public String match(String updateeType, List<String> availableUpdaterTypes) {
+            String match = null;
+            for (String availableUpdaterType : availableUpdaterTypes) {
+                List<String> matches = updaterTypeLookup.get(availableUpdaterType);
+                if (matches != null && matches.contains(updateeType)) {
+                    match = availableUpdaterType;
+                    break;
+                }
+            }
+            System.out.println("ExampleUpdaterTypeMatcher called to obtain a match for ["+updateeType+"] match = ["+match+"]");
+            return match;
+        }
+    }
 
-.. sourcecode:: python
+To configure the java ``UpdaterTypeMatcher``, add the following option to your :file:`WEB-INF/cowebConfig.json` (if one doesn't exist, create it). 
 
-	import coweb.updater
-	import logging
+.. sourcecode:: json
 
-	log = logging.getLogger('example')
+    "updaterTypeMatcher": "com.yourdomain.ExampleUpdaterTypeMatcher"
 
-	class ExampleUpdaterTypeMatcher(coweb.updater.UpdaterTypeMatcherBase):
-    	def __init__(self, container):
-        	coweb.updater.UpdaterTypeMatcherBase.__init__(self, container)
-        	self.lookup = {"type1" : ["type1", "type3"], "type2" : ["type2", "type4"], "type3" : ["type3"], "type4" : ["type4"]}
-
-    	def match(self, updateeType, availableUpdaterTypes):
-        	log.info('updateeType = %s', updateeType)
-        	for availableUpdaterType in availableUpdaterTypes:
-            	if availableUpdaterType in self.lookup.keys():
-                	matches = self.lookup[availableUpdaterType]
-                	if updateeType in matches:
-                    	log.info('%s matched to %s', updateeType, availableUpdaterType)
-                    	return availableUpdaterType
-            	else:
-                	log.info('availableUpdaterType %s is not in lookup table', availableUpdaterType)
-
-        	return None
-
-To configure the java UpdaterTypeMatcher modify the web applications web.xml and add an init-param to the coweb Admin servlet descriptor
+Make sure your :file:`WEB-INF/web.xml` file uses cowebConfig.json. Check that your ``org.coweb.servlet.AdminServlet`` servlet descriptor has an ``init-param`` option for ConfigURL.
 
 .. sourcecode:: xml
 
-  <servlet>
-    <servlet-name>admin</servlet-name>
-    <servlet-class>org.coweb.servlet.AdminServlet</servlet-class>
-    <init-param>
-      <param-name>updaterTypeMatcherClass</param-name>
-      <param-value>org.coweb.example.ExampleUpdaterTypeMatcher</param-value>
-    </init-param>
-    <load-on-startup>2</load-on-startup>
-  </servlet>
+    <servlet>
+        <servlet-name>admin</servlet-name>
+        <servlet-class>org.coweb.servlet.AdminServlet</servlet-class>
+        <init-param>
+            <param-name>ConfigURI</param-name>
+            <param-value>/WEB-INF/cowebConfig.json</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
 
-To configure the python UpdaterTypeMatcher modify your run_server.tmpl file and add updaterTypeMatcherClass parameter to the on_configure block
-
-.. sourcecode:: python
-
-	class CoWebApp(coweb.AppContainer):
-    	def on_configure(self):
-        	# secret key for signing auth cookies
-        	self.webSecretKey = '${webSecretKey}'
-        	# match admin url to what java version uses
-        	self.webAdminUrl = self.webRoot + 'cowebx-apps/admin'
-        	# match static url to what java uses
-        	self.webStaticRoot = self.webRoot + 'cowebx-apps/'
-        	# provide custom updater type matcher
-        	self.updaterTypeMatcherClass = updater.ExampleUpdaterTypeMatcher
-
-You should now be able to specify an 'updaterType' on the shopping list applications URL and see logging information indicating which updater type was selected for late joiners.
+You should now be able to specify an **updaterType** on the shopping list applications URL and see logging information indicating which updater type was selected for late joiners.
 
 Going further
 ~~~~~~~~~~~~~
