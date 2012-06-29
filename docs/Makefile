@@ -19,24 +19,27 @@ ALLSPHINXOPTS	= -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "	 deploy		to deploy HTML files to opencoweb.org"
-	@echo "	 html		to make standalone HTML files"
-	@echo "	 javadoc	to make Javadoc files using Maven"
-	@echo "	 dirhtml	to make HTML files named index.html in directories"
-	@echo "	 singlehtml to make a single large HTML file"
-	@echo "	 pickle		to make pickle files"
-	@echo "	 json		to make JSON files"
-	@echo "	 htmlhelp	to make HTML files and a HTML help project"
-	@echo "	 qthelp		to make HTML files and a qthelp project"
-	@echo "	 devhelp	to make HTML files and a Devhelp project"
-	@echo "	 epub		to make an epub"
-	@echo "	 latex		to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
-	@echo "	 latexpdf	to make LaTeX files and run them through pdflatex"
-	@echo "	 text		to make text files"
-	@echo "	 man		to make manual pages"
-	@echo "	 changes	to make an overview of all changed/added/deprecated items"
-	@echo "	 linkcheck	to check all external links for integrity"
-	@echo "	 doctest	to run all doctests embedded in the documentation (if enabled)"
+	@echo "	 deploy			to deploy HTML files to opencoweb.org"
+	@echo "	 html			to make standalone HTML files"
+	@echo "	 javadoc		to make Javadoc files using Maven"
+	@echo "	 dirhtml		to make HTML files named index.html in directories"
+	@echo "	 singlehtml		to make a single large HTML file"
+	@echo "	 pickle			to make pickle files"
+	@echo "	 json			to make JSON files"
+	@echo "	 htmlhelp		to make HTML files and a HTML help project"
+	@echo "	 qthelp			to make HTML files and a qthelp project"
+	@echo "	 devhelp		to make HTML files and a Devhelp project"
+	@echo "	 epub			to make an epub"
+	@echo "	 latex			to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
+	@echo "	 latexpdf		to make LaTeX files and run them through pdflatex"
+	@echo "	 text			to make text files"
+	@echo "	 man			to make manual pages"
+	@echo "	 changes		to make an overview of all changed/added/deprecated items"
+	@echo "	 linkcheck		to check all external links for integrity"
+	@echo "	 doctest		to run all doctests embedded in the documentation (if enabled)"
+	@echo "	 wars			to make a deployable WAR files of the html and javadoc output"
+	@echo "	 htmlwar		to make a deployable WAR files of the html output"
+	@echo "	 javadocwar		to make a deployable WAR files of the javadoc output"
 
 deploy: html javadoc
 	rsync -rv $(BUILDDIR)/html/* $(DEPLOYDIR)
@@ -142,3 +145,55 @@ doctest:
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 		  "results in $(BUILDDIR)/doctest/output.txt."
+
+
+# Generate a deployable WAR of the OCW documentation.
+OCWDOCS_WAR_DEPLOY = ./
+JAVADOC_WEBXML_SRC = \
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<web-app xmlns=\"http://java.sun.com/xml/ns/javaee\"\n\
+         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n\
+         xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\"\n\
+         version=\"2.5\"\n\
+         id=\"ocwdocs\">\n\
+  <display-name>OCW Documentation</display-name>\n\
+  <welcome-file-list>\n\
+    <welcome-file>index.html</welcome-file>\n\
+  </welcome-file-list>\n\
+</web-app>
+HTML_WEBXML_SRC = \
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<web-app xmlns=\"http://java.sun.com/xml/ns/javaee\"\n\
+         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n\
+         xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd\"\n\
+         version=\"2.5\"\n\
+         id=\"ocwdocs\">\n\
+  <display-name>OCW Documentation</display-name>\n\
+  <welcome-file-list>\n\
+    <welcome-file>index.html</welcome-file>\n\
+  </welcome-file-list>\n\
+</web-app>
+
+javadocwar:
+	@$(eval OCWDOCS_TMPDIR :=$(shell mktemp -d -t pbs_docs_build))
+	@cp -r $(JAVABUILDDIR)/* $(OCWDOCS_TMPDIR)
+	@mkdir $(OCWDOCS_TMPDIR)/WEB-INF
+	@echo "$(JAVADOC_WEBXML_SRC)" > $(OCWDOCS_TMPDIR)/WEB-INF/web.xml
+	@cd $(OCWDOCS_TMPDIR);jar cf ocwjavadocs.war .;
+	@mv $(OCWDOCS_TMPDIR)/ocwjavadocs.war $(OCWDOCS_WAR_DEPLOY)/
+	@rm -r $(OCWDOCS_TMPDIR)
+	@echo "Created $(OCWDOCS_WAR_DEPLOY)/ocwjavadocs.war"
+
+htmlwar:
+	@$(eval OCWDOCS_TMPDIR :=$(shell mktemp -d -t pbs_docs_build))
+	@cp -r $(BUILDDIR)/html/* $(OCWDOCS_TMPDIR)
+	@mkdir $(OCWDOCS_TMPDIR)/WEB-INF
+	@echo "$(HTML_WEBXML_SRC)" > $(OCWDOCS_TMPDIR)/WEB-INF/web.xml
+	@cd $(OCWDOCS_TMPDIR);jar cf ocwdocs.war .;
+	@mv $(OCWDOCS_TMPDIR)/ocwdocs.war $(OCWDOCS_WAR_DEPLOY)/
+	@rm -r $(OCWDOCS_TMPDIR)
+	@echo "Created $(OCWDOCS_WAR_DEPLOY)/ocwdocs.war"
+
+wars: htmlwar javadocwar
+	@echo "Making WARS for html and javadocs."
+
