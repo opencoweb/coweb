@@ -31,9 +31,9 @@ public class ModeratorLateJoinHandler extends LateJoinHandler {
 		log.info("siteId = " + siteId);
 		Map<Integer, String> roster = this.getRosterList(client);
 
-		// Construct message: 1) app data, 2) engine state, 3) paused sync buffer.
+		// Construct message: 1) app data, 2) engine state.
 		Map<String, Object> collabs = this.sessionModerator.getLateJoinState();
-		Object[] data = new Object[collabs.size() + 1]; // +2 if we actually send the paused sync buffer.
+		Object[] data = new Object[collabs.size() + 1];
 
 		// 1) App data.
 		int cnt = 0;

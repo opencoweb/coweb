@@ -185,7 +185,7 @@ public abstract class SessionModerator {
 	  * this method will return a map with the pairs ("foo", fooStateObj) and
 	  * ("bar", barStateObj).
 	  *
-	  * null should *not* be returned under any circumstance.
+	  * <p>null should *not* be returned under any circumstance.
 	  *
 	  * @return collab application state map
 	  */
@@ -240,8 +240,8 @@ public abstract class SessionModerator {
 
 	/**
 	  * Called whenever a session is over (i.e. all clients have left). Note that this
-	  * SessionModerator object will still be kept in memory if moderatorIsUpdater is set
-	  * to true.
+	  * SessionModerator object will still be kept in memory if moderatorIsUpdater and
+	  * reused for any future coweb sessions with the same cowebkey.
 	  *
 	  * <p>If this moderator is not the updater, it is recommended that subclasses
 	  * use this method to help in resetting application state to a fresh state
