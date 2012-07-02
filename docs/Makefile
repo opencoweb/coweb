@@ -160,7 +160,7 @@ JAVADOC_WEBXML_SRC = \
   <welcome-file-list>\n\
     <welcome-file>index.html</welcome-file>\n\
   </welcome-file-list>\n\
-</web-app>
+</web-app>\n
 HTML_WEBXML_SRC = \
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
 <web-app xmlns=\"http://java.sun.com/xml/ns/javaee\"\n\
@@ -172,28 +172,28 @@ HTML_WEBXML_SRC = \
   <welcome-file-list>\n\
     <welcome-file>index.html</welcome-file>\n\
   </welcome-file-list>\n\
-</web-app>
+</web-app>\n
 
-javadocwar:
-	@$(eval OCWDOCS_TMPDIR :=$(shell mktemp -d -t pbs_docs_build))
+javadocwar: javadoc
+	@$(eval OCWDOCS_TMPDIR :=$(shell mktemp -d -t ocw_docs_build.XXXXXX))
 	@cp -r $(JAVABUILDDIR)/* $(OCWDOCS_TMPDIR)
 	@mkdir $(OCWDOCS_TMPDIR)/WEB-INF
-	@echo "$(JAVADOC_WEBXML_SRC)" > $(OCWDOCS_TMPDIR)/WEB-INF/web.xml
+	@printf "$(JAVADOC_WEBXML_SRC)" > $(OCWDOCS_TMPDIR)/WEB-INF/web.xml
 	@cd $(OCWDOCS_TMPDIR);jar cf ocwjavadocs.war .;
 	@mv $(OCWDOCS_TMPDIR)/ocwjavadocs.war $(OCWDOCS_WAR_DEPLOY)/
 	@rm -r $(OCWDOCS_TMPDIR)
 	@echo "Created $(OCWDOCS_WAR_DEPLOY)/ocwjavadocs.war"
 
-htmlwar:
-	@$(eval OCWDOCS_TMPDIR :=$(shell mktemp -d -t pbs_docs_build))
+htmlwar: html
+	@$(eval OCWDOCS_TMPDIR :=$(shell mktemp -d -t ocw_docs_build.XXXXXX))
 	@cp -r $(BUILDDIR)/html/* $(OCWDOCS_TMPDIR)
 	@mkdir $(OCWDOCS_TMPDIR)/WEB-INF
-	@echo "$(HTML_WEBXML_SRC)" > $(OCWDOCS_TMPDIR)/WEB-INF/web.xml
+	@printf "$(HTML_WEBXML_SRC)" > $(OCWDOCS_TMPDIR)/WEB-INF/web.xml
 	@cd $(OCWDOCS_TMPDIR);jar cf ocwdocs.war .;
 	@mv $(OCWDOCS_TMPDIR)/ocwdocs.war $(OCWDOCS_WAR_DEPLOY)/
 	@rm -r $(OCWDOCS_TMPDIR)
 	@echo "Created $(OCWDOCS_WAR_DEPLOY)/ocwdocs.war"
 
 wars: htmlwar javadocwar
-	@echo "Making WARS for html and javadocs."
+	@echo "Made WARS for html and javadocs."
 
