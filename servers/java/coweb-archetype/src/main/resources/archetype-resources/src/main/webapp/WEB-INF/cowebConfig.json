@@ -1,0 +1,8 @@
+{
+	/**
+	  * See `http://opencoweb.org/ocwdocs/java/deploy.html#configuring-coweb-options` for documentation on
+	  * OCW cowebConfig.json configuration.
+	  */
+	"moderatorIsUpdater": false,
+	"bots": []
+} 

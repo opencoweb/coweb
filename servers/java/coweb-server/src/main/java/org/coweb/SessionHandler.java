@@ -92,7 +92,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			config.put("moderatorIsUpdater", false);
 			/* Perhaps config.get("sessionModerator") had an exception or didn't exist,
 			   so either we try to create default implementation of moderator, or throw an exception. */
-			log.severe("SessionModerator.newInstance(" + config.get("sessionModerator") +
+			log.severe("SessionModerator.getInstance(" + config.get("sessionModerator") +
 					") failed, reverting to trying to create default implementation.");
 			this.sessionModerator = SessionModerator.getInstance(this, null, confKey);
 			if (null == this.sessionModerator) {

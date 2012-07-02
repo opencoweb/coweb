@@ -19,7 +19,7 @@ Generating a deployment descriptor
 
 To generate a deployment descriptor for a new coweb project, use the Maven `coweb-archetype` as described in the :ref:`maven-archetype` section.
 
-This archetype produces a deployment descriptor under :file:`src/main/webapp/WEB-INF.web.xml` in the project directory. The generated file configures one `org.coweb.servlet.AdminServlet`_ and one `org.cometd.server.CometdServlet`_ managing any number of independent sessions.
+This archetype produces a deployment descriptor under :file:`src/main/webapp/WEB-INF/web.xml` in the project directory. The generated file configures one `org.coweb.servlet.AdminServlet`_ and one `org.cometd.server.CometdServlet`_ managing any number of independent sessions.
 
 .. sourcecode:: xml
 
@@ -78,49 +78,10 @@ The CometD servlet accepts all of the `CometD 2 Java Server configuration`_ opti
 Configuring coweb options
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-coweb configuration is specified within a configuration json file. The path to this file is specified as an init parameter to the admin servlet.
+coweb configuration is specified within a configuration json file. To use a custom coweb configuration, set the ``ConfigURI`` init parameter to the AdminServlet in your :file:`WEB-INF/web.xml`. 
 
-ConfigURI
-   The path to the location of the config json file. For example if the file cowebConfig.json is located in /WEB-INF of the WebApplication the value would be /WEB-INF/cowebConfig.json.
-
-The following are available properties that can be specified in the config json file :
-
-securityClass
-   String name of a :class:`org.coweb.CowebSecurityPolicy` subclass to use instead of the base class which allows anonymous access to all sessions. 
-
-updaterTypeMatcherClass
-   String name of a :class:`org.coweb.UpdaterTypeMatcher` subclass to use to match an Updater Type for a late joiner.
-
-logLevel
-   Log Level value of the coweb logger. Valid values are 0 (WARNING), 1 (INFO) and 2 (FINE). The default is 0.
-
-captureIncoming
-   Path to a file where the captured incoming data will be written.
-
-captureOutgoing
-   Path to a file where the captured outgoing data will be written.
-
-moderatorIsUpdater
-   Use a server-side moderator.
-
-sessionModerator
-   String name of a :class:`org.coweb.SessionModerator` subclass to use for managing session moderation.
-
-operationEngine
-   Boolean indicating if servers-side operation engine should be used.
-
-cacheState
-   Boolean indicting if state should be cached.
-
-bots
-   Array of bot json configuration objects. Each bot configuration objects provides a "service" property which is the service name. It can optionally provide a "broker" property that is a name of a :class:`org.coweb.bots.Transport` subclass.
-
-Use cases
-~~~~~~~~~
-
-The following examples demonstrate how coweb options enable alternative server configurations.
-
-First configure a json config file :
+:file:`WEB-INF/web.xml`
+################################
 
 .. sourcecode:: xml
 
@@ -133,6 +94,41 @@ First configure a json config file :
 	      <param-value>/WEB-INF/cowebConfig.json</param-value>
       </init-param>
    </servlet>
+
+The contents of :file:`cowebConfig.json` are considered a JSON object. The following are available properties that can be specified in the config json file:
+
+securityClass (java class name)
+   String name of a :class:`org.coweb.CowebSecurityPolicy` subclass to use instead of the base class which allows anonymous access to all sessions. 
+
+updaterTypeMatcherClass (java class name)
+   String name of a :class:`org.coweb.UpdaterTypeMatcher` subclass to use to match an Updater Type for a late joiner.
+
+logLevel (integer)
+   Log Level value of the coweb logger. Valid values are 0 (WARNING), 1 (INFO) and 2 (FINE). The default is 0.
+
+captureIncoming (string)
+   Path to a file where the captured incoming data will be written.
+
+captureOutgoing (string)
+   Path to a file where the captured outgoing data will be written.
+
+moderatorIsUpdater (boolean)
+	The moderator will be the updater for late joiners to an OCW session. You will probably want to specify a custom `org.coweb.SessionModerator` class with the `sessionModerator` option (below).
+
+sessionModerator (java class name)
+   String name of a :class:`org.coweb.SessionModerator` subclass to use for managing session moderation.
+
+operationEngine (boolean)
+   Boolean indicating if server-side operation engine should be used.
+
+.. note::
+	`moderatorIsUpdater` set to true implies `operationEngine` being true. In other words, if `moderatorIsUpdater` is true, then the server will automatically use the server-side operation engine.
+
+cacheState (boolean)
+   Boolean indicting if state should be cached.
+
+bots (json object array)
+   Array of bot json configuration objects. Each bot configuration objects provides a "service" property which is the service name. It can optionally provide a "broker" property that is a name of a :class:`org.coweb.bots.Transport` subclass.
 
 Custom session security and Updater Type Matcher
 ################################################

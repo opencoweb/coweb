@@ -42,6 +42,10 @@
         <servlet-name>admin</servlet-name>
         <servlet-class>org.coweb.servlet.AdminServlet</servlet-class>
         <load-on-startup>2</load-on-startup>
+		<init-param>
+		  <param-name>ConfigURI</param-name>
+		  <param-value>/WEB-INF/cowebConfig.json</param-value>
+		</init-param>
     </servlet>
     <servlet-mapping>
         <servlet-name>admin</servlet-name>
