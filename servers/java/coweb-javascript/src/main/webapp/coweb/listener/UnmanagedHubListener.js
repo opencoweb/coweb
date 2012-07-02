@@ -224,8 +224,8 @@ define([
                     site, sites, order);
             } catch(e) {
                 console.log('topic ',topic);
-                console.log('value ',position);
-                console.log('type ',position);
+                console.log('value 'value);
+                console.log('type ',type);
                 console.log('position ',position);
                 console.warn('UnmanagedHubListener: failed to push op into engine ' +
                     e.message);
