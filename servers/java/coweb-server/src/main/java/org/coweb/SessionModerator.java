@@ -234,7 +234,7 @@ public abstract class SessionModerator {
 	/**
 	  * Called whenever a bot publishes a message.
 	  *
-	  * @param botMessage the bot's message
+	  * @param botResponse the bot's message
 	  */
 	public abstract void onServiceResponse(Message botResponse);
 

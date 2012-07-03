@@ -17,8 +17,7 @@ public class OperationEngine {
      * API for operation processing, garbage collection, and engine 
      * synchronization.
      *
-     * @constructor
-     * @param {Number} siteId Unique integer site ID for this engine instance
+     * @param siteId Unique integer site ID for this engine instance
      */
 	public OperationEngine(int siteId) throws OperationEngineException {
 		this.siteId = siteId;
@@ -63,7 +62,7 @@ public class OperationEngine {
      * Sets the state of this engine instance to state received from another
      * instance.
      *
-     * @param {Object[]} arr Array in the format returned by getState
+     * @param arr Array in the format returned by getState
      */
 	public void setState(Object[] arr) throws OperationEngineException {
 		this.cvt.setState((int[][])arr[0]);
@@ -89,7 +88,7 @@ public class OperationEngine {
 	 * state.
 	 * @throws OperationEngineException 
 	 * 
-	 * @returns {ContextVector} Copy of the context vector for the local site
+	 * @return Copy of the context vector for the local site
 	 */
 	public ContextVector copyContextVector() throws OperationEngineException {
 		return this.cv.copy();
@@ -99,21 +98,21 @@ public class OperationEngine {
 	 * Factory method that creates an operation object initialized with the
 	 * given values.
 	 * 
-	 * @param {Boolean} local True if the operation was originated locally,
+	 * @param local True if the operation was originated locally,
 	 *        false if not
-	 * @param {String} key Operation key
-	 * @param {String} value Operation value
-	 * @param {String} type Type of operation: update, insert, delete
-	 * @param {Number} position Operation integer position
-	 * @param {Number} site Integer site ID where a remote op originated.
+	 * @param key Operation key
+	 * @param value Operation value
+	 * @param type Type of operation: update, insert, delete
+	 * @param position Operation integer position
+	 * @param site Integer site ID where a remote op originated.
 	 *        Ignored for local operations which adopt the local site ID.
-	 * @param {ContextVector} cv Operation context. Ignored for local operations
+	 * @param cv Operation context. Ignored for local operations
 	 *        which adopt the local site context.
-	 * @param {Number} order Place of the operation in the total order. Ignored
+	 * @param order Place of the operation in the total order. Ignored
 	 *        for local operations which are not yet assigned a place in the
 	 *        order.
 	 * @throws OperationEngineException 
-	 * @returns {Operation} Subclass instance matching the given type
+	 * @return Subclass instance matching the given type
 	 */
 	public Operation createOp(boolean local, String key, String value,
 			String type, int position, int site, int[] cv, int order) throws OperationEngineException {
@@ -164,8 +163,8 @@ public class OperationEngine {
 	/**
 	 * Procceses a local operation and adds it to the history buffer.
 	 * 
-	 * @param {Operation} Local operation
-	 * @returns {Operation} Reference to the pass parameter
+	 * @param op Local operation
+	 * @return Reference to the pass parameter
 	 */
 	public Operation pushLocalOp(Operation op) {
 		// update local context vector
@@ -179,9 +178,9 @@ public class OperationEngine {
 	 * Procceses a remote operation, transforming it if required, and adds the
 	 * original to the history buffer.
 	 * 
-	 * @param {Operation} Remote operation
+	 * @param op Remote operation
 	 * @throws OperationEngineException 
-	 * @returns {Operation|null} New, transformed operation object or null if
+	 * @return New, transformed operation object or null if
 	 *          the effect of the passed operation is nothing and should not be
 	 *          applied to the shared state
 	 */
@@ -220,8 +219,8 @@ public class OperationEngine {
 	/**
 	 * Processes an engine synchronization event.
 	 * 
-	 * @param {Number} site Integer site ID of where the sync originated
-	 * @param {ContextVector} cv Context vector sent by the engine at that site
+	 * @param site Integer site ID of where the sync originated
+	 * @param cv Context vector sent by the engine at that site
 	 * @throws OperationEngineException 
 	 */
 	public void pushSync(int site, ContextVector cv) throws OperationEngineException {
@@ -232,8 +231,8 @@ public class OperationEngine {
 	/**
 	 * Processes an engine synchronization event.
 	 * 
-	 * @param {Number} site Integer site ID of where the sync originated
-	 * @param {Number[]} Array form of the context vector sent by the site
+	 * @param site Integer site ID of where the sync originated
+	 * @param sites Array form of the context vector sent by the site
 	 * @throws OperationEngineException 
 	 */
 	public void pushSyncWithSites(int site, int[] sites) throws OperationEngineException {
@@ -248,7 +247,7 @@ public class OperationEngine {
 	 * Runs the garbage collection algorithm over the history buffer.
 	 * @throws OperationEngineException 
 	 * 
-	 * @returns {ContextVector|null} Compiuted minimum context vector of the
+	 * @return Compiuted minimum context vector of the
 	 *          earliest operation garbage collected or null if garbage
 	 *          collection did not run
 	 */
@@ -308,7 +307,7 @@ public class OperationEngine {
 	/**
 	 * Gets the size of the history buffer in terms of stored operations.
 	 * 
-	 * @returns {Number} Integer size
+	 * @return Integer size
 	 */
 	public int getBufferSize() {
 		return this.hb.getCount();
@@ -318,8 +317,8 @@ public class OperationEngine {
 	 * Gets if the engine has already processed the give operation based on its
 	 * context vector and the context vector of this engine instance.
 	 * 
-	 * @param {Operation} op Operation to check
-	 * @returns {Boolean} True if the engine already processed this operation,
+	 * @param op Operation to check
+	 * @return True if the engine already processed this operation,
 	 *          false if not
 	 */
 	public boolean hasProcessedOp(Operation op) {
@@ -336,7 +335,7 @@ public class OperationEngine {
 	 * context vector of this engine. Should be invoked when a remote site stops
 	 * participating.
 	 * 
-	 * @param {Number} site Integer ID of the site to freeze
+	 * @param site Integer ID of the site to freeze
 	 * @throws OperationEngineException 
 	 */
 	public void freezeSite(int site) throws OperationEngineException {
@@ -354,7 +353,7 @@ public class OperationEngine {
 	 * vector into the context vector table. Should be invoked before processing
 	 * the first operation from a new remote site.
 	 * 
-	 * @param {Number} site Integer ID of the site to thaw
+	 * @param site Integer ID of the site to thaw
 	 * @throws OperationEngineException 
 	 */
 	public void thawSite(int site) throws OperationEngineException {
@@ -375,7 +374,7 @@ public class OperationEngine {
 	/**
 	 * Gets the number of sites known to be participating, including this site.
 	 * 
-	 * @returns {Number} Integer count
+	 * @return Integer count
 	 */
 	public int getSiteCount() {
 		return this.siteCount;
@@ -386,11 +385,11 @@ public class OperationEngine {
 	 * algorithm. This method assumes it will NOT be called if no transformation
 	 * is needed in order to reduce the number of operation copies needed.
 	 * 
-	 * @param {Operation} op Operation to transform
-	 * @param {ContextDifference} cd Context vector difference between the given
+	 * @param op Operation to transform
+	 * @param cd Context vector difference between the given
 	 *        op and the document state at the time of this recursive call
 	 * @throws OperationEngineException 
-	 * @returns {Operation|null} A new operation, including the effects of all
+	 * @return A new operation, including the effects of all
 	 *          of the operations in the context difference or null if the
 	 *          operation can have no further effect on the document state
 	 */

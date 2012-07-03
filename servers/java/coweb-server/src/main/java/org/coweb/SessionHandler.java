@@ -409,7 +409,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
      * Publishes a local op engine sync event to the /session/sync Bayeux 
      * channel.
      *
-     * @param int[] context int array context vector for this site
+     * @param sites context int array context vector for this site
      */
 	public void postEngineSync(Integer[] sites) {
 		log.info("sites = " + Arrays.toString(sites));

@@ -60,13 +60,13 @@ public class OperationEngineHandler {
      * Processes the data in the local operation engine if required before 
      * publishing to the moderator. 
      *
-     * @param Map containing the following.
-     *        String topic Topic name (topics.SYNC.**)
-     *        String value JSON-encoded operation value
-     *        String|null type Operation type
-     *        Integer position Operation linear position
-     *        Integer site Unique integer ID of the sending site
-     *        Integer[] sites Context vector as an array of integers (use {@link OperationEngineHandler#getSites} to convert from Integer[] to int[])
+     * @param data Map containing the following.
+     *        <li>String topic Topic name (topics.SYNC.**)
+     *        <li>String value JSON-encoded operation value
+     *        <li>String|null type Operation type
+     *        <li>Integer position Operation linear position
+     *        <li>Integer site Unique integer ID of the sending site
+     *        <li>Integer[] sites Context vector as an array of integers (use {@link OperationEngineHandler#getSites} to convert from Integer[] to int[])
      */
 	public Map<String, Object> syncInbound(Map<String, Object> data) {
 			
@@ -158,9 +158,9 @@ public class OperationEngineHandler {
      * vector table of the local engine. Sets a flag saying the local op engine
      * should run garbage collection over its history. 
      * 
-     * @param Map containing the following.
-     *        Integer site Unique integer ID of the sending site
-     *        int[] sites Context vector as an array of integers
+     * @param data Map containing the following.
+     *        <li>Integer site Unique integer ID of the sending site
+     *        <li>int[] sites Context vector as an array of integers
      */
 	public void engineSyncInbound(Map<String, Object> data) {
 		int[] sites = this.getSites(data);

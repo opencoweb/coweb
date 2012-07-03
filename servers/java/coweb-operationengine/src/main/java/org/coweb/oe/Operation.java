@@ -66,23 +66,20 @@ public abstract class Operation {
      * Initializes the operation from serialized state or individual props if
      * state is not defined in the args parameter.
      *
-     * @param {Object[]} args.state Array in format returned by getState 
-     * bundling the following individual parameter values
-     * @param {Number} args.siteId Integer site ID where the op originated
-     * @param {ContextVector} args.contextVector Context in which the op 
-     * occurred
-     * @param {String} args.key Name of the property the op affected
-     * @param {String} args.value Value of the op
-     * @param {Number} args.position Integer position of the op in a linear
-     * collection
-     * @param {Number} args.order Integer sequence number of the op in the 
-     * total op order across all sites
-     * @param {Number} args.seqId Integer sequence number of the op at its
-     * originating site. If undefined, computed from the context vector and
-     * site ID.
-     * @param {Boolean} args.immutable True if the op cannot be changed, most
-     * likely because it is in a history buffer somewhere
-     * to this instance
+     * @param args Map containing the following:
+	 *        <li>state Array in format returned by getState 
+     *            bundling the following individual parameter values
+     *        <li>siteId Integer site ID where the op originated
+     *        <li>contextVector Context in which the op occurred
+     *        <li>key Name of the property the op affected
+     *        <li>value Value of the op
+     *        <li>position Integer position of the op in a linear collection
+     *        <li>order Integer sequence number of the op in the 
+     *            total op order across all sites
+     *        <li>seqId Integer sequence number of the op at its originating site.
+     *            If undefined, computed from the context vector and site ID.
+     *        <li>immutable True if the op cannot be changed, most likely because
+	 *            it is in a history buffer somewhere to this instance
 	 * @throws OperationEngineException 
      */
 	@SuppressWarnings("unchecked")
@@ -171,7 +168,7 @@ public abstract class Operation {
      * Unserializes operation data and sets it as the instance data. Throws an
      * exception if the state is not from an operation of the same type.
      *
-     * @param {Object[]} arr Array in the format returned by getState
+     * @param arr Array in the format returned by getState
 	 * @throws OperationEngineException 
      */
 	public void setState(Object[] arr) throws OperationEngineException {
@@ -206,7 +203,7 @@ public abstract class Operation {
      * a ref to this instance if the op is marked as mutable.
 	 * @throws OperationEngineException 
      *
-     * @returns {Operation} Operation object
+     * @return Operation object
      */
 	public Operation copy() throws OperationEngineException {
 		HashMap<String, Object> args = new HashMap<String, Object>();
@@ -237,9 +234,9 @@ public abstract class Operation {
      * Gets a version of the given operation previously transformed into the
      * given context if available.
      *
-     * @param {ContextVector} cv Context of the transformed op to seek
+     * @param cv Context of the transformed op to seek
 	 * @throws OperationEngineException 
-     * @returns {Operation|null} Copy of the transformed operation from the 
+     * @return Copy of the transformed operation from the 
      * cache or null if not found in the cache
      */
 	public Operation getFromCache(ContextVector cv) throws OperationEngineException {
@@ -262,7 +259,7 @@ public abstract class Operation {
      * Caches a transformed copy of this original operation for faster future
      * transformations.
      *
-     * @param {Number} Integer count of active sites, including the local one
+     * @param siteCount Integer count of active sites, including the local one
 	 * @throws OperationEngineException 
      */
 	public void addToCache(int siteCount) throws OperationEngineException {
@@ -295,8 +292,8 @@ public abstract class Operation {
      * Computes an ordered comparison of this op and another based on their
      * context vectors. Used for sorting operations by their contexts.
      *
-     * @param {Operation} op Other operation
-     * @returns {Number} -1 if this op is ordered before the other, 0 if they
+     * @param op Other operation
+     * @return -1 if this op is ordered before the other, 0 if they
      * are in the same context, and 1 if this op is ordered after the other
      */
 	public int compareByContext(Operation op) {
@@ -317,8 +314,8 @@ public abstract class Operation {
      * Computes an ordered comparison of this op and another based on their
      * position in the total op order.
      *
-     * @param {Operation} op Other operation
-     * @returns {Number} -1 if this op is ordered before the other, 0 if they
+     * @param op Other operation
+     * @return -1 if this op is ordered before the other, 0 if they
      * are in the same context, and 1 if this op is ordered after the other
      */
     public int compareByOrder(Operation op) {
@@ -354,7 +351,7 @@ public abstract class Operation {
      * op to reflect the inclusion of the other.
      * @throws OperationEngineException 
      *
-     * @returns {Operation|null} This operation, transformed in-place, or null
+     * @return This operation, transformed in-place, or null
      * if its effects are nullified by the transform
      * @throws {Error} If this op to be transformed is immutable or if the
      * this operation subclass does not implement the transform method needed
@@ -387,7 +384,7 @@ public abstract class Operation {
      * Upgrades the context of this operation to reflect the inclusion of a
      * single other operation from some site.
      *
-     * @param {Operation} The operation to include in the context of this op
+     * @param op The operation to include in the context of this op
      * @throws OperationEngineException 
      * @throws {Error} If this op to be upgraded is immutable
      */

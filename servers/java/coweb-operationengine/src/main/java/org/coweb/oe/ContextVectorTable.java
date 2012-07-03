@@ -35,9 +35,9 @@ public class ContextVectorTable {
      * reference with, the given context vector, skipping the one noted in the 
      * skip param.
      *
-     * @param {ContextVector} cv Context vector instance
-     * @param {Number} skip Integer index to skip
-     * @returns {Number[]} Integer indices of table slots referencing the
+     * @param cv Context vector instance
+     * @param skip Integer index to skip
+     * @return Integer indices of table slots referencing the
      * context vector
      */
     public int[] getEquivalents(ContextVector cv, int skip) {
@@ -65,7 +65,7 @@ public class ContextVectorTable {
     /**
      * Serializes the state of this context vector table for transmission.
      *
-     * @returns {Array[]} Array of context vectors serialized as arrays
+     * @return Array of context vectors serialized as arrays
      */
 	public int[][] getState() {
 		int l = this.cvt.size();
@@ -82,7 +82,7 @@ public class ContextVectorTable {
 	/**
      * Unserializes context vector table contents to initialize this intance.
      *
-     * @param {Array[]} arr Array in the format returned by getState
+     * @param arr Array in the format returned by getState
 	 * @throws OperationEngineException 
      */
 	public void setState(int[][] arr) throws OperationEngineException {
@@ -102,7 +102,7 @@ public class ContextVectorTable {
      * Inceases the size of all context vectors in the table to the given size.
      * Initializes new entries with zeroed context vectors.
      *
-     * @param {Number} count Desired integer size
+     * @param count Desired integer size
 	 * @throws OperationEngineException 
      */
     public void growTo(int count) throws OperationEngineException {
@@ -126,9 +126,9 @@ public class ContextVectorTable {
      * Gets the context vector for the given site. Grows the table if it does 
      * not include the site yet and returns a zeroed context vector if so.
      *
-     * @param {Number} site Integer site ID
+     * @param site Integer site ID
      * @throws OperationEngineException 
-     * @returns {ContextVector} Context vector for the given site
+     * @return Context vector for the given site
      */
 	public ContextVector getContextVector(int site) throws OperationEngineException {
 		if(this.cvt.size() <= site) {
@@ -143,8 +143,8 @@ public class ContextVectorTable {
      * Sets the context vector for the given site. Grows the table if it does
      * not include the site yet.
      *
-     * @param {Number} site Integer site ID
-     * @param {ContextVector} cv Context vector instance
+     * @param site Integer site ID
+     * @param cv Context vector instance
 	 * @throws OperationEngineException 
      */
 	public void updateWithContextVector(int site, ContextVector cv) throws OperationEngineException {
@@ -163,7 +163,7 @@ public class ContextVectorTable {
 	 * Sets the context vector for the site on the given operation. Grows the 
 	 * table if it does not include the site yet.
 	 *
-	 * @param {Operation} op Operation with the site ID and context vector
+	 * @param op Operation with the site ID and context vector
 	 * @throws OperationEngineException 
 	 */
 	public void updateWithOperation(Operation op) throws OperationEngineException {
@@ -181,7 +181,7 @@ public class ContextVectorTable {
      * vector cannot be constructed because the table is empty.
 	 * @throws OperationEngineException 
      *
-     * @returns {ContextVector|null} Minium context vector
+     * @return Minium context vector
      */
 	public ContextVector getMinimumContextVector() throws OperationEngineException {
 		// if table is empty, abort
