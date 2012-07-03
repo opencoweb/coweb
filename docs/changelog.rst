@@ -4,6 +4,14 @@
 Changelog
 ---------
 
+Version 0.8.3
+~~~~~~~~~~~~~
+
+* Changed Moderator API: `org.coweb.SessionModerator`_ ``getLateJoinState`` returns a ``Map`` of collab topics.
+* Fixed moderator bugs.
+* Fixed whiteboard cowebx-widget bug.
+* Critical sections of coweb-server now correctly synchronized.
+
 Version 0.6
 ~~~~~~~~~~~
 
