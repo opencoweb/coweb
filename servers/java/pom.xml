@@ -65,6 +65,7 @@
         <module>coweb-bots</module>
         <module>coweb-server</module>
         <module>coweb-javascript</module>
+        <module>coweb-jsoe</module>
         <module>coweb-client</module>
         <module>coweb-archetype</module>
         <module>coweb-admin</module>
