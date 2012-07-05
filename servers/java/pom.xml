@@ -8,7 +8,7 @@
     
     <name>OpenCoweb</name>
     <description>Open Cooperative Web Framework</description>
-    <version>0.8.3-SNAPSHOT</version>
+    <version>0.8.3.1-SNAPSHOT</version>
     <url>http://opencoweb.org</url>
     <inceptionYear>2011</inceptionYear>
     <organization>
@@ -57,7 +57,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <cometd-version>2.4.0</cometd-version>
-        <coweb-version>0.8.3-SNAPSHOT</coweb-version>
+        <coweb-version>0.8.3.1-SNAPSHOT</coweb-version>
     </properties>
 
     <modules>

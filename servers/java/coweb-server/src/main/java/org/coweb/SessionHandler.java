@@ -4,6 +4,7 @@
  */
 package org.coweb;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private SessionModerator sessionModerator = null;
 	private OperationEngineHandler operationEngine = null;
 
-	private int order = 0;
+	private AtomicInteger order = new AtomicInteger(0);
 
 	private String syncAppChannel = null;
 	private String syncEngineChannel = null;
@@ -236,7 +237,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		String channelName = message.getChannel();
 		if (channelName.equals(this.syncAppChannel)) {
 			// put total order on message
-			data.put("order", this.order++);
+			data.put("order", this.order.getAndIncrement());
 
 			if (this.operationEngine != null) {
 				
