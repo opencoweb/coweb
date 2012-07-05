@@ -14,7 +14,7 @@
 /*global define*/
 define([
     'coweb/jsoe/ContextVector',
-	'org/requirejs/i18n!../nls/messages'
+	'org/requirejs/i18n!./nls/messages'
 ], function(ContextVector, messages) {
     /**
      * Contains information about a local or remote event for transformation.

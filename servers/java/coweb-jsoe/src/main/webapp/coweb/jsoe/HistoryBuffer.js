@@ -11,7 +11,7 @@
 define([
     'coweb/jsoe/factory',
     'coweb/jsoe/Operation',
-	'org/requirejs/i18n!../nls/messages'
+	'org/requirejs/i18n!./nls/messages'
 ], function(factory, Operation, messages) {
     /**
      * Stores information about local and remote operations for future 

@@ -11,7 +11,7 @@
 /*global define*/
 define([
     'coweb/jsoe/ContextDifference',
-	'org/requirejs/i18n!../nls/messages'
+	'org/requirejs/i18n!./nls/messages'
 ], function(ContextDifference, messages) {
     /**
      * Represents the context in which an operation occurred at a site in 

@@ -15,7 +15,7 @@ define([
     'coweb/jsoe/ContextVector',
     'coweb/jsoe/HistoryBuffer',
     'coweb/jsoe/factory',
-	'org/requirejs/i18n!../nls/messages',
+	'org/requirejs/i18n!./nls/messages',
     // load subclasses to get them registered with the factory
     'coweb/jsoe/UpdateOperation',
     'coweb/jsoe/InsertOperation',
