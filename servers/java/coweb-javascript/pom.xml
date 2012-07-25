@@ -91,11 +91,5 @@ if (typeof dojo !== 'undefined' &amp;&amp; !dojo.provide) { dojo.provide = funct
 		<type>war</type>
 		<scope>provided</scope>
 	</dependency>
-	  <dependency>
-		<groupId>org.opencoweb</groupId>
-        <artifactId>coweb-jsoe</artifactId>
-        <version>${project.version}</version>
-		<type>war</type>
-	</dependency>
     </dependencies>
 </project>
