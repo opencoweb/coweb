@@ -48,31 +48,52 @@
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
+					<execution>
+						<id>jsoe_clean</id>
+						<phase>compile</phase>
+                        <configuration>
+                            <tasks>
+								<exec dir="src/main/webapp/coweb/jsoe" executable="make">
+									<arg line="clean" />
+								</exec>
+							</tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+					</execution>
                     <execution>
                         <phase>prepare-package</phase>
                         <configuration>
                             <tasks>
-									<property name="workpath" location="${project.build.directory}/tmp" />
-									<echo message="HERE ***************************   ${workpath}" />
-									
-							        <concat destfile="${workpath}/amd">define(function () {
+								<property name="workpath" location="${project.build.directory}/tmp" />
+								<echo message="HERE ***************************   ${workpath}" />
+								
+								<concat destfile="${workpath}/amd">define(function () {
 if (typeof dojo !== 'undefined' &amp;&amp; !dojo.provide) { dojo.provide = function() {}; this.org = this.org || {}; org.cometd = {}; }
-							        </concat>
-							        <concat destfile="${workpath}/amd" append="yes">
-							                <fileset file="${workpath}/org/cometd.js" />
-							        </concat>
-							        <concat destfile="${workpath}/amd" append="yes">
-							                <fileset file="${workpath}/org/cometd/AckExtension.js" />
-							        </concat>
-							        <concat destfile="${workpath}/amd" append="yes">return org.cometd;
+								</concat>
+								<concat destfile="${workpath}/amd" append="yes">
+										<fileset file="${workpath}/org/cometd.js" />
+								</concat>
+								<concat destfile="${workpath}/amd" append="yes">
+										<fileset file="${workpath}/org/cometd/AckExtension.js" />
+								</concat>
+								<concat destfile="${workpath}/amd" append="yes">return org.cometd;
 });
-							        </concat>
-									
-							        <move file="${workpath}/amd" tofile="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd.js" />
-									<delete dir="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd" />
+								</concat>
+								
+								<move file="${workpath}/amd" tofile="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd.js" />
+								<delete dir="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd" />
 
-									<mkdir dir="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs"/>
-									<get src="${i18n-plugin-url}" dest="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs/i18n.js"/>
+								<!-- delete non-essential coweb-jsoe.git files -->
+								<property name="jsoe" location="${project.build.directory}/${project.artifactId}-${project.version}/coweb/jsoe" />
+								<delete file="${jsoe}/Makefile" />
+								<delete dir="${jsoe}/docs" />
+								<delete dir="${jsoe}/examples" />
+								<delete dir="${jsoe}/.git" />
+
+								<mkdir dir="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs"/>
+								<get src="${i18n-plugin-url}" dest="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs/i18n.js"/>
 							  </tasks>
                         </configuration>
                         <goals>
