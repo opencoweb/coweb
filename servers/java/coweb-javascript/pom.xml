@@ -23,7 +23,7 @@
 			    <artifactId>maven-war-plugin</artifactId>
 			    <version>2.2</version>
 				<configuration>
-					<warSourceExcludes>coweb/jsoe/README.rst,coweb/jsoe/docs/,coweb/jsoe/examples/,coweb/jsoe/LICENSE,coweb/jsoe/NOTICES,coweb/jsoe/.gitignore,coweb/jsoe/Makefile</warSourceExcludes>
+					<warSourceExcludes>coweb/jsoe/README.markdown,coweb/jsoe/docs/,coweb/jsoe/examples/,coweb/jsoe/LICENSE,coweb/jsoe/NOTICES,coweb/jsoe/.gitignore,coweb/jsoe/Makefile</warSourceExcludes>
 				</configuration>
 			</plugin>
 		    <plugin>
