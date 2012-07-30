@@ -18,6 +18,14 @@
 
     <build>
         <plugins>
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-war-plugin</artifactId>
+			    <version>2.2</version>
+				<configuration>
+					<warSourceExcludes>coweb/jsoe/README.rst,coweb/jsoe/docs/,coweb/jsoe/examples/,coweb/jsoe/LICENSE,coweb/jsoe/NOTICES,coweb/jsoe/.gitignore,coweb/jsoe/Makefile</warSourceExcludes>
+				</configuration>
+			</plugin>
 		    <plugin>
 			    <groupId>org.apache.maven.plugins</groupId>
 			    <artifactId>maven-dependency-plugin</artifactId>
@@ -87,29 +95,13 @@ if (typeof dojo !== 'undefined' &amp;&amp; !dojo.provide) { dojo.provide = funct
 
 								<mkdir dir="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs"/>
 								<get src="${i18n-plugin-url}" dest="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs/i18n.js"/>
+
 							  </tasks>
                         </configuration>
                         <goals>
                             <goal>run</goal>
                         </goals>
                     </execution>
-					<execution>
-						<id>jsoe_delete</id>
-						<phase>package</phase>
-                        <configuration>
-                            <tasks>
-								<!-- delete non-essential coweb-jsoe.git files -->
-								<property name="jsoe" location="${project.build.directory}/${project.artifactId}-${project.version}/coweb/jsoe" />
-								<delete file="${jsoe}/Makefile" verbose="true" />
-								<delete dir="${jsoe}/docs" verbose="true" />
-								<delete dir="${jsoe}/examples" verbose="true" />
-								<delete dir="${jsoe}/.git" verbose="true" />
-							</tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-					</execution>
                 </executions>
             </plugin>
         </plugins>
