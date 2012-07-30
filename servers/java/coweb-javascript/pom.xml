@@ -85,13 +85,6 @@ if (typeof dojo !== 'undefined' &amp;&amp; !dojo.provide) { dojo.provide = funct
 								<move file="${workpath}/amd" tofile="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd.js" />
 								<delete dir="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd" />
 
-								<!-- delete non-essential coweb-jsoe.git files -->
-								<property name="jsoe" location="${project.build.directory}/${project.artifactId}-${project.version}/coweb/jsoe" />
-								<delete file="${jsoe}/Makefile" />
-								<delete dir="${jsoe}/docs" />
-								<delete dir="${jsoe}/examples" />
-								<delete dir="${jsoe}/.git" />
-
 								<mkdir dir="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs"/>
 								<get src="${i18n-plugin-url}" dest="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs/i18n.js"/>
 							  </tasks>
@@ -100,6 +93,23 @@ if (typeof dojo !== 'undefined' &amp;&amp; !dojo.provide) { dojo.provide = funct
                             <goal>run</goal>
                         </goals>
                     </execution>
+					<execution>
+						<id>jsoe_delete</id>
+						<phase>package</phase>
+                        <configuration>
+                            <tasks>
+								<!-- delete non-essential coweb-jsoe.git files -->
+								<property name="jsoe" location="${project.build.directory}/${project.artifactId}-${project.version}/coweb/jsoe" />
+								<delete file="${jsoe}/Makefile" verbose="true" />
+								<delete dir="${jsoe}/docs" verbose="true" />
+								<delete dir="${jsoe}/examples" verbose="true" />
+								<delete dir="${jsoe}/.git" verbose="true" />
+							</tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+					</execution>
                 </executions>
             </plugin>
         </plugins>
