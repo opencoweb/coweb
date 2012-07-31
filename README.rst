@@ -30,6 +30,11 @@ Read the the framework documentation online at http://opencoweb.org/ocwdocs. It 
 
 Send mail to the coweb users group or join us on IRC if you're having trouble.
 
+Developer setup
+~~~~~~~~~~~~~~~
+
+For developers seeking to develop this project directly, see https://github.com/opencoweb/coweb/wiki/Developer-Setup.
+
 Status
 ======
 

@@ -30,6 +30,9 @@ coweb-bots
 coweb-javascript
    Contains the latest stable release copy of the coweb framework JavaScript.
 
+coweb-jsoe
+	Javascript operational transformation engine.
+
 coweb-server 
    Coweb server infrastructure.
 

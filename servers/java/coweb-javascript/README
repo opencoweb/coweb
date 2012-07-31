@@ -1,0 +1,14 @@
+
+Maven build cycle information
+
+The coweb-javascript maven module includes a git submodule as part of its
+source. https://github.com/opencoweb/coweb-jsoe.git is located at
+coweb-javascript/src/main/webapp/coweb/jsoe. This submodule includes various
+documentation, example, and other files that are unnecessary for inclusion in
+the coweb-javascript module.
+
+This maven module does two things when packaging/installing. During the compile
+lifecycle, the the maven ANT plugin runs `make clean` inside of coweb/jsoe.
+During the package lifecycle, files such as Makefile and docs/ are deleted from
+the package (not src) target WAR file.
+
