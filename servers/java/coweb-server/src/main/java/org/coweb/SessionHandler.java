@@ -242,14 +242,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			if (this.operationEngine != null) {
 				
 				synchronized (this.operationEngine) {
-					log.info("data before operation engine");
-					log.info(data.toString());
 					Map<String, Object> syncEvent = this.operationEngine.syncInbound(data);
 					if (syncEvent != null) {
 						this.sessionModerator.onSync(syncEvent);
-
-						log.info("data after operation engine");
-						log.info(syncEvent.toString());
 					}
 				}
 
@@ -265,8 +260,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		} else if (channelName.equals(this.syncEngineChannel)) {
 			if(operationEngine != null) {
 				synchronized (this.operationEngine) {
-					log.info("sending engine sync to operation engine");
-					log.info(data.toString());
 					this.operationEngine.engineSyncInbound(data);
 				}
 			}
@@ -380,7 +373,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 	public void endSession() {
 		log.fine("SessionHandler::endSession ***********");
-		log.info("end session");
 
 		ServerChannel sync = this.server.getChannel(this.syncAppChannel);
 		sync.removeListener(this);
@@ -412,7 +404,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
      * @param sites context int array context vector for this site
      */
 	public void postEngineSync(Integer[] sites) {
-		log.info("sites = " + Arrays.toString(sites));
 		ServerChannel sync = this.server.getChannel(this.syncEngineChannel);
 		
 		HashMap<String, Object> data = new HashMap<String, Object>();

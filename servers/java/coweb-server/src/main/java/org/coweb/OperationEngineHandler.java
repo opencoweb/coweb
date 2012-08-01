@@ -134,9 +134,6 @@ public class OperationEngineHandler {
 			return null;
 		}
 		
-		log.info("after engine push");
-		log.info(this.engine.toString());
-
 		// value is always json-encoded to avoid ref sharing problems with ops
 		// stored inside the op engine history buffer, so decode it and
 		// pack it into a hub event
