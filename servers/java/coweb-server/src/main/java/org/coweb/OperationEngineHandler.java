@@ -142,6 +142,7 @@ public class OperationEngineHandler {
 		hashMap.put("type", type);
 		hashMap.put("value", JSON.parse(value));
 		hashMap.put("site", site);
+		hashMap.put("channel", topic);
 		
 		this.shouldPurge = true;
 		this.shouldSync = true;

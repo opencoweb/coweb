@@ -35,8 +35,10 @@
 .. _org.coweb.servlet.AdminServlet: http://opencoweb.org/ocwdocs/apidocs/org/coweb/servlet/AdminServlet.html
 .. _org.coweb.SessionHandlerDelegate: http://opencoweb.org/ocwdocs/apidocs/org/coweb/SessionHandlerDelegate.html
 .. _org.coweb.CollabDelegate: http://opencoweb.org/ocwdocs/apidocs/org/coweb/CollabDelegate.html
+.. _SessionModerator javadocs: http://opencoweb.org/ocwdocs/apidocs/org/coweb/SessionModerator.html
 .. _org.coweb.SessionModerator: http://opencoweb.org/ocwdocs/apidocs/org/coweb/SessionModerator.html
 .. _org.coweb.bots.transport.LocalTransport: http://opencoweb.org/ocwdocs/apidocs/org/coweb/bots/transport/LocalTransport.html
+.. _org.eclipse.jetty.util.ajax.JSON: http://download.eclipse.org/jetty/stable-7/apidocs/org/eclipse/jetty/util/ajax/JSON.html
 
 .. _OpenCoweb Javadocs: http://opencoweb.org/ocwdocs/apidocs/
 .. _GitHub repository: http://github.com/opencoweb/coweb/

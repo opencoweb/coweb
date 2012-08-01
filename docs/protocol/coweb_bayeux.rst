@@ -96,7 +96,7 @@ The URL of the session handler is determined by the `sessionurl` value in the se
 Client subscribes to session topics
 ###################################
 
-The client must subscribe to the `/session/roster/*`, `/session/sync/*`, and `/service/session/join/*` Bayeux channels after completing the Bayeux handshake. The first two subscriptions ensure receipt of roster changes and cooperative events. The third initiates the update procedure if the client is joining a session already in progress.  If the sessionIdInChannel parameter is returned to the client in the prep request then the sessionid must be added to /session/sessionid/roster/* and /session/sessionid/sync/*.
+The client must subscribe to the `/session/roster/*`, `/session/sync/*`, and `/service/session/join/*` Bayeux channels after completing the Bayeux handshake. The first two subscriptions ensure receipt of roster changes and cooperative events. The third initiates the update procedure if the client is joining a session already in progress.  If the sessionIdInChannel parameter is returned to the client in the prep request then the sessionid must be added to /session/sessionid/roster/* and /session/sessionid/sync/* .
 
 The client must queue all messages received on the `/session/roster` and `/session/sync/*` channels until it receives and processes a copy of the current application state on the `/service/session/join/state` channel. This queue guarantees no events are missed while the client completes the join procedure.
 

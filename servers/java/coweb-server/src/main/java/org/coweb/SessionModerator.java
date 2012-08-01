@@ -168,11 +168,12 @@ public abstract class SessionModerator {
 	 * Called when a client sends a sync message. This sync event will have been
 	 * processed by the operation engine.
 	 * 
-	 * @param data Map with the following properties
-	 * 					String topic,
-	 * 					int    site,
-	 *                  Map    value,
-	 *                  int    position,
+	 * @param data Map with the following properties<br />
+	 *             String topic,<br />
+	 *             String type,<br />
+	 *             int    site,<br />
+	 *             Map    value,<br />
+	 *             int    position
 	 * 
 	 * @return true if this sync event should forwarded to the bots
 	 */
@@ -239,7 +240,7 @@ public abstract class SessionModerator {
 	public abstract void onServiceResponse(Message botResponse);
 
 	/**
-	  * Called whenever a session is over (i.e. all clients have left). Note that this
+	  * Called whenever a session is over (i.e.&nbsp;all clients have left). Note that this
 	  * SessionModerator object will still be kept in memory if moderatorIsUpdater and
 	  * reused for any future coweb sessions with the same cowebkey.
 	  *
