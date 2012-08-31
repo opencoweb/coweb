@@ -53,19 +53,20 @@ fi
 fetch "$REQUIREJS_URL" "$TMP_PATH/require.js"
 
 # fetch require.js source bundle for optimizer if not fetched
-if [ ! -f "$TMP_PATH/" ]; then
+if [ ! -f "$TMP_PATH/$REQUIREJS_ZIP" ]; then
     fetch "$REQUIREJS_SRC_URL" "$TMP_PATH/$REQUIREJS_ZIP"
 fi
 
 
 # go to temp folder
 WORK_PATH=`mktemp -d -t cowebXXXXXX`
+echo "progress: extracting into $WORK_PATH"
 # unpack cometd
 tar xzf "$TMP_PATH/$COMETD_TAR" -C "$WORK_PATH"
 # unpack oaa hub
-unzip "$TMP_PATH/$OAAHUB_ZIP" -d "$WORK_PATH"
+unzip -q "$TMP_PATH/$OAAHUB_ZIP" -d "$WORK_PATH"
 # unpack requirejs
-unzip "$TMP_PATH/$REQUIREJS_ZIP" -d "$WORK_PATH"
+unzip -q "$TMP_PATH/$REQUIREJS_ZIP" -d "$WORK_PATH"
 
 echo "progress: working in $WORK_PATH"
 cd "$WORK_PATH"
@@ -91,14 +92,15 @@ mv amd "$COMETD_PATH"
 
 # move portions needed into www folder
 # only overwrite what we need to, try to preserve everything else
-rm -r "${LIB_PATH}/org"
+rm -rf "${LIB_PATH}/org"
 mkdir "${LIB_PATH}/org"
 mv "${COMETD_PATH}" "${LIB_PATH}/org/"
 mv "${OAAHUB_PATH}" "${LIB_PATH}/org/"
 cp "${TMP_PATH}/require.js" "${LIB_PATH}/"
+rm -rf "${BUILD_PATH}/${REQUIREJS_PATH}"
 mv "${REQUIREJS_PATH}" "${BUILD_PATH}/"
 
 # cleanup temp path
-rm -r "$WORK_PATH"
+rm -rf "$WORK_PATH"
 
 echo "done: put dependencies in ${LIB_PATH} and ${BUILD_PATH}"

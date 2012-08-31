@@ -1,4 +1,8 @@
 #!/bin/bash
+
+echo "Don't run this outdated script - see coweb/js/setup_python_js.sh"
+exit
+
 rm -r ../release/coweb-latest
 ./requirejs-*/build/build.sh coweb.build.js
 VERSION=`grep VERSION ../lib/coweb/main.js`

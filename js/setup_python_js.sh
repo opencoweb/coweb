@@ -23,6 +23,10 @@ cp ../NOTICES ./release/coweb-${VERSION}
 cp ../LICENSE ./release/coweb-${VERSION}
 
 cp -r $COWEB_JAVASCRIPT_PATH/target/coweb-javascript-${VERSION}/ ./release/coweb-${VERSION}/
+
+# The following is outdated - this is when the JavaScript code was pulled from coweb/js/lib/coweb.
+# Now, the JavsScript OCW code is pulled from its maven repo in servers/java/coweb-javascript.
+
 #cp -r $COWEB_JAVASCRIPT_PATH/target/coweb-javascript-${VERSION}/org ./release/coweb-${VERSION}/
 #rm -r ../release/coweb-src-${VERSION}
 #cp -r ../lib/* ../release/coweb-src-${VERSION}
