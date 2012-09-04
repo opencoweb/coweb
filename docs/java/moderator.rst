@@ -17,6 +17,9 @@ session (i.e. each *cowebkey*) and will persist for the lifetime of the server.
 This is especially useful for keeping a session's application state alive, even
 when all browser clients leave a session.
 
+Application programmers should implement subclasses of SessionModerator, and the
+following documentation should be helpful in writing a useful implementation.
+
 The Moderator API: SessionModerator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -64,24 +67,57 @@ See also the `SessionModerator javadocs`_.
 
     .. method:: getLateJoinState(void) -> Map<String, Object>
 
-        :return:
+        The coweb server calls this when a new client joins a coweb session. The
+        `moderatorIsUpdater` boolean configuration must be set to true so that
+        the server knows to call this method.
+
+        This function should return a (key, value) set, where there is one key
+        for each collab object in the application. The key should be the collab
+        object id. The associated value should be a JSON object (encoded using
+        the typical Java JSON object structure) representing the state of that
+        collab object. The JavaScript application (in browser) will decode this
+        into a JavaScript JSON object.
+
+        :return: Map with a JSON object representing each collab object application
+            state.
 
     .. method:: onClientLeaveSession(ServerSession client) -> void
 
-        :param client:
+        Called by the coweb server when a client leaves a coweb session.
+
+        :param client: ServerSession object representing the client that
+            disconnected.
 
     .. method:: canClientSubscribeService(ServerSession client) -> boolean
 
-        :param client:
+        Called by the coweb server when a browser client requests to subscribe
+        to a service bot's updates. This method should return whether or not the
+        client can subscribe to the service bot.
+
+        :param client: ServerSession object representing the client.
+        :return: Whether or not the client can subscribe.
 
     .. method:: canClientMakeServiceRequest(ServerSession client, Message botMessage) -> boolean
 
-        :param client:
-        :param botMessage:
+        Called by the coweb server when a browser client tries to send a bot a
+        message.
+
+        :param client: ServerSession object representing the client.
+        :param botMessage: The message content.
+        :return: Whether or not the client can post a service message.
 
     .. method:: onServiceResponse(Message botResponse) -> void
 
-        :param botMessage:
+        Called when a bot responds to a client's service message.
+
+        :param botMessage: The bot message response.
 
     .. method:: onSessionEnd(void) -> void
+
+        Called when the last client leaves the coweb session. Note that even
+        when the last client leaves, this SessionModerator object will remain
+        in memory and will be reused when a new client joins a coweb session
+        with the same cowebkey. In other words, the SessionModerator remains
+        in memory as long as the server is alive to provide coweb application
+        persistence.
 

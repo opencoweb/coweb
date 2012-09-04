@@ -230,9 +230,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 		/* Some of the following code must acquire this.operationEngine's lock.
 		   OperationEngine must only be accessed by one client at a time.
-
-		   Note that the moderator's onSync method is already declared with execute
-		   with mutual exclusion.
 		 */
 		String channelName = message.getChannel();
 		if (channelName.equals(this.syncAppChannel)) {
@@ -302,8 +299,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				// TODO
 				// need to send error message.
 			}
-		} else if (channel.startsWith("/service/bot")
-				|| channel.startsWith("/bot")) {
+		} else if (channel.startsWith("/service/bot") || channel.startsWith("/bot")) {
 			if (this.sessionModerator.canClientSubscribeService(serverSession))
 				this.serviceHandler.subscribeUser(serverSession, message);
 			else {
@@ -335,7 +331,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		this.sessionModerator.onClientLeaveSession(client);
 		boolean last = this.lateJoinHandler.onClientRemove(client);
 
-		System.out.println("Puring client last="+last);
 		if (last) {
 			this.endSession();
 		}
