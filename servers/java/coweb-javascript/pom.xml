@@ -14,6 +14,8 @@
 
     <properties>
 	    <i18n-plugin-url>http://requirejs.org/docs/release/1.0.0/minified/i18n.js</i18n-plugin-url>
+        <coweb-jsoe>${project.build.directory}/${project.artifactId}-${project.version}/coweb/jsoe</coweb-jsoe>
+        <coweb-jsoe-src>src/main/webapp/coweb/jsoe</coweb-jsoe-src>
 	</properties>
 
     <build>
@@ -23,7 +25,7 @@
 			    <artifactId>maven-war-plugin</artifactId>
 			    <version>2.2</version>
 				<configuration>
-                    <warSourceExcludes>coweb/jsoe/OTEngine-npm.js,coweb/jsoe/package.json,coweb/jsoe/org/,coweb/jsoe/README.markdown,coweb/jsoe/docs/,coweb/jsoe/examples/,coweb/jsoe/LICENSE,coweb/jsoe/NOTICES,coweb/jsoe/.gitignore,coweb/jsoe/Makefile</warSourceExcludes>
+                    <warSourceExcludes>coweb/jsoe/</warSourceExcludes>
 				</configuration>
 			</plugin>
 		    <plugin>
@@ -56,20 +58,6 @@
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
-					<execution>
-						<id>jsoe_clean</id>
-						<phase>compile</phase>
-                        <configuration>
-                            <tasks>
-								<exec dir="src/main/webapp/coweb/jsoe" executable="make">
-									<arg line="clean" />
-								</exec>
-							</tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-					</execution>
                     <execution>
                         <phase>prepare-package</phase>
                         <configuration>
@@ -96,6 +84,27 @@ if (typeof dojo !== 'undefined' &amp;&amp; !dojo.provide) { dojo.provide = funct
 								<mkdir dir="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs"/>
 								<get src="${i18n-plugin-url}" dest="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs/i18n.js"/>
 
+                                <!-- coweb-jsoe organization -->
+                                <copy todir="${coweb-jsoe}">
+                                    <fileset dir="${coweb-jsoe-src}/src/coweb/jsoe">
+                                        <include name="*.js" />
+                                        <exclude name="OTEngine.js" />
+                                    </fileset>
+                                </copy>
+                                <copy todir="${coweb-jsoe}/nls">
+                                    <fileset dir="${coweb-jsoe-src}/src/coweb/jsoe/nls" />
+                                </copy>
+							  </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>coweb-jsoe-organiation</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <tasks>
 							  </tasks>
                         </configuration>
                         <goals>
