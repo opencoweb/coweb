@@ -180,7 +180,7 @@ public class SessionManager extends AbstractService implements
 	 * Creates a new SessionHandler for the conference.
 	 * 
 	 * @param confkey
-	 * @param collab
+	 * @param cacheState
 	 */
 	public SessionHandler createSession(String confkey, boolean cacheState) {
 		log.info("SessionManager::createSession ************");

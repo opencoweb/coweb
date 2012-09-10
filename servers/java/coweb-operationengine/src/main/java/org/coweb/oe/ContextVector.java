@@ -30,7 +30,7 @@ public class ContextVector {
 	/**
      * Converts the contents of this context vector sites array to a string.
      *
-     * @returns {String} All integers in the vector (for debug)
+     * @return All integers in the vector (for debug)
      */
 	@Override
 	public String toString() {
@@ -43,7 +43,7 @@ public class ContextVector {
 	/**
      * Serializes this context vector.
      *
-     * @returns {Number[]} Array of integer sequence numbers
+     * @return Array of integer sequence numbers
      */
 	public int[] getState() {
 		return this.sites;
@@ -54,7 +54,7 @@ public class ContextVector {
      * Makes an independent copy of this context vector.
 	 * @throws OperationEngineException 
      *
-     * @returns {ContextVector} Copy of this context vector
+     * @return Copy of this context vector
      */
 	public ContextVector copy() throws OperationEngineException {
 		
@@ -67,7 +67,7 @@ public class ContextVector {
 	/**
      * Makes an independent copy of the array in this context vector.
      *
-     * @return {Number[]} Copy of this context vector's sites array
+     * @return Copy of this context vector's sites array
      */
 	public int[] copySites() {
 		return Arrays.copyOf(this.sites, this.sites.length);
@@ -77,9 +77,8 @@ public class ContextVector {
      * Computes the difference in sequence numbers at each site between this
      * context vector and the one provided.
      *
-     * @param {ContextVector} cv Other context vector object
-     * @returns {ContextDifference} Represents the difference between this
-     * vector and the one passed
+     * @param cv Other context vector object
+     * @return Represents the difference between this vector and the one passed
      */
 	public ContextDifference subtract(ContextVector cv) {
 		ContextDifference cd = new ContextDifference();
@@ -97,8 +96,8 @@ public class ContextVector {
      * Finds the oldest sequence number in the difference in sequence numbers
      * for each site between this context and the one provided.
      *
-     * @param {ContextVector} cv Other context vector object
-     * @returns {ContextDifference} Represents the oldest difference for each
+     * @param cv Other context vector object
+     * @return Represents the oldest difference for each
      * site between this vector and the one passed
      */
 	public ContextDifference oldestDifference(ContextVector cv) {
@@ -117,7 +116,7 @@ public class ContextVector {
      * Increases the size of the context vector to the given size. Initializes
      * new entries with zeros.
      *
-     * @param {Number} count Desired integer size of the vector
+     * @param count Desired integer size of the vector
      */
 	public void growTo(int count) {
 		
@@ -139,8 +138,8 @@ public class ContextVector {
      * Gets the sequence number for the given site in this context vector.
      * Grows the vector if it does not include the site yet.
      * 
-     * @param {Number} site Integer site ID
-     * @returns {Number} Integer sequence number for the site
+     * @param site Integer site ID
+     * @return Integer sequence number for the site
      */
 	public int getSeqForSite(int site) {
 		if(this.sites.length <= site) {
@@ -153,8 +152,8 @@ public class ContextVector {
      * Sets the sequence number for the given site in this context vector.
      * Grows the vector if it does not include the site yet.
      * 
-     * @param {Number} site Integer site ID
-     * @param {Number} seq Integer sequence number
+     * @param site Integer site ID
+     * @param seq Integer sequence number
      */
 	public void setSeqForSite(int site, int seq) {	
 		if(this.sites.length <= site) {
@@ -166,7 +165,7 @@ public class ContextVector {
 	/**
      * Gets the size of this context vector.
      *
-     * @returns {Number} Integer size
+     * @return Integer size
      */
 	public int getSize() {
 		return this.sites.length;
@@ -177,8 +176,8 @@ public class ContextVector {
      * sequence IDs at each site. If the vectors are of different sizes, treats
      * missing entries as suffixed zeros.
      *
-     * @param {ContextVector} cv Other context vector
-     * @returns {Boolean} True if equal, false if not
+     * @param cv Other context vector
+     * @return True if equal, false if not
      */
     public boolean equals(ContextVector cv) {
         int[] a = this.sites;
@@ -201,8 +200,8 @@ public class ContextVector {
      * sequence IDs at each site. If the vectors are of different sizes, 
      * treats missing entries as suffixed zeros.
      *
-     * @param {ContextVector} cv Other context vector
-     * @returns {Number} -1 if this context vector is ordered before the other,
+     * @param cv Other context vector
+     * @return -1 if this context vector is ordered before the other,
      *   0 if they are equal, or 1 if this context vector is ordered after the
      *   other
      */

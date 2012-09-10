@@ -13,8 +13,8 @@ public class DeleteOperation extends Operation {
 	/**
      * Transforms this delete to include the effect of a delete.
      *
-     * @param {DeleteOperation} op Delete to include in this op
-     * @returns {DeleteOperation|null} This instance or null if this op has no
+     * @param op Delete to include in this op
+     * @return This instance or null if this op has no
      * further effect on other operations
      */
 	public Operation transformWithDelete(Operation op) {
@@ -32,8 +32,8 @@ public class DeleteOperation extends Operation {
 	/**
      * No-op. Update has no effect on a delete.
      *
-     * @param {UpdateOperation} op Update to include in this op
-     * @returns {DeleteOperation} This instance
+     * @param op Update to include in this op
+     * @return This instance
      */
 	public Operation transformWithUpdate(Operation op) {
 		return this;
@@ -42,8 +42,8 @@ public class DeleteOperation extends Operation {
 	/**
      * Transforms this delete to include the effect of an insert.
      *
-     * @param {InsertOperation} op Insert to include in this op
-     * @returns {DeleteOperation} This instance
+     * @param op Insert to include in this op
+     * @return This instance
      */
 	public Operation transformWithInsert(Operation op) {
 		if(!this.key.equals(op.key)) {

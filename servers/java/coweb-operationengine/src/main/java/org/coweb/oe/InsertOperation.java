@@ -13,8 +13,8 @@ public class InsertOperation extends Operation {
      * Transforms this insert to include the effect of an insert. Assumes 
      * the control algorithm breaks the CP2 pre-req to ensure convergence.
      *
-     * @param {InsertOperation} op Insert to include in this op
-     * @returns {InsertOperation} This instance
+     * @param op Insert to include in this op
+     * @return This instance
      */
 	public Operation transformWithInsert(Operation op) {
 		if(!this.key.equals(op.key)) {
@@ -31,7 +31,7 @@ public class InsertOperation extends Operation {
 	/**
      * Transforms this insert to include the effect of a delete.
      *
-     * @param {DeleteOperation} op Delete to include in this op
+     * @param op Delete to include in this op
      * @return {InsertOperation} This instance
      */
 	public Operation transformWithDelete(Operation op) {
@@ -47,8 +47,8 @@ public class InsertOperation extends Operation {
 	/**
      * No-op. Update has no effect on an insert.
      *
-     * @param {UpdateOperation} op Update to include in this op
-     * @returns {InsertOperation} This instance
+     * @param op Update to include in this op
+     * @return This instance
      */
 	public Operation transformWithUpdate(Operation op) {
 		return this;

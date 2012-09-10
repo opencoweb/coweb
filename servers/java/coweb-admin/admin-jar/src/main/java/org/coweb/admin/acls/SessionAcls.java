@@ -44,7 +44,6 @@ public class SessionAcls {
     /** 
      * Gets if a user can see session metadata.
      * 
-     * @param value True to set, false to unset, None to leave unchanged
      * @return True if can view metadata, false if not 
      */
     public boolean canSeeSession() {
@@ -52,9 +51,9 @@ public class SessionAcls {
     }
     
     /** 
-     * Gets if a user can see session metadata.
+     * Sets if a user can see session metadata.
      *
-     * @return True if can view metadata, false if not 
+     * @param value True to set, false to unset, None to leave unchanged
      */
     public void setSeeSession(boolean value) {
         if(value)
@@ -66,7 +65,6 @@ public class SessionAcls {
     /**
      * Gets if a user can access/join this session.
      * 
-     * @param value True to set, false to unset, None to leave unchanged
      * @return True if can access, false if not 
      */
     public boolean canAccessSession() {

@@ -12,8 +12,8 @@ public class UpdateOperation extends Operation {
 	/**
      * Transforms this update to include the effect of an update.
      *
-     * @param {UpdateOperation} op Update to include in this op
-     * @returns {UpdateOperation} This instance
+     * @param op Update to include in this op
+     * @return This instance
      */
 	public Operation transformWithUpdate(Operation op) {
 		if((op.position != this.position) || (!op.key.equals(this.key))) {
@@ -31,8 +31,8 @@ public class UpdateOperation extends Operation {
 	/**
      * Transforms this update to include the effect of an insert.
      *
-     * @param {InsertOperation} op Insert to include in this op
-     * @returns {UpdateOperation} This instance
+     * @param op Insert to include in this op
+     * @return This instance
      */
 	public Operation transformWithInsert(Operation op) {
 		if(!this.key.equals(op.key)) {
@@ -47,8 +47,8 @@ public class UpdateOperation extends Operation {
 	/**
      * Transforms this update to include the effect of a delete.
      *
-     * @param {DeleteOperation} op Delete to include in this op
-     * @returns {UpdateOperation} This instance
+     * @param op Delete to include in this op
+     * @return This instance
      */
 	public Operation transformWithDelete(Operation op) {
 		if (!this.key.equals(op.key)) {

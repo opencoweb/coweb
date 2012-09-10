@@ -48,6 +48,7 @@ deploy: html javadoc
 
 clean:
 	-rm -rf $(BUILDDIR)/*
+	-rm -rf $(JAVABUILDDIR)/*
 
 javadoc:
 	cd $(JAVASRCDIR); mvn javadoc:aggregate

@@ -18,9 +18,9 @@ public class ContextDifference {
 	/**
      * Adds a range of operations to the difference.
      *
-     * @param {Number} site Integer site ID
-     * @param {Number} start First integer operation sequence number, inclusive
-     * @param {Number} end Last integer operation sequence number, exclusive
+     * @param site Integer site ID
+     * @param start First integer operation sequence number, inclusive
+     * @param end Last integer operation sequence number, exclusive
      */
     public void addRange(int site, int start, int end) {
         for(int i=start; i < end; i++) {
@@ -31,8 +31,8 @@ public class ContextDifference {
     /**
      * Adds a single operation to the difference.
      *
-     * @param {Number} site Integer site ID
-     * @param {Number} seq Integer sequence number
+     * @param site Integer site ID
+     * @param seq Integer sequence number
      */
     public void addSiteSeq(int site, int seq) {
         this.sites.addElement(new Integer(site));
@@ -43,7 +43,7 @@ public class ContextDifference {
      * Gets the histor buffer keys for all the operations represented in this
      * context difference.
      *
-     * @return {String[]} Array of keys for HistoryBuffer lookups
+     * @return Array of keys for HistoryBuffer lookups
      */
     public String[] getHistoryBufferKeys() {
 		Vector<String> arr = new Vector<String>();
@@ -61,7 +61,7 @@ public class ContextDifference {
     /**
      * Converts the contents of this context difference to a string.
      *
-     * @return {String} All keys in the difference (for debug)
+     * @return All keys in the difference (for debug)
      */
     public String toString() {
         return Arrays.toString(this.getHistoryBufferKeys());

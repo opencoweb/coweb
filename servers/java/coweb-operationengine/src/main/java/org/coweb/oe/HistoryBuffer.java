@@ -53,7 +53,7 @@ public class HistoryBuffer {
 	/**
      * Unserializes history buffer contents to initialize this instance.
      *
-     * @param {Object[]} arr Array in the format returned by getState
+     * @param arr Array in the format returned by getState
      */
 	public void setState(Object[] arr) {
 		// reset internals
@@ -77,9 +77,9 @@ public class HistoryBuffer {
      * sorted by their sequence IDs. Throws an exception when a requested 
      * operation is missing from the history.
      *
-     * @param {ContextDifference} cd  Context difference object
+     * @param cd  Context difference object
 	 * @throws OperationEngineException 
-     * @returns {Operation[]} Sorted operations
+     * @return Sorted operations
      */ 
 	public Stack<Operation> getOpsForDifference(ContextDifference cd) throws OperationEngineException {
 		// get the ops
@@ -119,7 +119,7 @@ public class HistoryBuffer {
 	/**
      * Adds a local operation to the history.
      *
-     * @param {Operation} Local operation to add
+     * @param op Local operation to add
      */
 	public void addLocal(Operation op) {
 		String key = Operation.createHistoryKey(op.siteId, op.seqId);
@@ -136,7 +136,7 @@ public class HistoryBuffer {
      * the total order or if the op with the same key already has an assigned
      * place in the total order.
      *
-     * @param {Operation} Received operation to add
+     * @param op Received operation to add
 	 * @throws OperationEngineException 
      */
 	public void addRemote(Operation op) throws OperationEngineException {
@@ -166,8 +166,8 @@ public class HistoryBuffer {
 	/**
      * Removes and returns an operation in the history.
      *
-     * @param {Operation} op Operation to locate for removal
-     * @returns {Operation} Removed operation
+     * @param op Operation to locate for removal
+     * @return Removed operation
      */
 	public Operation remove(Operation op) {
 		String key = Operation.createHistoryKey(op.siteId, op.seqId);
@@ -184,7 +184,7 @@ public class HistoryBuffer {
 	/**
      * Gets the number of operations in the history.
      *
-     * @returns {Number} Integer count
+     * @return Integer count
      */
 	public int getCount() {
 		return this.size;
@@ -194,7 +194,7 @@ public class HistoryBuffer {
 	/**
      * Gets all operations in the history buffer sorted by context.
      *
-     * @returns {Operation[]} Sorted operations
+     * @return Sorted operations
      */
 	public Stack<Operation> getContextSortedOperations() {
 		

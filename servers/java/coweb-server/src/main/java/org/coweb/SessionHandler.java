@@ -230,9 +230,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 		/* Some of the following code must acquire this.operationEngine's lock.
 		   OperationEngine must only be accessed by one client at a time.
-
-		   Note that the moderator's onSync method is already declared with execute
-		   with mutual exclusion.
 		 */
 		String channelName = message.getChannel();
 		if (channelName.equals(this.syncAppChannel)) {
@@ -242,14 +239,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			if (this.operationEngine != null) {
 				
 				synchronized (this.operationEngine) {
-					log.info("data before operation engine");
-					log.info(data.toString());
 					Map<String, Object> syncEvent = this.operationEngine.syncInbound(data);
 					if (syncEvent != null) {
 						this.sessionModerator.onSync(syncEvent);
-
-						log.info("data after operation engine");
-						log.info(syncEvent.toString());
 					}
 				}
 
@@ -265,8 +257,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		} else if (channelName.equals(this.syncEngineChannel)) {
 			if(operationEngine != null) {
 				synchronized (this.operationEngine) {
-					log.info("sending engine sync to operation engine");
-					log.info(data.toString());
 					this.operationEngine.engineSyncInbound(data);
 				}
 			}
@@ -309,8 +299,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				// TODO
 				// need to send error message.
 			}
-		} else if (channel.startsWith("/service/bot")
-				|| channel.startsWith("/bot")) {
+		} else if (channel.startsWith("/service/bot") || channel.startsWith("/bot")) {
 			if (this.sessionModerator.canClientSubscribeService(serverSession))
 				this.serviceHandler.subscribeUser(serverSession, message);
 			else {
@@ -342,7 +331,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		this.sessionModerator.onClientLeaveSession(client);
 		boolean last = this.lateJoinHandler.onClientRemove(client);
 
-		System.out.println("Puring client last="+last);
 		if (last) {
 			this.endSession();
 		}
@@ -380,7 +368,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 	public void endSession() {
 		log.fine("SessionHandler::endSession ***********");
-		log.info("end session");
 
 		ServerChannel sync = this.server.getChannel(this.syncAppChannel);
 		sync.removeListener(this);
@@ -409,10 +396,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
      * Publishes a local op engine sync event to the /session/sync Bayeux 
      * channel.
      *
-     * @param int[] context int array context vector for this site
+     * @param sites context int array context vector for this site
      */
 	public void postEngineSync(Integer[] sites) {
-		log.info("sites = " + Arrays.toString(sites));
 		ServerChannel sync = this.server.getChannel(this.syncEngineChannel);
 		
 		HashMap<String, Object> data = new HashMap<String, Object>();
