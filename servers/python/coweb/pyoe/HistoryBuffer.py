@@ -5,8 +5,8 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 """
 
-import factory
-import Operation
+from factory import factory
+from Operation import Operation
 
 """
 Stores information about local and remote operations for future
@@ -66,11 +66,11 @@ class HistoryBuffer:
         for i in range(l):
             key = keys[i]
             if (key not in self.ops):
-                raise Exception("missing op for context diff: i=" i + " key=" + key + " keys=" + str(keys))
+                raise Exception("missing op for context diff: i=" + i +
+                        " key=" + key + " keys=" + str(keys))
             ops.push(self.ops[key])
         """ sort by total order """
         return sorted(ops, lambda x,y: x.compareByOrder(y))
-    };
 
     """
     Adds a local operation to the history.
@@ -81,7 +81,7 @@ class HistoryBuffer:
         key = factory.createHistoryKey(op.siteId, op.seqId)
         self.ops[key] = op
         """ make sure ops in the history never change """
-        op.immutable = true
+        op.immutable = True
         self.size += 1
 
     """
@@ -95,26 +95,23 @@ class HistoryBuffer:
     """
     def addRemote(self, op):
         key = factory.createHistoryKey(op.siteId, op.seqId)
-        eop = self.ops[key]
         if (order not in op):
             """ remote op must have order set by server """
             raise Exception("remote op missing total order")
-        elif (eop):
-            if(eop.order !== Infinity) {
-                // order should never repeat
-                throw new Error(messages.dupop+eop.order +
-                    ' new='+op.order);
-            }
-            // server has responded with known total order for an op this site
-            // previously sent; update the local op with the info
-            eop.order = op.order;
-        } else {
-            // add new remote op to history
-            this.ops[key] = op;
-            op.immutable = true;
-            ++this.size;
-        }
-    };
+        elif (key in self.ops):
+            eop = self.ops[key]
+            if (eop.order != float("inf")):
+                """ order should never repeat """
+                raise Exception("duplicate op in total order: old=" + eop.order +
+                    " new=" + op.order);
+            """ server has responded with known total order for an op this site
+                previously sent; update the local op with the info """
+            eop.order = op.order
+        else:
+            """ add new remote op to history """
+            self.ops[key] = op
+            op.immutable = True
+            self.size += 1
 
     """
     Removes and returns an operation in the history.
@@ -122,42 +119,33 @@ class HistoryBuffer:
     @param {Operation} op Operation to locate for removal
     @returns {Operation} Removed operation
     """
-    HistoryBuffer.prototype.remove = function(op) {
-        var key = factory.createHistoryKey(op.siteId, op.seqId);
-        op = this.ops[key];
-        delete this.ops[key];
-        // no longer in the history, so allow mutation
-        op.immutable = false;
-        --this.size;
-        return op;
-    };
+    def remove(self, op):
+        key = factory.createHistoryKey(op.siteId, op.seqId)
+        op = self.ops[key]
+        del self.ops[key]
+        """ no longer in the history, so allow mutation """
+        op.immutable = False
+        self.size -= 1
+        return op
 
     """
     Gets the number of operations in the history.
 
     @returns {Number} Integer count
     """
-    HistoryBuffer.prototype.getCount = function() {
-        return this.size;
-    };
+    def getCount(self):
+        return self.size
 
     """
     Gets all operations in the history buffer sorted by context.
 
     @returns {Operation[]} Sorted operations
     """
-    HistoryBuffer.prototype.getContextSortedOperations = function() {
-        var ops = [];
-        // put all ops into an array
-        for(var key in this.ops) {
-            if(this.ops.hasOwnProperty(key)) {
-                ops.push(this.ops[key]);
-            }
-        }
-        // sort them by context, sequence, and site
-        ops.sort(function(a,b) { return a.compareByContext(b); });
-        return ops;
-    };
+    def getContextSortedOperations(self):
+        ops = []
+        """ put all ops into an array """
+        for v in self.ops:
+            ops.append(self.ops[key])
+        """ sort them by context, sequence, and site """
+        return sorted(ops, lambda x,y: a.compareByContext(b))
 
-    return HistoryBuffer;
-});

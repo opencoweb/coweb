@@ -64,7 +64,7 @@ class ContextVector:
     @returns {ContextVector} Copy of this context vector
     """
     def copy(self):
-        return ContextVector({contextVector : self})
+        return ContextVector({"contextVector" : self})
 
     """
     Makes an independent copy of the array in this context vector.
