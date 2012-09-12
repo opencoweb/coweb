@@ -5,7 +5,7 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 """
 
-import ContextVector
+from ContextVector import ContextVector
 
 """
 Stores the context of each site known at this site.
@@ -99,9 +99,10 @@ class ContextVectorTable:
         for i in range(l):
             self.cvt[i].growTo(count)
         """ add new vectors of proper size """
-        for i in range(self.cvt.length, count):
+        l = len(self.cvt)
+        for i in range(l, count):
             cv = ContextVector({"count" : count})
-            self.cvt.push(cv)
+            self.cvt.append(cv)
 
     """
     Gets the context vector for the given site. Grows the table if it does
@@ -111,7 +112,7 @@ class ContextVectorTable:
     @returns {ContextVector} Context vector for the given site
     """
     def getContextVector(self, site):
-        if (self.cvt.length <= site):
+        if (len(self.cvt) <= site):
             """ grow to encompass the given site at least """
             """ this is not necessarily the final desired size... """
             self.growTo(site+1)
@@ -125,7 +126,7 @@ class ContextVectorTable:
     @param {ContextVector} cv Context vector instance
     """
     def updateWithContextVector(self, site, cv):
-        if (self.cvt.length <= site):
+        if (len(self.cvt) <= site):
             """ grow to encompass the given site at least """
             self.growTo(site+1)
         if (cv.getSize() <= site):

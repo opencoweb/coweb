@@ -7,10 +7,13 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 """
 
-import ContextVectorTable
-import ContextVector
-import HistoryBuffer
-import factory
+from ContextVectorTable import ContextVectorTable
+from ContextVector import ContextVector
+from HistoryBuffer import HistoryBuffer
+from factory import factory
+from InsertOperation import InsertOperation
+from UpdateOperation import UpdateOperation
+from DeleteOperation import DeleteOperation
 
 class OperationEngine:
 
@@ -93,13 +96,13 @@ class OperationEngine:
       for local operations which are not yet assigned a place in the order.
     @returns {Operation} Subclass instance matching the given type
     """
-    def createOp(self, local, key, value, _type, position, site, cv, order):
+    def createOp(self, local, key, value, _type, position, site=None, cv=None, order=None):
         args = {}
         if (local):
             args["key"] = key
             args["position"] = position
             args["value"] = value
-            args["siteId"] = siteId
+            args["siteId"] = self.siteId
             args["contextVector"] = self.copyContextVector()
             args["local"] = True
         else:
@@ -262,7 +265,7 @@ class OperationEngine:
 
     @param {Operation} op Operation to check
     @returns {Boolean} True if the engine already processed this operation,
-    false if not
+      false if not
     """
     def hasProcessedOp(self, op):
         seqId = self.cv.getSeqForSite(op.siteId)

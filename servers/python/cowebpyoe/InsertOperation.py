@@ -14,7 +14,7 @@ class InsertOperation(Operation):
     @constructor
     """
     def __init__(self, args):
-        super(Operation, self).__init__(args)
+        Operation.__init__(self, args)
         self.type = "insert"
         
     """

@@ -32,7 +32,7 @@ Create a new operation given its type and constructor args.
 @returns {Operation} Operation subclass instance
 """
 def _createOperationFromType(_type, args):
-    OpClass = factory._typeMap[type]
+    OpClass = factory._typeMap[_type]
     return OpClass(args)
 
 """
@@ -49,7 +49,7 @@ def _createOperationFromState(state):
 class _EmptyClass: pass
 
 factory = _EmptyClass()
-factory._typeMap = {};
+factory._typeMap = {}
 factory.createHistoryKey = _createHistoryKey
 factory.registerOperationForType = _registerOperationForType
 factory.createOperationFromType = _createOperationFromType

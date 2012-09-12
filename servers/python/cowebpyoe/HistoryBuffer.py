@@ -68,7 +68,7 @@ class HistoryBuffer:
             if (key not in self.ops):
                 raise Exception("missing op for context diff: i=" + i +
                         " key=" + key + " keys=" + str(keys))
-            ops.push(self.ops[key])
+            ops.append(self.ops[key])
         """ sort by total order """
         return sorted(ops, lambda x,y: x.compareByOrder(y))
 
@@ -95,15 +95,16 @@ class HistoryBuffer:
     """
     def addRemote(self, op):
         key = factory.createHistoryKey(op.siteId, op.seqId)
-        if (order not in op):
+        if (None == op.order):
             """ remote op must have order set by server """
             raise Exception("remote op missing total order")
         elif (key in self.ops):
             eop = self.ops[key]
-            if (eop.order != float("inf")):
+            if (eop.order != None):
+                " TODO I don't understand how this indicates a 'repeat'"
                 """ order should never repeat """
                 raise Exception("duplicate op in total order: old=" + eop.order +
-                    " new=" + op.order);
+                    " new=" + op.order)
             """ server has responded with known total order for an op this site
                 previously sent; update the local op with the info """
             eop.order = op.order

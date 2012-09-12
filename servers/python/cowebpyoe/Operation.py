@@ -54,7 +54,7 @@ class Operation:
             """ abstract """
             self.type = None
             return
-        elif (state in args):
+        elif ("state" in args):
             """ restore from state alone """
             self.setState(args["state"])
             """ never local when building from serialized state """
@@ -66,14 +66,14 @@ class Operation:
             self.key = args["key"]
             self.value = args["value"]
             self.position = args["position"]
-            self.order = args.order if order in args else float("inf")
-            if (seqId in args):
+            self.order = args["order"] if "order" in args else None
+            if ("seqId" in args):
                 self.seqId = args["seqId"]
             elif (self.contextVector):
                 self.seqId = self.contextVector.getSeqForSite(self.siteId) + 1
             else:
                 raise Exception("missing sequence id for new operation")
-            self.xCache = args["xCache"]
+            self.xCache = args["xCache"] if "xCache" in args else None
             self.local = args["local"] if "local" in args else False
 
         """ always mutable to start """

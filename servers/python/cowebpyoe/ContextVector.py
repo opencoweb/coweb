@@ -30,15 +30,15 @@ object to reference without copy
 """
 class ContextVector:
     def __init__(self, args):
-        if (count in args):
+        if ("count" in args):
             self.sites = []
-            self.growTo(args.count)
-        elif (contextVector in args):
-            self.sites = args.contextVector.copySites()
-        elif (sites in args):
-            self.sites = args.sites[:]
-        elif (state in args):
-            self.sites = args.state
+            self.growTo(args["count"])
+        elif ("contextVector" in args):
+            self.sites = args["contextVector"].copySites()
+        elif ("sites" in args):
+            self.sites = args["sites"][:]
+        elif ("state" in args):
+            self.sites = args["state"]
         else:
             raise Exception("uninitialized context vector")
 
@@ -125,7 +125,7 @@ class ContextVector:
     @param {Number} site Integer site ID
     @returns {Number} Integer sequence number for the site
     """
-    def getSeqForSite(self, i):
+    def getSeqForSite(self, site):
         if (len(self.sites) <= site):
             self.growTo(site+1)
         return self.sites[site]
