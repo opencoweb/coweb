@@ -18,6 +18,9 @@ class UpdateOperation(Operation):
         Operation.__init__(self, args)
         self.type = "update"
 
+    def getConstructor(self):
+        return UpdateOperation
+
     """
     Gets the method name to use to transform another operation against this
     update operation.

@@ -134,7 +134,7 @@ class Operation:
             "xCache" : self.xCache
         }
         """ respect subclasses """
-        return Operation(args)
+        return self.getConstructor()(args)
 
     """
     Gets a version of the given operation previously transformed into the
@@ -175,7 +175,7 @@ class Operation:
         diff = len(cache) - (siteCount-1)
         if (diff > 0):
             """ if overflow, remove oldest op(s) """
-            cache = cache.slice[diff:]
+            cache = cache[diff:]
 
     """
     Computes an ordered comparison of this op and another based on their
@@ -241,7 +241,7 @@ class Operation:
         if (self.immutable):
             raise Exception("attempt to transform immutable op")
         meth = op.transformMethod()
-        func = self.getMethod(op.transformMethod())
+        func = self.getMethod(meth)
         if (not func):
             raise Exception("operation cannot handle transform with type: " + op.type)
         """ do the transform """
@@ -272,4 +272,16 @@ class Operation:
     """ 
     def getTransformMethod(self):
         raise Exception("transformMethod not implemented")
+
+    def getMethod(self, meth):
+        if ("transformWithInsert" == meth):
+            return self.transformWithInsert
+        elif ("transformWithUpdate" == meth):
+            return self.transformWithUpdate
+        elif ("transformWithDelete" == meth):
+            return self.transformWithDelete
+        raise Exception("Invalid method " + meth)
+
+    def getConstructor(self):
+        raise Exception("getConstructor not implemented in base class Operation")
 

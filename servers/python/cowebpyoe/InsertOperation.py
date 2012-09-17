@@ -16,7 +16,10 @@ class InsertOperation(Operation):
     def __init__(self, args):
         Operation.__init__(self, args)
         self.type = "insert"
-        
+
+    def getConstructor(self):
+        return InsertOperation
+
     """
     Gets the method name to use to transform another operation against this
     insert operation.
