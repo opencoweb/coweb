@@ -73,7 +73,7 @@ class OTEngine:
     def syncOutbound(self):
         if (not self._engineStable):
             return False
-        return self._engine.copyContextVector()
+        return self._engine.copyContextVector().sites
 
     """
     Call this to apply engine syncs from a remote peer. The remote peer will
@@ -200,8 +200,8 @@ class OTEngine:
     @return transformed event that can safely be applied to the local
             document
     """
-    def remoteEvent(self, remoteOp, order):
-        return self._syncInbound(remoteOp["name"], remoteOp["value"],
+    def remoteEvent(self, order, remoteOp):
+        return self._syncRemote(remoteOp["name"], remoteOp["value"],
                 remoteOp["type"], remoteOp["position"], remoteOp["site"],
                 remoteOp["sites"], order)
 
@@ -222,7 +222,7 @@ class OTEngine:
     @return JSON object with information about how to apply the change to
             local data structures. false is returned on any error
     """
-    def _syncInbound(self, name, value, _type, position, site, sites, order):
+    def _syncRemote(self, name, value, _type, position, site, sites, order):
         if (not self._engineStable):
             return False
 

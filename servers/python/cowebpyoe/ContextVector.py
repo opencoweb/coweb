@@ -6,7 +6,7 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 """
 
-import ContextDifference
+from ContextDifference import ContextDifference
 
 """
 Represents the context in which an operation occurred at a site in 

@@ -146,7 +146,7 @@ class HistoryBuffer:
         ops = []
         """ put all ops into an array """
         for v in self.ops:
-            ops.append(self.ops[key])
+            ops.append(self.ops[v])
         """ sort them by context, sequence, and site """
         return sorted(ops, lambda x,y: a.compareByContext(b))
 
