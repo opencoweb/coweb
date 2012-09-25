@@ -81,9 +81,9 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
 					.getCurrentTransport();
 			HttpServletRequest req = transport.getCurrentRequest();
 
-			String username = req.getRemoteUser();
-			if (username == null)
-				username = "anonymous";
+			String username = "anonymous";
+			if (req != null && req.getRemoteUser() != null)
+				username = req.getRemoteUser();
 
 			allowed = this
 					.canSubscribeToSession(username, handler.getConfKey());
