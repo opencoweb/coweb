@@ -60,7 +60,8 @@ setup(name='OpenCoweb',
         'coweb.service.launcher',
         'coweb.service.manager',
         'coweb.session',
-        'coweb.updater'
+        'coweb.updater',
+        'cowebpyoe'
     ],
     data_files = cowebJSFiles,
     package_data={
