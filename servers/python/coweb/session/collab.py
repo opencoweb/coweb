@@ -11,8 +11,11 @@ from tornado.escape import json_encode, json_decode
 import uuid
 import logging
 import random
+import re
 # coweb
 import session
+
+session_sync_regex = re.compile("/session/([A-z0-9]+)/sync(.*)");
 
 log = logging.getLogger('coweb.session')
 
@@ -318,23 +321,25 @@ class CollabSessionConnection(session.SessionConnection):
                 # bad updater, disconnect and assign a new one
                 self._manager.remove_bad_client(cl)
                 return
-        elif channel.startswith('/session/sync/'):
-            # handle sync events
-            try:
-                # put siteId on message
-                req['data']['siteId'] = cl.siteId
-                self._manager.ensure_updater(cl)
-            except (KeyError, AttributeError):
-                # not allowed to publish syncs, disconnect
-                self._manager.remove_bad_client(cl)
-                return
-            # last state no longer valid
-            self._manager.clear_last_state()
-            if channel == '/session/sync/app':
-                # put total order sequence number on message
-                req['data']['order'] = self._manager.get_order()
-                # let manager deal with the sync if forwarding it to services
-                self._manager.sync_for_service(cl, req)
+        else:
+            matches = session_sync_regex.match(channel);
+            if matches:
+                # handle sync events
+                try:
+                    # put siteId on message
+                    req['data']['siteId'] = cl.siteId
+                    self._manager.ensure_updater(cl)
+                except (KeyError, AttributeError):
+                    # not allowed to publish syncs, disconnect
+                    self._manager.remove_bad_client(cl)
+                    return
+                # last state no longer valid
+                self._manager.clear_last_state()
+                if '/app' == matches.group(2):
+                    # put total order sequence number on message
+                    req['data']['order'] = self._manager.get_order()
+                    # let manager deal with the sync if forwarding it to services
+                    self._manager.sync_for_service(cl, req)
         # delegate all other handling to base class
         super(CollabSessionConnection, self).on_publish(cl, req, res)
 

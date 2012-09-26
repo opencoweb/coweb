@@ -11,11 +11,15 @@ import urlparse
 # std lib
 import json
 import uuid
+import hashlib
 # coweb
 import bayeux
 import session
 
 log = logging.getLogger('coweb.admin')
+
+def generate_collab_key():
+    return hashlib.md5(uuid.uuid4().urn).hexdigest()
 
 class AdminHandler(tornado.web.RequestHandler):
     def prepare(self):
@@ -39,21 +43,15 @@ class AdminHandler(tornado.web.RequestHandler):
         
         # decode params
         args = json.loads(self.request.body)
-        try:
-            key = args['key']
-        except KeyError:
-            key = uuid.uuid4().hex
-            # no key given, abort
-            #log.warn('admin rejected user %s prep, missing key', username)
-            #raise tornado.web.HTTPError(400)
-        # get collab flag
-        collab = args.get('collab', True)
+        key = args.get('key', None)
+        collab = args.get('collab', None)
         cacheState = args.get('cacheState', False)
-        try:
-            # check if there is a session for this key already            
-            sessionId = self.application.get_session_id(key, collab, cacheState)
-        except KeyError:
-            sessionId = None
+
+        # Generate key if none given.
+        if key is None:
+            key = generate_collab_key()
+
+        sessionId = self.application.get_session_id(key, collab, cacheState)
 
         # allow container to dictate session access
         access = self._container.access

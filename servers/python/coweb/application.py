@@ -33,10 +33,10 @@ class Application(tornado.web.Application):
         self._sessionIds[(session.key, session.collab, session.cacheState)] = session.sessionId
         self._sessions[session.sessionId] = session
 
+    # Returns None if the sessionId doesn't exist.
     def get_session_id(self, key, collab, cacheState):
-        '''Gets a session ID from the key, collab flag and cacheState flag.'''
-        return self._sessionIds[(key, collab, cacheState)]
-        
+        return self._sessionIds.get((key, collab, cacheState), None)
+
     def get_session_url(self, sessionId):
         '''Gets a session URL from a session ID.'''
         return self._container.webSessionRoot + sessionId
