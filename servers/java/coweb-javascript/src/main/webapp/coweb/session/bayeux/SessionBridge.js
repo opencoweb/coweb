@@ -141,7 +141,8 @@ define([
             method : 'POST',
             url : this._adminUrl,
             headers: {
-                'Content-Type' : 'application/json;charset=UTF-8' 
+                'Content-Type' : 'application/json;charset=UTF-8',
+                'Cache-Control' : 'no-cache'
             },
             body : JSON.stringify(data)
         };
