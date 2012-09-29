@@ -29,6 +29,7 @@ define([
             packet.method = 'POST';
             packet.headers = packet.headers || {};
             packet.headers['Content-Type'] = 'application/json;charset=UTF-8';
+            packet.headers['Cache-Control'] = 'no-cache';
             var promise = xhr.send(packet);
             promise.then(function(args) {
                 packet.onSuccess(args.xhr.responseText);
