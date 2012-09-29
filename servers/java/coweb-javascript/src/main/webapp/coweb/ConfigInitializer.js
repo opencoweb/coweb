@@ -23,7 +23,8 @@ cowebConfig = {
     adminUrl : cowebConfig.adminUrl || '/admin',
     loginUrl : cowebConfig.loginUrl || '/login',
     logoutUrl : cowebConfig.logoutUrl || '/logout',
-    cacheState : cowebConfig.cacheState || false
+    cacheState : cowebConfig.cacheState || false,
+    useWebSockets : cowebConfig.useWebSockets || false
 };
 
 (function () {

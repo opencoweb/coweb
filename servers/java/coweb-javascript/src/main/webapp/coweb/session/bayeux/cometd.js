@@ -43,11 +43,11 @@ define([
     };
 
     // register transports
-    // @todo: websocket disabled for now, make this a config option
-    // if (window.WebSocket) {
-    //     cometd.registerTransport('websocket', new org.cometd.WebSocketTransport());
-    // }
-    c.registerTransport('long-polling', new LongPollingTransport());
+    if (cowebConfig.useWebSockets) {
+    	c.registerTransport('websocket', new org.cometd.WebSocketTransport());
+    } else {
+    	c.registerTransport('long-polling', new LongPollingTransport());
+    }
     
     // register required extension
     c.registerExtension('ack', new cometd.AckExtension());
