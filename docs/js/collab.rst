@@ -206,6 +206,25 @@ Using a collaboration instance
 
    A web application calls this method to unsubscribe all callbacks registered with any subscribe method on this collaboration instance. The method has no parameters and returns no value.
 
+.. function:: CollabInterface.pauseSync()
+
+  This will pause the syncing of incoming remote events and place the incoming remote events
+  into a buffer. Remote events will not be sent to the op engine or to the application. A call
+  to :func:`CollabInterface.resumeSync()` will send all events in the buffer to the op engine and
+  forward the the transformed events to the client application.
+
+  All locally generated events are still sent out to other clients.
+
+  This function can be useful for simulating network latency; for example, pausing then resuming
+  sync events for five seconds would simulate remote clients' sync events taking five seconds to
+  arrive at the local client who paused.
+
+.. function:: CollabInterface.resumeSync()
+
+  This function clears the remote sync event buffer, and disables buffering future incoming
+  syncs. Buffered events are sent to the op engine, and the transformsd events are forwarded
+  to the client.
+
 Use cases
 ~~~~~~~~~
 
