@@ -1,29 +1,31 @@
 
-import cowebpyoe.ContextVector;
-import cowebpyoe.Operation;
-import cowebpyoe.OperationEngine;
-import cowebpyoe.OperationEngineException;
+from cowebpyoe.ContextVector import ContextVector
+from cowebpyoe.Operation import Operation
+from cowebpyoe.OperationEngine import OperationEngine
+from cowebpyoe.OperationEngineException import OperationEngineException
+
+import traceback
+from tornado.escape import json_encode, json_decode
+from multiprocessing import Process
+import time
+
+PURGE_SLEEP = 10
+SYNC_SLEEP = 10
 
 class OEHandler:
 
     def __init__(self, sessionHandler, siteId):
         self.sessionHandler = sessionHandler
         self.engine = OperationEngine(siteId)
-        self.engine.freezeSite(0);
+        self.engine.freezeSite(0)
 
         self.shouldSync = False
         self.shoudPurge = False
 
-        """
-        this.purgeTimer = new Timer();
-        this.purgeTask = new PurgeTask();
-        this.purgeTimer.scheduleAtFixedRate(this.purgeTask, new Date(), 10000);
+        self.purgeTask = Process(target=self._purgeTask)
+        self.syncTask = Process(target=self._syncTask)
 
-        this.syncTimer = new Timer();
-        this.syncTask = new SyncTask();
-        this.syncTimer.scheduleAtFixedRate(this.syncTask, new Date(), 10000);"""
-
-     """
+    """
        Called by the session when a coweb event is received from a remote app.
        Processes the data in the local operation engine if required before
        publishing to the moderator.
@@ -41,183 +43,136 @@ class OEHandler:
 
         topic = data.get("topic", "")
 
-        String value = null;
-        if(data.get("value") instanceof String)
-            value = (String)data.get("value");
-        else {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> val = (Map<String, Object>) data.get("value");
-            if (val != null) {
-                value = JSON.toString(val);
-            }
-        }
-
-
+        value = data.get("value", None)
         _type = data.get("type", "")
         position = data.get("position", 0)
-        site = data.geT("sideId", 0)
+        site = data.get("siteId", 0)
         order = data.get("order", 0)
 
-        //get the sites array
-        int[] sites = this.getSites(data);
+        sites = self.getSites(data)
 
         # push the operation onto the op engine.
         op = None
-        if (sites != null && type != null) {
-            try {
-                op = this.engine.push(false, topic, value, type, position,
-                        site, sites, order);
-            } catch (OperationEngineException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                return null;
-            }
+        if sites != None and _type != None:
+            try:
+                op = self.engine.push(False, topic, value, _type, position,\
+                        site, sites, order)
+            except OperationEngineException:
+                traceback.print_exc()
+                return None
 
-            if (op == null)
-                return null;
+            if op is None:
+                return None
 
-            value = op.getValue();
-            position = op.getPosition();
-        } else if (site == this.engine.getSiteId()) {
-            // op was echo'ed from server for op engine, but type null means
-            // op engine doesn't care about this message anyway so drop it
-            return null;
-        }
+            value = op.value
+            position = op.position
+        elif site == self.engine.siteId:
+            # op was echo'ed from server for op engine, but type null means
+            # op engine doesn't care about this message anyway so drop it
+            return None
 
-        // value is always json-encoded to avoid ref sharing problems with ops
-        // stored inside the op engine history buffer, so decode it and
-        // pack it into a hub event
-        HashMap<String, Object> hashMap = new HashMap<String, Object>();
-        hashMap.put("position", new Integer(position));
-        hashMap.put("type", type);
-        hashMap.put("value", JSON.parse(value));
-        hashMap.put("site", site);
-        hashMap.put("channel", topic);
+        self.shouldPurge = True
+        self.shouldSync = True
 
-        this.shouldPurge = true;
-        this.shouldSync = true;
-
-        return hashMap;
-    }
-
-    /**
-     * Called when the listener receives a context vector from a remote op
-     * engine (topics.ENGINE_SYNC). Integrates the context vector into context
-     * vector table of the local engine. Sets a flag saying the local op engine
-     * should run garbage collection over its history.
-     *
-     * @param data Map containing the following.
-     *        <li>Integer site Unique integer ID of the sending site
-     *        <li>int[] sites Context vector as an array of integers
-     */
-    public void engineSyncInbound(Map<String, Object> data) {
-        int[] sites = this.getSites(data);
-
-        Integer ste = (Integer) data.get("siteId");
-        int site = -1;
-        if (ste != null) {
-            site = ste.intValue();
-        }
-
-        // ignore our own engine syncs
-        if(site == this.engine.getSiteId()) {
-            return;
-        }
-
-        // give the engine the data
-        try {
-            this.engine.pushSyncWithSites(site, sites);
-        } catch(OperationEngineException e) {
-            log.info("UnmanagedHubListener: failed to recv engine sync " +
-                site + " " + sites + " " + e.getMessage());
-        }
-        // we've received remote info, allow purge
-        this.shouldPurge = true;
-    }
-
-    private int[] getSites(Map<String, Object> data) {
-        int[] sites = null;
-        Object[] objArr = (Object[])data.get("context");
-        if(objArr != null) {
-            sites = new int[objArr.length];
-            for(int i=0; i<objArr.length; i++)
-                 sites[i] = ((Number)objArr[i]).intValue();
-        }
-
-        return sites;
-    }
-
-    /**
-      * Wrapper for access to {@link org.coweb.oe.OperationEngine#getState}.
-      *
-      * @return engine state
-      */
-    public Object[] getEngineState() {
-        return this.engine.getState();
-    }
-
-    /**
-      * Called whenever the SessionHandler that owns this OperationEngineHandler is ending. All
-      * TimerTasks are stopped from repeating.
-      *
-      * Only package level access.
-      */
-    void shutdown() {
-        this.purgeTask.cancel();
-        this.syncTask.cancel();
-    }
-
-    /**
-     * Called on a timer to purge the local op engine history buffer if the
-     * op engine received a remote event or context vector since the last time
-     * the timer fired.
-     */
-    class PurgeTask extends TimerTask {
-
-        public void run() {
-            if(engine == null)
-                return;
-
-            if(shouldPurge) {
-                try {
-                    engine.purge();
-                } catch (OperationEngineException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+        # value is always json-encoded to avoid ref sharing problems with ops
+        # stored inside the op engine history buffer, so decode it and
+        # pack it into a hub event
+        return {
+                "position" : position,
+                "type" : _type,
+                "value" : json_encode(value),
+                "site" : site,
+                "channel" : topic
                 }
-            }
 
-            shouldPurge = false;
-        }
-    }
+    """
+       Called when the listener receives a context vector from a remote op
+       engine (topics.ENGINE_SYNC). Integrates the context vector into context
+       vector table of the local engine. Sets a flag saying the local op engine
+       should run garbage collection over its history.
 
-    /**
-     * Called on a timer to send the local op engine context vector to other
-     * participants (topics.ENGINE_SYNC) if the local op engine processed
-     * received events since since the last time the timer fired.
-     */
-    class SyncTask extends TimerTask {
-        public void run() {
-            if(!shouldSync || engine == null)
-                return;
+       @param data Map containing the following.
+              <li>Integer site Unique integer ID of the sending site
+              <li>int[] sites Context vector as an array of integers
+    """
+    def engineSyncInbound(self, data):
 
-            try {
-                ContextVector cv = engine.copyContextVector();
-                /* Must convert to Integer[] from int[], because the receiver of this
-                   message expects Integer[]. */
-                int cnt = 0;
-                int[] sites = cv.getSites();
-                Integer[] arr = new Integer[sites.length];
-                for (int i: sites)
-                    arr[cnt++] = i;
-                sessionHandler.postEngineSync(arr);
-            } catch (OperationEngineException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+        sites = self.getSites(data)
+        site = data.get("siteId", -1)
 
-            shouldSync = false;
-        }
-    }
+        # ignore our own engine syncs
+        if site == self.engine.getSiteId():
+            return
 
-}
+        # give the engine the data
+        try:
+            self.engine.pushSyncWithSites(site, sites)
+        except OperationEngineException, e:
+            log.info("UnmanagedHubListener: failed to recv engine sync " +\
+                    site + " " + sites + " " + e.getMessage())
+        # we've received remote info, allow purge
+        self.shouldPurge = True
+
+    def getSites(self, data):
+        ctx = data.get("context", None)
+        if ctx is not None:
+            return ctx[:]
+        return None
+
+    """
+        Wrapper for access to {@link org.coweb.oe.OperationEngine#getState}.
+       
+        @return engine state
+    """
+    def getEngineState(self):
+        return self.engine.getState()
+
+    """
+      " Called whenever the SessionHandler that owns this OperationEngineHandler is ending. All
+      " TimerTasks are stopped from repeating.
+      "
+      " Only package level access.
+    """
+    def shutdown(self):
+        self.purgeTask.terminate()
+        self.syncTask.terminate()
+
+    def _purgeTask(self):
+        while 1:
+            self.doPurge()
+            time.sleep(PURGE_SLEEP)
+
+    def _syncTask(self):
+        while 1:
+            self.doSync()
+            time.sleep(SYNC_SLEEP)
+
+    """
+     " Called on a timer to purge the local op engine history buffer if the
+     " op engine received a remote event or context vector since the last time
+     " the timer fired.
+    """
+    def doPurge(self):
+        if (not self.shouldPurge) or self.engine is None:
+            return
+        try:
+            engine.purge()
+        except Exception:
+            traceback.print_exc()
+        self.shouldPurge = False
+
+    """
+       Called on a timer to send the local op engine context vector to other
+       participants (topics.ENGINE_SYNC) if the local op engine processed
+       received events since since the last time the timer fired.
+    """
+    def doSync(self):
+        if (not self.shouldSync) or self.engine is None:
+            return
+        try:
+            cv = self.engine.copyContextVector()
+            sessionHandler.postEngineSync(cv.getSites())
+        except OperationEngineException:
+            traceback.print_exc()
+        self.shouldSync = False
+

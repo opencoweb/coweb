@@ -7,6 +7,7 @@ Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 
 import json
 from OperationEngine import OperationEngine
+import traceback
 
 class OTEngine:
     """
@@ -159,7 +160,7 @@ class OTEngine:
         op = None
         sites = None
 
-        if (_type != None):
+        if _type is not None:
             """ build operation """
             try:
                 op = self._engine.createOp(True, name, value, _type, position)
@@ -232,7 +233,8 @@ class OTEngine:
             try:
                 op = self._engine.push(False, name, value, _type, position,
                     site, sites, order)
-            except IOError as e:
+            except Exception as e:
+                traceback.print_exc()
                 print "name", name
                 print "value", value
                 print "type", _type
@@ -242,7 +244,7 @@ class OTEngine:
                 raise e
             """ Discard null operations; they should not be sent to app
                 according to op engine """
-            if(op == None):
+            if op is None:
                 return
             """ use newly computed value and position. """
             value = op.value

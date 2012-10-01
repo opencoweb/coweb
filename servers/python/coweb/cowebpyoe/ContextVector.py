@@ -6,6 +6,7 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 """
 
+from OperationEngineException import OperationEngineException
 from ContextDifference import ContextDifference
 
 """
@@ -40,7 +41,7 @@ class ContextVector:
         elif ("state" in args):
             self.sites = args["state"]
         else:
-            raise Exception("uninitialized context vector")
+            raise OperationEngineException("uninitialized context vector")
 
     """
     Converts the contents of this context vector sites array to a string.

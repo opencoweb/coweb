@@ -9,6 +9,7 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 """
 
+from OperationEngineException import OperationEngineException
 from ContextVector import ContextVector
 
 class Operation:
@@ -72,7 +73,7 @@ class Operation:
             elif (self.contextVector):
                 self.seqId = self.contextVector.getSeqForSite(self.siteId) + 1
             else:
-                raise Exception("missing sequence id for new operation")
+                raise OperationEngineException("missing sequence id for new operation")
             self.xCache = args["xCache"] if "xCache" in args else None
             self.local = args["local"] if "local" in args else False
 
@@ -102,9 +103,9 @@ class Operation:
     """
     def setState(self, arr):
         if (not (arr[0] == self.type)):
-            raise Exception("setState invoked with state from wrong op type")
+            raise OperationEngineException("setState invoked with state from wrong op type")
         elif (self.immutable):
-            raise Exception("op is immutable")
+            raise OperationEngineException("op is immutable")
         """ name args as required by constructor """
         self.key = arr[1]
         self.value = arr[2]
@@ -239,11 +240,11 @@ class Operation:
     """
     def transformWith(self, op):
         if (self.immutable):
-            raise Exception("attempt to transform immutable op")
+            raise OperationEngineException("attempt to transform immutable op")
         meth = op.transformMethod()
         func = self.getMethod(meth)
         if (not func):
-            raise Exception("operation cannot handle transform with type: " + op.type)
+            raise OperationEngineException("operation cannot handle transform with type: " + op.type)
         """ do the transform """
         rv = func(op)
         """ check if op effects nullified """
@@ -261,7 +262,7 @@ class Operation:
     """
     def upgradeContextTo(self, op):
         if (self.immutable):
-            raise Exception("attempt to upgrade context of immutable op")
+            raise OperationEngineException("attempt to upgrade context of immutable op")
         self.contextVector.setSeqForSite(op.siteId, op.seqId)
 
     """
@@ -271,7 +272,7 @@ class Operation:
     Abstract implementation always throws an exception if not overriden.
     """ 
     def getTransformMethod(self):
-        raise Exception("transformMethod not implemented")
+        raise OperationEngineException("transformMethod not implemented")
 
     def getMethod(self, meth):
         if ("transformWithInsert" == meth):
@@ -280,8 +281,8 @@ class Operation:
             return self.transformWithUpdate
         elif ("transformWithDelete" == meth):
             return self.transformWithDelete
-        raise Exception("Invalid method " + meth)
+        raise OperationEngineException("Invalid method " + meth)
 
     def getConstructor(self):
-        raise Exception("getConstructor not implemented in base class Operation")
+        raise OperationEngineException("getConstructor not implemented in base class Operation")
 

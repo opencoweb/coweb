@@ -7,6 +7,7 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 """
 
+from OperationEngineException import OperationEngineException
 from ContextVectorTable import ContextVectorTable
 from ContextVector import ContextVector
 from HistoryBuffer import HistoryBuffer
@@ -215,7 +216,7 @@ class OperationEngine:
         """ get minimum context vector """
 
         mcv = self.cvt.getMinimumContextVector()
-        if (mcv == None):
+        if mcv is None:
             """ exit quickly if there is no mcv """
             return None
 
@@ -227,7 +228,7 @@ class OperationEngine:
             curr = ops.pop()
             """ if we haven't picked a minimum op yet OR """
             """ the current op is before the minimum op in context """
-            if (min_op == None or curr.compareByContext(min_op) == -1):
+            if (min_op is None or curr.compareByContext(min_op) == -1):
                 """ compute the oldest difference between the document state """
                 """ and the current op """
                 cd = self.cv.oldestDifference(curr.contextVector)
@@ -241,7 +242,7 @@ class OperationEngine:
         """ remove keys until we hit the min """
         for op in ops:
             """ if there is no minimum op OR if this op is not the minimium """
-            if (min_op == None or
+            if (min_op is None or
                     (min_op.siteId != op.siteId or min_op.seqId != op.seqId)):
                 """ remove operation from history buffer """
                 self.hb.remove(op)
@@ -349,10 +350,10 @@ class OperationEngine:
                     """ transform needed to upgrade context of xop to op """
                     xcd = op.contextVector.subtract(xop.contextVector)
                     if (len(xcd.sites) <= 0):
-                        raise Exception("transform produced empty context diff")
+                        raise OperationEngineException("transform produced empty context diff")
                     """ we'll get a copy back from the recursion """
                     cxop = self._transform(xop, xcd)
-                    if (cxop == None):
+                    if cxop is None:
                         """ xop was invalidated by a previous op during the
                         transform so it has no effect on the current op;
                         upgrade context immediately and continue with
@@ -363,12 +364,12 @@ class OperationEngine:
                     """ now only deal with the copy """
                     xop = cxop
             if (not op.contextVector.equals(xop.contextVector)):
-                raise Exception("context vectors unequal after upgrade")
+                raise OperationEngineException("context vectors unequal after upgrade")
             """ make a copy of the op as is before transform """
             cop = op.copy()
             """ transform op to include xop now that contexts match IT(op, xop) """
             op = op.transformWith(xop)
-            if (op == None):
+            if op is None:
                 """ op target was deleted by another earlier op so return now
                 do not continue because no further transforms have any
                 meaning on this op

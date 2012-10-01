@@ -5,6 +5,7 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 """
 
+from OperationEngineException import OperationEngineException
 from factory import factory
 from Operation import Operation
 
@@ -66,7 +67,7 @@ class HistoryBuffer:
         for i in range(l):
             key = keys[i]
             if (key not in self.ops):
-                raise Exception("missing op for context diff: i=" + i +
+                raise OperationEngineException("missing op for context diff: i=" + i +
                         " key=" + key + " keys=" + str(keys))
             ops.append(self.ops[key])
         """ sort by total order """
@@ -95,16 +96,16 @@ class HistoryBuffer:
     """
     def addRemote(self, op):
         key = factory.createHistoryKey(op.siteId, op.seqId)
-        if (None == op.order):
+        if op.order is None:
             """ remote op must have order set by server """
-            raise Exception("remote op missing total order")
+            raise OperationEngineException("remote op missing total order")
         elif (key in self.ops):
             eop = self.ops[key]
-            if (eop.order != None):
+            if (eop.order is not None):
                 " TODO I don't understand how this indicates a 'repeat'"
                 """ order should never repeat """
-                raise Exception("duplicate op in total order: old=" + eop.order +
-                    " new=" + op.order)
+                raise OperationEngineException("duplicate op in total order: old=" +\
+                        str(eop.order) + " new=" + str(op.order))
             """ server has responded with known total order for an op this site
                 previously sent; update the local op with the info """
             eop.order = op.order

@@ -14,7 +14,9 @@ import random
 import re
 # coweb
 import session
+from .. import OEHandler
 
+OEHandler = OEHandler.OEHandler
 session_sync_regex = re.compile("/session/([A-z0-9]+)/sync(.*)");
 
 log = logging.getLogger('coweb.session')
@@ -45,6 +47,9 @@ class CollabSession(session.Session):
         
         # operation total order
         self._opOrder = -1
+
+        # TODO make this optional
+        self._opengine = OEHandler(self, 0)
         
     def get_order(self):
         '''Gets the next operation order sequence number.'''
@@ -311,7 +316,6 @@ class CollabSessionConnection(session.SessionConnection):
     def on_publish(self, cl, req, res):
         '''Override to handle updater and sync logic.'''
         channel = req['channel']
-        #log.debug('on_publish channel = %s', channel)
         if channel == '/service/session/updater':
             # handle updater response
             data = req.get('data', None)
@@ -340,6 +344,8 @@ class CollabSessionConnection(session.SessionConnection):
                     req['data']['order'] = self._manager.get_order()
                     # let manager deal with the sync if forwarding it to services
                     self._manager.sync_for_service(cl, req)
+                    # Push sync to op engine.
+                    self._manager._opengine.syncInbound(req['data'])
         # delegate all other handling to base class
         super(CollabSessionConnection, self).on_publish(cl, req, res)
 
