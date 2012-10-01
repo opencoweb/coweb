@@ -48,6 +48,12 @@ A web application can configure the various implementations of the JavaScript AP
 
    Boolean indicates if the server session state should be cached.
 
+.. attribute:: cowebConfig.useWebSockets
+
+   Boolean indicates whether to use WebSockets for the CometD transport. Defaults to false.
+
+   **Note**: To use WebSockets you must use a Jetty Based WebContainer Version 7 or above. You must ensure that the WebSockets transport implementation is configured for the CometD servlet in web.xml. See **/coweb/servers/java/coweb-build/src/main/webapp/WEB-INF/web.xml** for an example. Also you must used a fully qualified URL for the **cowebConfig.baseUrl** value. You can usually use **window.location.protocol + '//'+window.location.host**.
+
 Bootstrapping a coweb application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
