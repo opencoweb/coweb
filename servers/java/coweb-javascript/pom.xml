@@ -64,25 +64,18 @@
                             <tasks>
 								<property name="workpath" location="${project.build.directory}/tmp" />
 								<echo message="HERE ***************************   ${workpath}" />
-								
-								<concat destfile="${workpath}/amd">define(function () {
-if (typeof dojo !== 'undefined' &amp;&amp; !dojo.provide) { dojo.provide = function() {}; this.org = this.org || {}; org.cometd = {}; }
-								</concat>
-								<concat destfile="${workpath}/amd" append="yes">
-										<fileset file="${workpath}/org/cometd.js" />
-								</concat>
-								<concat destfile="${workpath}/amd" append="yes">
-										<fileset file="${workpath}/org/cometd/AckExtension.js" />
-								</concat>
-								<concat destfile="${workpath}/amd" append="yes">return org.cometd;
-});
-								</concat>
-								
-								<move file="${workpath}/amd" tofile="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd.js" />
-								<delete dir="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd" />
 
+                                <!-- Pull in cometd. -->
+                                <delete dir="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd" />
+                                <move file="${workpath}/org/cometd.js"
+                                    tofile="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd.js" />
+                                <move file="${workpath}/org/cometd/AckExtension.js"
+                                    tofile="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd/AckExtension.js" />
+
+                                <!-- Pull in requirejs's i18n library. -->
 								<mkdir dir="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs"/>
-								<get src="${i18n-plugin-url}" dest="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs/i18n.js"/>
+                                <get src="${i18n-plugin-url}"
+                                    dest="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs/i18n.js"/>
 
                                 <!-- coweb-jsoe organization -->
                                 <copy todir="${coweb-jsoe}">
@@ -94,17 +87,7 @@ if (typeof dojo !== 'undefined' &amp;&amp; !dojo.provide) { dojo.provide = funct
                                 <copy todir="${coweb-jsoe}/nls">
                                     <fileset dir="${coweb-jsoe-src}/src/coweb/jsoe/nls" />
                                 </copy>
-							  </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>coweb-jsoe-organiation</id>
-                        <phase>package</phase>
-                        <configuration>
-                            <tasks>
+
 							  </tasks>
                         </configuration>
                         <goals>
