@@ -14,17 +14,17 @@ var dojoConfig = {
 	},
 	packages:[{
 		name: 'dojo',
-		location:'https://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dojo',
+		location:'https://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dojo',
 		main:'main'
 	},
 	{
 		name: 'dijit',
-		location:'https://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dijit',
+		location:'https://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dijit',
 		main:'main'
 	},
 	{
 		name: 'dojox',
-		location:'https://ajax.googleapis.com/ajax/libs/dojo/1.7.0/dojox',
+		location:'https://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dojox',
 		main:'main'
 	}]
 };
