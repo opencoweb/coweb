@@ -11,8 +11,9 @@
 define([
     'coweb/util/xhr',
     'org/cometd',
+    'org/cometd/AckExtension',
 	'org/requirejs/i18n!../../nls/messages'
-], function(xhr, cometd, messages) {
+], function(xhr, cometd, AckExtension, messages) {
     // use browser native functions, http://caniuse.com/#search=JSON
     cometd.JSON.toJSON = JSON.stringify;
     cometd.JSON.fromJSON = JSON.parse;
@@ -50,6 +51,6 @@ define([
     }
     
     // register required extension
-    c.registerExtension('ack', new cometd.AckExtension());
+    c.registerExtension('ack', new AckExtension());
     return c;
 });

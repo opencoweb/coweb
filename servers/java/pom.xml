@@ -56,12 +56,12 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <cometd-version>2.4.0</cometd-version>
+        <cometd-version>2.5.0</cometd-version>
         <coweb-version>0.8.3.1-SNAPSHOT</coweb-version>
     </properties>
 
     <modules>
-	<module>coweb-operationengine</module>
+        <module>coweb-operationengine</module>
         <module>coweb-bots</module>
         <module>coweb-server</module>
         <module>coweb-javascript</module>
