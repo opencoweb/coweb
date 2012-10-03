@@ -5,6 +5,7 @@ Changelog
 ---------
 
 Version 0.8.3.1
+~~~~~~~~~~~~~~~
 
 * Javascript OT engine is now a git submodule of the OCW coweb-jsoe repo. This doesn't affect API
   or usage of the OCW code, but it does affect development for OCW. Development of coweb-jsoe is
