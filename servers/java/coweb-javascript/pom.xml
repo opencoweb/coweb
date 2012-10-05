@@ -67,9 +67,9 @@
 
                                 <!-- Pull in cometd. -->
                                 <delete dir="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd" />
-                                <move file="${workpath}/org/cometd.js"
+                                <copy file="${workpath}/org/cometd.js"
                                     tofile="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd.js" />
-                                <move file="${workpath}/org/cometd/AckExtension.js"
+                                <copy file="${workpath}/org/cometd/AckExtension.js"
                                     tofile="${project.build.directory}/${project.artifactId}-${project.version}/org/cometd/AckExtension.js" />
 
                                 <!-- Pull in requirejs's i18n library. -->
@@ -77,7 +77,7 @@
                                 <get src="${i18n-plugin-url}"
                                     dest="${project.build.directory}/${project.artifactId}-${project.version}/org/requirejs/i18n.js"/>
 
-                                <!-- coweb-jsoe organization -->
+                                <!-- Use only the relevant coweb-jsoe files. -->
                                 <copy todir="${coweb-jsoe}">
                                     <fileset dir="${coweb-jsoe-src}/src/coweb/jsoe">
                                         <include name="*.js" />
