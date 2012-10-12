@@ -171,7 +171,8 @@ define([
             url : this._loginUrl,
             body: JSON.stringify({username : username, password: password}),
             headers : {
-                'Content-Type' : 'application/json;charset=UTF-8'
+                'Content-Type' : 'application/json;charset=UTF-8',
+                'Cache-Control' : 'no-cache'
             }
         };
         return xhr.send(args);

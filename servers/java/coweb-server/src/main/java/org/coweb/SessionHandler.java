@@ -237,14 +237,12 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			data.put("order", this.order.getAndIncrement());
 
 			if (this.operationEngine != null) {
-				
 				synchronized (this.operationEngine) {
 					Map<String, Object> syncEvent = this.operationEngine.syncInbound(data);
 					if (syncEvent != null) {
 						this.sessionModerator.onSync(syncEvent);
 					}
 				}
-
 			}
 
 			try {

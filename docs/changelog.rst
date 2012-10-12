@@ -4,6 +4,18 @@
 Changelog
 ---------
 
+Version 0.8.3.1
+~~~~~~~~~~~~~~~
+
+* Javascript OT engine is now a git submodule of the OCW coweb-jsoe repo. This doesn't affect API
+  or usage of the OCW code, but it does affect development for OCW. Development of coweb-jsoe is
+  separate for the coweb repo, and the coweb-javascript/src/main/webapp/coweb/jsoe submodule
+  needs to be updated when coweb-jsoe is updated.
+* Update to use cometd 2.5
+* Moderator.onSync() now receives the topic as part of the map argument. The map has a new key
+  "channel" which is the bayeux channel name. See https://github.com/opencoweb/coweb/issues/201
+* Websockets is now available as a cometd transport. See https://github.com/opencoweb/coweb/issues/207
+
 Version 0.8.3
 ~~~~~~~~~~~~~
 

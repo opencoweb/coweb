@@ -11,8 +11,9 @@
 define([
     'coweb/util/xhr',
     'org/cometd',
+    'org/cometd/AckExtension',
 	'org/requirejs/i18n!../../nls/messages'
-], function(xhr, cometd, messages) {
+], function(xhr, cometd, AckExtension, messages) {
     // use browser native functions, http://caniuse.com/#search=JSON
     cometd.JSON.toJSON = JSON.stringify;
     cometd.JSON.fromJSON = JSON.parse;
@@ -29,6 +30,7 @@ define([
             packet.method = 'POST';
             packet.headers = packet.headers || {};
             packet.headers['Content-Type'] = 'application/json;charset=UTF-8';
+            packet.headers['Cache-Control'] = 'no-cache';
             var promise = xhr.send(packet);
             promise.then(function(args) {
                 packet.onSuccess(args.xhr.responseText);
@@ -42,13 +44,13 @@ define([
     };
 
     // register transports
-    // @todo: websocket disabled for now, make this a config option
-    // if (window.WebSocket) {
-    //     cometd.registerTransport('websocket', new org.cometd.WebSocketTransport());
-    // }
-    c.registerTransport('long-polling', new LongPollingTransport());
+    if (cowebConfig.useWebSockets) {
+    	c.registerTransport('websocket', new org.cometd.WebSocketTransport());
+    } else {
+    	c.registerTransport('long-polling', new LongPollingTransport());
+    }
     
     // register required extension
-    c.registerExtension('ack', new cometd.AckExtension());
+    c.registerExtension('ack', new AckExtension());
     return c;
 });

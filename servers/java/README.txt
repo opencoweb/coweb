@@ -21,6 +21,9 @@ Maven Modules
 coweb-admin
    Optional coweb session administration. (in development)
 
+coweb-client
+   Pure Java client. (in development, not currently finished)
+
 coweb-archetype 
    Archetype for creating your own coweb webapp.
    
@@ -30,11 +33,11 @@ coweb-bots
 coweb-javascript
    Contains the latest stable release copy of the coweb framework JavaScript.
 
-coweb-jsoe
-	Javascript operational transformation engine.
-
 coweb-server 
    Coweb server infrastructure.
+
+coweb-operationengine
+   Coweb Java operation engine implementation.
 
 Eclipse/WTP
 ===========

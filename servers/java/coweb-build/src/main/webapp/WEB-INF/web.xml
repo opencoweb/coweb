@@ -27,6 +27,12 @@
       <param-name>maxSessionsPerBrowser</param-name>
       <param-value>-1</param-value>
     </init-param>
+    <!-- Uncomment this init-param to enable the use of websockets as a cometd transport.
+	<init-param>
+      <param-name>transports</param-name>
+      <param-value>org.cometd.websocket.server.WebSocketTransport</param-value>
+	</init-param>
+	-->
     <load-on-startup>1</load-on-startup>
     <!--async-supported>true</async-supported> -->
   </servlet>

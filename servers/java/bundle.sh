@@ -17,7 +17,6 @@ coweb-archetype
 coweb-bots
 coweb-javascript
 coweb-server
-coweb-jsoe
 coweb-operationengine
 coweb-build
 "
