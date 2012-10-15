@@ -59,6 +59,7 @@ class AdminHandler(tornado.web.RequestHandler):
 
         config = {}
         config['sessionModerator'] = None
+        config['moderatorIsUpdater'] = False
 
         if sessionId is None:
             # create a new session if not started yet
