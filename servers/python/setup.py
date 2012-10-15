@@ -11,7 +11,7 @@ import os
 import shutil
 import subprocess
 
-VERSION = '0.8.3'
+VERSION = '0.8.4-SNAPSHOT'
 
 isSDist = len(sys.argv) > 1 and sys.argv[1] == 'sdist'
 srcDir = os.path.join(os.environ['PWD'], '../../js/release/coweb-%s' % VERSION)
@@ -61,7 +61,7 @@ setup(name='OpenCoweb',
         'coweb.service.manager',
         'coweb.session',
         'coweb.updater',
-        'cowebpyoe'
+        'coweb.cowebpyoe'
     ],
     data_files = cowebJSFiles,
     package_data={

@@ -57,11 +57,15 @@ class AdminHandler(tornado.web.RequestHandler):
         access = self._container.access
         sessionInfo = access.on_admin_request(username, key, collab)
 
+        config = {}
+        config['sessionModerator'] = None
+
         if sessionId is None:
             # create a new session if not started yet
             # if we made it here, user has permission to do so
             sess = session.create_session(
                 collab,
+                config,
                 key=key,
                 cacheState=cacheState,
                 container=self._container,

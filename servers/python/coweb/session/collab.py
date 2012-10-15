@@ -15,6 +15,7 @@ import re
 # coweb
 import session
 from .. import OEHandler
+from .. import session_moderator
 
 OEHandler = OEHandler.OEHandler
 session_sync_regex = re.compile("/session/([A-z0-9]+)/sync(.*)");
@@ -25,8 +26,8 @@ class CollabSession(session.Session):
     '''
     Manages a session instance that supports services and cooperative events.
     '''
-    def __init__(self, *args, **kwargs):
-        super(CollabSession, self).__init__(*args, **kwargs)
+    def __init__(self, config, *args, **kwargs):
+        super(CollabSession, self).__init__(config, *args, **kwargs)
         self.collab = True
         self._connectionClass = CollabSessionConnection
 
@@ -50,6 +51,9 @@ class CollabSession(session.Session):
 
         # TODO make this optional
         self._opengine = OEHandler(self, 0)
+
+        # Moderator? TODO
+        self._moderator = session_moderator.get_instance(self.config['sessionModerator'], self.key)
         
     def get_order(self):
         '''Gets the next operation order sequence number.'''
