@@ -246,9 +246,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			}
 
 			try {
-				String topic = (String)data.get("topic");
-				if(!topic.startsWith("coweb.engine.sync"))
-					this.serviceHandler.forwardSyncEvent(from, message);
+                this.serviceHandler.forwardSyncEvent(from, message);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -267,16 +265,13 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		String channel = message.getChannel();
 		try {
 			if (channel.startsWith("/service/bot")) {
-				Map<String, Object> data = message.getDataAsMap();
-				String topic = (String) data.get("topic");
-				if (!topic.startsWith("coweb.engine.sync"))
-					if (this.sessionModerator.canClientMakeServiceRequest(
-							remote, message))
-						this.serviceHandler.forwardUserRequest(remote, message);
-					else {
-						// TODO
-						// send error message.
-					}
+                if (this.sessionModerator.canClientMakeServiceRequest(
+                        remote, message))
+                    this.serviceHandler.forwardUserRequest(remote, message);
+                else {
+                    // TODO
+                    // send error message.
+                }
 			} else if (channel.equals("/service/session/updater")) {
 				this.lateJoinHandler.onUpdaterSendState(remote, message);
 			}
