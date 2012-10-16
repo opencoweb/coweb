@@ -24,7 +24,6 @@ define(function() {
         GET_STATE : p+'state.get',
         SET_STATE : p+'state.set.',
         ENGINE_STATE : p+'engine.state',
-        ENGINE_SYNC : p+'engine.sync',
         PAUSE_STATE : p+'pause.state',
         // site joining and leaving topics
         SITE_JOIN : p+'site.join',

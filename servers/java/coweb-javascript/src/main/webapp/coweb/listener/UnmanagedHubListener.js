@@ -649,7 +649,7 @@ define([
 
     /**
      * Called on a timer to send the local op engine context vector to other
-     * participants (topics.ENGINE_SYNC) if the local op engine processed
+     * participants (/session/ID/sync/engine) if the local op engine processed
      * received events since since the last time the timer fired.
      */
     proto._engineSyncOutbound = function() {
@@ -670,7 +670,7 @@ define([
     
     /**
      * Called when the listener receives a context vector from a remote op
-     * engine (topics.ENGINE_SYNC). Integrates the context vector into context
+     * engine (/sesssion/ID/sync/engine). Integrates the context vector into context
      * vector table of the local engine. Sets a flag saying the local op engine
      * should run garbage collection over its history. 
      */
