@@ -38,6 +38,11 @@ class CollabSession(session.Session):
 
         # Moderator? TODO
         self._moderator = session_moderator.get_instance(self.config['sessionModerator'], self.key)
+        if self._moderator is None:
+            config['moderatorIsUpdater'] = False
+            log.warning("Failed to create instance of " + str(self.config['sessionModerator']) +
+                    ". Reverting to default session moderator.")
+            log.warning("Moderator can no longer be updated.")
 
         if self.config['moderatorIsUpdater']:
             self._late_join_handler = moderator_late_join_handler(self._moderator, self)
@@ -101,12 +106,19 @@ class CollabSessionConnection(session.SessionConnection):
                 # last state no longer valid
                 self._manager._late_join_handler.clear_last_state()
                 if '/app' == matches.group(2):
-                    # put total order sequence number on message
+                    # App sync.
+                    # Put total order sequence number on message
                     req['data']['order'] = self._manager.get_order()
                     # let manager deal with the sync if forwarding it to services
                     self._manager.sync_for_service(cl, req)
-                    # Push sync to op engine.
-                    self._manager._opengine.syncInbound(req['data'])
+                    if self._manager._opengine:
+                        # Push sync to op engine.
+                        self._manager._opengine.syncInbound(req['data'])
+                elif '/engine' == matches.group(2):
+                    # Engine sync.
+                    if self._manager._opengine:
+                        print "did sync inbound"
+                        self._manager._opengine.engineSyncInbound(req['data'])
         # delegate all other handling to base class
         super(CollabSessionConnection, self).on_publish(cl, req, res)
 

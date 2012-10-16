@@ -101,7 +101,7 @@ class OEHandler:
         site = data.get("siteId", -1)
 
         # ignore our own engine syncs
-        if site == self.engine.getSiteId():
+        if site == self.engine.siteId:
             return
 
         # give the engine the data

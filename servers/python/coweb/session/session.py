@@ -204,3 +204,4 @@ class SessionConnection(bayeux.BayeuxConnection):
             res['successful'] = False
             return
         super(SessionConnection, self).on_publish(cl, req, res)
+
