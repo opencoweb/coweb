@@ -1,3 +1,4 @@
+
 package org.coweb;
 
 import java.util.Date;
@@ -56,18 +57,59 @@ public class OperationEngineHandler {
 	}
 
 	/**
-     * Called by the session when a coweb event is received from a remote app.
-     * Processes the data in the local operation engine if required before 
-     * publishing to the moderator. 
-     *
-     * @param data Map containing the following.
-     *        <li>String topic Topic name (topics.SYNC.**)
-     *        <li>String value JSON-encoded operation value
-     *        <li>String|null type Operation type
-     *        <li>Integer position Operation linear position
-     *        <li>Integer site Unique integer ID of the sending site
-     *        <li>Integer[] sites Context vector as an array of integers (use {@link OperationEngineHandler#getSites} to convert from Integer[] to int[])
-     */
+	 * Called by the session when the moderator (or in general, any local
+	 * client) wants to send a sync event.
+	 */
+	public void localSync(String topic, Object value,
+			String type, int position) {
+
+		/* Construct op, send it, then process it in the op engine. */
+		String jsonValue = JSON.toString(value);
+		ContextVector cv = null;
+		Operation op = null;
+		if (null != type) {
+			try {
+				op = this.engine.createOp(true, topic, jsonValue, type,
+						position, -1, null, -1);
+				cv = op.getContextVector();
+			} catch (OperationEngineException e) {
+				log.warning("Bad type: " + type + ", using null type instead.");
+				type = null;
+			}
+		}
+
+		Map<String, Object> message = new HashMap<String, Object>();
+		message.put("topic", topic);
+		message.put("value", value);
+		message.put("type", type);
+		message.put("position", position);
+		if (null != cv)
+			message.put("context", cv.getSites());
+		else
+			message.put("context", null);
+
+		this.sessionHandler.sendModeratorSync(message);
+
+		if (null != type) {
+			synchronized(this.engine) {
+				this.engine.pushLocalOp(op);
+			}
+		}
+	}
+
+	/**
+	 * Called by the session when a coweb event is received from a remote app.
+	 * Processes the data in the local operation engine if required before 
+	 * publishing to the moderator. 
+	 *
+	 * @param data Map containing the following.
+	 *        <li>String topic Topic name (topics.SYNC.**)
+	 *        <li>String value JSON-encoded operation value
+	 *        <li>String|null type Operation type
+	 *        <li>Integer position Operation linear position
+	 *        <li>Integer site Unique integer ID of the sending site
+	 *        <li>Integer[] sites Context vector as an array of integers (use {@link OperationEngineHandler#getSites} to convert from Integer[] to int[])
+	 */
 	public Map<String, Object> syncInbound(Map<String, Object> data) {
 			
 		//get the topic
@@ -142,7 +184,7 @@ public class OperationEngineHandler {
 		hashMap.put("type", type);
 		hashMap.put("value", JSON.parse(value));
 		hashMap.put("site", site);
-		hashMap.put("channel", topic);
+		hashMap.put("topic", topic);
 		
 		this.shouldPurge = true;
 		this.shouldSync = true;
@@ -151,15 +193,15 @@ public class OperationEngineHandler {
 	}
 	
 	/**
-     * Called when the listener receives a context vector from a remote op
-     * engine (topics.ENGINE_SYNC). Integrates the context vector into context
-     * vector table of the local engine. Sets a flag saying the local op engine
-     * should run garbage collection over its history. 
-     * 
-     * @param data Map containing the following.
-     *        <li>Integer site Unique integer ID of the sending site
-     *        <li>int[] sites Context vector as an array of integers
-     */
+	 * Called when the listener receives a context vector from a remote op
+	 * engine (topics.ENGINE_SYNC). Integrates the context vector into context
+	 * vector table of the local engine. Sets a flag saying the local op engine
+	 * should run garbage collection over its history. 
+	 * 
+	 * @param data Map containing the following.
+	 *        <li>Integer site Unique integer ID of the sending site
+	 *        <li>int[] sites Context vector as an array of integers
+	 */
 	public void engineSyncInbound(Map<String, Object> data) {
 		int[] sites = this.getSites(data);
 		
@@ -170,19 +212,19 @@ public class OperationEngineHandler {
 		}
 		
 		// ignore our own engine syncs
-        if(site == this.engine.getSiteId()) {
-        	return;
-        }
-        
-        // give the engine the data
-        try {
-            this.engine.pushSyncWithSites(site, sites);
-        } catch(OperationEngineException e) {
-            log.info("UnmanagedHubListener: failed to recv engine sync " + 
-                site + " " + sites + " " + e.getMessage());
-        }
-        // we've received remote info, allow purge
-        this.shouldPurge = true;
+		if(site == this.engine.getSiteId()) {
+			return;
+		}
+		
+		// give the engine the data
+		try {
+			this.engine.pushSyncWithSites(site, sites);
+		} catch(OperationEngineException e) {
+			log.info("UnmanagedHubListener: failed to recv engine sync " + 
+				site + " " + sites + " " + e.getMessage());
+		}
+		// we've received remote info, allow purge
+		this.shouldPurge = true;
 	}
 	
 	private int[] getSites(Map<String, Object> data) {
@@ -218,10 +260,10 @@ public class OperationEngineHandler {
 	}
 	
 	/**
-     * Called on a timer to purge the local op engine history buffer if the
-     * op engine received a remote event or context vector since the last time
-     * the timer fired.
-     */
+	 * Called on a timer to purge the local op engine history buffer if the
+	 * op engine received a remote event or context vector since the last time
+	 * the timer fired.
+	 */
 	class PurgeTask extends TimerTask {
 		
 		public void run() {
@@ -242,10 +284,10 @@ public class OperationEngineHandler {
 	}
 	
 	/**
-     * Called on a timer to send the local op engine context vector to other
-     * participants (topics.ENGINE_SYNC) if the local op engine processed
-     * received events since since the last time the timer fired.
-     */
+	 * Called on a timer to send the local op engine context vector to other
+	 * participants (topics.ENGINE_SYNC) if the local op engine processed
+	 * received events since since the last time the timer fired.
+	 */
 	class SyncTask extends TimerTask {
 		public void run() {
 			if(!shouldSync || engine == null)
@@ -258,11 +300,12 @@ public class OperationEngineHandler {
 				int cnt = 0;
 				int[] sites = cv.getSites();
 				Integer[] arr = new Integer[sites.length];
-				for (int i: sites)
-					arr[cnt++] = i;
+				for (int i: sites) {
+					arr[cnt] = i;
+					++cnt;
+				}
 				sessionHandler.postEngineSync(arr);
 			} catch (OperationEngineException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			

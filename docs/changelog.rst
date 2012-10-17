@@ -4,6 +4,16 @@
 Changelog
 ---------
 
+Version 0.8.4
+~~~~~~~~~~~~~
+* Moderator now receives a "topic" instead of "channel" to indicate what collab
+  topic was affected by the sync event.
+* Bots now no longer receive sync events. This was an issue since bots did not
+  receive transformed events. Bots can only receive private messages
+  from clients and broadcast messages to all clients listening. The moderator
+  can send private messages to bots, so the moderator can send transformed
+  events to bots as an alternative.
+
 Version 0.8.3.1
 ~~~~~~~~~~~~~~~
 

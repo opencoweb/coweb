@@ -34,8 +34,7 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * org.cometd.bayeux.Message)
 	 */
 	@Override
-	public boolean onSync(Map<String, Object> data) {
-		return true;
+	public void onSync(Map<String, Object> data) {
 	}
 
 	/*

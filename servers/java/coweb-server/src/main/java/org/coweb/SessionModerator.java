@@ -174,10 +174,8 @@ public abstract class SessionModerator {
 	 *             int    site,<br />
 	 *             Map    value,<br />
 	 *             int    position
-	 * 
-	 * @return true if this sync event should forwarded to the bots
 	 */
-	public abstract boolean onSync(Map<String, Object> data);
+	public abstract void onSync(Map<String, Object> data);
 
 	/**
 	  *
@@ -254,4 +252,13 @@ public abstract class SessionModerator {
 	  */
 	public abstract void onSessionEnd();
 
+	/**
+	 * This method will publish a sync event to all clients listening to a coweb
+	 * session.
+	 */
+	public void sendSync(String name, Object value, String type, int position) {
+		this.sessionHandler.publishModeratorSync(name, value, type, position);
+	}
+
 }
+

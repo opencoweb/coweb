@@ -57,15 +57,15 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 	private ArrayList<ServerSession> attendees = new ArrayList<ServerSession>();
 
-    /**
-     * Create a SessionHandler. There is one session handler keyed on cowebkey
-     * and the cacheState boolean. This constructor sets up channel listeners,
-     * creates the service handler, an operation engine, and a moderator
-     * depending on the configuration settings.
-     * @param confKey cowebkey that uniquely identifies a coweb application session.
-     * @param cacheState Whether or not this session caches application state.
-     * @param config Configuration options for this application. See <a href="http://opencoweb.org/ocwdocs/java/deploy.html#web-inf-web-xml">configuration documentation.</a>.
-     */
+	/**
+	 * Create a SessionHandler. There is one session handler keyed on cowebkey
+	 * and the cacheState boolean. This constructor sets up channel listeners,
+	 * creates the service handler, an operation engine, and a moderator
+	 * depending on the configuration settings.
+	 * @param confKey cowebkey that uniquely identifies a coweb application session.
+	 * @param cacheState Whether or not this session caches application state.
+	 * @param config Configuration options for this application. See <a href="http://opencoweb.org/ocwdocs/java/deploy.html#web-inf-web-xml">configuration documentation.</a>.
+	 */
 	public SessionHandler(String confkey, boolean cacheState, Map<String, Object> config) {
 
 		this.confKey = confkey;
@@ -214,9 +214,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 	/**
 	  * Called whenever a client sends an application message to the server. This
-      * does not include /meta, /service, and /bot messages, which are handled by
-      * different methods. This method handles application sync and engine sync
-      * messages.
+	  * does not include /meta, /service, and /bot messages, which are handled by
+	  * different methods. This method handles application sync and engine sync
+	  * messages.
 	  *
 	  * The cometd implementation is free to have multiple threads invoke onMessage
 	  * for different incoming messages, so be aware of mutual exclusion issues.
@@ -238,7 +238,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		data.put("siteId", siteId);
 
 		/* Some of the following code must acquire this.operationEngine's lock.
-         * OperationEngine must only be accessed by one client at a time. */
+		 * OperationEngine must only be accessed by one client at a time. */
 		String channelName = message.getChannel();
 		if (channelName.equals(this.syncAppChannel)) {
 			// put total order on message
@@ -263,28 +263,28 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		return true;
 	}
 
-    /**
-     * Handles bayeux messaegs on the channels below.
-     *   <li> /session/roster/*
-     *   <li> /service/session/join/*
-     *   <li> /service/session/updater
-     *   <li> /service/bot/**
-     *   <li> /bot/**
-     *
-     * Specifically, onPublish handles clients sending private bot messages
-     * and when updaters send full application state to the server.
-     */
+	/**
+	 * Handles bayeux messaegs on the channels below.
+	 *   <li> /session/roster/*
+	 *   <li> /service/session/join/*
+	 *   <li> /service/session/updater
+	 *   <li> /service/bot/**
+	 *   <li> /bot/**
+	 *
+	 * Specifically, onPublish handles clients sending private bot messages
+	 * and when updaters send full application state to the server.
+	 */
 	public void onPublish(ServerSession remote, Message message) {
 		String channel = message.getChannel();
 		try {
 			if (channel.startsWith("/service/bot")) {
-                if (this.sessionModerator.canClientMakeServiceRequest(
-                        remote, message))
-                    this.serviceHandler.forwardUserRequest(remote, message);
-                else {
-                    // TODO
-                    // send error message.
-                }
+				if (this.sessionModerator.canClientMakeServiceRequest(
+						remote, message))
+					this.serviceHandler.forwardUserRequest(remote, message);
+				else {
+					// TODO
+					// send error message.
+				}
 			} else if (channel.equals("/service/session/updater")) {
 				this.lateJoinHandler.onUpdaterSendState(remote, message);
 			}
@@ -399,10 +399,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 	
 	/**
-     * Publishes a local op engine sync event to the /session/ID/sync/engine
-     * bayeux channel.
-     * @param sites context int array context vector for this site
-     */
+	 * Publishes a local op engine sync event to the /session/ID/sync/engine
+	 * bayeux channel.
+	 * @param sites context int array context vector for this site
+	 */
 	public void postEngineSync(Integer[] sites) {
 		ServerChannel sync = this.server.getChannel(this.syncEngineChannel);
 		
@@ -423,6 +423,25 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			ret = this.operationEngine.getEngineState();
 		}
 		return ret;
+	}
+
+	/**
+	 * Publish a mesage from the moderator to all listening clients. This method
+	 * doesn't actually send anything directly, but rather it delegates work
+	 * to OperationEngineHandler which sends the event and pushes the op to the
+	 * local operation engine.
+	 */
+	public void publishModeratorSync(String name, Object value, String type,
+			int position) {
+		this.operationEngine.localSync(name, value, type, position);
+	}
+
+	/**
+	 * Sends message on the /session/ID/sync/app channel.
+	 */
+	public void sendModeratorSync(Object message) {
+		ServerChannel channel = this.server.getChannel(this.syncAppChannel);
+		channel.publish(this.sessionModerator.getLocalSession(), message, null);
 	}
 
 }

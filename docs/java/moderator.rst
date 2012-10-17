@@ -52,7 +52,7 @@ See also the `SessionModerator javadocs`_.
 
         The parameter ``data`` has the five keys specified below.
 
-        * ``channel`` - A string specifying the bayeux channel the message was
+        * ``topic`` - A string specifying the bayeux channel the message was
           sent on. This is useful to distinguish browser collab objects and
           sendSync topic names that operations are sent on.
         * ``type`` - String specifying the type of sync (eg. *insert*, *delete*)

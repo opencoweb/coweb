@@ -35,10 +35,10 @@ public class SessionManager extends AbstractService implements
 			.synchronizedMap(new HashMap<String, SessionHandler>());
 	private Map<String, Object> config = null;
 
-    /**
-     * Creates service listeners for bayeux messages on /meta, /service, and
-     * /bot.
-     */
+	/**
+	 * Creates service listeners for bayeux messages on /meta, /service, and
+	 * /bot.
+	 */
 	private SessionManager(BayeuxServer bayeux, Map<String, Object> config) {
 		super(bayeux, "session");
 
@@ -86,11 +86,11 @@ public class SessionManager extends AbstractService implements
 		return sessionId;
 	}
 
-    /**
-     * Extract the sessionId fro a bayeux message.
-     * @param message Bayeux message containing the sessionId.
-     * @return sessionId
-     */
+	/**
+	 * Extract the sessionId fro a bayeux message.
+	 * @param message Bayeux message containing the sessionId.
+	 * @return sessionId
+	 */
 	public static String getSessionIdFromMessage(Message message) {
 		Map<String, Object> ext = message.getExt();
 		if (ext == null)
@@ -105,11 +105,11 @@ public class SessionManager extends AbstractService implements
 		return sessionId;
 	}
 
-    /**
-     * Find the SessionHandler associated with a bayeux message.
-     * @param message Bayeux message containing the sessionId.
-     * @return The associated SessionHandler.
-     */
+	/**
+	 * Find the SessionHandler associated with a bayeux message.
+	 * @param message Bayeux message containing the sessionId.
+	 * @return The associated SessionHandler.
+	 */
 	public SessionHandler getSessionHandler(Message message) {
 		String sessionId = getSessionIdFromMessage(message);
 		log.fine("sessionId = " + sessionId);
@@ -133,10 +133,10 @@ public class SessionManager extends AbstractService implements
 		return this.sessions.get(confkey+":"+cacheState);
 	}
 
-    /**
-     * @param sessionId The sessionId key for finding the SessionHandler.
+	/**
+	 * @param sessionId The sessionId key for finding the SessionHandler.
 	 * @return SessionHandler
-     */
+	 */
 	public SessionHandler getSessionHandler(String sessionId) {
 		if (this.sessions.isEmpty()) {
 			return null;
@@ -149,11 +149,11 @@ public class SessionManager extends AbstractService implements
 		return null;
 	}
 
-    /**
-     * Handles a client subscribing to a coweb session.
-     * @param serverSession The client wishing to subscribe.
-     * @param message The associated bayeux message.
-     */
+	/**
+	 * Handles a client subscribing to a coweb session.
+	 * @param serverSession The client wishing to subscribe.
+	 * @param message The associated bayeux message.
+	 */
 	public void handleSubscribed(ServerSession serverSession, Message message)
 			throws IOException {
 		log.fine("SessionManager::handleSubscribed");
@@ -166,11 +166,11 @@ public class SessionManager extends AbstractService implements
 			handler.onSubscribe(serverSession, message);
 	}
 
-    /**
-     * Handles a client unsubscribing from a coweb session.
-     * @param serverSession The client unsubscribing.
-     * @param message The associated bayeux message.
-     */
+	/**
+	 * Handles a client unsubscribing from a coweb session.
+	 * @param serverSession The client unsubscribing.
+	 * @param message The associated bayeux message.
+	 */
 	public void handleUnsubscribed(ServerSession serverSession, Message message)
 			throws IOException {
 
@@ -180,16 +180,16 @@ public class SessionManager extends AbstractService implements
 		}
 	}
 
-    /**
-     * Handles messages published to the following channels.
-     *   <li> /session/roster/*
-     *   <li> /service/session/join/*
-     *   <li> /service/session/updater
-     *   <li> /service/bot/**
-     *   <li> /bot/**
-     *
-     * The associated SessionHandler object's onPublish method is invoked.
-     */
+	/**
+	 * Handles messages published to the following channels.
+	 *   <li> /session/roster/*
+	 *   <li> /service/session/join/*
+	 *   <li> /service/session/updater
+	 *   <li> /service/bot/**
+	 *   <li> /bot/**
+	 *
+	 * The associated SessionHandler object's onPublish method is invoked.
+	 */
 	public void handleMessage(ServerSession remote, Message message) {
 
 		String sessionId = (String) remote.getAttribute("sessionid");
@@ -230,10 +230,10 @@ public class SessionManager extends AbstractService implements
 				handler.isCachingState());
 	}
 
-    /**
-     * Remove a SessionHandler object from the SessionManager. This is called
-     * when a coweb session ends (i.e. all clients have left the session).
-     */
+	/**
+	 * Remove a SessionHandler object from the SessionManager. This is called
+	 * when a coweb session ends (i.e. all clients have left the session).
+	 */
 	public void removeSessionHandler(String confkey, boolean cacheState) {
 
 		log.info("SessionManager::removeSessionHandler ***********");
@@ -264,23 +264,23 @@ public class SessionManager extends AbstractService implements
 		}
 	}
 
-    /**
-     * Callback invoked when a ServerSession has been added to a BayeuxServer
-     * object.
-     * @param client The session added.
-     */
+	/**
+	 * Callback invoked when a ServerSession has been added to a BayeuxServer
+	 * object.
+	 * @param client The session added.
+	 */
 	@Override
 	public void sessionAdded(ServerSession client) {
 		log.fine("session added " + client);
 		return;
 	}
 
-    /**
-     * Callback invoked when a ServerSession has been removed from a
-     * BayeuxServer object.
-     * @param client The session removed.
-     * @param timeout Whether the session has been removed for a timeout or not.
-     */
+	/**
+	 * Callback invoked when a ServerSession has been removed from a
+	 * BayeuxServer object.
+	 * @param client The session removed.
+	 * @param timeout Whether the session has been removed for a timeout or not.
+	 */
 	@Override
 	public void sessionRemoved(ServerSession client, boolean timeout) {
 		log.fine("SessionManager::sessionRemoved");

@@ -261,8 +261,7 @@ public class LateJoinHandler {
 		data.put("siteId", siteId);
 		data.put("username", username);
 
-		String rosterAvailableChannel = this.sessionHandler
-				.getRosterAvailableChannel();
+		String rosterAvailableChannel = this.sessionHandler.getRosterAvailableChannel();
 		for (ServerSession c : this.sessionHandler.getAttendees()) {
 			c.deliver(from, rosterAvailableChannel, data, null);
 		}
@@ -280,8 +279,7 @@ public class LateJoinHandler {
 			}
 		};
 
-		String rosterUnavailableChannel = this.sessionHandler
-				.getRosterUnavailableChannel();
+		String rosterUnavailableChannel = this.sessionHandler.getRosterUnavailableChannel();
 		server.createIfAbsent(rosterUnavailableChannel, initializer);
 		ServerChannel channel = server.getChannel(rosterUnavailableChannel);
 		if (channel == null) {
@@ -407,8 +405,7 @@ public class LateJoinHandler {
 		SecureRandom s = new SecureRandom();
 		String token = new BigInteger(130, s).toString(32);
 
-		// .println("found updater " + updaterId);
-		(this.updaters.get(updaterId)).add(token);
+		this.updaters.get(updaterId).add(token);
 		this.updatees.put(token, updatee);
 
 		updater.deliver(from, "/service/session/updater", token, null);
