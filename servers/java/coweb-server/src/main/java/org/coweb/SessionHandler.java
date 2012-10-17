@@ -57,6 +57,15 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 	private ArrayList<ServerSession> attendees = new ArrayList<ServerSession>();
 
+    /**
+     * Create a SessionHandler. There is one session handler keyed on cowebkey
+     * and the cacheState boolean. This constructor sets up channel listeners,
+     * creates the service handler, an operation engine, and a moderator
+     * depending on the configuration settings.
+     * @param confKey cowebkey that uniquely identifies a coweb application session.
+     * @param cacheState Whether or not this session caches application state.
+     * @param config Configuration options for this application. See <a href="http://opencoweb.org/ocwdocs/java/deploy.html#web-inf-web-xml">configuration documentation.</a>.
+     */
 	public SessionHandler(String confkey, boolean cacheState, Map<String, Object> config) {
 
 		this.confKey = confkey;
@@ -204,7 +213,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 
 	/**
-	  * Called whenever a client sends a message to the cometd server.
+	  * Called whenever a client sends an application message to the server. This
+      * does not include /meta, /service, and /bot messages, which are handled by
+      * different methods. This method handles application sync and engine sync
+      * messages.
 	  *
 	  * The cometd implementation is free to have multiple threads invoke onMessage
 	  * for different incoming messages, so be aware of mutual exclusion issues.
@@ -251,6 +263,17 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		return true;
 	}
 
+    /**
+     * Handles bayeux messaegs on the channels below.
+     *   <li> /session/roster/*
+     *   <li> /service/session/join/*
+     *   <li> /service/session/updater
+     *   <li> /service/bot/**
+     *   <li> /bot/**
+     *
+     * Specifically, onPublish handles clients sending private bot messages
+     * and when updaters send full application state to the server.
+     */
 	public void onPublish(ServerSession remote, Message message) {
 		String channel = message.getChannel();
 		try {
@@ -376,9 +399,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 	
 	/**
-     * Publishes a local op engine sync event to the /session/sync Bayeux 
-     * channel.
-     *
+     * Publishes a local op engine sync event to the /session/ID/sync/engine
+     * bayeux channel.
      * @param sites context int array context vector for this site
      */
 	public void postEngineSync(Integer[] sites) {
@@ -392,10 +414,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 
 	/**
-	  *
 	  * Retreives the four element Object engine state array and returns it.
-	  *
-	  * return engine state array
+	  * @return engine state array
 	  */
 	public Object[] getEngineState() {
 		Object[] ret;
@@ -406,3 +426,4 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 
 }
+
