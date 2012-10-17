@@ -216,10 +216,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 		String msgSessionId = (String) from.getAttribute("sessionid");
 		if (!msgSessionId.equals(this.sessionId)) {
-
-			log.severe("Received message not belonging to this session "
-					+ msgSessionId);
-
+			log.severe("Received message not belonging to this session " + msgSessionId);
 			return true;
 		}
 		
@@ -229,8 +226,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		data.put("siteId", siteId);
 
 		/* Some of the following code must acquire this.operationEngine's lock.
-		   OperationEngine must only be accessed by one client at a time.
-		 */
+         * OperationEngine must only be accessed by one client at a time. */
 		String channelName = message.getChannel();
 		if (channelName.equals(this.syncAppChannel)) {
 			// put total order on message
@@ -244,14 +240,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 					}
 				}
 			}
-
-			try {
-                this.serviceHandler.forwardSyncEvent(from, message);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 		} else if (channelName.equals(this.syncEngineChannel)) {
-			if(operationEngine != null) {
+			if (operationEngine != null) {
 				synchronized (this.operationEngine) {
 					this.operationEngine.engineSyncInbound(data);
 				}

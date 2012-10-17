@@ -44,7 +44,6 @@ public class SessionManager extends AbstractService implements
 		this.addService("/service/bot/**", "handleMessage");
 		this.addService("/bot/**", "handleMessage");
 
-		bayeux.addListener(this);
 	}
 
 	public static SessionManager newInstance(Map<String, Object> config,
@@ -168,11 +167,12 @@ public class SessionManager extends AbstractService implements
 		else
 			handler = this.getSessionHandler(sessionId);
 
+        System.out.println("handleMessage: " + message);
 		if (handler != null) {
 			log.fine(handler.toString());
 			handler.onPublish(remote, message);
 		} else {
-			log.fine("could not find handler");
+			log.warning("could not find handler");
 		}
 	}
 

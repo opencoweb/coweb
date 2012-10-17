@@ -111,28 +111,6 @@ public class LocalTransport extends Transport implements Proxy {
 	}
 
 	@Override
-	public boolean syncEvent(ServerSession client, Message message)
-			throws IOException {
-		log.fine("LocalTransport::syncEvent");
-		log.fine("message = " + message);
-
-		Map<String, Object> data = message.getDataAsMap();
-
-		String username = (String) client.getAttribute("username");
-
-		if (this.bot == null) {
-			this.bot = this.getBotInstance();
-			if (this.bot == null)
-				throw new IOException("unable to locate bot "
-						+ this.serviceName);
-		}
-
-		this.bot.onSync(data, username);
-
-		return true;
-	}
-
-	@Override
 	public void reply(Bot bot, String replyToken, Map<String, Object> obj) {
 
 		log.fine("LocalTransport::reply");

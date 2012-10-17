@@ -57,8 +57,5 @@ public abstract class Transport {
 	public abstract boolean userRequest(ServerSession client, Message message)
 			throws IOException;
 
-	public abstract boolean syncEvent(ServerSession client, Message message)
-			throws IOException;
-
 	public abstract void shutdown();
 }
