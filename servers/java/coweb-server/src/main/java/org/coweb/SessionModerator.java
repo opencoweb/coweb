@@ -1,3 +1,4 @@
+
 package org.coweb;
 
 import java.util.Map;
@@ -257,7 +258,7 @@ public abstract class SessionModerator {
 	 * session.
 	 */
 	public void sendSync(String name, Object value, String type, int position) {
-		this.sessionHandler.publishModeratorSync(name, value, type, position);
+		this.sessionHandler.publishModeratorSync("coweb.sync." + name, value, type, position);
 	}
 
 }

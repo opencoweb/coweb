@@ -80,7 +80,7 @@ public class OperationEngineHandler {
 
 		Map<String, Object> message = new HashMap<String, Object>();
 		message.put("topic", topic);
-		message.put("value", value);
+		message.put("value", jsonValue);
 		message.put("type", type);
 		message.put("position", position);
 		if (null != cv)
