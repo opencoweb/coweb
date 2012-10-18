@@ -63,7 +63,7 @@ public abstract class SessionModerator {
 	  * 2) SessionModerator.DefaultImpl if classStr is null.
 	  *
 	  * <p>If no SessionModerator exists for the confKey, a new instance is created and initialized.
-	  * The sessionid attribute is always updated to that of sessionHander.
+	  * The sessionid attribute is always updated to that of sessionHandler.
 	  *
 	  * <p>The implicit assumption is that there exists a one-to-one correspondence between SessionHandler
 	  * objects and confKeys.
@@ -114,6 +114,7 @@ public abstract class SessionModerator {
 		this.localSession.handshake();
 		this.serverSession = this.localSession.getServerSession();
 		this.setSessionAttribute("sessionid", sessionId);
+		this.setSessionAttribute("username", "moderator");
 	}
 
 	/**
@@ -254,11 +255,61 @@ public abstract class SessionModerator {
 	public abstract void onSessionEnd();
 
 	/**
-	 * This method will publish a sync event to all clients listening to a coweb
-	 * session.
+	 * Create a CollabInterface for use with this moderator.
+	 * @param collabId Identifier for this collaborative object.
 	 */
-	public void sendSync(String name, Object value, String type, int position) {
-		this.sessionHandler.publishModeratorSync("coweb.sync." + name, value, type, position);
+	public CollabInterface initCollab(String collabId) {
+		return new CollabInterface(this, collabId);
+	}
+
+	/**
+	 * Provide a simple interface for sending collaborative messages. This provides
+	 * similar functionality to the JavaScript CollabInterface; since
+	 * SessionModerator provides much of the functionality of the JavaScript
+	 * CollabInterface, this Java CollabInterface only provides methods to send
+	 * data. Receiving data is handled by the moderator.
+	 */
+	public class CollabInterface {
+
+		private SessionModerator moderator;
+		private String collabId;
+		private int serviceId;
+
+		/**
+		 * Create a collaborative object interface for sending collab messages to
+		 * other clients in an OCW session. Used primarily with the moderator.
+		 * @param collabId Identifier for this collaborative object.
+		 */
+		private CollabInterface(SessionModerator mod, String collabId) {
+			this.moderator = mod;
+			this.collabId = collabId;
+			this.serviceId = 0;
+		}
+
+		/**
+		 * Send an application sync event.
+		 * @param name Which application property changed.
+		 * @param value New property value, JSON encodable.
+		 * @param type One of {"insert", "delete", "update", null}
+		 * @param position Position of the value change.
+		 */
+		public void sendSync(String name, Object value, String type, int position) {
+			name = "coweb.sync." + name + "." + this.collabId;
+			this.moderator.sessionHandler.publishModeratorSync(name, value, type, position);
+		}
+
+		/**
+		 * Send a message to a service bot.
+		 * @param service Bot service name.
+		 * @param params Bot message, JSON encodable.
+		 */
+		public synchronized void postService(String service, Map<String, Object> params) {
+			String topic = "coweb.service.response." + service + "_" + this.serviceId +
+				"." + this.collabId;
+			++this.serviceId;
+			this.moderator.sessionHandler.postModeratorService(service, topic, params);
+		}
+
 	}
 
 }

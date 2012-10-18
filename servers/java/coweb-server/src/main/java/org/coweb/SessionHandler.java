@@ -51,6 +51,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private String syncEngineChannel = null;
 	private String rosterAvailableChannel = null;
 	private String rosterUnavailableChannel = null;
+	private String botChannel = null;
 
 	private String requestUrl = null;
 	private String sessionName = null;
@@ -81,6 +82,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				+ "/roster/available";
 		this.rosterUnavailableChannel = "/session/" + this.sessionId
 				+ "/roster/unavailable";
+		this.botChannel = "/service/bot/%s/request";
 
 		ServerChannel.Initializer initializer = new ServerChannel.Initializer() {
 			@Override
@@ -430,6 +432,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	 * doesn't actually send anything directly, but rather it delegates work
 	 * to OperationEngineHandler which sends the event and pushes the op to the
 	 * local operation engine.
+	 * @param name Collab topic (includes ^coweb.sync. and collabId$).
+	 * @param value Application value.
+	 * @param type One of {"insert", "delete", "update", null}.
+	 * @param position Position where sync event is to be applied.
 	 */
 	public void publishModeratorSync(String name, Object value, String type,
 			int position) {
@@ -437,10 +443,37 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 
 	/**
-	 * Sends message on the /session/ID/sync/app channel.
+	 * Sends message on the /session/ID/sync/app channel. This is called from
+	 * OperationEngineHandler to actually put the message on the wire.
 	 */
 	public void sendModeratorSync(Object message) {
 		ServerChannel channel = this.server.getChannel(this.syncAppChannel);
+		channel.publish(this.sessionModerator.getLocalSession(), message, null);
+	}
+
+	/**
+	 * Finds the channel, creating it if it doesn't exist yet.
+	 * @param ch The channel name.
+	 */
+	private ServerChannel findChannel(String ch) {
+		this.server.createIfAbsent(ch);
+		return this.server.getChannel(ch);
+	}
+
+	/**
+	 * Post a bot service message. This actually sends the message on the wire.
+	 * @param service Bot service name.
+	 * @param topic Bots expect a unique token to know which request to reply to.
+	 * @param params JSON encodable message.
+	 */
+	public void postModeratorService(String service, String topic,
+			Map<String, Object> params) {
+		String ch = String.format(this.botChannel, service);
+		ServerChannel channel = this.findChannel(ch);
+		Map<String, Object> message = new HashMap<String, Object>();
+		message.put("value", params);
+		message.put("topic", topic);
+		message.put("service", service);
 		channel.publish(this.sessionModerator.getLocalSession(), message, null);
 	}
 
