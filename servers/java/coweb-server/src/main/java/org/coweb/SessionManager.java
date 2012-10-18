@@ -51,6 +51,7 @@ public class SessionManager extends AbstractService implements
 		this.addService("/service/bot/**", "handleMessage");
 		this.addService("/bot/**", "handleMessage");
 
+		bayeux.addListener(this);
 	}
 
 	public static SessionManager newInstance(Map<String, Object> config,

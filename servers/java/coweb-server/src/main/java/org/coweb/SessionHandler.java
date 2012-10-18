@@ -373,7 +373,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 
 	public void endSession() {
-		log.fine("SessionHandler::endSession ***********");
+		log.warning("SessionHandler::endSession ***********");
 
 		ServerChannel sync = this.server.getChannel(this.syncAppChannel);
 		sync.removeListener(this);
