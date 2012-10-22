@@ -3,6 +3,8 @@ package org.coweb;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerMessage;
@@ -43,6 +45,8 @@ public abstract class SessionModerator {
 	 */
 	protected LocalSession localSession = null;
 	protected ServerSession serverSession = null;
+
+	private Set<CollabInterface> collabInterfaces;
 
 	/**
 	  * Use {@link SessionModerator#getInstance} to obtain a SessionModerator object.
@@ -106,6 +110,8 @@ public abstract class SessionModerator {
 	  * the LocalSession and ServerSession objects are set here.
 	  */
 	private void init(SessionHandler sessionHandler) {
+		this.collabInterfaces = new HashSet<CollabInterface>();
+
 		this.sessionHandler = sessionHandler;
 		BayeuxServer server = SessionManager.getInstance().getBayeux();
 
@@ -116,8 +122,6 @@ public abstract class SessionModerator {
 		this.serverSession = this.localSession.getServerSession();
 		this.setSessionAttribute("sessionid", sessionId);
 		this.setSessionAttribute("username", "moderator");
-
-		this.onReady();
 	}
 
 	/**
@@ -246,6 +250,9 @@ public abstract class SessionModerator {
 	  * SessionModerator object will still be kept in memory if moderatorIsUpdater and
 	  * reused for any future coweb sessions with the same cowebkey.
 	  *
+	  * <p>All CollabInterface objects created prior to onSessionEnd() being called
+	  * are now invalid and can no longer be used.
+	  *
 	  * <p>If this moderator is not the updater, it is recommended that subclasses
 	  * use this method to help in resetting application state to a fresh state
 	  * incase a new session is initiated with the same cowebkey. Otherwise, the
@@ -257,16 +264,44 @@ public abstract class SessionModerator {
 	public abstract void onSessionEnd();
 
 	/**
-	 * Callback when this moderator has been properly initialized.
+	 * Called when all clients have left a session. This method invokes the
+	 * onSessionEnd() callback.
 	 */
-	public abstract void onReady();
+	void endSession() {
+		for (CollabInterface ci: this.collabInterfaces) {
+			this.serverSession.removeListener(ci);
+		}
+		this.collabInterfaces.clear();
+		this.sessionHandler = null;
+		this.onSessionEnd();
+	}
 
 	/**
-	 * Create a CollabInterface for use with this moderator.
+	 * Callback when this a session has been created and joined by at least one
+	 * other external client. Note that this may be called multiple times in the
+	 * lifetime of a SessionModerator, because a moderator persists even when
+	 * all clients leave a session. When a new client joins a session that already
+	 * existed beforehand, this method will be called to notify the moderator that
+	 * the session is now "active" again.
+	 */
+	public abstract void onSessionReady();
+
+	/**
+	 * Create a CollabInterface for use with this moderator. This method should
+	 * only be called when onSessionReady() has been invoked more recently than
+	 * onSessionEnd().
+	 *
+	 * <p>Once onSessionEnd() has been invoked, all CollabInterface
+	 * objects become invalid, and new ones can only be created once the session
+	 * becomes active again (i.e. onSessionReady() is invoked again).
+	 *
 	 * @param collabId Identifier for this collaborative object.
 	 */
 	public CollabInterface initCollab(String collabId) {
-		return new CollabInterface(this, collabId);
+		CollabInterface ci = new CollabInterface(this, collabId);
+		this.serverSession.addListener(ci);
+		this.collabInterfaces.add(ci);
+		return ci;
 	}
 
 	/**
@@ -291,7 +326,6 @@ public abstract class SessionModerator {
 			this.moderator = mod;
 			this.collabId = collabId;
 			this.serviceId = 0;
-			this.moderator.serverSession.addListener(this);
 		}
 
 		public boolean onMessage(ServerSession to, ServerSession from, ServerMessage message) {
@@ -320,6 +354,7 @@ public abstract class SessionModerator {
 			String topic = "coweb.service.request." + service + "_" + this.serviceId +
 				"." + this.collabId;
 			++this.serviceId;
+			System.out.println("postService " + topic);
 			this.moderator.sessionHandler.postModeratorService(service, topic, params);
 		}
 

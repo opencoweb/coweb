@@ -114,7 +114,8 @@ public class LateJoinHandler {
 		this.lastState = null;
 	}
 
-	public void onClientJoin(ServerSession client, Message message) {
+	public boolean onClientJoin(ServerSession client, Message message) {
+		boolean first = false;
 		int siteId = this.getSiteForClient(client);
 		log.info("client site id = " + siteId);
 
@@ -124,10 +125,8 @@ public class LateJoinHandler {
 		}
 
 		Map<Integer, String> roster = this.getRosterList(client);
-		// ArrayList<Object>data = new ArrayList<Object>();
 		Object[] data = new Object[0];
 
-		log.fine("data = " + data);
 		boolean sendState = false;
 
 		Map<String, Object> ext = message.getExt();
@@ -140,6 +139,7 @@ public class LateJoinHandler {
 		if (this.updaters.isEmpty()) {
 			this.addUpdater(client, false);
 			sendState = true;
+			first = true;
 		} else if (this.lastState == null) {
 			this.assignUpdater(client, updaterType);
 			sendState = false;
@@ -150,6 +150,7 @@ public class LateJoinHandler {
 
 		client.batch(new BatchUpdateMessage(client, siteId, roster, data,
 					sendState));
+		return first;
 	}
 
 	public void onUpdaterSendState(ServerSession client, Message message) {

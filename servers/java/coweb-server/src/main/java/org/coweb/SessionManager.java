@@ -273,6 +273,13 @@ public class SessionManager extends AbstractService implements
 	@Override
 	public void sessionAdded(ServerSession client) {
 		log.fine("session added " + client);
+
+		String sessionId = (String) client.getAttribute("sessionid");
+		SessionHandler handler = this.getSessionHandler(sessionId);
+		if (handler == null)
+			return;
+
+		handler.onAddClient(client);
 		return;
 	}
 
@@ -285,9 +292,9 @@ public class SessionManager extends AbstractService implements
 	@Override
 	public void sessionRemoved(ServerSession client, boolean timeout) {
 		log.fine("SessionManager::sessionRemoved");
+
 		String sessionId = (String) client.getAttribute("sessionid");
 		SessionHandler handler = this.getSessionHandler(sessionId);
-
 		if (handler == null)
 			return;
 

@@ -129,4 +129,9 @@ public class DefaultSessionModerator extends SessionModerator {
 		return;
 	}
 
+	@Override
+	public void onSessionReady() {
+	}
+
 }
+

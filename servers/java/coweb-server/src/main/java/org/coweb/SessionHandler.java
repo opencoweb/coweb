@@ -53,7 +53,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private String rosterAvailableChannel = null;
 	private String rosterUnavailableChannel = null;
 	private String botRequestChannel = null;
-	private String botResponseChannel = null;
 
 	private String requestUrl = null;
 	private String sessionName = null;
@@ -85,7 +84,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		this.rosterUnavailableChannel = "/session/" + this.sessionId
 				+ "/roster/unavailable";
 		this.botRequestChannel = "/service/bot/%s/request";
-		this.botResponseChannel = "/service/bot/%s/response";
 
 		this.initializer = new ServerChannel.Initializer() {
 			@Override
@@ -264,7 +262,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				}
 			}
 		} else {
-			System.out.println("onMessage, but no idea where: " + channelName + ".\n" + message);
+			System.out.println("onMessage does not handle channel messages '" + channelName + "'");
+			System.out.println("    message = " + message);
 		}
 
 		return true;
@@ -306,9 +305,11 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			throws IOException {
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		if (channel.equals("/service/session/join/*")) {
-			if (this.sessionModerator.canClientJoinSession(serverSession))
-				this.lateJoinHandler.onClientJoin(serverSession, message);
-			else {
+			if (this.sessionModerator.canClientJoinSession(serverSession)) {
+				if (this.lateJoinHandler.onClientJoin(serverSession, message)) {
+					this.sessionModerator.onSessionReady();
+				}
+			} else {
 				// TODO
 				// need to send error message.
 			}
@@ -336,6 +337,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		}
 
 		return;
+	}
+
+	public void onAddClient(ServerSession client) {
+
 	}
 
 	public void onPurgingClient(ServerSession client) {
@@ -380,7 +385,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 
 	public void endSession() {
-		log.warning("SessionHandler::endSession ***********");
+		log.info("SessionHandler::endSession ***********");
 
 		ServerChannel sync = this.server.getChannel(this.syncAppChannel);
 		sync.removeListener(this);
@@ -389,7 +394,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		sync.removeListener(this);
 
 		// The following ordering must be observed!
-		this.sessionModerator.onSessionEnd();
+		this.sessionModerator.endSession();
 		if (null != this.operationEngine)
 			this.operationEngine.shutdown();
 		this.lateJoinHandler.onEndSession();
@@ -457,38 +462,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 
 	/**
-	 * Creates service channels if they don't already exist.
-	 * @param service The channel name.
-	 */
-	private void createServiceChannels(String service) {
-		String ch = String.format(this.botRequestChannel, service);
-		this.server.createIfAbsent(ch);
-		ch = String.format(this.botResponseChannel, service);
-		if (this.server.createIfAbsent(ch, this.initializer)) {
-			// TODO maintain list of serviver channels to remove them on session close.
-			System.out.println("creating lisener for " + ch);
-			this.server.getChannel(ch).addListener(this);
-		}
-	}
-
-	/**
 	 * Find the service request channel.
 	 * @param svc The channel name.
 	 * @return The server request channel.
 	 */
-	private ServerChannel getServiceRequest(String svc) {
-		this.createServiceChannels(svc);
+	private ServerChannel getServiceRequestChannel(String svc) {
+		String ch = String.format(this.botRequestChannel, svc);
+		this.server.createIfAbsent(ch);
 		return this.server.getChannel(String.format(this.botRequestChannel, svc));
-	}
-
-	/**
-	 * Find the service response channel.
-	 * @param svc The channel name.
-	 * @return The server response channel.
-	 */
-	private ServerChannel getServiceResponse(String svc) {
-		this.createServiceChannels(svc);
-		return this.server.getChannel(String.format(this.botResponseChannel, svc));
 	}
 
 	/**
@@ -499,7 +480,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	 */
 	public void postModeratorService(String service, String topic,
 			Map<String, Object> params) {
-		ServerChannel channel = this.getServiceRequest(service);
+		ServerChannel channel = this.getServiceRequestChannel(service);
 		Map<String, Object> message = new HashMap<String, Object>();
 		message.put("value", params);
 		message.put("topic", topic);
