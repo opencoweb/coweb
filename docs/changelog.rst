@@ -13,6 +13,10 @@ Version 0.8.4
   from clients and broadcast messages to all clients listening. The moderator
   can send private messages to bots, so the moderator can send transformed
   events to bots as an alternative.
+* SessionModeration::onServiceResponse was never actually used by the server.
+  Now, onServiceResponse is called when a bot responds to a private message
+  sent by the moderator. This method is not called when other clients receive
+  private bot message responses.
 
 Version 0.8.3.1
 ~~~~~~~~~~~~~~~

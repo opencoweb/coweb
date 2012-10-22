@@ -120,18 +120,16 @@ public class ContextVector {
      */
 	public void growTo(int count) {
 		
-		System.out.println("growTo before new count = " + count + " old array = " + this.toString());
+		//System.out.println("growTo before new count = " + count + " old array = " + this.toString());
 		int[] newSites = new int[count];
 		System.arraycopy(this.sites, 0, newSites, 0, this.sites.length);
 		for(int i=this.sites.length; i<count; i++) {
 			newSites[i] = 0;
 		}
 
-		
 		this.sites = newSites;
 		
-		System.out.println("growTo after = " + this.toString());
-
+		//System.out.println("growTo after = " + this.toString());
 	}
 	
 	/**

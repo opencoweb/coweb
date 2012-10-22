@@ -118,7 +118,7 @@ public class LocalTransport extends Transport implements Proxy {
 		ServerSession client = this.clients.get(replyToken);
 
 		if (client == null) {
-			log.fine("LocalTransport::error sending bot reply client not found");
+			log.warning("LocalTransport::error sending bot reply client not found");
 			// TODO send error.
 			return;
 		}

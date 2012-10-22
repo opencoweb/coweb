@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.cometd.bayeux.Message;
+import org.cometd.bayeux.server.ServerMessage;
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.bayeux.server.LocalSession;
 import org.cometd.bayeux.server.ServerSession;
@@ -115,6 +116,8 @@ public abstract class SessionModerator {
 		this.serverSession = this.localSession.getServerSession();
 		this.setSessionAttribute("sessionid", sessionId);
 		this.setSessionAttribute("username", "moderator");
+
+		this.onReady();
 	}
 
 	/**
@@ -233,8 +236,7 @@ public abstract class SessionModerator {
 			Message botMessage);
 
 	/**
-	  * Called whenever a bot publishes a message.
-	  *
+	  * Called whenever a bot responds to a service message sent by this moderator.
 	  * @param botResponse the bot's message
 	  */
 	public abstract void onServiceResponse(Message botResponse);
@@ -255,6 +257,11 @@ public abstract class SessionModerator {
 	public abstract void onSessionEnd();
 
 	/**
+	 * Callback when this moderator has been properly initialized.
+	 */
+	public abstract void onReady();
+
+	/**
 	 * Create a CollabInterface for use with this moderator.
 	 * @param collabId Identifier for this collaborative object.
 	 */
@@ -269,7 +276,7 @@ public abstract class SessionModerator {
 	 * CollabInterface, this Java CollabInterface only provides methods to send
 	 * data. Receiving data is handled by the moderator.
 	 */
-	public class CollabInterface {
+	public class CollabInterface implements ServerSession.MessageListener {
 
 		private SessionModerator moderator;
 		private String collabId;
@@ -284,6 +291,12 @@ public abstract class SessionModerator {
 			this.moderator = mod;
 			this.collabId = collabId;
 			this.serviceId = 0;
+			this.moderator.serverSession.addListener(this);
+		}
+
+		public boolean onMessage(ServerSession to, ServerSession from, ServerMessage message) {
+			this.moderator.onServiceResponse(message);
+			return true;
 		}
 
 		/**
@@ -304,7 +317,7 @@ public abstract class SessionModerator {
 		 * @param params Bot message, JSON encodable.
 		 */
 		public synchronized void postService(String service, Map<String, Object> params) {
-			String topic = "coweb.service.response." + service + "_" + this.serviceId +
+			String topic = "coweb.service.request." + service + "_" + this.serviceId +
 				"." + this.collabId;
 			++this.serviceId;
 			this.moderator.sessionHandler.postModeratorService(service, topic, params);
