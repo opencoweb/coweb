@@ -40,8 +40,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private String sessionId = null;
 	private ServiceHandler serviceHandler = null;
 	private BayeuxServer server = null;
-	private ServerChannel.Initializer initializer = null;
-
 	private LateJoinHandler lateJoinHandler = null;
 	private SessionModerator sessionModerator = null;
 	private OperationEngineHandler operationEngine = null;
@@ -85,7 +83,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				+ "/roster/unavailable";
 		this.botRequestChannel = "/service/bot/%s/request";
 
-		this.initializer = new ServerChannel.Initializer() {
+		ServerChannel.Initializer initializer = new ServerChannel.Initializer() {
 			@Override
 			public void configureChannel(ConfigurableServerChannel channel) {
 				channel.setPersistent(true);
@@ -293,6 +291,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				}
 			} else if (channel.equals("/service/session/updater")) {
 				this.lateJoinHandler.onUpdaterSendState(remote, message);
+			} else {
+				System.out.println("onPublish doesn't handle '" + channel + "' messages");
+				System.out.println("    message = " + message);
 			}
 		} catch (Exception e) {
 			log.severe("error receiving publish message");
@@ -301,6 +302,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		}
 	}
 
+	/**
+	 * Called anytime a client posts to /meta/subscribe. SessionHandler needs
+	 * to know when (1) a client attempts to join a session, (2) a client wants to
+	 * subscribe to a bot, and (3) when a client wishes to become an updater.
+	 * Other subscriptions are ignored (i.e. we don't wish to know about them).
+	 * @param serverSession Client wishing to subscribe to some channel.
+	 * @param message Contains channel the client wishes to subscribe to.
+	 */
 	public void onSubscribe(ServerSession serverSession, Message message)
 			throws IOException {
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
@@ -314,6 +323,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				// need to send error message.
 			}
 		} else if (channel.startsWith("/service/bot") || channel.startsWith("/bot")) {
+			/* Client wishes to subscribe to service messages (broadcasts and private
+			 * bot messages). */
 			if (this.sessionModerator.canClientSubscribeService(serverSession))
 				this.serviceHandler.subscribeUser(serverSession, message);
 			else {
@@ -321,6 +332,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				// need to send error message.
 			}
 		} else if (channel.endsWith("/session/updater")) {
+			/* Client lets the server know it is an updater. */
 			log.info("client subscribes to /session/updater");
 			this.attendees.add(serverSession);
 			this.lateJoinHandler.onUpdaterSubscribe(serverSession, message);
@@ -328,36 +340,32 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		}
 	}
 
+	/**
+	 * Called when a client unsubscribes to a channel (via posting to
+	 * /meta/unsubscribe). We need to know when a client wishes to stop listening
+	 * to bot messages.
+	 */
 	public void onUnsubscribe(ServerSession serverSession, Message message)
 			throws IOException {
-
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		if (channel.startsWith("/service/bot") || channel.startsWith("/bot")) {
+			/* Client wishes to unsubscribe to service requests. */
 			this.serviceHandler.unSubscribeUser(serverSession, message);
 		}
-
 		return;
-	}
-
-	public void onAddClient(ServerSession client) {
-
 	}
 
 	public void onPurgingClient(ServerSession client) {
 		this.attendees.remove(client);
-
 		this.sessionModerator.onClientLeaveSession(client);
 		boolean last = this.lateJoinHandler.onClientRemove(client);
-
 		if (last) {
 			this.endSession();
 		}
 	}
 
 	public static String hashURI(String url) {
-
 		String hash = null;
-
 		try {
 			String t = Long.toString(System.currentTimeMillis());
 			url = url + t;
@@ -380,10 +388,20 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		return hash;
 	}
 
+	/**
+	 * Remove a buggy or malicious client from a session.
+	 * @param client The client to be removed.
+	 */
 	public void removeBadClient(ServerSession client) {
+		/* TODO this is clearly a NOP... */
 		return;
 	}
 
+	/**
+	 * Called when all remote clients leave a OCW session. This method notifies
+	 * the moderator, the late join handler, the service handler of the session
+	 * ending. The server removes itself as a listener to sync channels.
+	 */
 	public void endSession() {
 		log.info("SessionHandler::endSession ***********");
 

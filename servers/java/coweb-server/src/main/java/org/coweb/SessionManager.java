@@ -26,8 +26,9 @@ import org.cometd.bayeux.server.ServerSession;
  */
 public class SessionManager extends AbstractService implements
 		BayeuxServer.SessionListener {
-	private static final Logger log = Logger.getLogger(SessionManager.class
-			.getName());
+
+	private static final Logger log = Logger.getLogger(
+			SessionManager.class.getName());
 	private static SessionManager singleton = null;
 
 	/* Map from <confKey>:<cacheState> to SessionHandler. */
@@ -273,14 +274,6 @@ public class SessionManager extends AbstractService implements
 	@Override
 	public void sessionAdded(ServerSession client) {
 		log.fine("session added " + client);
-
-		String sessionId = (String) client.getAttribute("sessionid");
-		SessionHandler handler = this.getSessionHandler(sessionId);
-		if (handler == null)
-			return;
-
-		handler.onAddClient(client);
-		return;
 	}
 
 	/**

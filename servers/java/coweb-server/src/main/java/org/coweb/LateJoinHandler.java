@@ -54,6 +54,7 @@ public class LateJoinHandler {
 
 	public LateJoinHandler(SessionHandler sessionHandler,
 			Map<String, Object> config) {
+
 		this.siteids.add(0, "reserved");
 		for (int i = 1; i < 5; i++) {
 			this.siteids.add(i, null);
@@ -64,8 +65,7 @@ public class LateJoinHandler {
 		this.sessionManager = SessionManager.getInstance();
 
 		if (config.containsKey("cacheState")) {
-			this.cacheState = ((Boolean) config.get("cacheState"))
-					.booleanValue();
+			this.cacheState = ((Boolean)config.get("cacheState")).booleanValue();
 		}
 
 		String classStr = "org.coweb.DefaultUpdaterTypeMatcher";
@@ -81,17 +81,14 @@ public class LateJoinHandler {
 			e.printStackTrace();
 		}
 		
-		// get the moderator
 		this.sessionModerator = sessionHandler.getSessionModerator();
-		ServerSession client = this.sessionModerator.getServerSession();
+		ServerSession moderator = this.sessionModerator.getServerSession();
 
 		// make sure the moderator has joined the conference and has a site
 		// id before anyone joins.  User slot 0 for moderator.
-		this.siteids.set(0, client.getId());
+		this.siteids.set(0, moderator.getId());
 		this.sessionModerator.setSessionAttribute("siteid", new Integer(0));
-		this.clientids.put(client.getId(), client);
-
-		//this.addUpdater(client, false);
+		this.clientids.put(moderator.getId(), moderator);
 	}
 
 	public ServerSession getServerSessionFromSiteid(String siteStr) {
@@ -114,6 +111,18 @@ public class LateJoinHandler {
 		this.lastState = null;
 	}
 
+	/**
+	 * Called when a client first attempts to join a session. This is called after
+	 * a client has subscribed to /service/session/join/[siteid,roster,state].
+	 * This method then sends siteid and roster info back to the client.
+	 * If there is state to send (either no updaters, so empty state, or cached
+	 * state), this method sends it immediately. Otherwise, this method asks an
+	 * updater for state.
+	 *
+	 * @param client Remote client joining the session.
+	 * @param message
+	 * @return
+	 */
 	public boolean onClientJoin(ServerSession client, Message message) {
 		boolean first = false;
 		int siteId = this.getSiteForClient(client);
@@ -137,13 +146,17 @@ public class LateJoinHandler {
 		log.info("updaterType = " + updaterType);
 
 		if (this.updaters.isEmpty()) {
+			/* This is the first client, since there are no other updaters. Send empty
+			 * state and make this client an updater for future late joiners. */
 			this.addUpdater(client, false);
 			sendState = true;
 			first = true;
 		} else if (this.lastState == null) {
+			/* Assign another client to be the "updater" of the newly joined client. */
 			this.assignUpdater(client, updaterType);
 			sendState = false;
 		} else {
+			/* Send the cached state, but don't make this client an updater. */
 			data = this.lastState;
 			sendState = true;
 		}
@@ -153,6 +166,13 @@ public class LateJoinHandler {
 		return first;
 	}
 
+	/**
+	 * Called when some updater client sends its full state to the server.
+	 * This method checks the updater token to determine which newly joined
+	 * client should receive the full application state.
+	 * @param client The updater client.
+	 * @param message Contains token to identify the late joiner to get the state.
+	 */
 	public void onUpdaterSendState(ServerSession client, Message message) {
 		//log.info(message.getJSON());
 		String clientId = client.getId();
@@ -160,31 +180,35 @@ public class LateJoinHandler {
 
 		String token = (String) data.get("token");
 		if (token == null) {
+			/* Malicious or buggy client. */
 			this.sessionHandler.removeBadClient(client);
 			return;
 		}
 
 		List<String> tokens = this.updaters.get(clientId);
 		if (tokens == null) {
+			/* Client isn't really an updater: possible malicious or buggy client. */
 			this.sessionHandler.removeBadClient(client);
 			return;
 		}
 
 		if (!tokens.remove(token)) {
+			/* Token not found: again, client is possibly malicious or buggy. */
 			this.sessionHandler.removeBadClient(client);
 			return;
 		}
 
+		/* Now, we have a validated token. Find the updatee. */
 		ServerSession updatee = this.updatees.get(token);
 		if (updatee == null)
 			return;
 
 		this.updatees.remove(token);
+		/* Should we cache the state? */
 		if (this.cacheState) {
 			this.lastState = (Object[]) data.get("state");
-			log.fine("got state from client");
+			log.fine("Cached state from updater.");
 			log.fine(JSON.toString(this.lastState));
-			
 		}
 
 		ServerMessage.Mutable msg = this.sessionManager.getBayeux()
@@ -203,12 +227,19 @@ public class LateJoinHandler {
 		updatee.deliver(this.sessionManager.getServerSession(), msg);
 	}
 
+	/**
+	 * Called when a client becomes an updater.
+	 * @param client The new updater.
+	 * @param message
+	 */
 	public void onUpdaterSubscribe(ServerSession client, Message message) {
 		this.addUpdater(client, true);
 	}
 
 	/**
-	 * returns true if this was the last updater.
+	 * Called when a client leaves a session.
+	 * @param client The client who is leaving.
+	 * @return True if and only if this was the last updater.
 	 */
 	public boolean onClientRemove(ServerSession client) {
 
@@ -223,6 +254,9 @@ public class LateJoinHandler {
 		return false;
 	}
 
+	/**
+	 * Called when all clients leave a session.
+	 */
 	public boolean onEndSession() {
 		this.updatees.clear();
 		this.updaters.clear();
@@ -236,6 +270,8 @@ public class LateJoinHandler {
 	protected void addUpdater(ServerSession serverSession, boolean notify) {
 		String clientId = serverSession.getId();
 
+		/* TODO ??? The comment below and the if statement contradict each other.
+		 * Moreover, the !this.updaters.isEmpty() is redundant... */
 		// check if this client is already an updater and ignore unless this is
 		// the first updater
 		if (this.updaters.containsKey(clientId) && !this.updaters.isEmpty()) {
@@ -363,21 +399,26 @@ public class LateJoinHandler {
 		return roster;
 	}
 
+	/**
+	 * Assign an updater to provide full application state to a newly joined
+	 * client. 
+	 * @param updatee The newly joined client.
+	 * @param updaterType Updater type as specified by the OCW application.
+	 */
 	private void assignUpdater(ServerSession updatee, String updaterType) {
 		log.info("assignUpdater *****************");
 		ServerSession from = this.sessionManager.getServerSession();
 		if (this.updaters.isEmpty()) {
 			this.addUpdater(updatee, false);
-
 			((ServerSession)updatee).deliver(from, "/service/session/join/state",
 					new ArrayList<String>(), null);
-
 			return;
 		}
 
 		String updaterId = null;
 		ServerSession updater = null;
 		if (!updaterType.equals("default")) {
+			/* Try to find a custom updater. */
 			String matchedType = updaterTypeMatcher.match(updaterType,
 					getAvailableUpdaterTypes());
 			if (matchedType != null) {
@@ -385,23 +426,27 @@ public class LateJoinHandler {
 					updater = this.clientids.get(id);
 					if (updater.getAttribute("updaterType").equals(matchedType)) {
 						updaterId = id;
-						log.info("found an updater type matched to ["
-								+ matchedType + "]");
+						log.fine("found an updater type matched to [" + matchedType + "]");
 						break;
 					}
 				}
 			}
 		}
 		if (updaterId == null) {
+			/* Choose random updater for default types or if a custom updater wasn't
+			 * found. */
 			Random r = new Random();
 			int idx = r.nextInt(this.updaters.size());
-			
-			log.info("using default updater type");
+
+			log.fine("using default updater type");
 			Object[] keys = this.updaters.keySet().toArray();
 			updaterId = (String) keys[idx];
 			updater = this.clientids.get(updaterId);
 		}
-		log.info("assigning updater " + updater.getAttribute("siteid") + " to "
+
+		/* Now we've found an updater, so generate a token and ask the updater to
+		 * provide full application state. */
+		log.fine("assigning updater " + updater.getAttribute("siteid") + " to "
 				+ updatee.getAttribute("siteid"));
 		SecureRandom s = new SecureRandom();
 		String token = new BigInteger(130, s).toString(32);
