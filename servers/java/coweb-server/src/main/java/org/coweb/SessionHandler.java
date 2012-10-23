@@ -287,7 +287,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 						remote, message))
 					this.serviceHandler.forwardUserRequest(remote, message);
 				else {
-					// TODO
+					// TODO more important...
 					// send error message.
 				}
 			} else if (channel.equals("/service/session/updater")) {
