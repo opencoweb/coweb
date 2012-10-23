@@ -62,7 +62,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	 * and the cacheState boolean. This constructor sets up channel listeners,
 	 * creates the service handler, an operation engine, and a moderator
 	 * depending on the configuration settings.
-	 * @param confKey cowebkey that uniquely identifies a coweb application session.
+	 * @param confkey cowebkey that uniquely identifies a coweb application session.
 	 * @param cacheState Whether or not this session caches application state.
 	 * @param config Configuration options for this application. See <a href="http://opencoweb.org/ocwdocs/java/deploy.html#web-inf-web-xml">configuration documentation.</a>.
 	 */
@@ -83,6 +83,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				+ "/roster/unavailable";
 		this.botRequestChannel = "/service/bot/%s/request";
 
+		/* The following creates and listens to the app sync and engine
+		 * sync channels. */
 		ServerChannel.Initializer initializer = new ServerChannel.Initializer() {
 			@Override
 			public void configureChannel(ConfigurableServerChannel channel) {
@@ -124,7 +126,6 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			log.info("creating LateJoinHandler");
 			lh = new LateJoinHandler(this, config);
 		}
-
 		this.lateJoinHandler = lh;
 
 		// create the OT engine only if turned on in the config, or moderatorIsUpdater.

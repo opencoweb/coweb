@@ -121,7 +121,7 @@ public class LateJoinHandler {
 	 *
 	 * @param client Remote client joining the session.
 	 * @param message
-	 * @return
+	 * @return Whether or or not this was the first client to join.
 	 */
 	public boolean onClientJoin(ServerSession client, Message message) {
 		boolean first = false;

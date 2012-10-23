@@ -137,9 +137,9 @@ public abstract class SessionModerator {
 	}
 
 	/**
-	  * Returns the associated LocalSession object - this represents the moderator when considered
-	  * a "client" on the server. All messages originating from the moderator should come <b>from</b> the
-	  * LocalSession.
+	  * Returns the associated LocalSession object - this represents the moderator
+	  * when considered a "client" on the server. All messages originating from the
+	  * moderator should come <b>from</b> the LocalSession.
 	  * 
 	  * @return the associated LocalSession
 	  */
@@ -148,8 +148,8 @@ public abstract class SessionModerator {
 	}
 
 	/**
-	  * Returns the associated ServerSession object. Any messages sent <b>to</b> the moderator will
-	  * have this ServerSession object as the recipient.
+	  * Returns the associated ServerSession object. Any messages sent <b>to</b>
+	  * the moderator will have this ServerSession object as the recipient.
 	  * 
 	  * @return the associated ServerSession
 	  */
@@ -158,7 +158,6 @@ public abstract class SessionModerator {
 	}
 
 	/**
-	  *
 	  * A SessionModerator is special - it has an associated ServerSession like all
 	  * "clients," but also has a LocalSession. Attributes will typically be synchronized.
 	  * so use this method to set an attribute in both Session objects.
@@ -166,6 +165,8 @@ public abstract class SessionModerator {
 	  * <p>For any attributes that SHOULD not be shared, use getLocalSession or getServerSession
 	  * and set the attribute on that object only.
 	  *
+	  * @param key attribute key
+	  * @param val attribute value
 	  * @see org.cometd.bayeux.Session#setAttribute
 	  */
 	public void setSessionAttribute(String key, Object val) {
@@ -174,24 +175,46 @@ public abstract class SessionModerator {
 	}
 
 	/**
-	 * Called when a client sends a sync message. This sync event will have been
-	 * processed by the operation engine.
+	 * The coweb server calls this anytime the server’s local operation engine
+	 * determines there is a sync event to apply to the moderator’s local copy of
+	 * the application data structure(s). Like coweb browser applications, the
+	 * implementors must honor and apply all sync events to local data
+	 * structure(s).
+	 *
+	 * <p>This method should return whether or not the sync event should be
+	 * forwarded to bots.
+	 *
+	 * <p>The parameter data has the five keys specified below.
+	 * 	  <li> topic - A string specifying the coweb topic for which the message
+	 * 	  was sent. This is useful to distinguish browser collab objects and
+	 * 	  sendSync topic names that operations are sent on.
+	 * 	  <li> type - String specifying the type of sync. This can be one of
+	 * 	  {insert, delete, update, null}.
+	 * 	  <li> site - Integer site ID where the event originated.
+	 * 	  <li> value - JSON object value representing the new value. See
+	 * 	  org.eclipse.jetty.util.ajax.JSON for how to read this object.
+	 * 	  <li> position - Integer position specifying where in the one-dimensional
+	 * 	  array the operation should be applied.
 	 * 
-	 * @param data Map with the following properties<br />
-	 *             String topic,<br />
-	 *             String type,<br />
-	 *             int    site,<br />
-	 *             Map    value,<br />
-	 *             int    position
+	 * @param data Map with sync data as described above.
 	 */
 	public abstract void onSync(Map<String, Object> data);
 
 	/**
+	  * Return a mapping of collab element IDs to application state. The coweb
+	  * server calls this when a new client joins a coweb sessiob. The 
+	  * <i>moderatorIsUpdater</i> boolean configuration option must be set to true,
+	  * so that the server knos to call this method (otherwise other clients are
+	  * late join updaters).
 	  *
-	  * Return a mapping of collab element IDs to application state. For example,
-	  * for a conference session with two collaborative elements ("foo" and "bar"),
-	  * this method will return a map with the pairs ("foo", fooStateObj) and
-	  * ("bar", barStateObj).
+	  * <p>The function should return a (key, value) map where there is one key for
+	  * each collab object in the coweb application. The key should be the collab
+	  * object ID, and the associated value should be a JSON object representing
+	  * the state of that collab object.
+	  *
+	  * <p>For example, for a conference session with two collaborative elements
+	  * ("foo" and "bar"), this method will return a map with the pairs ("foo",
+	  * fooStateObj) and ("bar", barStateObj).
 	  *
 	  * <p>null should *not* be returned under any circumstance.
 	  *
@@ -200,7 +223,7 @@ public abstract class SessionModerator {
 	public abstract Map<String, Object> getLateJoinState();
 
 	/**
-	  * Should determine whether or not a connecting client can join a session.
+	  * Determines whether or not a connecting client can join a session.
 	  *
 	  * @param client client attempting to join
 	  * @return whether or not the client can join
