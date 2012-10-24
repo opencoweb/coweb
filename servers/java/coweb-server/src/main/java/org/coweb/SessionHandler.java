@@ -43,6 +43,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private LateJoinHandler lateJoinHandler = null;
 	private SessionModerator sessionModerator = null;
 	private OperationEngineHandler operationEngine = null;
+	private SessionManager manager;
 
 	private AtomicInteger order = new AtomicInteger(0);
 
@@ -72,8 +73,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		this.cacheState = cacheState;
 		this.sessionId = hashURI(confkey);
 		this.serviceHandler = new ServiceHandler(this.sessionId, config);
+		this.manager = SessionManager.getInstance();
 
-		this.server = SessionManager.getInstance().getBayeux();
+		this.server = this.manager.getBayeux();
 
 		this.syncAppChannel = "/session/" + this.sessionId + "/sync/app";
 		this.syncEngineChannel = "/session/" + this.sessionId + "/sync/engine";
@@ -315,18 +317,22 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			throws IOException {
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		if (channel.equals("/service/session/join/*")) {
-			if (this.sessionModerator.canClientJoinSession(serverSession)) {
+			if (this.sessionModerator.canClientJoinSession(serverSession, message)) {
 				if (this.lateJoinHandler.onClientJoin(serverSession, message)) {
 					this.sessionModerator.onSessionReady();
 				}
 			} else {
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("error", 403);
+				serverSession.deliver(this.manager.getServerSession(),
+						"/session/error", map, null);
 				// TODO
 				// need to send error message.
 			}
 		} else if (channel.startsWith("/service/bot") || channel.startsWith("/bot")) {
 			/* Client wishes to subscribe to service messages (broadcasts and private
 			 * bot messages). */
-			if (this.sessionModerator.canClientSubscribeService(serverSession))
+			if (this.sessionModerator.canClientSubscribeService(serverSession, message))
 				this.serviceHandler.subscribeUser(serverSession, message);
 			else {
 				// TODO
@@ -337,7 +343,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			log.info("client subscribes to /session/updater");
 			this.attendees.add(serverSession);
 			this.lateJoinHandler.onUpdaterSubscribe(serverSession, message);
-			this.sessionModerator.onClientJoinSession(serverSession);
+			this.sessionModerator.onClientJoinSession(serverSession, message);
 		}
 	}
 
@@ -425,8 +431,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		this.lateJoinHandler = null;
 		this.serviceHandler = null;
 
-		SessionManager manager = SessionManager.getInstance();
-		manager.removeSessionHandler(this);
+		this.manager.removeSessionHandler(this);
 	}
 	
 	/**

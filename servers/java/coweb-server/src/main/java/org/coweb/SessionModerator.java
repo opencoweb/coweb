@@ -226,16 +226,20 @@ public abstract class SessionModerator {
 	  * Determines whether or not a connecting client can join a session.
 	  *
 	  * @param client client attempting to join
+	  * @param message the message sent by the client
 	  * @return whether or not the client can join
 	  */
-	public abstract boolean canClientJoinSession(ServerSession client);
+	public abstract boolean canClientJoinSession(ServerSession client,
+			Message message);
 
 	/**
 	  * Called to notify this moderator when a client has subscribed to updates.
 	  *
 	  * @param client client that just subscribed
+	  * @param message the message sent by the client
 	  */
-	public abstract void onClientJoinSession(ServerSession client);
+	public abstract void onClientJoinSession(ServerSession client,
+			Message message);
 
 	/**
 	  * Called to notify this moderator that a client has left the session.
@@ -248,9 +252,11 @@ public abstract class SessionModerator {
 	  * Should determine whether or not a client can subscribe to bot messages.
 	  *
 	  * @param client client that wants to subscribe to bot messages
+	  * @param message the message sent by the client
 	  * @return whether or not client can subscribe to bot messages
 	  */
-	public abstract boolean canClientSubscribeService(ServerSession client);
+	public abstract boolean canClientSubscribeService(ServerSession client,
+			Message message);
 
 	/**
 	  * Should determine whether or not a client can publish messages to bots.

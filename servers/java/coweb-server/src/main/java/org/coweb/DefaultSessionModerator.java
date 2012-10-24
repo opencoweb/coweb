@@ -55,7 +55,8 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * .ServerSession)
 	 */
 	@Override
-	public boolean canClientJoinSession(ServerSession client) {
+	public boolean canClientJoinSession(ServerSession client,
+			Message message) {
 		return true;
 	}
 
@@ -67,7 +68,7 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * .ServerSession)
 	 */
 	@Override
-	public void onClientJoinSession(ServerSession client) {
+	public void onClientJoinSession(ServerSession client, Message message) {
 		return;
 	}
 
@@ -91,7 +92,8 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * .server.ServerSession)
 	 */
 	@Override
-	public boolean canClientSubscribeService(ServerSession client) {
+	public boolean canClientSubscribeService(ServerSession client,
+			Message message) {
 		return true;
 	}
 

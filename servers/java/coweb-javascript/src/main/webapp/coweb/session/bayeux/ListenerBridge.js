@@ -64,6 +64,7 @@ define([
 		this.syncAppChannel = '/session/sync/app';
 		this.syncEngineChannel = '/session/sync/engine';
 		this.rosterChannel = "/session/roster/*";
+        this.errorChannel = "/session/error";
     };
     var proto = ListenerBridge.prototype;
 
@@ -246,6 +247,9 @@ define([
         this._updateQueue = [];
         // batch these subscribes
         cometd.batch(this, function() {
+            // Subscribe to error messages.
+            this._errorToken = cometd.subscribe(this.errorChannel,
+                this, '_onError');
             // subscribe to roster list
             this._rosterToken = cometd.subscribe(this.rosterChannel, 
                 this, '_onSessionRoster');
@@ -490,6 +494,15 @@ define([
 			window.location = msg.data.value.url;
 		}, 2000);
 	};
+
+    /**
+     * Called upon receiving an application error response form the server.
+     * Examples of such errors are the moderator disallowing a client from
+     * connecting or sending service requests.
+     */
+    proto._onError = function(msg) {
+        console.log(msg);
+    };
     
     /**
      * Called to handle a /session/roster/ message. Forwards it to the 
