@@ -689,6 +689,24 @@ define([
     };
 
     /**
+     * Called when the listener receives an general error. This function
+     * determines what to do (kill session or notify application about non-fatal
+     * errors).
+     * @param {String} topic indicates what happened
+     */
+    proto.onError = function(topic) {
+        switch (topic) {
+            case "join-disallowed":
+                this.stop();
+                if (this._session)
+                    this._session._joinDisallowed();
+                break;
+            default:
+                console.warn("Unhandled error response from server: ." + topic);
+        }
+    };
+
+    /**
      * Called on a timer to purge the local op engine history buffer if the
      * op engine received a remote event or context vector since the last time
      * the timer fired.

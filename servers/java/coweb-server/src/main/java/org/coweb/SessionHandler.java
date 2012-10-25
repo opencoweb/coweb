@@ -289,8 +289,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 						remote, message))
 					this.serviceHandler.forwardUserRequest(remote, message);
 				else {
-					// TODO more important...
-					// send error message.
+					this.sendError(remote, "publish-disallowed");
 				}
 			} else if (channel.equals("/service/session/updater")) {
 				this.lateJoinHandler.onUpdaterSendState(remote, message);
@@ -322,12 +321,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 					this.sessionModerator.onSessionReady();
 				}
 			} else {
-				Map<String, Object> map = new HashMap<String, Object>();
-				map.put("error", 403);
-				serverSession.deliver(this.manager.getServerSession(),
-						"/session/error", map, null);
-				// TODO
-				// need to send error message.
+				this.sendError(serverSession, "join-disallowed");
 			}
 		} else if (channel.startsWith("/service/bot") || channel.startsWith("/bot")) {
 			/* Client wishes to subscribe to service messages (broadcasts and private
@@ -335,8 +329,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			if (this.sessionModerator.canClientSubscribeService(serverSession, message))
 				this.serviceHandler.subscribeUser(serverSession, message);
 			else {
-				// TODO
-				// need to send error message.
+				this.sendError(serverSession, "subscribe-disallowed");
 			}
 		} else if (channel.endsWith("/session/updater")) {
 			/* Client lets the server know it is an updater. */
@@ -345,6 +338,12 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			this.lateJoinHandler.onUpdaterSubscribe(serverSession, message);
 			this.sessionModerator.onClientJoinSession(serverSession, message);
 		}
+	}
+
+	private void sendError(ServerSession client, String topic) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("topic", topic);
+		client.deliver(this.manager.getServerSession(), "/session/error", map, null);
 	}
 
 	/**

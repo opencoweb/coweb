@@ -501,7 +501,7 @@ define([
      * connecting or sending service requests.
      */
     proto._onError = function(msg) {
-        console.log(msg);
+        this._listener.onError(msg.data.topic);
     };
     
     /**
