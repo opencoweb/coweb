@@ -106,7 +106,11 @@ public class LateJoinHandler {
 
 		return null;
 	}
-	
+
+	/**
+	 * Clears the internal cache. Typically called when the server receives
+	 * a sync event, thus invalidating the cache.
+	 */
 	public void clearCacheState() {
 		this.lastState = null;
 	}
@@ -267,6 +271,12 @@ public class LateJoinHandler {
 		return true;
 	}
 
+	/**
+	 * Called when a client becomes an updated (typically when a new client joins
+	 * a session).
+	 * @param client
+	 * @param notify Whether or not to send the updated roster information.
+	 */
 	protected void addUpdater(ServerSession serverSession, boolean notify) {
 		String clientId = serverSession.getId();
 
@@ -287,6 +297,10 @@ public class LateJoinHandler {
 		}
 	}
 
+	/**
+	 * Let all clients know that another client has been added to the roster.
+	 * @param client The new client.
+	 */
 	private void sendRosterAvailable(ServerSession client) {
 		log.info("sending roster available");
 		ServerSession from = this.sessionManager.getServerSession();
@@ -305,6 +319,10 @@ public class LateJoinHandler {
 
 	}
 
+	/**
+	 * Let all clients know some client left the roster.
+	 * @param client The old client.
+	 */
 	protected void sendRosterUnavailable(ServerSession client) {
 		log.fine("CollabSessionHandler::sendRosterAvailable");
 		/* create channel */
@@ -341,6 +359,11 @@ public class LateJoinHandler {
 		return "LateJoinHandler";
 	}
 
+	/**
+	 * Finds the site id for a client. Returns -1 if none exists.
+	 * @param client
+	 * @return Site id or -1 if nonexistent.
+	 */
 	protected int getSiteForClient(ServerSession client) {
 		if (this.siteids.contains(client.getId())) {
 			return this.siteids.indexOf(client.getId());
@@ -349,6 +372,10 @@ public class LateJoinHandler {
 		return -1;
 	}
 
+	/**
+	 * Assign site id to client.
+	 * @param client
+	 */
 	protected int addSiteForClient(ServerSession client) {
 
 		int index = this.siteids.indexOf(null);
@@ -365,6 +392,10 @@ public class LateJoinHandler {
 		return index;
 	}
 
+	/**
+	 * Remote site id for client.
+	 * @param client
+	 */
 	protected int removeSiteForClient(ServerSession client) {
 
 		if (client == null) {
@@ -386,6 +417,10 @@ public class LateJoinHandler {
 		return siteid;
 	}
 
+	/**
+	 * Create a new roster list map; this will be sent to joining clients.
+	 * @param client New client.
+	 */
 	protected Map<Integer, String> getRosterList(ServerSession client) {
 
 		Map<Integer, String> roster = new HashMap<Integer, String>();
@@ -457,6 +492,11 @@ public class LateJoinHandler {
 		updater.deliver(from, "/service/session/updater", token, null);
 	}
 
+	/**
+	 * Called when a client is no longer an updater (typically when the client
+	 * disconnects from the session).
+	 * @param client
+	 */
 	protected void removeUpdater(ServerSession client) {
 		log.fine("CollabDelegate::removeUpdater " + client);
 		this.removeSiteForClient(client);
@@ -506,6 +546,11 @@ public class LateJoinHandler {
 		return availableUpdaterTypes;
 	}
 
+	/**
+	 * Used to send join state and other important session data to joining clients.
+	 * This class gives the work to a separate thread so that the server can
+	 * continue to process other requsts.
+	 */
 	class BatchUpdateMessage implements Runnable {
 
 		private ServerSession client = null;
