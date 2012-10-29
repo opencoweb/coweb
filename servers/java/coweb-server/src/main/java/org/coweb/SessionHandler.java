@@ -285,11 +285,12 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		String channel = message.getChannel();
 		try {
 			if (channel.startsWith("/service/bot")) {
-				if (this.sessionModerator.canClientMakeServiceRequest(
-						remote, message))
+				/* Moderator can always make service requests. */
+				if (this.sessionModerator.getServerSession() == remote ||
+						this.sessionModerator.canClientMakeServiceRequest(remote, message))
 					this.serviceHandler.forwardUserRequest(remote, message);
 				else {
-					this.sendError(remote, "publish-disallowed");
+					this.serviceHandler.userCannotPost(remote, message);
 				}
 			} else if (channel.equals("/service/session/updater")) {
 				this.lateJoinHandler.onUpdaterSendState(remote, message);
@@ -325,11 +326,12 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			}
 		} else if (channel.startsWith("/service/bot") || channel.startsWith("/bot")) {
 			/* Client wishes to subscribe to service messages (broadcasts and private
-			 * bot messages). */
-			if (this.sessionModerator.canClientSubscribeService(serverSession, message))
+			 * bot messages). Moderator can always make service requests. */
+			if (this.sessionModerator.getServerSession() == serverSession ||
+					this.sessionModerator.canClientSubscribeService(serverSession, message))
 				this.serviceHandler.subscribeUser(serverSession, message);
 			else {
-				this.sendError(serverSession, "subscribe-disallowed");
+				this.serviceHandler.userCannotSubscribe(serverSession, message);
 			}
 		} else if (channel.endsWith("/session/updater")) {
 			/* Client lets the server know it is an updater. */

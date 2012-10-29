@@ -50,12 +50,16 @@ public abstract class Transport {
 
 	public abstract boolean subscribeUser(ServerSession client,
 			Message message, boolean pub) throws IOException;
+	public abstract void userCannotSubscribe(ServerSession client,
+			Message message) throws IOException;
 
 	public abstract boolean unsubscribeUser(ServerSession client,
 			Message message, boolean pub) throws IOException;
 
 	public abstract boolean userRequest(ServerSession client, Message message)
 			throws IOException;
+	public abstract void userCannotPost(ServerSession client, Message message)
+		throws IOException;
 
 	public abstract void shutdown();
 }

@@ -138,11 +138,32 @@ public class ServiceHandler {
 
 		Transport broker = this.getServiceBroker(serviceName);
 		if (broker == null) {
-			throw new IOException("no broker to handle this service "
-					+ serviceName);
+			throw new IOException("no broker to handle this service " + serviceName);
 		}
 
 		broker.subscribeUser(client, message, pub);
+	}
+
+	/**
+	 * Notifies the client that subscribing is disallowed (per the moderator's
+	 * decision).
+	 * @param client Client who is subscribing.
+	 * @param message Message sent when trying to subscribe.
+	 */
+	public void userCannotSubscribe(ServerSession client,
+			Message message) throws IOException {
+
+		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
+		boolean pub = true;
+		if (channel.startsWith("/service"))
+			pub = false;
+		String serviceName = getServiceNameFromSubscription(message, pub);
+
+		Transport broker = this.getServiceBroker(serviceName);
+		if (null == broker)
+			throw new IOException("no broker to handle this service " + serviceName);
+
+		broker.userCannotSubscribe(client, message);
 	}
 
 	/**
@@ -171,6 +192,28 @@ public class ServiceHandler {
 					+ serviceName);
 
 		broker.unsubscribeUser(client, message, pub);
+	}
+
+	/**
+	 * Notify client that posting service messages is disallowed.
+	 * @param client Client who is trying to post.
+	 * @param message Message sent when trying to post.
+	 */
+	public void userCannotPost(ServerSession client, Message message)
+			throws IOException {
+
+		String serviceName = getServiceNameFromMessage(message, false);
+		if (serviceName == null)
+			throw new IOException("improper request channel "
+					+ message.getChannel());
+
+		Transport broker = this.getServiceBroker(serviceName);
+		if (broker == null)
+			throw new IOException("no broker to handle this service "
+					+ serviceName);
+
+		broker.userCannotPost(client, message);
+		return;
 	}
 
 	/**

@@ -568,7 +568,7 @@ define([
         }
         var serviceName = match[1];
         this._listener.servicePublishInbound(serviceName, msg.data.value, 
-            false);
+            msg.data.error ? true : false);
     };
 
     /**
@@ -596,8 +596,9 @@ define([
         delete info.pending[topic];
         // send to listener
         this._listener.serviceResponseInbound(topic, msg.data.value, 
-            false);
+            msg.data.error ? true : false);
     };
     
     return ListenerBridge;
 });
+
