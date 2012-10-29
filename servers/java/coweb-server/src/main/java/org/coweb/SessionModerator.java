@@ -251,22 +251,24 @@ public abstract class SessionModerator {
 	/**
 	  * Should determine whether or not a client can subscribe to bot messages.
 	  *
+	  * @param svnName service name
 	  * @param client client that wants to subscribe to bot messages
 	  * @param message the message sent by the client
 	  * @return whether or not client can subscribe to bot messages
 	  */
-	public abstract boolean canClientSubscribeService(ServerSession client,
-			Message message);
+	public abstract boolean canClientSubscribeService(String svnName,
+			ServerSession client, Message message);
 
 	/**
 	  * Should determine whether or not a client can publish messages to bots.
 	  *
+	  * @param svnName service name
 	  * @param client that wants to publish messages
 	  * @param botMessage message the client wants to publish
 	  * @return whether or not the client can publish
 	  */
-	public abstract boolean canClientMakeServiceRequest(ServerSession client,
-			Message botMessage);
+	public abstract boolean canClientMakeServiceRequest(String svcName,
+			ServerSession client, Message botMessage);
 
 	/**
 	  * Called whenever a bot responds to a service message sent by this moderator.

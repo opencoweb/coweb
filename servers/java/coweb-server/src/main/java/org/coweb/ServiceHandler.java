@@ -55,10 +55,11 @@ public class ServiceHandler {
 
 		Map<String, Object> botConfig = null;
 		for (int i = 0; i < botConfigs.length; i++) {
-			botConfig = (Map<String, Object>) botConfigs[i];
-			String s = (String) botConfig.get("service");
+			Map<String, Object> tmp = (Map<String, Object>) botConfigs[i];
+			String s = (String) tmp.get("service");
 
 			if (s.equals(serviceName)) {
+				botConfig = tmp;
 				break;
 			}
 		}

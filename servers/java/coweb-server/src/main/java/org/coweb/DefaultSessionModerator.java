@@ -92,8 +92,8 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * .server.ServerSession)
 	 */
 	@Override
-	public boolean canClientSubscribeService(ServerSession client,
-			Message message) {
+	public boolean canClientSubscribeService(String svcName,
+			ServerSession client, Message message) {
 		return true;
 	}
 
@@ -105,8 +105,8 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * .server.ServerSession, org.cometd.bayeux.Message)
 	 */
 	@Override
-	public boolean canClientMakeServiceRequest(ServerSession client,
-			Message botMessage) {
+	public boolean canClientMakeServiceRequest(String svcName,
+			ServerSession client, Message botMessage) {
 		return true;
 	}
 

@@ -20,6 +20,13 @@ Version 0.8.4
 * SessionModerator now provides an ``onSessionReady()`` callback when a coweb
   session becomes active (the first client joins or rejoins a previously
   inactive session).
+* SessionModerator methods canClientSubscribeService and
+  canClientMakeServiceRequest now take additional string argument specifying
+  the name of the service. This information is always in the message argument,
+  but the service name is semantically relevant and might be considered an
+  internal implementation detail of the message (i.e. in cases the message
+  format changes).
+
 
 Version 0.8.3.1
 ~~~~~~~~~~~~~~~

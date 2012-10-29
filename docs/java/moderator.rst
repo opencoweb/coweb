@@ -22,6 +22,9 @@ client. All sync events it receives are transformed using an operating engine.
 The moderator itself can send sync events to other clients, and can communicate
 with service bots in the same way browser clients can.
 
+Public API
+~~~~~~~~~~
+
 Application programmers should implement subclasses of SessionModerator, and the
 following documentation should be helpful in writing a useful implementation.
 See the `SessionModerator javadocs`_ for a complete description of the

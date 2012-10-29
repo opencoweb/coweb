@@ -286,10 +286,12 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		try {
 			if (channel.startsWith("/service/bot")) {
 				/* Moderator can always make service requests. */
+				String svcName = ServiceHandler.getServiceNameFromMessage(message, false);
 				if (this.sessionModerator.getServerSession() == remote ||
-						this.sessionModerator.canClientMakeServiceRequest(remote, message))
+						this.sessionModerator.canClientMakeServiceRequest(
+							svcName, remote, message)) {
 					this.serviceHandler.forwardUserRequest(remote, message);
-				else {
+				} else {
 					this.serviceHandler.userCannotPost(remote, message);
 				}
 			} else if (channel.equals("/service/session/updater")) {
@@ -327,12 +329,19 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		} else if (channel.startsWith("/service/bot") || channel.startsWith("/bot")) {
 			/* Client wishes to subscribe to service messages (broadcasts and private
 			 * bot messages). Moderator can always make service requests. */
+			boolean pub = true;
+			if (channel.startsWith("/service"))
+					pub = false;
+			String svcName = ServiceHandler.getServiceNameFromMessage(message, pub);
+
 			if (this.sessionModerator.getServerSession() == serverSession ||
-					this.sessionModerator.canClientSubscribeService(serverSession, message))
+					this.sessionModerator.canClientSubscribeService(
+						svcName, serverSession, message)) {
 				this.serviceHandler.subscribeUser(serverSession, message);
-			else {
+			} else {
 				this.serviceHandler.userCannotSubscribe(serverSession, message);
 			}
+
 		} else if (channel.endsWith("/session/updater")) {
 			/* Client lets the server know it is an updater. */
 			log.info("client subscribes to /session/updater");
