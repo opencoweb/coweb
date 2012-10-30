@@ -18,8 +18,8 @@ import org.coweb.bots.transport.Transport;
  */
 public class ServiceHandler {
 
-	private static final Logger log = Logger.getLogger(ServiceHandler.class
-			.getName());
+	private static final Logger log = Logger.getLogger(
+			ServiceHandler.class.getName());
 
 	private String sessionId = null;
 	private Map<String, Transport> brokers = new HashMap<String, Transport>();
@@ -97,7 +97,7 @@ public class ServiceHandler {
 	public void removeUserFromAll(ServerSession client) {
 		for (Transport t : this.brokers.values()) {
 			try {
-				t.unsubscribeUser(client, null, true);
+				t.unsubscribeUser(client, true);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -142,7 +142,19 @@ public class ServiceHandler {
 			throw new IOException("no broker to handle this service " + serviceName);
 		}
 
-		broker.subscribeUser(client, message, pub);
+		broker.subscribeUser(client, pub);
+	}
+
+	/**
+	 */
+	public void subscribeModerator(SessionModerator mod, String serviceName)
+			throws IOException {
+		Transport broker = this.getServiceBroker(serviceName);
+		if (broker == null) {
+			throw new IOException("no broker to handle this service " + serviceName);
+		}
+
+		broker.subscribeUser(mod.getServerSession(), true);
 	}
 
 	/**
@@ -151,8 +163,8 @@ public class ServiceHandler {
 	 * @param client Client who is subscribing.
 	 * @param message Message sent when trying to subscribe.
 	 */
-	public void userCannotSubscribe(ServerSession client,
-			Message message) throws IOException {
+	public void userCannotSubscribe(ServerSession client, Message message)
+			throws IOException {
 
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		boolean pub = true;
@@ -192,7 +204,7 @@ public class ServiceHandler {
 			throw new IOException("no broker to handle this service "
 					+ serviceName);
 
-		broker.unsubscribeUser(client, message, pub);
+		broker.unsubscribeUser(client, pub);
 	}
 
 	/**
@@ -241,6 +253,9 @@ public class ServiceHandler {
 
 	/**
 	 * Extract the bot service name from a message.
+	 * @param message
+	 * @param pub Was message a public broadcast?
+	 * @return Bot service name.
 	 */
 	public static String getServiceNameFromSubscription(Message message,
 			boolean pub) {
@@ -250,6 +265,19 @@ public class ServiceHandler {
 
 	/**
 	 * Extract the bot service name from a message.
+	 * @param message
+	 * @return Bot service name.
+	 */
+	public static String getServiceNameFromSubscription(Message message) {
+		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
+		return getServiceNameFromChannel(channel, isPublicBroadcast(channel));
+	}
+
+	/**
+	 * Extract the bot service name from a message.
+	 * @param message
+	 * @param pub Was message a public broadcast?
+	 * @return Bot service name.
 	 */
 	public static String getServiceNameFromMessage(Message message, boolean pub) {
 		String channel = message.getChannel();
@@ -257,7 +285,20 @@ public class ServiceHandler {
 	}
 
 	/**
+	 * Extract the bot service name from a message.
+	 * @param message
+	 * @return Bot service name.
+	 */
+	public static String getServiceNameFromMessage(Message message) {
+		String channel = message.getChannel();
+		return getServiceNameFromChannel(channel, isPublicBroadcast(channel));
+	}
+
+	/**
 	 * Extract a bot service name from a channel string.
+	 * @param channel
+	 * @param pub Was message a public broadcast?
+	 * @return Bot service name.
 	 */
 	public static String getServiceNameFromChannel(String channel, boolean pub) {
 
@@ -276,5 +317,44 @@ public class ServiceHandler {
 
 		return serviceName;
 	}
+
+	/**
+	 * Extract a bot service name from a channel string.
+	 * @param channel
+	 * @return Bot service name.
+	 */
+	public static String getServiceNameFromChannel(String channel) {
+		return getServiceNameFromChannel(channel, isPublicBroadcast(channel));
+	}
+
+	/**
+	 * Determine if the message was a public broadcast or private message.
+	 * @param channel
+	 * @return Whether or not the message was a public broadcast.
+	 */
+	public static boolean isPublicBroadcast(String channel) {
+		return !channel.startsWith("/service");
+	}
+
+	/**
+	 * Determine if the message was a public broadcast or private message.
+	 * @param message
+	 * @return Whether or not the message was a public broadcast.
+	 */
+	public static boolean isPublicBroadcast(Message message) {
+		String channel = message.getChannel();
+		return !channel.startsWith("/service");
+	}
+
+	/**
+	 * Check if a message was sent on a service channel.
+	 * @param message
+	 * @return Is this a service message?
+	 */
+	public static boolean isServiceMessage(Message message) {
+		String channel = message.getChannel();
+		return channel.startsWith("/service/bot") || channel.startsWith("/bot");
+	}
+
 }
 

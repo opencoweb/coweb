@@ -117,7 +117,8 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * org.coweb.SessionModerator#onServiceResponse(org.cometd.bayeux.Message)
 	 */
 	@Override
-	public void onServiceResponse(Message botResponse) {
+	public void onServiceResponse(String svcName, Map<String, Object> data,
+			boolean error, boolean isPublic) {
 		return;
 	}
 

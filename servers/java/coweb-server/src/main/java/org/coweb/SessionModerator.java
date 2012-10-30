@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import java.util.logging.Logger;
 
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerMessage;
@@ -18,16 +21,29 @@ import org.cometd.bayeux.server.ServerSession;
  * <a href="http://opencoweb.org/ocwdocs/java/deploy.html#configuring-coweb-options"> use a custom coweb configuration</a>
  * (WEB-INF/cowebConfig.json).
  *
- * <p>In your custom coweb configuration, set both `moderatorIsUpdater` and `operationEngine` to "true".
- * Set `sessionModerator` to the full java class name (e.g. "org.coweb.DefaultSessionModerator").
+ * <p>In your custom coweb configuration, set both `moderatorIsUpdater` and
+ * `operationEngine` to "true". Set `sessionModerator` to the full java class
+ * name (e.g. "org.coweb.DefaultSessionModerator").
  *
- * <p>Note that the users of this class make no guarantee about the number of threads that might operate
- * on a SessionModerator object. Thus, implementors of SessionModerator subclasses must ensure the thread
- * safety of the implementation. For example, the {@link SessionModerator#onSync} method likely needs to
- * be declared synchronized.
+ * <p>Note that the users of this class make no guarantee about the number of
+ * threads that might operate on a SessionModerator object. Thus, implementors
+ * of SessionModerator subclasses must ensure the thread safety of the
+ * implementation. For example, the {@link SessionModerator#onSync} method
+ * likely needs to be declared synchronized.
+ *
+ * The current API has four methods accepting an org.cometd.bayeux.Message
+ * argument. Since it is not immediately apparent what information would be
+ * useful to application developers, we do not split up the message like we
+ * do for onServiceResponse. Until it becomes clear how to send specific
+ * information that is encoded inside the message, the API will continue to
+ * pass a message, but developers should be aware that the format of the message
+ * is not guaranteed to change with new releases.
  *
  */
 public abstract class SessionModerator {
+
+	private static final Logger log = Logger.getLogger(SessionHandler.class
+			.getName());
 
 	/**
 	  * The default SessionModerator implementation used by {@link org.coweb.SessionModerator#getInstance}.
@@ -272,9 +288,13 @@ public abstract class SessionModerator {
 
 	/**
 	  * Called whenever a bot responds to a service message sent by this moderator.
-	  * @param botResponse the bot's message
+	  * @param svcName The bot's name.
+	  * @param data Bot message data as a JSON encodable map. Might be null.
+	  * @param error Was there an error?
+	  * @param isPublic Was the message a public bot broadcast?
 	  */
-	public abstract void onServiceResponse(Message botResponse);
+	public abstract void onServiceResponse(String svcName,
+			Map<String, Object> data, boolean error, boolean isPublic);
 
 	/**
 	  * Called whenever a session is over (i.e.&nbsp;all clients have left). Note that this
@@ -342,11 +362,11 @@ public abstract class SessionModerator {
 	 * CollabInterface, this Java CollabInterface only provides methods to send
 	 * data. Receiving data is handled by the moderator.
 	 */
-	public class CollabInterface implements ServerSession.MessageListener {
+	public static class CollabInterface implements ServerSession.MessageListener {
 
 		private SessionModerator moderator;
 		private String collabId;
-		private int serviceId;
+		private AtomicInteger serviceId;
 
 		/**
 		 * Create a collaborative object interface for sending collab messages to
@@ -356,11 +376,30 @@ public abstract class SessionModerator {
 		private CollabInterface(SessionModerator mod, String collabId) {
 			this.moderator = mod;
 			this.collabId = collabId;
-			this.serviceId = 0;
+			this.serviceId = new AtomicInteger(0);
+		}
+
+		public void subscribeService(String svcName) {
+			this.moderator.sessionHandler.subscribeModeratorToService(svcName);
 		}
 
 		public boolean onMessage(ServerSession to, ServerSession from, ServerMessage message) {
-			this.moderator.onServiceResponse(message);
+			if (ServiceHandler.isServiceMessage(message)) {
+				String svcName = ServiceHandler.getServiceNameFromMessage(message);
+
+				Map<String, Object> data = message.getDataAsMap();
+				Boolean error = (Boolean)data.get("error");
+				if (null == error)
+					error = false;
+				data = (Map<String, Object>)data.get("value");
+
+				/* No guarantees that data is not null. */
+				this.moderator.onServiceResponse(svcName, data, error,
+						ServiceHandler.isPublicBroadcast(message));
+			} else {
+				log.warning("CollabInterface received message it doesn't understand: " +
+						message);
+			}
 			return true;
 		}
 
@@ -381,11 +420,11 @@ public abstract class SessionModerator {
 		 * @param service Bot service name.
 		 * @param params Bot message, JSON encodable.
 		 */
-		public synchronized void postService(String service, Map<String, Object> params) {
-			String topic = "coweb.service.request." + service + "_" + this.serviceId +
+		public void postService(String service, Map<String, Object> params) {
+			/* Need atomicity for serviceId counter. */
+			int id = this.serviceId.getAndIncrement();
+			String topic = "coweb.service.request." + service + "_" + id +
 				"." + this.collabId;
-			++this.serviceId;
-			System.out.println("postService " + topic);
 			this.moderator.sessionHandler.postModeratorService(service, topic, params);
 		}
 

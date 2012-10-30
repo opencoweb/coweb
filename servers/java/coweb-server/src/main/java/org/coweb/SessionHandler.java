@@ -134,7 +134,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		boolean useEngine = config.containsKey("operationEngine") && 
 			((Boolean) config.get("operationEngine")).booleanValue();
 		if (!useEngine && mustUseEngine) {
-			log.warning("Must use OperationEngine because moderatorIsUpdater==true, even though operationEngine is not set.");
+			log.warning("Must use OperationEngine because moderatorIsUpdater==true, " + 
+					"even though operationEngine is not set.");
 			useEngine = true;
 		}
 		if (useEngine) {
@@ -263,8 +264,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				}
 			}
 		} else {
-			System.out.println("onMessage does not handle channel messages '" + channelName + "'");
-			System.out.println("    message = " + message);
+			log.warning("onMessage does not handle channel messages '" + channelName +
+					"'\n    message = " + message);
 		}
 
 		return true;
@@ -297,8 +298,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			} else if (channel.equals("/service/session/updater")) {
 				this.lateJoinHandler.onUpdaterSendState(remote, message);
 			} else {
-				System.out.println("onPublish doesn't handle '" + channel + "' messages");
-				System.out.println("    message = " + message);
+				log.warning("onPublish doesn't handle '" + channel + "' messages" + 
+						"    message = " + message);
 			}
 		} catch (Exception e) {
 			log.severe("error receiving publish message");
@@ -348,6 +349,19 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			this.attendees.add(serverSession);
 			this.lateJoinHandler.onUpdaterSubscribe(serverSession, message);
 			this.sessionModerator.onClientJoinSession(serverSession, message);
+		}
+	}
+
+	/**
+	 * Subscribes the moderator to service message broadcasts.
+	 * @param svcName The service name.
+	 */
+	void subscribeModeratorToService(String svcName) {
+		try {
+			this.serviceHandler.subscribeModerator(this.sessionModerator, svcName);
+		} catch (Exception e) {
+			log.severe("error subscribing moderator to service " + svcName);
+			e.printStackTrace();
 		}
 	}
 
