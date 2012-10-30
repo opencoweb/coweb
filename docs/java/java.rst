@@ -13,6 +13,7 @@ The Open Cooperative Web Framework includes a Java package providing both a cowe
    extensions
    bots
    moderator
+   logging
 
 .. seealso::
 
