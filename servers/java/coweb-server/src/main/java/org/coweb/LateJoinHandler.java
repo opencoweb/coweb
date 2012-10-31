@@ -274,7 +274,7 @@ public class LateJoinHandler {
 	/**
 	 * Called when a client becomes an updated (typically when a new client joins
 	 * a session).
-	 * @param client
+	 * @param serverSession
 	 * @param notify Whether or not to send the updated roster information.
 	 */
 	protected void addUpdater(ServerSession serverSession, boolean notify) {

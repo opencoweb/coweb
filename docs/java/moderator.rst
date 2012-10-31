@@ -47,7 +47,7 @@ Interacting with the session
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Moderators can send sync events and bot messages using the
-`SessionModerator.CollabInterface`_ interface. Analogous to the JavaScript
+`CollabInterface`_ interface. Analogous to the JavaScript
 :class:`CollabInterface`, moderators create CollabInterface objects for each
 collab object keyed on the collab object ID.
 

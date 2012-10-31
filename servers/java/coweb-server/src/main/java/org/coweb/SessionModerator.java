@@ -278,7 +278,7 @@ public abstract class SessionModerator {
 	/**
 	  * Should determine whether or not a client can publish messages to bots.
 	  *
-	  * @param svnName service name
+	  * @param svcName service name
 	  * @param client that wants to publish messages
 	  * @param botMessage message the client wants to publish
 	  * @return whether or not the client can publish
