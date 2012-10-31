@@ -19,6 +19,74 @@ instead we focus on details only related to how the moderator and bot interact.
 There are three main components to this demonstration: (1) the moderator,
 (2) the service bot, and (3) the CoMap JavaScript application.
 
+Moderator and bots: important differences
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Moderators and bots are similar in many respects. Both live on the server side,
+and once created for a specific coweb session (unique :doc:`../intro/cowebkey`),
+the moderator and bots for that session continue to persist until the server is
+restarted. Moderators and bots communicate with browser clients (and each
+other).
+
+Moderators and bots serve two very distinct purposes, however. The moderator is
+used to act as another client in a collaborative session, but on the server
+side. The moderator sends and receives sync events, which are processed through
+the operation engine just like the syncs of browser clients. The moderator can
+also serve as the only updater in a session; instead of browser clients serving
+as the updater when a new client joins a session, the moderator can be the sole
+updater, giving new clients full application state. This is useful in providing
+persistent coweb applications.
+
+Bots, on the other hand, can send and receive arbitrary messages. Clients send
+bots private messages, to which the bot can respond with a private response.
+Bots can publish messages to all clients who are subscribed. No messages are
+pushed through the operation engine, however, thus rendering bots incapable
+of participating the collaborative aspects of applications.
+
+Use cases of the moderator
+##########################
+
+The moderator can be used to provide application persistence, even when all
+browser clients leave a session. This is because once created, a moderator
+continues to exist until the server is restarted. The moderator can save
+application state to disk, for example, and retrieve the application state when
+the server is restarted. New clients who join a coweb session will receive
+application state from the moderator.
+
+The moderator serves administrative purposes: the moderator decides which
+clients are allowed to join a session and which services a client can subscribe
+or send messages to. The moderator can also participate in the collaborative
+session as an external client as well, moderating the session from an
+application standpoint.
+
+Use cases of bots
+#################
+
+Service bots exist to provide `service` to browser clients. Clients can make
+private requests to bots. For example, a bot can function to provide stock
+prices when queried by clients. A service can also serve to broadcast messages
+to all clients. For example, perhaps an application would like to receive live
+Twitter feed updates, and a service can broadcast updated Twitter posts
+asynchronously.
+
+An application can create as many services as it deems necessary. For example,
+we can design an application that uses one service to answer queries about
+stock prices, and a separate service that broadcasts Twitter feeds. On the
+other hand, there can be at most one moderator per session.
+
+Final words
+###########
+
+To reiterate, moderators are used to act as a client on the server side and
+fulfill collaborative functions as deemed necessary by an application. Bots
+fulfill all other non-collaborative functions of an application. This point
+will be made in demonstrating the CoMap application.
+
+.. warning:: We can't send sync events (pin drop locations) to the service bot
+   directly. Messages sent to the bot are not transformed by the operation
+   engine, so the bot might have an unsynchronized list of locations. We must
+   use the moderator, since the moderator gets transformed events.
+
 The goal: Populating pin drops with visitor counts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -36,10 +104,17 @@ will use the moderator (located on the server side) to gather synchronized pin
 drop locations. The moderator will then send the bot an updated list of zip
 counts every time the list is updated.
 
-.. warning:: We can't send sync events (pin drop locations) to the service bot
-   directly. Messages sent to the bot are not transformed by the operation
-   engine, so the bot might have an unsynchronized list of locations. We must
-   use the moderator, since the moderator gets transformed events.
+Methodology
+###########
+
+The moderator and service bot in CoMap serve two distinct purposes. The
+moderator is used to gather synchronized application state in the coweb
+session. The service generates visitor counts for geographical locations, and
+publishes the visit count to browser clients.
+
+This separate makes sense logically, since visit count is not collaborative, and
+hence is handled by the service. The actual pin drop locations must be mainted
+collaboratively, hence using the moderator for this aspect.
 
 Source code
 ~~~~~~~~~~~
