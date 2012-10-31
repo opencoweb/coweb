@@ -412,6 +412,9 @@ define([
                 throw new Error(messages.callbackfunction);
             }
         }
+        if (typeof params !== 'object') {
+            throw new Error(messages.notjsonobject);
+        }
         // subscribe to response event
         var setTopic = topics.SET_SERVICE+service+'_'+this._serviceId+'.'+this.id;
         // use our callback so we can automatically unregister 

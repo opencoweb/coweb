@@ -34,8 +34,7 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
 
 		if (channelName.startsWith("/service/bot")) {
 			return this.canInvokeServiceRequest(username, sessionid,
-					ServiceHandler
-							.getServiceNameFromChannel(channelName, false));
+					ServiceHandler.getServiceNameFromChannel(channelName, false));
 		}
 
 		return super.canPublish(server, client, channel, message);
@@ -53,11 +52,11 @@ public class CowebSecurityPolicy extends DefaultSecurityPolicy {
 			return false;
 
 		if (channelName.startsWith("/bot")) {
-			return this
-					.canSubscribeService(username, sessionid, ServiceHandler
-							.getServiceNameFromChannel(channelName, true));
-		} else
+			return this.canSubscribeService(username, sessionid,
+                            ServiceHandler.getServiceNameFromChannel(channelName, true));
+		} else {
 			return this.canSubscribeOther(server, client, channel, message);
+        }
 	}
 
 	@Override

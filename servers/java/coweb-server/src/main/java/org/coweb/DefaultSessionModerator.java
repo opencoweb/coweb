@@ -34,8 +34,7 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * org.cometd.bayeux.Message)
 	 */
 	@Override
-	public boolean onSync(Map<String, Object> data) {
-		return true;
+	public void onSync(Map<String, Object> data) {
 	}
 
 	/*
@@ -56,7 +55,8 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * .ServerSession)
 	 */
 	@Override
-	public boolean canClientJoinSession(ServerSession client) {
+	public boolean canClientJoinSession(ServerSession client,
+			Message message) {
 		return true;
 	}
 
@@ -68,7 +68,7 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * .ServerSession)
 	 */
 	@Override
-	public void onClientJoinSession(ServerSession client) {
+	public void onClientJoinSession(ServerSession client, Message message) {
 		return;
 	}
 
@@ -92,7 +92,8 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * .server.ServerSession)
 	 */
 	@Override
-	public boolean canClientSubscribeService(ServerSession client) {
+	public boolean canClientSubscribeService(String svcName,
+			ServerSession client, Message message) {
 		return true;
 	}
 
@@ -104,8 +105,8 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * .server.ServerSession, org.cometd.bayeux.Message)
 	 */
 	@Override
-	public boolean canClientMakeServiceRequest(ServerSession client,
-			Message botMessage) {
+	public boolean canClientMakeServiceRequest(String svcName,
+			ServerSession client, Message botMessage) {
 		return true;
 	}
 
@@ -116,7 +117,8 @@ public class DefaultSessionModerator extends SessionModerator {
 	 * org.coweb.SessionModerator#onServiceResponse(org.cometd.bayeux.Message)
 	 */
 	@Override
-	public void onServiceResponse(Message botResponse) {
+	public void onServiceResponse(String svcName, Map<String, Object> data,
+			boolean error, boolean isPublic) {
 		return;
 	}
 
@@ -130,4 +132,9 @@ public class DefaultSessionModerator extends SessionModerator {
 		return;
 	}
 
+	@Override
+	public void onSessionReady() {
+	}
+
 }
+

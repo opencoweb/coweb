@@ -13,10 +13,13 @@ import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerSession;
 import org.coweb.bots.transport.Transport;
 
+/**
+ * This class is used to handle services for a particular coweb application session.
+ */
 public class ServiceHandler {
 
-	private static final Logger log = Logger.getLogger(ServiceHandler.class
-			.getName());
+	private static final Logger log = Logger.getLogger(
+			ServiceHandler.class.getName());
 
 	private String sessionId = null;
 	private Map<String, Transport> brokers = new HashMap<String, Transport>();
@@ -28,6 +31,14 @@ public class ServiceHandler {
 		this.cowebConfig = config;
 	}
 
+	/**
+	 * Gets an existing instance of a service bot, or creates one if none exists
+	 * yet. serviceName is checked against the coweb config. This method
+	 * attempts to create the service class object, and if successful it returns
+	 * the service bot. Otherwise, null is returned, which indicates a
+	 * non existing service.
+	 * @param serviceName The service name.
+	 */
 	@SuppressWarnings("unchecked")
 	public Transport getServiceBroker(String serviceName) {
 
@@ -44,10 +55,11 @@ public class ServiceHandler {
 
 		Map<String, Object> botConfig = null;
 		for (int i = 0; i < botConfigs.length; i++) {
-			botConfig = (Map<String, Object>) botConfigs[i];
-			String s = (String) botConfig.get("service");
+			Map<String, Object> tmp = (Map<String, Object>) botConfigs[i];
+			String s = (String) tmp.get("service");
 
 			if (s.equals(serviceName)) {
+				botConfig = tmp;
 				break;
 			}
 		}
@@ -64,8 +76,6 @@ public class ServiceHandler {
 		}
 
 		try {
-
-			// Class clazz = Class.forName(brokerStr);
 			Class<? extends Transport> clazz = Class.forName(brokerStr)
 					.asSubclass(Transport.class);
 			broker = clazz.newInstance();
@@ -76,36 +86,43 @@ public class ServiceHandler {
 
 		broker.setBotConfig(botConfig);
 		broker.setSessionId(this.sessionId);
-
 		this.brokers.put(serviceName, broker);
-
 		return broker;
 	}
 
+	/**
+	 * Unsubscribe a client from all services in this session.
+	 * @param client The client to be removed.
+	 */
 	public void removeUserFromAll(ServerSession client) {
 		for (Transport t : this.brokers.values()) {
 			try {
-				t.unsubscribeUser(client, null, true);
+				t.unsubscribeUser(client, true);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 	}
 
+	/**
+	 * Shuts down all services. Called when a coweb session ends (i.e. all
+	 * clients leave the session).
+	 */
 	public void shutdown() {
-
 		log.fine("ServiceHandler::shutdown");
-
 		for (Transport transport : this.brokers.values()) {
 			transport.shutdown();
 		}
-
 		this.brokers.clear();
 	}
 
+	/**
+	 * Called when a client wants to (and is able to) subscribe to a service.
+	 * @param client Client who is subscribing.
+	 * @param message Message sent when trying to subscribe.
+	 */
 	public void subscribeUser(ServerSession client, Message message)
 			throws IOException {
-
 		log.fine("ServiceHandler::subscribeUser");
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		boolean pub = true;
@@ -115,18 +132,58 @@ public class ServiceHandler {
 
 		String serviceName = getServiceNameFromSubscription(message, pub);
 
-		if (serviceName == null)
+		if (serviceName == null) {
 			throw new IOException("improper subscription to channel "
 					+ message.getChannel());
+		}
 
 		Transport broker = this.getServiceBroker(serviceName);
-		if (broker == null)
-			throw new IOException("no broker to handle this service "
-					+ serviceName);
+		if (broker == null) {
+			throw new IOException("no broker to handle this service " + serviceName);
+		}
 
-		broker.subscribeUser(client, message, pub);
+		broker.subscribeUser(client, pub);
 	}
 
+	/**
+	 */
+	public void subscribeModerator(SessionModerator mod, String serviceName)
+			throws IOException {
+		Transport broker = this.getServiceBroker(serviceName);
+		if (broker == null) {
+			throw new IOException("no broker to handle this service " + serviceName);
+		}
+
+		broker.subscribeUser(mod.getServerSession(), true);
+	}
+
+	/**
+	 * Notifies the client that subscribing is disallowed (per the moderator's
+	 * decision).
+	 * @param client Client who is subscribing.
+	 * @param message Message sent when trying to subscribe.
+	 */
+	public void userCannotSubscribe(ServerSession client, Message message)
+			throws IOException {
+
+		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
+		boolean pub = true;
+		if (channel.startsWith("/service"))
+			pub = false;
+		String serviceName = getServiceNameFromSubscription(message, pub);
+
+		Transport broker = this.getServiceBroker(serviceName);
+		if (null == broker)
+			throw new IOException("no broker to handle this service " + serviceName);
+
+		broker.userCannotSubscribe(client, message);
+	}
+
+	/**
+	 * Called when a client unsubscribes from a service.
+	 * @param client Client who is subscribing.
+	 * @param message Message sent when trying to subscribe.
+	 */
 	public void unSubscribeUser(ServerSession client, Message message)
 			throws IOException {
 
@@ -147,9 +204,36 @@ public class ServiceHandler {
 			throw new IOException("no broker to handle this service "
 					+ serviceName);
 
-		broker.unsubscribeUser(client, message, pub);
+		broker.unsubscribeUser(client, pub);
 	}
 
+	/**
+	 * Notify client that posting service messages is disallowed.
+	 * @param client Client who is trying to post.
+	 * @param message Message sent when trying to post.
+	 */
+	public void userCannotPost(ServerSession client, Message message)
+			throws IOException {
+
+		String serviceName = getServiceNameFromMessage(message, false);
+		if (serviceName == null)
+			throw new IOException("improper request channel "
+					+ message.getChannel());
+
+		Transport broker = this.getServiceBroker(serviceName);
+		if (broker == null)
+			throw new IOException("no broker to handle this service "
+					+ serviceName);
+
+		broker.userCannotPost(client, message);
+		return;
+	}
+
+	/**
+	 * Called when a client wants to send a bot a private message.
+	 * @param client Client who is subscribing.
+	 * @param message Message sent when trying to subscribe.
+	 */
 	public void forwardUserRequest(ServerSession client, Message message)
 			throws IOException {
 		log.info(message.toString());
@@ -167,28 +251,55 @@ public class ServiceHandler {
 		return;
 	}
 
-	public void forwardSyncEvent(ServerSession client, Message message)
-			throws IOException {
-		log.fine("fowardSyncEvent");
-
-		for (Transport t : this.brokers.values()) {
-			t.syncEvent(client, message);
-		}
-	}
-
+	/**
+	 * Extract the bot service name from a message.
+	 * @param message
+	 * @param pub Was message a public broadcast?
+	 * @return Bot service name.
+	 */
 	public static String getServiceNameFromSubscription(Message message,
 			boolean pub) {
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
-
 		return getServiceNameFromChannel(channel, pub);
 	}
 
+	/**
+	 * Extract the bot service name from a message.
+	 * @param message
+	 * @return Bot service name.
+	 */
+	public static String getServiceNameFromSubscription(Message message) {
+		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
+		return getServiceNameFromChannel(channel, isPublicBroadcast(channel));
+	}
+
+	/**
+	 * Extract the bot service name from a message.
+	 * @param message
+	 * @param pub Was message a public broadcast?
+	 * @return Bot service name.
+	 */
 	public static String getServiceNameFromMessage(Message message, boolean pub) {
 		String channel = message.getChannel();
-
 		return getServiceNameFromChannel(channel, pub);
 	}
 
+	/**
+	 * Extract the bot service name from a message.
+	 * @param message
+	 * @return Bot service name.
+	 */
+	public static String getServiceNameFromMessage(Message message) {
+		String channel = message.getChannel();
+		return getServiceNameFromChannel(channel, isPublicBroadcast(channel));
+	}
+
+	/**
+	 * Extract a bot service name from a channel string.
+	 * @param channel
+	 * @param pub Was message a public broadcast?
+	 * @return Bot service name.
+	 */
 	public static String getServiceNameFromChannel(String channel, boolean pub) {
 
 		String[] parts = channel.split("/");
@@ -207,4 +318,43 @@ public class ServiceHandler {
 		return serviceName;
 	}
 
+	/**
+	 * Extract a bot service name from a channel string.
+	 * @param channel
+	 * @return Bot service name.
+	 */
+	public static String getServiceNameFromChannel(String channel) {
+		return getServiceNameFromChannel(channel, isPublicBroadcast(channel));
+	}
+
+	/**
+	 * Determine if the message was a public broadcast or private message.
+	 * @param channel
+	 * @return Whether or not the message was a public broadcast.
+	 */
+	public static boolean isPublicBroadcast(String channel) {
+		return !channel.startsWith("/service");
+	}
+
+	/**
+	 * Determine if the message was a public broadcast or private message.
+	 * @param message
+	 * @return Whether or not the message was a public broadcast.
+	 */
+	public static boolean isPublicBroadcast(Message message) {
+		String channel = message.getChannel();
+		return !channel.startsWith("/service");
+	}
+
+	/**
+	 * Check if a message was sent on a service channel.
+	 * @param message
+	 * @return Is this a service message?
+	 */
+	public static boolean isServiceMessage(Message message) {
+		String channel = message.getChannel();
+		return channel.startsWith("/service/bot") || channel.startsWith("/bot");
+	}
+
 }
+

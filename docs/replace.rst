@@ -21,6 +21,10 @@
 .. _RequireJS: http://requirejs.org/
 .. _promise: http://wiki.commonjs.org/wiki/Promises
 .. _Promises\/A CommonJS proposal: http://wiki.commonjs.org/wiki/Promises/A
+.. _fragment identifier: http://en.wikipedia.org/wiki/Fragment_identifier
+
+.. _ZipModerator.java: https://github.com/opencoweb/cowebx/blob/comap-mod-bot-tut/cowebx-apps/comap/src/main/java/org/coweb/example/ZipModerator.java
+.. _ZipVisits.java: https://github.com/opencoweb/cowebx/blob/comap-mod-bot-tut/cowebx-apps/comap/src/main/java/org/coweb/example/ZipVisits.java
 
 .. _OpenAjax.hub.subscribe: http://www.openajax.org/member/wiki/OpenAjax_Hub_1.0_Specification_PublishSubscribe#OpenAjax.hub.subscribe.28name.2C_callback.2C_scope.2C_subscriberData.2C_filter.29
 
@@ -37,6 +41,8 @@
 .. _org.coweb.CollabDelegate: http://opencoweb.org/ocwdocs/apidocs/org/coweb/CollabDelegate.html
 .. _SessionModerator javadocs: http://opencoweb.org/ocwdocs/apidocs/org/coweb/SessionModerator.html
 .. _org.coweb.SessionModerator: http://opencoweb.org/ocwdocs/apidocs/org/coweb/SessionModerator.html
+.. _org.coweb.SessionModerator.CollabInterface: http://opencoweb.org/ocwdocs/apidocs/org/coweb/SessionModerator.CollabInterface.html
+.. _CollabInterface: http://opencoweb.org/ocwdocs/apidocs/org/coweb/SessionModerator.CollabInterface.html
 .. _org.coweb.bots.transport.LocalTransport: http://opencoweb.org/ocwdocs/apidocs/org/coweb/bots/transport/LocalTransport.html
 .. _org.eclipse.jetty.util.ajax.JSON: http://download.eclipse.org/jetty/stable-7/apidocs/org/eclipse/jetty/util/ajax/JSON.html
 

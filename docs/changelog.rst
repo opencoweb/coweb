@@ -4,6 +4,32 @@
 Changelog
 ---------
 
+Version 0.8.4
+~~~~~~~~~~~~~
+* Moderator now receives a "topic" instead of "channel" to indicate what collab
+  topic was affected by the sync event.
+* Bots now no longer receive sync events. This was an issue since bots did not
+  receive transformed events. Bots can only receive private messages
+  from clients and broadcast messages to all clients listening. The moderator
+  can send private messages to bots, so the moderator can send transformed
+  events to bots as an alternative.
+* ``SessionModeration::onServiceResponse`` was never actually used by the
+  server. Now, onServiceResponse is called when a bot responds to a private
+  message sent by the moderator. This method is not called when other clients
+  receive private bot message responses.
+* SessionModerator now provides an ``onSessionReady()`` callback when a coweb
+  session becomes active (the first client joins or rejoins a previously
+  inactive session).
+* SessionModerator methods canClientSubscribeService and
+  canClientMakeServiceRequest now take additional string argument specifying
+  the name of the service. This information is always in the message argument,
+  but the service name is semantically relevant and might be considered an
+  internal implementation detail of the message (i.e. in cases the message
+  format changes).
+* Provide VanillaBot abstract class that implements all Bot methods (except
+  setProxy) with nops.
+
+
 Version 0.8.3.1
 ~~~~~~~~~~~~~~~
 

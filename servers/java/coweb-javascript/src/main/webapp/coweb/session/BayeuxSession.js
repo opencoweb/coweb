@@ -130,6 +130,18 @@ define([
     };
 
     /**
+     * Called by listener when joining a session is disallowed by the server.
+     * This is likely due to the moderator deciding the client is not allowed to
+     * join.
+     */
+    proto._joinDisallowed = function(err) {
+        this.onStatusChange('join-disallowed');
+        this._prepParams = null;
+        this._listener.stop();
+        this._bridge.disconnect();
+    };
+
+    /**
      * Called by an application to leave a session or abort attempting to enter
      * it.
      *

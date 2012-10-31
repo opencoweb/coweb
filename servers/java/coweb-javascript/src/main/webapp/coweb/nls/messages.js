@@ -14,6 +14,7 @@ define({
         "logininvalid" : "login() not valid in current state",
         "prepareinvalid" : "prepare() not valid in current state",
         "joininvalid" : "join() not valid in current state",
-        "updateinvalid" : "update() not valid in current state"
+        "updateinvalid" : "update() not valid in current state",
+        "notjsonobject" : "params parameter must be a JSON encodable object"
     }
 });

@@ -32,18 +32,20 @@ public class LocalTransport extends Transport implements Proxy {
 		super();
 	}
 
+	@Override
 	public void init() {
 		return;
 	}
 
-	public boolean subscribeUser(ServerSession client, Message message,
-			boolean pub) throws IOException {
+	@Override
+	public boolean subscribeUser(ServerSession client, boolean pub)
+			throws IOException {
+		log.fine("LocalTransport::subscribeUser");
 
 		if (this.bot == null) {
 			this.bot = this.getBotInstance();
 			if (this.bot == null)
-				throw new IOException("unable to locate bot "
-						+ this.serviceName);
+				throw new IOException("unable to locate bot " + this.serviceName);
 		}
 
 		if (pub) {
@@ -55,9 +57,8 @@ public class LocalTransport extends Transport implements Proxy {
 	}
 
 	@Override
-	public boolean unsubscribeUser(ServerSession client, Message message,
-			boolean pub) throws IOException {
-
+	public boolean unsubscribeUser(ServerSession client, boolean pub)
+			throws IOException {
 		log.fine("LocalTransport::unSubscribeUser");
 
 		if (this.bot == null) {
@@ -92,7 +93,6 @@ public class LocalTransport extends Transport implements Proxy {
 		log.fine("message = " + message);
 
 		Map<String, Object> data = message.getDataAsMap();
-		@SuppressWarnings("unchecked")
 		Map<String, Object> params = (Map<String, Object>) data.get("value");
 		String replyToken = (String) data.get("topic");
 		String username = (String) client.getAttribute("username");
@@ -111,25 +111,19 @@ public class LocalTransport extends Transport implements Proxy {
 	}
 
 	@Override
-	public boolean syncEvent(ServerSession client, Message message)
-			throws IOException {
-		log.fine("LocalTransport::syncEvent");
-		log.fine("message = " + message);
+	public void userCannotPost(ServerSession client, Message message)
+		throws IOException {
 
 		Map<String, Object> data = message.getDataAsMap();
+		Map<String, Object> params = (Map<String, Object>) data.get("value");
+		String replyToken = (String) data.get("topic");
 
-		String username = (String) client.getAttribute("username");
+		Map<String, Object> resp = new HashMap<String, Object>();
+		resp.put("error", true);
+		resp.put("topic", replyToken);
 
-		if (this.bot == null) {
-			this.bot = this.getBotInstance();
-			if (this.bot == null)
-				throw new IOException("unable to locate bot "
-						+ this.serviceName);
-		}
-
-		this.bot.onSync(data, username);
-
-		return true;
+		client.deliver(this.server, "/service/bot/" + this.serviceName + "/response",
+				resp, null);
 	}
 
 	@Override
@@ -140,7 +134,7 @@ public class LocalTransport extends Transport implements Proxy {
 		ServerSession client = this.clients.get(replyToken);
 
 		if (client == null) {
-			log.fine("LocalTransport::error sending bot reply client not found");
+			log.warning("LocalTransport::error sending bot reply client not found");
 			// TODO send error.
 			return;
 		}
@@ -148,43 +142,49 @@ public class LocalTransport extends Transport implements Proxy {
 		HashMap<String, Object> data = new HashMap<String, Object>();
 		data.put("value", obj);
 		data.put("topic", replyToken);
-
-		// HashMap<String, Object> payload = new HashMap<String, Object>();
-		// payload.put("data", data);
+		data.put("error", false);
 
 		log.fine("LocalTransport::reply");
 		log.fine("payload = " + data);
 		log.fine("replyToken = " + replyToken);
 
-		client.deliver(this.server, "/service/bot/" + this.serviceName
-				+ "/response", data, null);
+		client.deliver(this.server, "/service/bot/" + this.serviceName + "/response",
+				data, null);
 		this.clients.remove(replyToken);
 	}
 
+	/**
+	 * Sends an error message to clients who are not permissioned to connect (when
+	 * the moderator disallows it).
+	 * @param client Client attempting to join.
+	 * @param message The client's message when it attempted to join.
+	 */
+	@Override
+	public void userCannotSubscribe(ServerSession client, Message message)
+			throws IOException {
+		HashMap<String, Object> data = new HashMap<String, Object>();
+		data.put("error", true);
+		ServerChannel channel = this.getResponseChannel();
+		client.deliver(this.server, channel.getId(), data, null);
+	}
+
+	/**
+	 * Actually sends the message from the bot to all subscribers.
+	 * @param bot The bot sending the message.
+	 * @param obj The message contents.
+	 */
 	@Override
 	public void publish(Bot bot, Map<String, Object> obj) {
 		log.fine("LocalTransport::publish");
 
 		HashMap<String, Object> data = new HashMap<String, Object>();
 		data.put("value", obj);
-
-		HashMap<String, Object> payload = new HashMap<String, Object>();
-		payload.put("data", data);
+		data.put("error", false);
 
 		ServerChannel channel = this.getResponseChannel();
 		for (ServerSession client : this.subscribers) {
 			client.deliver(this.server, channel.getId(), data, null);
 		}
-
-		log.fine("LocalTransport::publish");
-		log.fine(data.toString());
-		log.fine("channel = " + channel);
-		/*
-		 * Set<? extends ServerSession> clients = channel.getSubscribers();
-		 * for(ServerSession client: clients) {
-		 * System.out.println(client.getAttribute("username")); }
-		 */
-		// channel.publish(this.server, data, null);
 	}
 
 	private Bot getBotInstance() throws IOException {

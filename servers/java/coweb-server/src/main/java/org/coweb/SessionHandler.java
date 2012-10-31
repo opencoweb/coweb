@@ -40,10 +40,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private String sessionId = null;
 	private ServiceHandler serviceHandler = null;
 	private BayeuxServer server = null;
-
 	private LateJoinHandler lateJoinHandler = null;
 	private SessionModerator sessionModerator = null;
 	private OperationEngineHandler operationEngine = null;
+	private SessionManager manager;
 
 	private AtomicInteger order = new AtomicInteger(0);
 
@@ -51,20 +51,31 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private String syncEngineChannel = null;
 	private String rosterAvailableChannel = null;
 	private String rosterUnavailableChannel = null;
+	private String botRequestChannel = null;
 
 	private String requestUrl = null;
 	private String sessionName = null;
 
 	private ArrayList<ServerSession> attendees = new ArrayList<ServerSession>();
 
+	/**
+	 * Create a SessionHandler. There is one session handler keyed on cowebkey
+	 * and the cacheState boolean. This constructor sets up channel listeners,
+	 * creates the service handler, an operation engine, and a moderator
+	 * depending on the configuration settings.
+	 * @param confkey cowebkey that uniquely identifies a coweb application session.
+	 * @param cacheState Whether or not this session caches application state.
+	 * @param config Configuration options for this application. See <a href="http://opencoweb.org/ocwdocs/java/deploy.html#web-inf-web-xml">configuration documentation.</a>.
+	 */
 	public SessionHandler(String confkey, boolean cacheState, Map<String, Object> config) {
 
 		this.confKey = confkey;
 		this.cacheState = cacheState;
 		this.sessionId = hashURI(confkey);
 		this.serviceHandler = new ServiceHandler(this.sessionId, config);
+		this.manager = SessionManager.getInstance();
 
-		this.server = SessionManager.getInstance().getBayeux();
+		this.server = this.manager.getBayeux();
 
 		this.syncAppChannel = "/session/" + this.sessionId + "/sync/app";
 		this.syncEngineChannel = "/session/" + this.sessionId + "/sync/engine";
@@ -72,7 +83,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				+ "/roster/available";
 		this.rosterUnavailableChannel = "/session/" + this.sessionId
 				+ "/roster/unavailable";
+		this.botRequestChannel = "/service/bot/%s/request";
 
+		/* The following creates and listens to the app sync and engine
+		 * sync channels. */
 		ServerChannel.Initializer initializer = new ServerChannel.Initializer() {
 			@Override
 			public void configureChannel(ConfigurableServerChannel channel) {
@@ -114,14 +128,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			log.info("creating LateJoinHandler");
 			lh = new LateJoinHandler(this, config);
 		}
-
 		this.lateJoinHandler = lh;
 
 		// create the OT engine only if turned on in the config, or moderatorIsUpdater.
 		boolean useEngine = config.containsKey("operationEngine") && 
 			((Boolean) config.get("operationEngine")).booleanValue();
 		if (!useEngine && mustUseEngine) {
-			log.warning("Must use OperationEngine because moderatorIsUpdater==true, even though operationEngine is not set.");
+			log.warning("Must use OperationEngine because moderatorIsUpdater==true, " + 
+					"even though operationEngine is not set.");
 			useEngine = true;
 		}
 		if (useEngine) {
@@ -204,7 +218,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 
 	/**
-	  * Called whenever a client sends a message to the cometd server.
+	  * Called whenever a client sends an application message to the server. This
+	  * does not include /meta, /service, and /bot messages, which are handled by
+	  * different methods. This method handles application sync and engine sync
+	  * messages.
 	  *
 	  * The cometd implementation is free to have multiple threads invoke onMessage
 	  * for different incoming messages, so be aware of mutual exclusion issues.
@@ -216,10 +233,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 		String msgSessionId = (String) from.getAttribute("sessionid");
 		if (!msgSessionId.equals(this.sessionId)) {
-
-			log.severe("Received message not belonging to this session "
-					+ msgSessionId);
-
+			log.severe("Received message not belonging to this session " + msgSessionId);
 			return true;
 		}
 		
@@ -229,8 +243,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		data.put("siteId", siteId);
 
 		/* Some of the following code must acquire this.operationEngine's lock.
-		   OperationEngine must only be accessed by one client at a time.
-		 */
+		 * OperationEngine must only be accessed by one client at a time. */
 		String channelName = message.getChannel();
 		if (channelName.equals(this.syncAppChannel)) {
 			// put total order on message
@@ -244,36 +257,49 @@ public class SessionHandler implements ServerChannel.MessageListener {
 					}
 				}
 			}
-
-			try {
-                this.serviceHandler.forwardSyncEvent(from, message);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 		} else if (channelName.equals(this.syncEngineChannel)) {
-			if(operationEngine != null) {
+			if (operationEngine != null) {
 				synchronized (this.operationEngine) {
 					this.operationEngine.engineSyncInbound(data);
 				}
 			}
+		} else {
+			log.warning("onMessage does not handle channel messages '" + channelName +
+					"'\n    message = " + message);
 		}
 
 		return true;
 	}
 
+	/**
+	 * Handles bayeux messaegs on the channels below.
+	 *   <li> /session/roster/*
+	 *   <li> /service/session/join/*
+	 *   <li> /service/session/updater
+	 *   <li> /service/bot/**
+	 *   <li> /bot/**
+	 *
+	 * Specifically, onPublish handles clients sending private bot messages
+	 * and when updaters send full application state to the server.
+	 */
 	public void onPublish(ServerSession remote, Message message) {
 		String channel = message.getChannel();
 		try {
 			if (channel.startsWith("/service/bot")) {
-                if (this.sessionModerator.canClientMakeServiceRequest(
-                        remote, message))
-                    this.serviceHandler.forwardUserRequest(remote, message);
-                else {
-                    // TODO
-                    // send error message.
-                }
+				/* Moderator can always make service requests. */
+				String svcName = ServiceHandler.getServiceNameFromMessage(message, false);
+				if (this.sessionModerator.getServerSession() == remote ||
+						this.sessionModerator.canClientMakeServiceRequest(
+							svcName, remote, message)) {
+					this.serviceHandler.forwardUserRequest(remote, message);
+				} else {
+					this.serviceHandler.userCannotPost(remote, message);
+				}
 			} else if (channel.equals("/service/session/updater")) {
 				this.lateJoinHandler.onUpdaterSendState(remote, message);
+			} else {
+				log.warning("onPublish doesn't handle '" + channel + "' messages" + 
+						"    message = " + message);
 			}
 		} catch (Exception e) {
 			log.severe("error receiving publish message");
@@ -282,57 +308,95 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		}
 	}
 
+	/**
+	 * Called anytime a client posts to /meta/subscribe. SessionHandler needs
+	 * to know when (1) a client attempts to join a session, (2) a client wants to
+	 * subscribe to a bot, and (3) when a client wishes to become an updater.
+	 * Other subscriptions are ignored (i.e. we don't wish to know about them).
+	 * @param serverSession Client wishing to subscribe to some channel.
+	 * @param message Contains channel the client wishes to subscribe to.
+	 */
 	public void onSubscribe(ServerSession serverSession, Message message)
 			throws IOException {
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		if (channel.equals("/service/session/join/*")) {
-			if (this.sessionModerator.canClientJoinSession(serverSession))
-				this.lateJoinHandler.onClientJoin(serverSession, message);
-			else {
-				// TODO
-				// need to send error message.
+			if (this.sessionModerator.canClientJoinSession(serverSession, message)) {
+				if (this.lateJoinHandler.onClientJoin(serverSession, message)) {
+					this.sessionModerator.onSessionReady();
+				}
+			} else {
+				this.sendError(serverSession, "join-disallowed");
 			}
 		} else if (channel.startsWith("/service/bot") || channel.startsWith("/bot")) {
-			if (this.sessionModerator.canClientSubscribeService(serverSession))
+			/* Client wishes to subscribe to service messages (broadcasts and private
+			 * bot messages). Moderator can always make service requests. */
+			boolean pub = true;
+			if (channel.startsWith("/service"))
+					pub = false;
+			String svcName = ServiceHandler.getServiceNameFromMessage(message, pub);
+
+			if (this.sessionModerator.getServerSession() == serverSession ||
+					this.sessionModerator.canClientSubscribeService(
+						svcName, serverSession, message)) {
 				this.serviceHandler.subscribeUser(serverSession, message);
-			else {
-				// TODO
-				// need to send error message.
+			} else {
+				this.serviceHandler.userCannotSubscribe(serverSession, message);
 			}
+
 		} else if (channel.endsWith("/session/updater")) {
+			/* Client lets the server know it is an updater. */
 			log.info("client subscribes to /session/updater");
 			this.attendees.add(serverSession);
 			this.lateJoinHandler.onUpdaterSubscribe(serverSession, message);
-			this.sessionModerator.onClientJoinSession(serverSession);
+			this.sessionModerator.onClientJoinSession(serverSession, message);
 		}
 	}
 
+	/**
+	 * Subscribes the moderator to service message broadcasts.
+	 * @param svcName The service name.
+	 */
+	void subscribeModeratorToService(String svcName) {
+		try {
+			this.serviceHandler.subscribeModerator(this.sessionModerator, svcName);
+		} catch (Exception e) {
+			log.severe("error subscribing moderator to service " + svcName);
+			e.printStackTrace();
+		}
+	}
+
+	private void sendError(ServerSession client, String topic) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("topic", topic);
+		client.deliver(this.manager.getServerSession(), "/session/error", map, null);
+	}
+
+	/**
+	 * Called when a client unsubscribes to a channel (via posting to
+	 * /meta/unsubscribe). We need to know when a client wishes to stop listening
+	 * to bot messages.
+	 */
 	public void onUnsubscribe(ServerSession serverSession, Message message)
 			throws IOException {
-
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		if (channel.startsWith("/service/bot") || channel.startsWith("/bot")) {
+			/* Client wishes to unsubscribe to service requests. */
 			this.serviceHandler.unSubscribeUser(serverSession, message);
 		}
-
 		return;
 	}
 
 	public void onPurgingClient(ServerSession client) {
 		this.attendees.remove(client);
-
 		this.sessionModerator.onClientLeaveSession(client);
 		boolean last = this.lateJoinHandler.onClientRemove(client);
-
 		if (last) {
 			this.endSession();
 		}
 	}
 
 	public static String hashURI(String url) {
-
 		String hash = null;
-
 		try {
 			String t = Long.toString(System.currentTimeMillis());
 			url = url + t;
@@ -355,12 +419,22 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		return hash;
 	}
 
+	/**
+	 * Remove a buggy or malicious client from a session.
+	 * @param client The client to be removed.
+	 */
 	public void removeBadClient(ServerSession client) {
+		/* TODO this is clearly a NOP... */
 		return;
 	}
 
+	/**
+	 * Called when all remote clients leave a OCW session. This method notifies
+	 * the moderator, the late join handler, the service handler of the session
+	 * ending. The server removes itself as a listener to sync channels.
+	 */
 	public void endSession() {
-		log.fine("SessionHandler::endSession ***********");
+		log.info("SessionHandler::endSession ***********");
 
 		ServerChannel sync = this.server.getChannel(this.syncAppChannel);
 		sync.removeListener(this);
@@ -369,7 +443,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		sync.removeListener(this);
 
 		// The following ordering must be observed!
-		this.sessionModerator.onSessionEnd();
+		this.sessionModerator.endSession();
 		if (null != this.operationEngine)
 			this.operationEngine.shutdown();
 		this.lateJoinHandler.onEndSession();
@@ -381,16 +455,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		this.lateJoinHandler = null;
 		this.serviceHandler = null;
 
-		SessionManager manager = SessionManager.getInstance();
-		manager.removeSessionHandler(this);
+		this.manager.removeSessionHandler(this);
 	}
 	
 	/**
-     * Publishes a local op engine sync event to the /session/sync Bayeux 
-     * channel.
-     *
-     * @param sites context int array context vector for this site
-     */
+	 * Publishes a local op engine sync event to the /session/ID/sync/engine
+	 * bayeux channel.
+	 * @param sites context int array context vector for this site
+	 */
 	public void postEngineSync(Integer[] sites) {
 		ServerChannel sync = this.server.getChannel(this.syncEngineChannel);
 		
@@ -402,10 +474,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 
 	/**
-	  *
 	  * Retreives the four element Object engine state array and returns it.
-	  *
-	  * return engine state array
+	  * @return engine state array
 	  */
 	public Object[] getEngineState() {
 		Object[] ret;
@@ -415,4 +485,56 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		return ret;
 	}
 
+	/**
+	 * Publish a mesage from the moderator to all listening clients. This method
+	 * doesn't actually send anything directly, but rather it delegates work
+	 * to OperationEngineHandler which sends the event and pushes the op to the
+	 * local operation engine.
+	 * @param name Collab topic (includes ^coweb.sync. and collabId$).
+	 * @param value Application value.
+	 * @param type One of {"insert", "delete", "update", null}.
+	 * @param position Position where sync event is to be applied.
+	 */
+	public void publishModeratorSync(String name, Object value, String type,
+			int position) {
+		this.operationEngine.localSync(name, value, type, position);
+	}
+
+	/**
+	 * Sends message on the /session/ID/sync/app channel. This is called from
+	 * OperationEngineHandler to actually put the message on the wire.
+	 */
+	public void sendModeratorSync(Object message) {
+		ServerChannel channel = this.server.getChannel(this.syncAppChannel);
+		channel.publish(this.sessionModerator.getLocalSession(), message, null);
+	}
+
+	/**
+	 * Find the service request channel.
+	 * @param svc The channel name.
+	 * @return The server request channel.
+	 */
+	private ServerChannel getServiceRequestChannel(String svc) {
+		String ch = String.format(this.botRequestChannel, svc);
+		this.server.createIfAbsent(ch);
+		return this.server.getChannel(String.format(this.botRequestChannel, svc));
+	}
+
+	/**
+	 * Post a bot service message. This actually sends the message on the wire.
+	 * @param service Bot service name.
+	 * @param topic Bots expect a unique token to know which request to reply to.
+	 * @param params JSON encodable message.
+	 */
+	public void postModeratorService(String service, String topic,
+			Map<String, Object> params) {
+		ServerChannel channel = this.getServiceRequestChannel(service);
+		Map<String, Object> message = new HashMap<String, Object>();
+		message.put("value", params);
+		message.put("topic", topic);
+		message.put("service", service);
+		channel.publish(this.sessionModerator.getLocalSession(), message, null);
+	}
+
 }
+

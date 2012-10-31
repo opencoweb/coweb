@@ -20,7 +20,7 @@ public class ModeratorLateJoinHandler extends LateJoinHandler {
 	}
 
 	@Override
-	public void onClientJoin(ServerSession client, Message message) {
+	public boolean onClientJoin(ServerSession client, Message message) {
 		log.info("ModeratorLateJoinHandler::onClientJoin *************");
 		int siteId = this.getSiteForClient(client);
 
@@ -57,12 +57,16 @@ public class ModeratorLateJoinHandler extends LateJoinHandler {
 		pauseState.put("value", new Object[0]);
 		data[cnt++] = pauseState; */
 
-		if (this.updaters.isEmpty())
+		boolean first = false;
+		if (this.updaters.isEmpty()) {
 			this.addUpdater(client, false);
-		else
+			first = true;
+		} else {
 			this.addUpdater(client, true);
+		}
 
 		client.batch(new BatchUpdateMessage(client, siteId, roster, data, true));
+		return first;
 	}
 
 	public void onUpdaterSendState(ServerSession client, Message message) {

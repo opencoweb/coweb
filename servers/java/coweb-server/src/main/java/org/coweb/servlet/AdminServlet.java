@@ -140,9 +140,8 @@ public class AdminServlet extends HttpServlet {
 		// set the coweb security policty
 		bayeux.setSecurityPolicy(securityPolicy);
 
-		// create the SessionManager instance. The SessionManager also listens
-		// to all bayeux
-		// traffic.
+		/* Create the SessionManager instance. The SessionManager also listens 
+         * to all bayeux traffic. */
 		this.sessionManager = SessionManager.newInstance(cowebConfig, bayeux);
 	}
 
