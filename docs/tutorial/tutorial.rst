@@ -12,3 +12,5 @@ The tutorials in this section describe how to start using the |coweb api|. The f
    install
    shopping
    semantics
+   comap
+

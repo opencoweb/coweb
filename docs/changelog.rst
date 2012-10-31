@@ -26,6 +26,8 @@ Version 0.8.4
   but the service name is semantically relevant and might be considered an
   internal implementation detail of the message (i.e. in cases the message
   format changes).
+* Provide VanillaBot abstract class that implements all Bot methods (except
+  setProxy) with nops.
 
 
 Version 0.8.3.1
