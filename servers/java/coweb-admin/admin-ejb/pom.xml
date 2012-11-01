@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.opencoweb</groupId>
         <artifactId>coweb-admin</artifactId>
-        <version>0.8.4-SNAPSHOT</version>
+        <version>0.8.4</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -37,7 +37,7 @@
                            <addClasspath>true</addClasspath>
                        </manifest>
                        <manifestEntries>
-                           <Class-Path>admin-common-0.8.4-SNAPSHOT.jar</Class-Path>
+                           <Class-Path>admin-common-0.8.4.jar</Class-Path>
                        </manifestEntries>
                    </archive> 
                </configuration>
