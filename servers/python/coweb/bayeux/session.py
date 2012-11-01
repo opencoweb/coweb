@@ -11,7 +11,7 @@ import logging
 import weakref
 import time
 # coweb
-from channel import BayeuxChannel
+from .channel import BayeuxChannel
 
 log = logging.getLogger('bayeux.server')
 
@@ -186,7 +186,7 @@ class BayeuxSession(object):
         try:
             # dump the connection response + any waiting messages
             conn.send(json_encode(msgs))
-        except Exception, e:
+        except Exception as e:
             # closed connection; keep messages around for retry later
             # @todo: should we try dumping events on the long poll too?
             #  probably triggered by a publish so no need here?

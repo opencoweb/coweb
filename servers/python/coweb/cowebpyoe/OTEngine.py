@@ -92,7 +92,7 @@ class OTEngine:
         try:
             self._engine.pushSyncWithSites(site, sites)
         except Exception as e:
-            print "OTEngine: failed to receive engine sync", site, sites, str(e)
+            print("OTEngine: failed to receive engine sync", site, sites, str(e))
             return False
         return True
 
@@ -107,7 +107,7 @@ class OTEngine:
         try:
             self._engine.purge()
         except Exception as e:
-            print "OTEngine: failed to purge engine " + str(e)
+            print("OTEngine: failed to purge engine " + str(e))
             return False
         return True
 
@@ -166,8 +166,8 @@ class OTEngine:
                 op = self._engine.createOp(True, name, value, _type, position)
                 sites = op.contextVector.sites
             except Exception:
-                print 'OTEngine::localEvent: bad type "' + _type + \
-                    '" on outgoing event. OperationEngine unchanged.'
+                print('OTEngine::localEvent: bad type "' + _type + \
+                    '" on outgoing event. OperationEngine unchanged.')
                 return False
 
         """ add local event to engine, but only if it was really sent
@@ -235,11 +235,11 @@ class OTEngine:
                     site, sites, order)
             except Exception as e:
                 traceback.print_exc()
-                print "name", name
-                print "value", value
-                print "type", _type
-                print "position", position
-                print "OTEngine: failed to push op into engine " + str(e)
+                print("name", name)
+                print("value", value)
+                print("type", _type)
+                print("position", position)
+                print("OTEngine: failed to push op into engine " + str(e))
                 self._engineStable = False
                 raise e
             """ Discard null operations; they should not be sent to app

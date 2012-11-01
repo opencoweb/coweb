@@ -7,14 +7,14 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 """
 
-from OperationEngineException import OperationEngineException
-from ContextVectorTable import ContextVectorTable
-from ContextVector import ContextVector
-from HistoryBuffer import HistoryBuffer
-from factory import factory
-from InsertOperation import InsertOperation
-from UpdateOperation import UpdateOperation
-from DeleteOperation import DeleteOperation
+from .OperationEngineException import OperationEngineException
+from .ContextVectorTable import ContextVectorTable
+from .ContextVector import ContextVector
+from .HistoryBuffer import HistoryBuffer
+from .factory import factory
+from .InsertOperation import InsertOperation
+from .UpdateOperation import UpdateOperation
+from .DeleteOperation import DeleteOperation
 
 class OperationEngine:
 
@@ -33,7 +33,7 @@ class OperationEngine:
         self.hb = HistoryBuffer()
         self.siteCount = 1
 
-    VERSION = "0.8.4-SNAPSHOT"
+    VERSION = "0.8.5-SNAPSHOT"
 
     """
     Gets the state of this engine instance to seed a new instance.

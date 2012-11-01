@@ -7,14 +7,14 @@ Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 # tornado
 import tornado.web
 import logging
-import urlparse
+import urllib.parse
 # std lib
 import json
 import uuid
 import hashlib
 # coweb
-import bayeux
-import session
+from . import bayeux
+from . import session
 
 log = logging.getLogger('coweb.admin')
 
@@ -42,7 +42,8 @@ class AdminHandler(tornado.web.RequestHandler):
         username = self.current_user
         
         # decode params
-        args = json.loads(self.request.body)
+        raw = self.request.body.decode("utf-8")
+        args = json.loads(raw)
         key = args.get('key', None)
         collab = args.get('collab', None)
         cacheState = args.get('cacheState', False)

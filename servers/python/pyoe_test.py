@@ -112,7 +112,7 @@ cls[0].start()
 cls[1].start()
 cls[2].start()
 
-print cls[0].list
-print cls[1].list
-print cls[2].list
+print(cls[0].list)
+print(cls[1].list)
+print(cls[2].list)
 

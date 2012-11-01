@@ -157,12 +157,12 @@ class WebSocketClient(asynchat.async_chat):
         key = list(str(product))
         # 4.1 21: random char interpolation
         chars = range(0x0021, 0x0030) + range(0x003A, 0x007F)
-        for x in xrange(random.randint(1, 12)):
+        for x in range(random.randint(1, 12)):
             i = random.randint(0, len(key))
             c = random.choice(chars)
             key.insert(i, chr(c))
         # 4.1 22: random space interpolation
-        for x in xrange(spaces):
+        for x in range(spaces):
             i = random.randint(1, len(key)-1)
             key.insert(i, ' ')
         return number, ''.join(key)
@@ -233,7 +233,7 @@ class WebSocketClient(asynchat.async_chat):
             'sec-websocket-location' : str(self._url)}
         # @todo: add sec-websocket-protocol header if protocol was set
         # @todo: handle cookies?
-        for rname, rvalue in required.iteritems():
+        for rname, rvalue in iter(required.items()):
             try:
                 value = self._fields[rname]
             except KeyError:

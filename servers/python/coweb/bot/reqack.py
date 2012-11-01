@@ -22,7 +22,7 @@ class ReqAckDelegate(object):
         try:
             # determine helper to handle action
             action = data['action']
-        except KeyError, e:
+        except KeyError as e:
             log.error("requires 'action' param (%s)", str(e))
             self._bot.reply(replyToken, self._buildError(e))
             return
@@ -30,7 +30,7 @@ class ReqAckDelegate(object):
         try:
             # determine method on helper to handle action
             mtd = self._actionDispatch[action]
-        except KeyError, e:
+        except KeyError as e:
             log.error("sees unknown action %s", action)
             self._bot.reply(replyToken, self._buildError(e))
             return
@@ -38,7 +38,7 @@ class ReqAckDelegate(object):
         try:
             # handle action
             result = mtd(data, replyToken, username)
-        except Exception, e:
+        except Exception as e:
             log.error('action %s error %s', action, str(e))
             self._bot.reply(replyToken, self._buildError(e))
             return
@@ -46,7 +46,7 @@ class ReqAckDelegate(object):
         # send successful response
         try:
             self._bot.reply(replyToken, self._buildResult(result))
-        except Exception, e:
+        except Exception as e:
             log.error('json encoding error %s', str(e))
             self._bot.reply(replyToken, self._buildError(e))
             return

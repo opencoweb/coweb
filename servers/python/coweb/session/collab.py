@@ -11,10 +11,10 @@ from tornado.escape import json_encode, json_decode
 import logging
 import re
 # coweb
-import session
+from . import session
 from .. import OEHandler
 from .. import session_moderator
-import late_join_handler
+import coweb.session.late_join_handler
 
 OEHandler = OEHandler.OEHandler
 session_sync_regex = re.compile("/session/([A-z0-9]+)/sync(.*)");
@@ -117,7 +117,7 @@ class CollabSessionConnection(session.SessionConnection):
                 elif '/engine' == matches.group(2):
                     # Engine sync.
                     if self._manager._opengine:
-                        print "did sync inbound"
+                        print("did sync inbound")
                         self._manager._opengine.engineSyncInbound(req['data'])
         # delegate all other handling to base class
         super(CollabSessionConnection, self).on_publish(cl, req, res)

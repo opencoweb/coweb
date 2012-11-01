@@ -24,7 +24,7 @@ class DebugHandler(tornado.web.RequestHandler):
         
         # dump details of individual sessions
         details = {}
-        for key, session in self.application.sessions.items():
+        for key, session in list(self.application.sessions.items()):
             details[key] = {
                 'clients' : session._clients,
                 'activeBots' : session.services.activeBots

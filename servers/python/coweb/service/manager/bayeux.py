@@ -12,7 +12,7 @@ import time
 import socket
 # coweb
 from ... import bayeux
-from base import ServiceManagerBase
+from .base import ServiceManagerBase
 
 log = logging.getLogger('coweb.service')
 

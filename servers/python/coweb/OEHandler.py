@@ -1,13 +1,13 @@
 
-from cowebpyoe.ContextVector import ContextVector
-from cowebpyoe.Operation import Operation
-from cowebpyoe.OperationEngine import OperationEngine
-from cowebpyoe.OperationEngineException import OperationEngineException
-
 import traceback
 from tornado.escape import json_encode, json_decode
 from multiprocessing import Process
 import time
+
+from coweb.cowebpyoe.ContextVector import ContextVector
+from coweb.cowebpyoe.Operation import Operation
+from coweb.cowebpyoe.OperationEngine import OperationEngine
+from coweb.cowebpyoe.OperationEngineException import OperationEngineException
 
 PURGE_SLEEP = 10
 SYNC_SLEEP = 10
@@ -107,7 +107,7 @@ class OEHandler:
         # give the engine the data
         try:
             self.engine.pushSyncWithSites(site, sites)
-        except OperationEngineException, e:
+        except OperationEngineException as e:
             log.info("UnmanagedHubListener: failed to recv engine sync " +\
                     site + " " + sites + " " + e.getMessage())
         # we've received remote info, allow purge

@@ -56,7 +56,7 @@ def deploy(options, args):
     # write configured run_server.py in home_dir/bin
     container(options, ['container', script])
 
-    print 'deploy: created deployment directories at %s' % outPath
+    print('deploy: created deployment directories at %s' % outPath)
 
 def container(options, args):
     '''Creates an coweb app container script.'''
@@ -76,15 +76,15 @@ def container(options, args):
         tmplPath = os.path.join(modulePath, 'scripts', 'simple.tmpl')
     else:
         tmplPath = options.template
-    with file(tmplPath) as f:
+    with open(tmplPath) as f:
         text = f.read()
     # generate a secret key for signing cookies
     tmpl = string.Template(text)
     text = tmpl.substitute({'webSecretKey' : uuid.uuid4().hex})
-    with file(outPath, 'w') as f:
+    with open(outPath, 'w') as f:
         f.write(text)
         os.fchmod(f.fileno(), stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP)
-    print 'container: created coweb app script at %s' % outPath
+    print('container: created coweb app script at %s' % outPath)
 
 def run():
     parser = optparse.OptionParser('usage: %prog <deploy|container> [options] <PATH>')
@@ -103,8 +103,8 @@ def run():
         sys.exit(255)
     try:
         func(options, args)
-    except SetupError, e:
-        print e
+    except SetupError as e:
+        print(e)
         sys.exit(1)
 
 if __name__ == '__main__':

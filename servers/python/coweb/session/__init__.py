@@ -4,8 +4,8 @@ Coweb session management.
 Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
-from session import Session
-from collab import CollabSession
+from .session import Session
+from .collab import CollabSession
 
 def create_session(collab, config, *args, **kwargs):
     '''Builds a cooperative or non-cooperative session.'''

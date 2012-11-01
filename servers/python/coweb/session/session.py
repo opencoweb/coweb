@@ -8,7 +8,7 @@ import tornado.ioloop
 import tornado.web
 from tornado.escape import json_encode, json_decode
 # std lib
-import ConfigParser
+import configparser
 import os
 import uuid
 import logging
@@ -60,7 +60,7 @@ class Session(bayeux.BayeuxManager):
         
     def is_user_present(self, username):
         '''Gets if a user is present in the session by username.'''
-        for cl in self._clients.values():
+        for cl in list(self._clients.values()):
             if cl.username == username: return True
         return False
 

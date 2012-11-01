@@ -6,8 +6,8 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 """
 
-from Operation import Operation
-from factory import factory
+from .Operation import Operation
+from .factory import factory
 
 class UpdateOperation(Operation):
 

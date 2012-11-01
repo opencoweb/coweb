@@ -80,7 +80,7 @@ class BayeuxBotWrapper(BayeuxClient):
             # dispatch private request
             try:
                 mtd = self._bot.on_request
-            except AttributeError, e:
+            except AttributeError as e:
                 return
             mtd(data['value'], msg['id'], data['username'])
         elif rch == pch+'sync':
@@ -95,14 +95,14 @@ class BayeuxBotWrapper(BayeuxClient):
             # dispatch private request
             try:
                 mtd = self._bot.on_subscribe
-            except AttributeError, e:
+            except AttributeError as e:
                 return
             mtd(data['username'])
         elif rch == pch+'unsubscribe':
             data = msg['data']
             try:
                 mtd = self._bot.on_unsubscribe
-            except AttributeError, e:
+            except AttributeError as e:
                 return
             mtd(data['username'])
         elif rch == pch+'shutdown':

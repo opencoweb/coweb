@@ -93,7 +93,7 @@ class late_join_handler:
             del self._updaters[client.clientId]
         except KeyError:
             # client wasn't an updater, but might be a joiner getting updated
-            for token, updatee in self._updatees.items():
+            for token, updatee in list(self._updatees.items()):
                 if updatee.clientId == client.clientId:
                     # remove updatee from list
                     del self._updatees[token]
@@ -133,7 +133,7 @@ class late_join_handler:
                         break
         if updaterId is None:
             # grab random updater
-            updaterId = random.choice(self._updaters.keys())
+            updaterId = random.choice(list(self._updaters.keys()))
         updater = self._session.get_client(updaterId)
         # generate a unique token
         token = uuid.uuid4().hex

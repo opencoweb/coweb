@@ -8,9 +8,9 @@ import tornado.ioloop
 import logging
 import time
 # coweb
-from session import BayeuxSession
-from connection import BayeuxConnection
-from channel import BayeuxChannel
+from .session import BayeuxSession
+from .connection import BayeuxConnection
+from .channel import BayeuxChannel
 
 log = logging.getLogger('bayeux.server')
 
@@ -50,7 +50,7 @@ class BayeuxManager(object):
             self._timer = None
             self._purgeGen = None
         # purge all clients
-        cids = self._clients.keys()
+        cids = list(self._clients.keys())
         for cid in cids:
             cl = self.delete_client(cid)
             cl.destroy()
@@ -154,7 +154,7 @@ class BayeuxManager(object):
 
     def _purge_clients(self, timeout=2, blockSize=100):
         # snapshot the clients in the dict
-        cids = self._clients.keys()
+        cids = list(self._clients.keys())
         # get the current time
         now = time.time()
         for i, cid in enumerate(cids):

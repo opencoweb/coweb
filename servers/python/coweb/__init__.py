@@ -2,6 +2,6 @@
 Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
-VERSION = '0.8.4-SNAPSHOT'
-from runner import run_server
-from container import AppContainer
+VERSION = '0.8.5-SNAPSHOT'
+from .runner import run_server
+from .container import AppContainer

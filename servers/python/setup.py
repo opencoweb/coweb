@@ -11,7 +11,7 @@ import os
 import shutil
 import subprocess
 
-VERSION = '0.8.4-SNAPSHOT'
+VERSION = '0.8.5-SNAPSHOT'
 
 isSDist = len(sys.argv) > 1 and sys.argv[1] == 'sdist'
 srcDir = os.path.join(os.environ['PWD'], '../../js/release/coweb-%s' % VERSION)
@@ -71,7 +71,7 @@ setup(name='OpenCoweb',
         ]
     },
     scripts=['pycoweb'],
-    install_requires=['tornado>=1.2'],
+    install_requires=['tornado>=2.4'],
 )
 
 if isSDist:

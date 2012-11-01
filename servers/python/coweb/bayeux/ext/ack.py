@@ -7,7 +7,7 @@ from tornado.escape import json_encode, json_decode
 # std lib
 import logging
 # coweb
-from base import BayeuxExtBase
+from .base import BayeuxExtBase
 
 log = logging.getLogger('bayeux.server')
 
@@ -40,7 +40,7 @@ class BayeuxAckExt(BayeuxExtBase):
         ext = req.get('ext', {})
         newAck = ext.get('ack', -1)
         # clean up any ack'ed messages
-        for i in xrange(self._lastAck+1, newAck+1):
+        for i in range(self._lastAck+1, newAck+1):
             #log.debug('clearing acked %d', i)
             try:
                del self._queue[i]
@@ -49,7 +49,7 @@ class BayeuxAckExt(BayeuxExtBase):
         # requeue any messages greater than client ack # ahead of the current
         # messages in the queue
         self.messages = []
-        for i in xrange(newAck+1, self._ackId):
+        for i in range(newAck+1, self._ackId):
             #log.debug('requeing unacked %d', i)
             try:
                 self.messages += self._queue[i]

@@ -16,7 +16,7 @@ import signal
 import subprocess
 import sys
 # coweb
-from base import ServiceLauncherBase
+from .base import ServiceLauncherBase
 
 log = logging.getLogger('coweb.service')
 
@@ -108,6 +108,7 @@ class ProcessLauncher(ServiceLauncherBase):
         # build command line to execute
         args = []
         # shlex doesn't support unicode yet ... grr
+        #    TODO Python3's shlex *does* support unicode
         cmd = botInfo['execute'].encode('utf-8', 'replace')
         args.extend(shlex.split(cmd))
         # encode arguments as json
@@ -151,11 +152,11 @@ class ProcessTracker(object):
         self._processes = {}
         self._origTermHandler = signal.signal(signal.SIGTERM, 
                                              self._handle_sigterm)
-        if not callable(self._origTermHandler):
+        if not hasattr(self._origTermHandler, '__call__'):
             self._origTermHandler = None
         self._origChldHandler = signal.signal(signal.SIGCHLD, 
                                              self._handle_sigchld)
-        if not callable(self._origChldHandler):
+        if not hasattr(self._origChldHandler, '__call__'):
             self._origChldHandler = None
             
     @classmethod
@@ -196,7 +197,7 @@ class ProcessTracker(object):
         '''
         Stops all child processes previously launched.
         '''
-        for key, value in self._processes.items():
+        for key, value in list(self._processes.items()):
             if subkey and self._match_subkey(key, subkey):
                 child, callback = value
                 try:
@@ -217,7 +218,7 @@ class ProcessTracker(object):
         '''
         Reap all zombie child processes.
         '''
-        for key, value in self._processes.items():
+        for key, value in list(self._processes.items()):
             child, callback = value
             if child.poll() is not None:
                 try:

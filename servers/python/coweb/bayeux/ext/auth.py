@@ -5,7 +5,7 @@ Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 # std lib
 import logging
 # coweb
-from base import BayeuxExtBase
+from .base import BayeuxExtBase
 
 log = logging.getLogger('bayeux.server')
 

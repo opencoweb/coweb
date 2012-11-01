@@ -90,7 +90,7 @@ if __name__ == '__main__':
             return str(self.name)
 
     root = BayeuxChannel('/')
-    clients = [Client(i) for i in xrange(4)]
+    clients = [Client(i) for i in range(4)]
     subs = [
         [
             '/a',
@@ -120,4 +120,4 @@ if __name__ == '__main__':
     for pub in pubs:
         x = set()
         root.collect_clients(x, BayeuxChannel.split(pub))
-        print pub, u'\u2192', x
+        print(pub, '\u2192', x)

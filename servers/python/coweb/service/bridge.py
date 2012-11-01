@@ -10,7 +10,7 @@ import uuid
 import weakref
 import time
 # coweb
-from botstate import BotState
+from .botstate import BotState
 from ..access import ACL_SERVICE_SYNC
 
 log = logging.getLogger('coweb.service')
@@ -49,7 +49,7 @@ class ServiceSessionBridge(object):
     def end_services(self):
         '''Ends services in a session.'''
         # send shutdown requests
-        for bot in self.activeBots.values():
+        for bot in list(self.activeBots.values()):
             # give bots a chance to shutdown
             msg = self.manager.on_shutdown_request(bot.serviceName)
             if bot.is_subscribed():
@@ -102,7 +102,7 @@ class ServiceSessionBridge(object):
         except KeyError:
             pass
         # see if we need to track sync events anymore
-        for bot in self.activeBots.values():
+        for bot in list(self.activeBots.values()):
             if bot.acls & ACL_SERVICE_SYNC:
                 self.needsSync = True
                 return
@@ -137,7 +137,7 @@ class ServiceSessionBridge(object):
         '''Sends a session sync event to all bots with acls to receive it.'''
         data = req['data']
         username = user.username
-        for bot in self.activeBots.values():
+        for bot in list(self.activeBots.values()):
             if bot.acls & ACL_SERVICE_SYNC:
                 # forward sync events if allowed
                 msg = self.manager.on_user_sync(bot.serviceName, username, data)
