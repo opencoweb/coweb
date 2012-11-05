@@ -14,7 +14,7 @@ import re
 from . import session
 from .. import OEHandler
 from .. import session_moderator
-import coweb.session.late_join_handler
+from coweb.session import late_join_handler
 
 OEHandler = OEHandler.OEHandler
 session_sync_regex = re.compile("/session/([A-z0-9]+)/sync(.*)");

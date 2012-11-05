@@ -144,7 +144,7 @@ class BayeuxManager(object):
             self._purgeGen = self._purge_clients()
         try:
             # iterate the generator
-            self._purgeGen.next()
+            next(self._purgeGen)
         except StopIteration:
             # purge complete, toss the generator
             self._purgeGen = None

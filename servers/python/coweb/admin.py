@@ -19,7 +19,7 @@ from . import session
 log = logging.getLogger('coweb.admin')
 
 def generate_collab_key():
-    return hashlib.md5(uuid.uuid4().urn).hexdigest()
+    return hashlib.md5(uuid.uuid4().urn.encode('utf-8')).hexdigest()
 
 class AdminHandler(tornado.web.RequestHandler):
     def prepare(self):
