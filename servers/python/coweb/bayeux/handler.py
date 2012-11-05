@@ -16,6 +16,9 @@ class WebSocketBayeuxHandler(tornado.websocket.WebSocketHandler):
         # keep prepare extension point for subclasses
         self.prepare()
         super(WebSocketBayeuxHandler, self)._execute(*args, **kwargs)
+
+    def allow_draft76(self):
+        return True
     
     def prepare(self):
         self.require_setting('bayeux_manager', 'WebSocketBayeuxHandler')

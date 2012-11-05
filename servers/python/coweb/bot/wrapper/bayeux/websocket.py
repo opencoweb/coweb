@@ -9,7 +9,7 @@ import logging
 import random
 import asynchat
 import asyncore
-import urlparse
+import urllib.parse
 import struct
 import socket
 import hashlib
@@ -22,9 +22,9 @@ MAXINT = 4294967295
 SCHEMES = ['ws', 'wss']
 
 # make urlparse websocket protocol aware
-urlparse.uses_netloc.extend(SCHEMES)
-urlparse.uses_query.extend(SCHEMES)
-urlparse.uses_fragment.extend(SCHEMES)
+urllib.parse.uses_netloc.extend(SCHEMES)
+urllib.parse.uses_query.extend(SCHEMES)
+urllib.parse.uses_fragment.extend(SCHEMES)
 
 class WebSocketURL(object):
     '''Represents parts of a WebSocket URL.'''
@@ -57,7 +57,7 @@ class WebSocketClient(asynchat.async_chat):
         self._handler = self._on_request_line
         
         # start by listening for header response
-        self.set_terminator('\x0a')
+        self.set_terminator(b'\x0a')
         # connect to server
         self._inBuffer = []
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM) 
@@ -66,7 +66,7 @@ class WebSocketClient(asynchat.async_chat):
         
     def _validate_uri(self, uri):
         '''Parse and validate the connection URL.'''
-        uri = urlparse.urlparse(uri)
+        uri = urllib.parse.urlparse(uri)
 
         # 3.1 3: validate scheme
         if uri.scheme not in SCHEMES:
@@ -102,11 +102,13 @@ class WebSocketClient(asynchat.async_chat):
         except Exception:
             logging.exception('on_ws_close')
 
+    # We used to use http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol-76
+    # Instead, we want a newer version.
     def handle_connect(self):
         '''Called when the client connects to the server.'''
         # @todo: 4.1 4: tls handshake if secure
         # 4.1 5: GET request
-        self.push('GET %s HTTP/1.1\r\n' % self._url.resource.encode('utf-8'))
+        self.push(('GET %s HTTP/1.1\r\n' % self._url.resource).encode('utf-8'))
         # 4.1 6: fields
         fields = []
         # 4.1 7: upgrade header
@@ -135,7 +137,7 @@ class WebSocketClient(asynchat.async_chat):
         random.shuffle(fields)
         self.push('\r\n'.join(fields).encode('utf-8'))
         # 4.1 25: send header terminator
-        self.push('\r\n\r\n')
+        self.push(b'\r\n\r\n')
         # 4.1 26: random 64-bit int in big endian
         key3 = random.randint(0, 2**64)
         key3 = struct.pack('>Q', key3)
@@ -156,7 +158,7 @@ class WebSocketClient(asynchat.async_chat):
         # 4.1 20: string of products; but make a list for next step
         key = list(str(product))
         # 4.1 21: random char interpolation
-        chars = range(0x0021, 0x0030) + range(0x003A, 0x007F)
+        chars = list(range(0x0021, 0x0030)) + list(range(0x003A, 0x007F))
         for x in range(random.randint(1, 12)):
             i = random.randint(0, len(key))
             c = random.choice(chars)
@@ -167,16 +169,24 @@ class WebSocketClient(asynchat.async_chat):
             key.insert(i, ' ')
         return number, ''.join(key)
 
+    def handle_error(self):
+        raise
+
     def collect_incoming_data(self, data):
+        # Data is arbitrary byte data. Might or might not be a unicode string.
+        # We let the handlers themselves decide if the data should be converted
+        # to a unicode string.
         '''Called when data is received.'''
         self._inBuffer.append(data)
         
     def found_terminator(self):
         '''Called when a complete "chunk" is received.'''
-        self._handler(''.join(self._inBuffer))
+        self._handler(b''.join(self._inBuffer))
         self._inBuffer = []
         
     def _on_request_line(self, field):
+        # We really want the unicode string, not byte array.
+        field = field.decode('utf-8')
         '''Called to handle the request line from the server.'''
         # 4.1 28: validate field with terminator
         field += '\x0a'
@@ -193,15 +203,18 @@ class WebSocketClient(asynchat.async_chat):
         # @todo: maybe handle 407 one day for proxy auth
         # @todo: check for bytes in range 0x30 to 0x39
         if code != '101':
+            pass
             self.close()
             raise ValueError('response code: ' + code)
 
         # process header fields next
         self._handler = self._on_header_field
         # read a header field
-        self.set_terminator('\r\n')
-        
+        self.set_terminator(b'\r\n')
+
     def _on_header_field(self, field):
+        # We really want the unicode string, not byte array.
+        field = field.decode('utf-8')
         '''Called to handle a header line from the server.'''
         # 4.1 34-40: process headers, watching for malformed with \n
         if not field:
@@ -252,6 +265,7 @@ class WebSocketClient(asynchat.async_chat):
         self.set_terminator(16)
     
     def _on_challenge_reply(self, reply):
+        # Replay is arbitrary byte data, not a unicode string.
         '''Called to check the key challenge response from the server.'''
         # 4.1 42-43: compute expected response to challenge
         # @todo: supposed to check in order sent, but that's tough on server
@@ -280,7 +294,7 @@ class WebSocketClient(asynchat.async_chat):
             return
         # look for end of frame
         self._handler = self._on_end_frame
-        self.set_terminator('\xff')
+        self.set_terminator(b'\xff')
 
     def _on_end_frame(self, data):
         '''Called when receiving the end of a frame.'''
@@ -299,7 +313,7 @@ class WebSocketClient(asynchat.async_chat):
         if isinstance(data, unicode):
             message = data.encode('utf-8')
         assert isinstance(data, str)
-        self.push('\x00' + data + '\xff')
+        self.push(('\x00' + data + '\xff').encode('utf-8'))
 
     def on_ws_open(self):
         '''Callback for WebSocket open.'''
@@ -312,3 +326,4 @@ class WebSocketClient(asynchat.async_chat):
     def on_ws_close(self):
         '''Callback for WebSocket close.'''
         pass
+

@@ -6,7 +6,7 @@ Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 import logging
 import weakref
 # coweb
-import websocket
+from . import websocket
 
 log = logging.getLogger('bayeux.client')
 

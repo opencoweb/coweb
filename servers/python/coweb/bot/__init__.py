@@ -8,7 +8,7 @@ Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 import json
 import sys
 # coweb
-from reqack import ReqAckDelegate
+from .reqack import ReqAckDelegate
 
 def run(botClass):
     '''

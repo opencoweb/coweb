@@ -7,7 +7,6 @@ Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 # tornado
 import tornado.web
 import logging
-import urllib.parse
 # std lib
 import json
 import uuid

@@ -169,7 +169,7 @@ class ServiceHandler(bayeux.WebSocketBayeuxHandler):
     def on_ws_open(self, sessionId):
         '''Fetch manager and build connection here once we have session id.'''
         try:
-            session = self.application.get_session_obj(sessionId)
+            session = self.application.get_session_obj(sessionId.decode('utf-8'))
         except KeyError:
             # session going away, ignore
             raise tornado.web.HTTPError(500)

@@ -8,8 +8,8 @@ Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 # std lib
 import logging
 # coweb
-from loop import AsyncoreLoop
-from wrapper import BayeuxBotWrapper
+from .loop import AsyncoreLoop
+from .wrapper import BayeuxBotWrapper
 
 def run(botClass, opts):
     '''Creates a bot wrapper and enters the main loop.'''

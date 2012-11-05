@@ -89,7 +89,7 @@ class ProcessLauncher(ServiceLauncherBase):
         for path in self._botPaths:
             jpath = os.path.join(path, serviceName, 'bot.json')
             try:
-                f = file(jpath)
+                f = open(jpath)
             except IOError:
                 continue
             try:
@@ -109,7 +109,7 @@ class ProcessLauncher(ServiceLauncherBase):
         args = []
         # shlex doesn't support unicode yet ... grr
         #    TODO Python3's shlex *does* support unicode
-        cmd = botInfo['execute'].encode('utf-8', 'replace')
+        cmd = botInfo['execute']
         args.extend(shlex.split(cmd))
         # encode arguments as json
         js = json.dumps(cfg)

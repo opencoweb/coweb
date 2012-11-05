@@ -7,7 +7,7 @@ import logging
 import json
 import threading
 # coweb
-from bayeux import BayeuxClient
+from .bayeux import BayeuxClient
 
 log = logging.getLogger('coweb.bot')
 
