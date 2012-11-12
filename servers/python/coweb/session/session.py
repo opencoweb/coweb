@@ -21,7 +21,7 @@ log = logging.getLogger('coweb.session')
 
 class Session(bayeux.BayeuxManager):
     '''
-    Manages a session instance that supports services but no user cooperative 
+    Manages a session instance that supports services but no user cooperative
     events.
     '''
     def __init__(self, container, key, cacheState, *args, **kwargs):
@@ -32,12 +32,17 @@ class Session(bayeux.BayeuxManager):
         self.key = key
         self.cacheState = cacheState
 
+        self.rosterAvailableChannel = '/session/%s/roster/available' % \
+                self.sessionId
+        self.rosterUnavailableChannel = '/session/%s/roster/unavailable' % \
+                self.sessionId
+
         self._connectionClass = SessionConnection
         self._container = container
         self._application = container.webApp
         # bridge between users and service bots
         self._services = service.ServiceSessionBridge(container, self)
-        
+
     def build_connection(self, handler):
         '''Override to build proper connection.'''
         return self._connectionClass(handler, self)
@@ -48,7 +53,7 @@ class Session(bayeux.BayeuxManager):
         # delegate to service manager
         self._services.start_services()
         log.info('started session %s', self.sessionId)
-        
+
     def end_session(self):
         '''Unregister session and service handlers.'''
         self._application.remove_session_handler(self)
@@ -56,7 +61,7 @@ class Session(bayeux.BayeuxManager):
         self._services.end_services()
         self.destroy()
         log.info('ended session %s', self.sessionId)
-        
+
     def is_user_present(self, username):
         '''Gets if a user is present in the session by username.'''
         for cl in list(self._clients.values()):
@@ -66,7 +71,7 @@ class Session(bayeux.BayeuxManager):
     def get_service_manager(self):
         '''Gets the service manager for this session.'''
         return self._services.manager
-        
+
     def get_session_id(self):
         '''Gets the ID of this session.'''
         return self.sessionId
@@ -74,18 +79,7 @@ class Session(bayeux.BayeuxManager):
     def authorize_user(self, username):
         '''Checks user permissions to access this session.'''
         return self._container.access.on_session_request(self, username)
-    
-    def queue_updatee(self, client):
-        '''Sends empty updater immediately to client.'''
-        client.add_message({
-            'channel':'/service/session/join/siteid',
-            'data': 1
-        })
-        client.add_message({
-            'channel':'/service/session/join/state',
-            'data': []
-        })
-        
+
     def subscribe_to_service(self, client, req, res, public):
         '''Notifies the service manager of a client subscription.'''
         return self._services.on_user_subscribe(client, req, res, public)
@@ -93,7 +87,7 @@ class Session(bayeux.BayeuxManager):
     def unsubscribe_from_service(self, client, req, res, public):
         '''Notifies the service manager of a client unsubscription.'''
         return self._services.on_user_unsubscribe(client, req, res, public)
-    
+
     def request_for_service(self, client, req, res):
         '''Notifies the service manager of a client service request.'''
         return self._services.on_user_request(client, req, res)
@@ -122,7 +116,7 @@ class SessionHandler(bayeux.HTTPBayeuxHandler):
         '''Overrides to get user from auth manager.'''
         container = self.application.get_container()
         return container.auth.get_current_user(self)
-    
+
     def post(self, sessionId):
         '''Fetches manager and builds a connection using session id.'''
         try:
@@ -141,7 +135,7 @@ class SessionConnection(bayeux.BayeuxConnection):
         if username is None: return False
         # check credentials in the db
         return self._manager.authorize_user(username)
-        
+
     def on_handshake(self, cl, req, res):
         '''Overrides to attach authed username to client.'''
         if res['successful']:
@@ -152,29 +146,10 @@ class SessionConnection(bayeux.BayeuxConnection):
         # tell clients to give up when unknown, not to attempt reconnect with
         # a new handshake
         res['advice'] = {'reconnect' : 'none'}
-    
+
     def on_subscribe(self, cl, req, res):
-        '''Overrides to handle join and service bot subscriptions.'''
-        sub = req['subscription']
-        didSub = True        
-        if sub.startswith('/service/bot'):
-            # handle private subscribe to bot
-            didSub = self._manager.subscribe_to_service(cl, req, res, False)
-        elif sub.startswith('/bot'):
-            # public subscribe to bot
-            didSub = self._manager.subscribe_to_service(cl, req, res, True)
-        elif sub == '/service/session/join/*':
-            # respond immediately with empty updater
-            ext = req['ext']
-            coweb = ext['coweb']
-            updaterType = coweb['updaterType']
-            cl.updaterType = updaterType
-            self._manager.queue_updatee(cl)
-            didSub = True
-        if didSub:
-            # don't run default handling if sub failed
-            super(SessionConnection, self).on_subscribe(cl, req, res)
-    
+        super(SessionConnection, self).on_subscribe(cl, req, res)
+
     def on_unsubscribe(self, cl, req, res):
         '''Overrides to handle service bot unsubscriptions.'''
         sub = req['subscription']

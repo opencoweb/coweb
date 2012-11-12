@@ -120,9 +120,25 @@ class CollabSessionConnection(session.SessionConnection):
 
     def on_subscribe(self, cl, req, res):
         '''Override to handle late-joiner logic.'''
-        # let parent class track subscription properly
-        super(CollabSessionConnection, self).on_subscribe(cl, req, res)
         sub = req['subscription']
-        if sub == '/service/session/updater':
-            self._manager._late_join_handler.add_updater(cl)
+        didSub = True        
+        if sub.startswith('/service/bot'):
+            # handle private subscribe to bot
+            didSub = self._manager.subscribe_to_service(cl, req, res, False)
+        elif sub.startswith('/bot'):
+            # public subscribe to bot
+            didSub = self._manager.subscribe_to_service(cl, req, res, True)
+        elif sub == '/service/session/join/*':
+            ext = req['ext']
+            coweb = ext['coweb']
+            updaterType = coweb['updaterType']
+            cl.updaterType = updaterType
+            self._manager._late_join_handler.onClientJoin(cl) 
+            didSub = True
+        elif sub == '/service/session/updater':
+            self._manager._late_join_handler.addUpdater(cl)
+            didSub = True
+        if didSub:
+            # don't run default handling if sub failed
+            super(CollabSessionConnection, self).on_subscribe(cl, req, res)
 

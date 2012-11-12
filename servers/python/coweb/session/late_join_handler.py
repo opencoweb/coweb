@@ -24,8 +24,20 @@ class LateJoinHandler:
         # value is a BayeuxSession object associated with that token
         self._updatees = {}
 
+        # attendees
+        self._attendees = []
+
         # list that helps us assign the lowest available site id
         self._siteids = ['reserved'] + [None] * 5
+
+    def addAttendee(self, cl):
+        self._attendees.append(cl)
+
+    def removeAttendee(self, cl):
+        try:
+            self._attendees.remove(cl)
+        except ValueError:
+            pass
 
     def clear_last_state(self):
         '''Clears the last updater state response. No longer valid.'''
@@ -35,11 +47,11 @@ class LateJoinHandler:
         '''Gets the number of updaters.'''
         return len(self._updaters)
 
-    def get_site_for_client(self, client):
+    def getSiteForClient(self, client):
         '''Gets the site ID associated with a client.'''
         return self._siteids.index(client.clientId)
 
-    def add_site_for_client(self, client):
+    def addSiteForClient(self, client):
         '''Associates a client with a site ID.'''
         try:
             # find a vacant siteid
@@ -65,18 +77,16 @@ class LateJoinHandler:
         self._siteids[client.siteId] = None
         return client.siteId
 
-    def add_updater(self, client, notify=True):
+    def addUpdater(self, client, notify=True):
         '''Sets a client as an updater.'''
         clientId = client.clientId
         # check if this client is already an updater and ignore unless this is
         # the first updater
         if clientId in self._updaters and len(self._updaters) > 0:
             return
-        # add updater to the dict of available updaters
         self._updaters[clientId] = []
         if notify:
-            # notify others of updater availability
-            self._send_roster_available_message(client)
+            self._sendRosterAvailable(client)
 
     def ensure_updater(self, client):
         '''Ensures a client is an updater. Exception if not.'''
@@ -99,7 +109,7 @@ class LateJoinHandler:
                     del self._updatees[token]
         else:
             # notify other attendees in the session of the leaving updater
-            self._send_roster_unavailable_message(client)
+            self._sendRosterUnavailable(client)
             if len(tokenList):
                 # client was updating joiners, send new updater to joiners
                 for token in tokenList:
@@ -115,7 +125,7 @@ class LateJoinHandler:
         if not len(self._updaters):
             # no updaters left, this is now the only updater
             #self._updaters[updatee.clientId] = []
-            self.add_updater(updatee, False)
+            self.addUpdater(updatee, False)
             updatee.add_message({
                 'channel':'/service/session/join/state',
                 'data': []
@@ -155,7 +165,7 @@ class LateJoinHandler:
             updaterTypes.append(updater.updaterType)
         return updaterTypes
 
-    def _get_roster_list(self, client):
+    def _getRosterList(self, client):
         '''Builds the roster of all updaters.'''
         roster = {}
         # roster is all updater site IDs mapped to usernames
@@ -164,10 +174,11 @@ class LateJoinHandler:
             roster[updater.siteId] = updater.username
         return roster
 
-    def _send_roster_available_message(self, client):
-        '''Sends a roster addition to all clients.'''
+    # TODO see java server
+    def _sendRosterAvailable(self, client):
+        # Sends a roster addition to all clients.
         msg = {
-            'channel':'/session/roster/available',
+            'channel': self._session.rosterAvailableChannel,
             'data': {
                 'siteId':client.siteId,
                 'username':client.username
@@ -175,10 +186,10 @@ class LateJoinHandler:
         }
         self._session.publish(msg)
 
-    def _send_roster_unavailable_message(self, client):
-        '''Sends a roster removal to all clients.'''
+    def _sendRosterUnavailable(self, client):
+        # Sends a roster removal to all clients.
         msg = {
-            'channel':'/session/roster/unavailable',
+            'channel': self._session.rosterUnavailableChannel,
             'data': {
                 'username':client.username,
                 'siteId':client.siteId
@@ -186,46 +197,39 @@ class LateJoinHandler:
         }
         self._session.publish(msg)
 
-    def queue_updatee(self, client):
+    def onClientJoin(self, client):
         '''Queues a late-joiner to receive full state.'''
         clientId = client.clientId
 
         try:
             # get site id already assigned
-            siteid = self.get_site_for_client(client)
+            siteid = self.getSiteForClient(client)
         except ValueError:
             # get new site id
-            siteid = self.add_site_for_client(client)
+            siteid = self.addSiteForClient(client)
 
-        #log.debug('onJoinSession attendee = %s', str(attendee))
+        roster = self._getRosterList(client)
 
-        # get the roster list to return before adding anyone
-        roster = self._get_roster_list(client)
-
-        # first client in
+        sendState = False
+        # First client in?
         if not len(self._updaters):
-            # add client to updaters
-            self.add_updater(client, False)
+            self.addUpdater(client, False)
             data = []
             sendState = True
         elif self._lastState is None:
             self.assign_updater(client)
-            sendState = False
         else:
             data = self._lastState
             sendState = True
 
-        # send site id to client
         client.add_message({
             'channel':'/service/session/join/siteid',
             'data': siteid
         })
-        # send roster to client
         client.add_message({
             'channel':'/service/session/join/roster',
             'data': roster
         })
-        # send empty state to first joiner or last state if available
         if sendState:
             client.add_message({
                 'channel':'/service/session/join/state',
