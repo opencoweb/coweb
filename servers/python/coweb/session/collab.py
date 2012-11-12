@@ -13,8 +13,9 @@ import re
 # coweb
 from . import session
 from .. import OEHandler
-from .. import session_moderator
-from coweb.session import late_join_handler
+from ..moderator import SessionModerator
+from coweb.session.late_join_handler import LateJoinHandler
+from coweb.session.moderator_late_join_handler import ModeratorLateJoinHandler
 
 OEHandler = OEHandler.OEHandler
 session_sync_regex = re.compile("/session/([A-z0-9]+)/sync(.*)");
@@ -25,8 +26,8 @@ class CollabSession(session.Session):
     '''
     Manages a session instance that supports services and cooperative events.
     '''
-    def __init__(self, config, *args, **kwargs):
-        super(CollabSession, self).__init__(config, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(CollabSession, self).__init__(*args, **kwargs)
         self.collab = True
         self._connectionClass = CollabSessionConnection
 
@@ -37,17 +38,13 @@ class CollabSession(session.Session):
         self._opengine = OEHandler(self, 0)
 
         # Moderator? TODO
-        self._moderator = session_moderator.get_instance(self.config['sessionModerator'], self.key)
-        if self._moderator is None:
-            config['moderatorIsUpdater'] = False
-            log.warning("Failed to create instance of " + str(self.config['sessionModerator']) +
-                    ". Reverting to default session moderator.")
-            log.warning("Moderator can no longer be updated.")
+        self._moderator = SessionModerator.getInstance(
+                self._container.moderatorClass, self.key)
 
-        if self.config['moderatorIsUpdater']:
-            self._late_join_handler = moderator_late_join_handler(self._moderator, self)
+        if self._container.moderatorIsUpdater:
+            self._late_join_handler = ModeratorLateJoinHandler(self)
         else:
-            self._late_join_handler = late_join_handler.late_join_handler(self)
+            self._late_join_handler = LateJoinHandler(self)
 
     def get_order(self):
         '''Gets the next operation order sequence number.'''

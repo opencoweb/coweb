@@ -5,7 +5,7 @@ import logging
 
 log = logging.getLogger('coweb.session')
 
-class late_join_handler:
+class LateJoinHandler:
 
     def __init__(self, session):
 
@@ -123,7 +123,8 @@ class late_join_handler:
             return
         updaterId = None
         if updatee.updaterType is not 'default':
-            matchedType = self._container.updaterTypeMatcher.match(updatee.updaterType, self.get_available_updater_types())
+            matchedType = self._container.updaterTypeMatcher.match(
+                    updatee.updaterType, self.get_available_updater_types())
             if matchedType is not None:
                 for clientId in self._updaters:
                     updater = self._session.get_client(clientId)
@@ -203,10 +204,8 @@ class late_join_handler:
 
         # first client in
         if not len(self._updaters):
-            #log.debug('first one in %s', str(attendee))
             # add client to updaters
             self.add_updater(client, False)
-            #self._updaters[clientId] = []
             data = []
             sendState = True
         elif self._lastState is None:

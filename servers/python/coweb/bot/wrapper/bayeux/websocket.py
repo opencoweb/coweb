@@ -182,7 +182,7 @@ class WebSocketClient(asynchat.async_chat):
     def found_terminator(self):
         '''Called when a complete "chunk" is received.'''
         self._handler(b''.join(self._inBuffer))
-        print(b''.join(self._inBuffer))
+        #print(b''.join(self._inBuffer))
         self._inBuffer = []
         
     def _on_request_line(self, field):

@@ -14,6 +14,8 @@ from coweb.access.public import PublicAccess
 from coweb.service.launcher.process import ProcessLauncher
 from coweb.service.manager.bayeux import BayeuxServiceManager
 from coweb.updater.default import DefaultUpdaterTypeMatcher
+from .moderator import SessionModerator
+from .moderator import DefaultSessionModerator
 
 class AppContainer(object):
     '''
@@ -44,6 +46,10 @@ class AppContainer(object):
         self.webSessionRoot = self.webRoot + 'session/'
         self.cowebIdleTimeout = 30
         self.cowebBotLocalPaths = ['../bots']
+
+        # moderator
+        self.moderatorClass = DefaultSessionModerator
+        self.moderatorIsUpdater = False
         
         # default manager classes
         self.authClass = PublicAuth
