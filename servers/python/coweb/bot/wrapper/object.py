@@ -10,7 +10,7 @@ import time
 import weakref
 import functools
 # coweb
-from base import BotWrapperBase
+from .base import BotWrapperBase
 
 log = logging.getLogger('coweb.bot')
 

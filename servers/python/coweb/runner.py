@@ -17,8 +17,10 @@ import logging
 log = logging.getLogger('coweb')
 
 # app command line options
-tornado.options.define('port', type=int, default=None, help='server port number (default: use app specified)')
-tornado.options.define('debug', type=bool, default=False, help='run in debug mode with autoreload (default: false)')
+tornado.options.define('port', type=int, default=None,
+        help='server port number (default: use app specified)')
+tornado.options.define('debug', type=bool, default=False,
+        help='run in debug mode with autoreload (default: false)')
 
 def run_server(containerCls):
     '''Runs a coweb server instance given an AppContainer subclass.'''

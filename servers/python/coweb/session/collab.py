@@ -117,7 +117,6 @@ class CollabSessionConnection(session.SessionConnection):
                 elif '/engine' == matches.group(2):
                     # Engine sync.
                     if self._manager._opengine:
-                        print("did sync inbound")
                         self._manager._opengine.engineSyncInbound(req['data'])
         # delegate all other handling to base class
         super(CollabSessionConnection, self).on_publish(cl, req, res)

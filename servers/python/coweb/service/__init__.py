@@ -6,4 +6,5 @@ Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
 from .bridge import ServiceSessionBridge
 from .manager.base import ServiceManagerBase
+from .manager.object import ObjectServiceManager
 from .launcher.base import ServiceLauncherBase

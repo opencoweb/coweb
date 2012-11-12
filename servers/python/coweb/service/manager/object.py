@@ -3,7 +3,7 @@ Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 '''
 # coweb
-from base import ServiceManagerBase
+from .base import ServiceManagerBase
 from ...bot.wrapper.object import ObjectBotWrapper
 
 class ObjectServiceManager(ServiceManagerBase):

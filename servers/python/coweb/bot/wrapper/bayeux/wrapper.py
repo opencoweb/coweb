@@ -61,6 +61,7 @@ class BayeuxBotWrapper(BayeuxClient):
     
     def on_subscribe(self, msg):
         '''Called when subscribe to private bot channel succeeds'''
+        print("on_subscribe")
         assert(msg['subscription'] == self._privateCh+'*')
         # create bot instance now that we're subscribed for requests
         try:
