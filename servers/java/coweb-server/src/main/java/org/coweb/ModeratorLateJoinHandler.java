@@ -50,8 +50,9 @@ public class ModeratorLateJoinHandler extends LateJoinHandler {
 		engState.put("value", this.sessionHandler.getEngineState());
 		data[cnt++] = engState;
 
-		/* 3) Paused sync buffer. Since the moderator never pauses itself from processing sync events, we can safely
-		  ignore sending this (we would be sending an empty array otherwise). */
+		/* 3) Paused sync buffer. Since the moderator never pauses itself from
+         * processing sync events, we can safely ignore sending this
+         * (we would be sending an empty array otherwise). */
 		/* HashMap<String, Object> pauseState = new HashMap<String, Object>();
 		pauseState.put("topic", "coweb.pause.state");
 		pauseState.put("value", new Object[0]);
@@ -65,7 +66,8 @@ public class ModeratorLateJoinHandler extends LateJoinHandler {
 			this.addUpdater(client, true);
 		}
 
-		client.batch(new BatchUpdateMessage(client, siteId, roster, data, true));
+		client.batch(new BatchUpdateMessage(client, siteId, roster, data,
+                    true));
 		return first;
 	}
 

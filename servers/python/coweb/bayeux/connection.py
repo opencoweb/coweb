@@ -116,7 +116,6 @@ class BayeuxConnection(object):
         no error occurred beforehand. No expected return value.
         '''
         if res['successful'] and not req['channel'].startswith('/service/'):
-            print(req)
             self._manager.publish(req)
     
     def on_unknown_client(self, res):

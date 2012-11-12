@@ -30,20 +30,11 @@ class LateJoinHandler:
         # list that helps us assign the lowest available site id
         self._siteids = ['reserved'] + [None] * 5
 
-    def addAttendee(self, cl):
-        self._attendees.append(cl)
-
-    def removeAttendee(self, cl):
-        try:
-            self._attendees.remove(cl)
-        except ValueError:
-            pass
-
-    def clear_last_state(self):
+    def clearLastState(self):
         '''Clears the last updater state response. No longer valid.'''
         self._lastState = None
 
-    def get_updater_count(self):
+    def getUpdaterCount(self):
         '''Gets the number of updaters.'''
         return len(self._updaters)
 
@@ -65,7 +56,7 @@ class LateJoinHandler:
         client.siteId = siteId
         return siteId
 
-    def remove_site_for_client(self, client):
+    def removeSiteForClient(self, client):
         '''Disassociates site ID from client.'''
         try:
             clientId = self._siteids[client.siteId]
@@ -88,15 +79,15 @@ class LateJoinHandler:
         if notify:
             self._sendRosterAvailable(client)
 
-    def ensure_updater(self, client):
+    def ensureUpdater(self, client):
         '''Ensures a client is an updater. Exception if not.'''
         # just try to access to ensure
         self._updaters[client.clientId]
 
-    def remove_updater(self, client):
+    def removeUpdater(self, client):
         '''Removes a client as an updater.'''
         # remove this client from the assigned siteids
-        self.remove_site_for_client(client)
+        self.removeSiteForClient(client)
         try:
             # remove this client from updaters
             tokenList = self._updaters[client.clientId]
@@ -118,9 +109,9 @@ class LateJoinHandler:
                         del self._updatees[token]
                     except KeyError:
                         continue
-                    self.assign_updater(updatee)
+                    self.assignUpdater(updatee)
 
-    def assign_updater(self, updatee):
+    def assignUpdater(self, updatee):
         '''Assigns an updater to a late-joiner.'''
         if not len(self._updaters):
             # no updaters left, this is now the only updater
@@ -134,7 +125,7 @@ class LateJoinHandler:
         updaterId = None
         if updatee.updaterType is not 'default':
             matchedType = self._container.updaterTypeMatcher.match(
-                    updatee.updaterType, self.get_available_updater_types())
+                    updatee.updaterType, self.getAvailableUpdaterTypes())
             if matchedType is not None:
                 for clientId in self._updaters:
                     updater = self._session.get_client(clientId)
@@ -158,7 +149,7 @@ class LateJoinHandler:
             'data': token
         })
 
-    def get_available_updater_types(self):
+    def getAvailableUpdaterTypes(self):
         updaterTypes = [];
         for clientId in self._updaters:
             updater = self._session.get_client(clientId)
@@ -174,7 +165,6 @@ class LateJoinHandler:
             roster[updater.siteId] = updater.username
         return roster
 
-    # TODO see java server
     def _sendRosterAvailable(self, client):
         # Sends a roster addition to all clients.
         msg = {
@@ -217,7 +207,7 @@ class LateJoinHandler:
             data = []
             sendState = True
         elif self._lastState is None:
-            self.assign_updater(client)
+            self.assignUpdater(client)
         else:
             data = self._lastState
             sendState = True
@@ -236,13 +226,10 @@ class LateJoinHandler:
                 'data': data
             })
 
-    def unqueue_updatee(self, updater, data):
+    def onUpdaterSendState(self, updater, data):
         '''Sends full state to a late-joiner waiting for it.'''
         clientId = updater.clientId
         token = None
-
-        #log.debug('onStateResponse data: %s', str(data))
-        #log.debug('clientId = %s', clientId)
 
         # let exception bubble if data is missing token
         token = data['token']
@@ -259,7 +246,6 @@ class LateJoinHandler:
 
         # store this state as the last known up-to-date state
         if self._session.cacheState is True:
-            log.info('using cached state')
             self._lastState = data['state']
 
         # send state to updatee

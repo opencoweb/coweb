@@ -324,7 +324,7 @@ public class LateJoinHandler {
 	 * @param client The old client.
 	 */
 	protected void sendRosterUnavailable(ServerSession client) {
-		log.fine("CollabSessionHandler::sendRosterAvailable");
+		log.fine("CollabSessionHandler::sendRosterUnavailable");
 		/* create channel */
 		BayeuxServer server = this.sessionManager.getBayeux();
 		ServerChannel.Initializer initializer = new ServerChannel.Initializer() {

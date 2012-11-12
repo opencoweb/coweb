@@ -37,14 +37,14 @@ class CollabSession(session.Session):
         # TODO make this optional
         self._opengine = OEHandler(self, 0)
 
-        # Moderator? TODO
+        # Moderator?
         self._moderator = SessionModerator.getInstance(
                 self._container.moderatorClass, self.key)
 
         if self._container.moderatorIsUpdater:
-            self._late_join_handler = ModeratorLateJoinHandler(self)
+            self._lateJoinHandler = ModeratorLateJoinHandler(self)
         else:
-            self._late_join_handler = LateJoinHandler(self)
+            self._lateJoinHandler = LateJoinHandler(self)
 
     def get_order(self):
         '''Gets the next operation order sequence number.'''
@@ -63,16 +63,13 @@ class CollabSession(session.Session):
         '''Override to remove updater and end a session when none left.'''
         # notify all bots of unsubscribing user
         self._services.on_user_unsubscribe_all(client)
-        self._late_join_handler.remove_updater(client)
-        if not self._late_join_handler.get_updater_count():
+        self._lateJoinHandler.removeUpdater(client)
+        if self._lateJoinHandler.getUpdaterCount() == 0:
             # kill the session
             self.end_session()
 
-    def queue_updatee(self, client):
-        self._late_join_handler.queue_updatee(client)
-
-    def unqueue_updatee(self, updater, data):
-        self._late_join_handler.unqueue_updatee(updater, data)
+    def onUpdaterSendState(self, updater, data):
+        self._lateJoinHandler.onUpdaterSendState(updater, data)
 
 class CollabSessionConnection(session.SessionConnection):
     '''Connection for collaborative sessions.'''
@@ -83,7 +80,7 @@ class CollabSessionConnection(session.SessionConnection):
             # handle updater response
             data = req.get('data', None)
             try:
-                self._manager.unqueue_updatee(cl, data) 
+                self._manager.onUpdaterSendState(cl, data) 
             except Exception:
                 # bad updater, disconnect and assign a new one
                 self._manager.remove_bad_client(cl)
@@ -95,18 +92,18 @@ class CollabSessionConnection(session.SessionConnection):
                 try:
                     # put siteId on message
                     req['data']['siteId'] = cl.siteId
-                    self._manager._late_join_handler.ensure_updater(cl)
+                    self._manager._lateJoinHandler.ensureUpdater(cl)
                 except (KeyError, AttributeError):
                     # not allowed to publish syncs, disconnect
                     self._manager.remove_bad_client(cl)
                     return
                 # last state no longer valid
-                self._manager._late_join_handler.clear_last_state()
+                self._manager._lateJoinHandler.clearLastState()
                 if '/app' == matches.group(2):
                     # App sync.
                     # Put total order sequence number on message
                     req['data']['order'] = self._manager.get_order()
-                    # let manager deal with the sync if forwarding it to services
+                    # let manager deal with sync if forwarding it to services
                     self._manager.sync_for_service(cl, req)
                     if self._manager._opengine:
                         # Push sync to op engine.
@@ -133,10 +130,10 @@ class CollabSessionConnection(session.SessionConnection):
             coweb = ext['coweb']
             updaterType = coweb['updaterType']
             cl.updaterType = updaterType
-            self._manager._late_join_handler.onClientJoin(cl) 
+            self._manager._lateJoinHandler.onClientJoin(cl) 
             didSub = True
         elif sub == '/service/session/updater':
-            self._manager._late_join_handler.addUpdater(cl)
+            self._manager._lateJoinHandler.addUpdater(cl)
             didSub = True
         if didSub:
             # don't run default handling if sub failed
