@@ -4,6 +4,11 @@
 Changelog
 ---------
 
+Version 0.8.5
+~~~~~~~~~~~~~
+* Moderator's onSync now takes a ServerSession argument representing the client
+  who generated the sync event.
+
 Version 0.8.4
 ~~~~~~~~~~~~~
 * Moderator now receives a "topic" instead of "channel" to indicate what collab

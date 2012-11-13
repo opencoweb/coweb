@@ -209,24 +209,25 @@ public abstract class SessionModerator {
 	 * 	  <li> site - Integer site ID where the event originated.
 	 * 	  <li> value - JSON object value representing the new value. See
 	 * 	  org.eclipse.jetty.util.ajax.JSON for how to read this object.
-	 * 	  <li> position - Integer position specifying where in the one-dimensional
-	 * 	  array the operation should be applied.
+	 * 	  <li> position - Integer position specifying where in the
+     * 	  one-dimensional array the operation should be applied.
 	 * 
+     * @param client Client that generated the sync event.
 	 * @param data Map with sync data as described above.
 	 */
-	public abstract void onSync(Map<String, Object> data);
+	public abstract void onSync(ServerSession client, Map<String, Object> data);
 
 	/**
 	  * Return a mapping of collab element IDs to application state. The coweb
 	  * server calls this when a new client joins a coweb sessiob. The 
-	  * <i>moderatorIsUpdater</i> boolean configuration option must be set to true,
-	  * so that the server knos to call this method (otherwise other clients are
-	  * late join updaters).
+	  * <i>moderatorIsUpdater</i> boolean configuration option must be set to
+      * true, * so that the server knows to call this method (otherwise other
+      * clients are late join updaters).
 	  *
-	  * <p>The function should return a (key, value) map where there is one key for
-	  * each collab object in the coweb application. The key should be the collab
-	  * object ID, and the associated value should be a JSON object representing
-	  * the state of that collab object.
+	  * <p>The function should return a (key, value) map where there is one key
+      * for each collab object in the coweb application. The key should be the
+      * collab object ID, and the associated value should be a JSON object
+      * representing the state of that collab object.
 	  *
 	  * <p>For example, for a conference session with two collaborative elements
 	  * ("foo" and "bar"), this method will return a map with the pairs ("foo",

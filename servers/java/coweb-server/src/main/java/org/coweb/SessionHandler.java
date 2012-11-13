@@ -238,7 +238,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 		String msgSessionId = (String) from.getAttribute("sessionid");
 		if (!msgSessionId.equals(this.sessionId)) {
-			log.severe("Received message not belonging to this session " + msgSessionId);
+			log.severe("Received message not belonging to this session " +
+                    msgSessionId);
 			return true;
 		}
 		
@@ -256,9 +257,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 			if (this.operationEngine != null) {
 				synchronized (this.operationEngine) {
-					Map<String, Object> syncEvent = this.operationEngine.syncInbound(data);
+					Map<String, Object> syncEvent =
+                        this.operationEngine.syncInbound(data);
 					if (syncEvent != null) {
-						this.sessionModerator.onSync(syncEvent);
+						this.sessionModerator.onSync(from, syncEvent);
 					}
 				}
 			}
@@ -269,8 +271,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				}
 			}
 		} else {
-			log.warning("onMessage does not handle channel messages '" + channelName +
-					"'\n    message = " + message);
+			log.warning("onMessage does not handle channel messages '" +
+                    channelName + "'\n    message = " + message);
 		}
 
 		return true;
@@ -292,7 +294,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		try {
 			if (channel.startsWith("/service/bot")) {
 				/* Moderator can always make service requests. */
-				String svcName = ServiceHandler.getServiceNameFromMessage(message, false);
+				String svcName = ServiceHandler.getServiceNameFromMessage(
+                        message, false);
 				if (this.sessionModerator.getServerSession() == remote ||
 						this.sessionModerator.canClientMakeServiceRequest(
 							svcName, remote, message)) {
@@ -303,8 +306,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			} else if (channel.equals("/service/session/updater")) {
 				this.lateJoinHandler.onUpdaterSendState(remote, message);
 			} else {
-				log.warning("onPublish doesn't handle '" + channel + "' messages" + 
-						"    message = " + message);
+				log.warning("onPublish doesn't handle '" + channel +
+                        "' messages\n  message = " + message);
 			}
 		} catch (Exception e) {
 			log.severe("error receiving publish message");
@@ -315,8 +318,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 	/**
 	 * Called anytime a client posts to /meta/subscribe. SessionHandler needs
-	 * to know when (1) a client attempts to join a session, (2) a client wants to
-	 * subscribe to a bot, and (3) when a client wishes to become an updater.
+	 * to know when (1) a client attempts to join a session, (2) a client wants
+     * to subscribe to a bot, and (3) when a client wishes to become an updater.
 	 * Other subscriptions are ignored (i.e. we don't wish to know about them).
 	 * @param serverSession Client wishing to subscribe to some channel.
 	 * @param message Contains channel the client wishes to subscribe to.
@@ -325,20 +328,24 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			throws IOException {
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		if (channel.equals("/service/session/join/*")) {
-			if (this.sessionModerator.canClientJoinSession(serverSession, message)) {
+			if (this.sessionModerator.canClientJoinSession(serverSession,
+                        message)) {
 				if (this.lateJoinHandler.onClientJoin(serverSession, message)) {
 					this.sessionModerator.onSessionReady();
 				}
 			} else {
 				this.sendError(serverSession, "join-disallowed");
 			}
-		} else if (channel.startsWith("/service/bot") || channel.startsWith("/bot")) {
-			/* Client wishes to subscribe to service messages (broadcasts and private
-			 * bot messages). Moderator can always make service requests. */
+		} else if (channel.startsWith("/service/bot") ||
+                channel.startsWith("/bot")) {
+			/* Client wishes to subscribe to service messages (broadcasts and
+             * private bot messages). Moderator can always make service
+             * requests. */
 			boolean pub = true;
 			if (channel.startsWith("/service"))
 					pub = false;
-			String svcName = ServiceHandler.getServiceNameFromMessage(message, pub);
+			String svcName = ServiceHandler.getServiceNameFromMessage(message,
+                    pub);
 
 			if (this.sessionModerator.getServerSession() == serverSession ||
 					this.sessionModerator.canClientSubscribeService(
@@ -363,7 +370,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	 */
 	void subscribeModeratorToService(String svcName) {
 		try {
-			this.serviceHandler.subscribeModerator(this.sessionModerator, svcName);
+			this.serviceHandler.subscribeModerator(this.sessionModerator,
+                    svcName);
 		} catch (Exception e) {
 			log.severe("error subscribing moderator to service " + svcName);
 			e.printStackTrace();
@@ -373,13 +381,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private void sendError(ServerSession client, String topic) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("topic", topic);
-		client.deliver(this.manager.getServerSession(), "/session/error", map, null);
+		client.deliver(this.manager.getServerSession(), "/session/error",
+                map, null);
 	}
 
 	/**
 	 * Called when a client unsubscribes to a channel (via posting to
-	 * /meta/unsubscribe). We need to know when a client wishes to stop listening
-	 * to bot messages.
+	 * /meta/unsubscribe). We need to know when a client wishes to stop
+     * listening to bot messages.
 	 */
 	public void onUnsubscribe(ServerSession serverSession, Message message)
 			throws IOException {
@@ -522,13 +531,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private ServerChannel getServiceRequestChannel(String svc) {
 		String ch = String.format(this.botRequestChannel, svc);
 		this.server.createIfAbsent(ch);
-		return this.server.getChannel(String.format(this.botRequestChannel, svc));
+		return this.server.getChannel(String.format(this.botRequestChannel,
+                    svc));
 	}
 
 	/**
 	 * Post a bot service message. This actually sends the message on the wire.
 	 * @param service Bot service name.
-	 * @param topic Bots expect a unique token to know which request to reply to.
+	 * @param topic Bots expect a unique token to know which request to reply to
 	 * @param params JSON encodable message.
 	 */
 	public void postModeratorService(String service, String topic,
