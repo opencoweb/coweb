@@ -24,9 +24,6 @@ class LateJoinHandler:
         # value is a BayeuxSession object associated with that token
         self._updatees = {}
 
-        # attendees
-        self._attendees = []
-
         # list that helps us assign the lowest available site id
         self._siteids = ['reserved'] + [None] * 5
 
@@ -252,4 +249,10 @@ class LateJoinHandler:
             'channel': '/service/session/join/state',
             'data': data['state']
         })
+
+    def onEndSession(self):
+        self._lastState = None
+        self._updaters = {}
+        self._updatees = {}
+        self._siteids = None
 

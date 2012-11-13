@@ -82,6 +82,10 @@ class Session(bayeux.BayeuxManager):
 
     def end_session(self):
         '''Unregister session and service handlers.'''
+        self._manager._moderator.endSession()
+        self._manager._lateJoinHandler.endSession()
+        self._manager._lateJoinHandler = None
+        self._manager._moderator = None
         self._application.remove_session_handler(self)
         # delegate to service manager
         self._services.end_services()

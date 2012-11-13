@@ -42,8 +42,9 @@ class CollabSession(session.Session):
         # notify all bots of unsubscribing user
         self._services.on_user_unsubscribe_all(client)
         self._lateJoinHandler.removeUpdater(client)
-        if self._lateJoinHandler.getUpdaterCount() == 0:
-            # kill the session
+        self._manager._moderator.onCLientLeaveSession(client)
+        if 0 == self._lateJoinHandler.getUpdaterCount():
+            # Kill the session, because everyone has left.
             self.end_session()
 
     def onUpdaterSendState(self, updater, data):
