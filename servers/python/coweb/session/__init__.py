@@ -11,3 +11,4 @@ def create_session(collab, *args, **kwargs):
     '''Builds a cooperative or non-cooperative session.'''
     cls = CollabSession if collab else Session
     return cls(*args, **kwargs)
+

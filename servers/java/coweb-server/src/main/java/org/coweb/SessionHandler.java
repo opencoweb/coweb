@@ -102,18 +102,23 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		sync = server.getChannel(this.syncEngineChannel);
 		sync.addListener(this);
 
-		this.sessionModerator = SessionModerator.getInstance(this, (String)config.get("sessionModerator"), confKey);
+		this.sessionModerator = SessionModerator.getInstance(this,
+                (String)config.get("sessionModerator"), confKey);
 		if (null == this.sessionModerator) {
 			config.put("moderatorIsUpdater", false);
-			/* Perhaps config.get("sessionModerator") had an exception or didn't exist,
-			   so either we try to create default implementation of moderator, or throw an exception. */
-			log.severe("SessionModerator.getInstance(" + config.get("sessionModerator") +
-					") failed, reverting to trying to create default implementation.");
-			this.sessionModerator = SessionModerator.getInstance(this, null, confKey);
+			/* Perhaps config.get("sessionModerator") had an exception or
+             * didn't exist, so either we try to create default implementation
+             * of moderator, or throw an exception. */
+			log.severe("SessionModerator.getInstance(" +
+                    config.get("sessionModerator") + ") failed, reverting to " +
+                    "trying to create default implementation.");
+			this.sessionModerator = SessionModerator.getInstance(this,
+                    null, confKey);
 			if (null == this.sessionModerator) {
 				throw new CowebException("Create SessionModerator", "");
 			}
-			log.severe("SessionModerator created default implementation, but moderator can no longer be updater.");
+			log.severe("SessionModerator created default implementation, but " +
+                    "moderator can no longer be updater.");
 		}
 
 		// create the late join handler. clients will be updaters by default.

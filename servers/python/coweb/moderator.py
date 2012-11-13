@@ -7,25 +7,25 @@ _moderators = {}
 class SessionModerator:
     def __init__(self):
         print("hello from moderator")
-    def canClientJoinSession(self):
+    def canClientJoinSession(self, client, message):
         raise NotImplementedError()
-    def canClientMakeServiceRequest(self):
+    def canClientMakeServiceRequest(self, svcName, client, botMessage):
         raise NotImplementedError()
-    def canClientSubscribeService(self):
+    def getLateJoinState(self):
         raise NotImplementedError()
-    def onClientJoinSession(self):
+    def canClientSubscribeService(self, svcName, client, message):
         raise NotImplementedError()
-    def onClientLeaveSession(self):
+    def onClientJoinSession(self, client, message):
         raise NotImplementedError()
-    def onServiceResponse(self):
+    def onClientLeaveSession(self, client):
+        raise NotImplementedError()
+    def onServiceResponse(self, svcName, data, error, isPublic):
         raise NotImplementedError()
     def onSessionEnd(self):
         raise NotImplementedError()
     def onSessionReady(self):
         raise NotImplementedError()
-    def onSync(self):
-        raise NotImplementedError()
-    def getLateJoinState(self):
+    def onSync(self, client, data):
         raise NotImplementedError()
 
     @staticmethod
@@ -38,25 +38,25 @@ class SessionModerator:
         return moderator
 
 class DefaultSessionModerator(SessionModerator):
-    def canClientJoinSession(self):
+    def canClientJoinSession(self, client, message):
         return True
-    def canClientMakeServiceRequest(self):
+    def canClientMakeServiceRequest(self, svcName, client, botMessage):
         return True
-    def canClientSubscribeService(self):
+    def getLateJoinState(self):
+        print("in late get state")
+        return {}
+    def canClientSubscribeService(self, svcName, client, message):
         return True
-    def onClientJoinSession(self):
+    def onClientJoinSession(self, client, message):
         pass
-    def onClientLeaveSession(self):
+    def onClientLeaveSession(self, client):
         pass
-    def onServiceResponse(self):
+    def onServiceResponse(self, svcName, data, error, isPublic):
         pass
     def onSessionEnd(self):
         pass
     def onSessionReady(self):
         pass
-    def onSync(self):
+    def onSync(self, client, data):
         pass
-    def getLateJoinState(self):
-        print("in late get state")
-        return {}
 

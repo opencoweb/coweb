@@ -62,7 +62,7 @@ class AppContainer(object):
         # allow easy override of default settings without busting manager
         # creation
         self.on_configure()
-        
+
         # adjust all paths to make them absolute relative to container loc now
         self.httpStaticPath = self.get_absolute_path(self.httpStaticPath)
         for i, path in enumerate(self.cowebBotLocalPaths):

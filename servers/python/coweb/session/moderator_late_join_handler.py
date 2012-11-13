@@ -10,6 +10,7 @@ class ModeratorLateJoinHandler(LateJoinHandler):
         super(ModeratorLateJoinHandler, self).__init__(session)
         self._moderator = session._moderator
 
+    # Returns true iff this is the first client in the session.
     def onClientJoin(self, client):
         '''Overrides to have the moderator immediatelty send late join state'''
         clientId = client.clientId
@@ -41,6 +42,8 @@ class ModeratorLateJoinHandler(LateJoinHandler):
 
         if 0 == self.getUpdaterCount():
             self.addUpdater(client, False)
+            return True
         else:
             self.addUpdater(client, True)
+            return False
 

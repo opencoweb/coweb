@@ -79,11 +79,6 @@ class LateJoinHandler:
         if notify:
             self._sendRosterAvailable(client)
 
-    def ensureUpdater(self, client):
-        '''Ensures a client is an updater. Exception if not.'''
-        # just try to access to ensure
-        self._updaters[client.clientId]
-
     def removeUpdater(self, client):
         '''Removes a client as an updater.'''
         # remove this client from the assigned siteids
@@ -187,6 +182,7 @@ class LateJoinHandler:
         }
         self._session.publish(msg)
 
+    # Returns true iff this is the first client in the session.
     def onClientJoin(self, client):
         '''Queues a late-joiner to receive full state.'''
         clientId = client.clientId
@@ -200,12 +196,14 @@ class LateJoinHandler:
 
         roster = self._getRosterList(client)
 
+        isFirst = False
         sendState = False
         # First client in?
         if not len(self._updaters):
             self.addUpdater(client, False)
             data = []
             sendState = True
+            isFirst = True
         elif self._lastState is None:
             self.assignUpdater(client)
         else:
@@ -225,6 +223,7 @@ class LateJoinHandler:
                 'channel':'/service/session/join/state',
                 'data': data
             })
+        return isFirst
 
     def onUpdaterSendState(self, updater, data):
         '''Sends full state to a late-joiner waiting for it.'''

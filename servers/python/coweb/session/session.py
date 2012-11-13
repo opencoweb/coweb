@@ -16,8 +16,24 @@ import uuid
 # coweb
 from .. import bayeux
 from .. import service
+from .. import OEHandler
+from ..moderator import SessionModerator
 
+OEHandler = OEHandler.OEHandler
 log = logging.getLogger('coweb.session')
+
+def getServiceNameFromChannel(channel, pub):
+    # Public channels are of form /bot/<NAME>
+    # Private channels are of form /service/bot/<NAME>/(request|response)
+    parts = channel.split("/")
+    if pub:
+        if 3 == len(parts):
+            return parts[2]
+    else:
+        if 5 == len(parts) and \
+                ("request" == parts[4] or "response" == parts[4]):
+            return parts[3];
+    return ""
 
 class Session(bayeux.BayeuxManager):
     '''
@@ -36,12 +52,22 @@ class Session(bayeux.BayeuxManager):
                 self.sessionId
         self.rosterUnavailableChannel = '/session/%s/roster/unavailable' % \
                 self.sessionId
+        self.syncAppChannel = '/session/%s/sync/app' % self.sessionId
+        self.syncEngineChannel = '/session/%s/sync/engine' % self.sessionId
 
         self._connectionClass = SessionConnection
         self._container = container
         self._application = container.webApp
         # bridge between users and service bots
         self._services = service.ServiceSessionBridge(container, self)
+
+        # Operation total order, setup OP engine.
+        self._opOrder = -1
+        self._opengine = OEHandler(self, 0)
+
+        # Use moderator?
+        self._moderator = SessionModerator.getInstance(
+                self._container.moderatorClass, self.key)
 
     def build_connection(self, handler):
         '''Override to build proper connection.'''
@@ -168,9 +194,12 @@ class SessionConnection(bayeux.BayeuxConnection):
         '''Overrides to handle bot requests.'''
         ch = req['channel']
         if ch.startswith('/service/bot'):
+            svcName = getServiceNameFromChannel(ch, False)
             # private bot message
-            if not self._manager.request_for_service(cl, req, res):
-                return
+            if self._manager._moderator.canClientMakeServiceRequest(svcName,
+                    cl, req):
+                if not self._manager.request_for_service(cl, req, res):
+                    return
         elif not self._manager.collab:
             # disallow posting to any other channel by clients
             res['error'] = '402:%s:not-allowed' % client.clientId
