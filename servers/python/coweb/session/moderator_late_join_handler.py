@@ -25,7 +25,18 @@ class ModeratorLateJoinHandler(LateJoinHandler):
         # get the roster list to return before adding anyone
         roster = self._getRosterList(client)
 
-        data = self._moderator.getLateJoinState()
+        data = []
+        collabs = self._moderator.getLateJoinState()
+        for key in collabs:
+            data.append({
+                "topic" : "coweb.state.set." + key,
+                "value" : collabs[key]
+                })
+
+        data.append({
+            "topic" : "coweb.engine.state",
+            "value" : self._session._opengine.getEngineState()
+            })
 
         client.add_message({
             'channel':'/service/session/join/siteid',

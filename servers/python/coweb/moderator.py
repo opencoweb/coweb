@@ -28,6 +28,10 @@ class SessionModerator:
     def onSync(self, client, data):
         raise NotImplementedError()
 
+    def _endSession(self):
+        # TODO remove collab interfaces
+        self.onSessionEnd()
+
     @staticmethod
     def getInstance(klass, key):
         moderator = _moderators.get(key, None)

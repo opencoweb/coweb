@@ -39,13 +39,9 @@ class CollabSession(session.Session):
 
     def on_purging_client(self, cid, client):
         '''Override to remove updater and end a session when none left.'''
-        # notify all bots of unsubscribing user
-        self._services.on_user_unsubscribe_all(client)
         self._lateJoinHandler.removeUpdater(client)
-        self._manager._moderator.onCLientLeaveSession(client)
-        if 0 == self._lateJoinHandler.getUpdaterCount():
-            # Kill the session, because everyone has left.
-            self.end_session()
+        self._moderator.onClientLeaveSession(client)
+        super(CollabSession, self).on_purging_client(cid, client)
 
     def onUpdaterSendState(self, updater, data):
         self._lateJoinHandler.onUpdaterSendState(updater, data)
@@ -73,7 +69,7 @@ class CollabSessionConnection(session.SessionConnection):
             sync = manager._opengine.syncInbound(req['data'])
             if sync:
                 manager._moderator.onSync(cl, sync)
-        elif channel == manager.engineSyncChannel:
+        elif channel == manager.syncEngineChannel:
             manager._opengine.engineSyncInbound(req['data'])
         # delegate all other handling to base class
         super(CollabSessionConnection, self).on_publish(cl, req, res)

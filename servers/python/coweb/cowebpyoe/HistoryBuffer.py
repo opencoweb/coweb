@@ -51,9 +51,10 @@ class HistoryBuffer:
     def getState(self):
         """ pack keys and values into linear array to minimize wire size """
         arr = []
-        for v in self.ops:
+        ops = self.ops
+        for v in ops:
             """ only deal with values, keys can be rebuilt from them """
-            arr.append(v.getState())
+            arr.append(ops[v].getState())
         return arr
 
     """

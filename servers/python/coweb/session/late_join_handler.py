@@ -250,7 +250,7 @@ class LateJoinHandler:
             'data': data['state']
         })
 
-    def onEndSession(self):
+    def endSession(self):
         self._lastState = None
         self._updaters = {}
         self._updatees = {}

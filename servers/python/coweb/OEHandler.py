@@ -1,6 +1,6 @@
 
 import traceback
-from tornado.escape import json_encode, json_decode
+import json
 from multiprocessing import Process
 import time
 
@@ -80,9 +80,9 @@ class OEHandler:
         return {
                 "position" : position,
                 "type" : _type,
-                "value" : json_encode(value),
+                "value" : json.loads(value),
                 "site" : site,
-                "channel" : topic
+                "topic" : topic
                 }
 
     """
