@@ -13,6 +13,7 @@ import urllib.parse
 import struct
 import socket
 import hashlib
+import base64
 
 log = logging.getLogger('websocket.client')
 
@@ -25,6 +26,27 @@ SCHEMES = ['ws', 'wss']
 urllib.parse.uses_netloc.extend(SCHEMES)
 urllib.parse.uses_query.extend(SCHEMES)
 urllib.parse.uses_fragment.extend(SCHEMES)
+
+_OP_CONTINUATION = 0x0
+_OP_TEXT = 0x1
+_OP_BINARY = 0x2
+_OP_CLOSE = 0x8
+_OP_PING = 0x9
+_OP_PONG = 0xa
+# See http://tools.ietf.org/html/rfc6455#section-5.2
+def generate_ws_frame(fin, rsv1, rsv2, rsv3, op, mask, length, data):
+    dta = chr(fin << 7 | rsv1 << 6 | rsv2 << 5 | rsv3 << 4 | op)
+    if 0 <= length and length <= 125:
+        dta += chr(mask << 7 | length)
+    elif length <= 1 << 16:
+        dta += chr(mask << 7 | 126)
+        dta += struct.pack("!H", length)
+    else:
+        dta += chr(mask << 7 | 127)
+        dta += struct.pack("!Q", length)
+
+    return dta
+        
 
 class WebSocketURL(object):
     '''Represents parts of a WebSocket URL.'''
@@ -55,7 +77,7 @@ class WebSocketClient(asynchat.async_chat):
 
         # current state
         self._handler = self._on_request_line
-        
+       
         # start by listening for header response
         self.set_terminator(b'\x0a')
         # connect to server
@@ -107,67 +129,34 @@ class WebSocketClient(asynchat.async_chat):
     def handle_connect(self):
         '''Called when the client connects to the server.'''
         # @todo: 4.1 4: tls handshake if secure
-        # 4.1 5: GET request
-        self.push(('GET %s HTTP/1.1\r\n' % self._url.resource).encode('utf-8'))
-        # 4.1 6: fields
-        fields = []
-        # 4.1 7: upgrade header
-        fields.append('Upgrade: WebSocket')
-        # 4.1 8: connection header
-        fields.append('Connection: Upgrade')
-        # 4.1 9-10: build host plus port
+
         hostport = self._url.host.lower()
-        # 4.1 11: append non-default port
         if (not self._url.secure and self._url.port != 80) or \
-        (self._url.secure and self._url.port != 443):
+                (self._url.secure and self._url.port != 443):
             hostport += ':' + str(self._url.port)
-        # 4.1 12: host header
+
+        self.push(('GET %s HTTP/1.1\r\n' % self._url.resource).encode('utf-8'))
+        fields = []
         fields.append('Host: ' + hostport)
-        # 4.1 13: origin header
+        fields.append('Upgrade: WebSocket')
+        fields.append('Connection: Upgrade')
+        fields.append('Sec-WebSocket-Version: 13')
+        key, self._accept_key = self._get_keys()
+
+        fields.append('Sec-WebSocket-Key: '+key)
         fields.append('Origin: '+self._origin)
-        # @todo: 4.1 14: Sec-WebSocket-Protocol header
-        # @todo: 4.1 15: cookies
-        # 4.1 16-22: key gen
-        self._number1, key1 = self._build_key()
-        self._number2, key2 = self._build_key()
-        # 4.1 23: add keys to header
-        fields.append('Sec-WebSocket-Key1: '+key1)
-        fields.append('Sec-WebSocket-Key2: '+key2)
-        # 4.1 24: send headers in random order
         random.shuffle(fields)
         self.push('\r\n'.join(fields).encode('utf-8'))
-        # 4.1 25: send header terminator
         self.push(b'\r\n\r\n')
-        # 4.1 26: random 64-bit int in big endian
-        key3 = random.randint(0, 2**64)
-        key3 = struct.pack('>Q', key3)
-        # 4.1 27: send key3
-        self.push(key3)
-        self._key3 = key3
 
-    def _build_key(self):
-        '''Produces one of the Sec-WebSocket-Key* header values.'''
-        # 4.1 16: spaces
-        spaces = random.randint(1, 12)
-        # 4.1 17: max integers
-        maxI = int(MAXINT / spaces)
-        # 4.1 18: numbers
-        number = random.randint(0, maxI)
-        # 4.1 19: products
-        product = number * spaces
-        # 4.1 20: string of products; but make a list for next step
-        key = list(str(product))
-        # 4.1 21: random char interpolation
-        chars = list(range(0x0021, 0x0030)) + list(range(0x003A, 0x007F))
-        for x in range(random.randint(1, 12)):
-            i = random.randint(0, len(key))
-            c = random.choice(chars)
-            key.insert(i, chr(c))
-        # 4.1 22: random space interpolation
-        for x in range(spaces):
-            i = random.randint(1, len(key)-1)
-            key.insert(i, ' ')
-        return number, ''.join(key)
+    def _get_keys(self):
+        ''' Return a randomly generated Sec-WebSocket-Key and the expected
+            Sec-WebSocket-Accept key the server should send us. '''
+        key = b'1234567890123456'
+        key = base64.b64encode(key).decode('utf-8')
+        skey = (key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").encode('utf-8')
+        skey = base64.b64encode(hashlib.sha1(skey).digest()).decode('utf-8')
+        return key, skey
 
     def handle_error(self):
         raise
@@ -178,11 +167,11 @@ class WebSocketClient(asynchat.async_chat):
         # to a unicode string.
         '''Called when data is received.'''
         self._inBuffer.append(data)
+        print(self._inBuffer)
         
     def found_terminator(self):
         '''Called when a complete "chunk" is received.'''
         self._handler(b''.join(self._inBuffer))
-        #print(b''.join(self._inBuffer))
         self._inBuffer = []
         
     def _on_request_line(self, field):
@@ -241,12 +230,11 @@ class WebSocketClient(asynchat.async_chat):
         '''Called to process received header fields.'''
         # 4.1 41: check required fields
         required = {
-            'upgrade' : 'WebSocket',
+            'upgrade' : 'websocket',
             'connection' : 'upgrade',
-            'sec-websocket-origin' : self._origin,
-            'sec-websocket-location' : str(self._url)}
+            'sec-websocket-accept' : self._accept_key
+            }
         # @todo: add sec-websocket-protocol header if protocol was set
-        # @todo: handle cookies?
         for rname, rvalue in iter(required.items()):
             try:
                 value = self._fields[rname]
@@ -261,34 +249,18 @@ class WebSocketClient(asynchat.async_chat):
                 # wrong value
                 self.close()
                 raise ValueError('wrong header value: ' + value)
-        # 4.1 44: read sixteen bytes from body
-        self._handler = self._on_challenge_reply
-        self.set_terminator(16)
-    
-    def _on_challenge_reply(self, reply):
-        # Replay is arbitrary byte data, not a unicode string.
-        '''Called to check the key challenge response from the server.'''
-        # 4.1 42-43: compute expected response to challenge
-        # @todo: supposed to check in order sent, but that's tough on server
-        # side where headers are pre-parsed, just check 1,2,3
-        expected = struct.pack('>II', self._number1, self._number2) + self._key3
-        expected = hashlib.md5(expected)
-        # 4.1 45: compare reply and expected
-        if expected.digest() != reply:
-            self.close()
-            raise ValueError('challenge response incorrect')
-        # 4.1 46: yay! established websocket
         self._handler = self._on_start_frame
         self.set_terminator(1)
-        
         # invoke bot websocket open method
         try:
             self.on_ws_open()
         except Exception:
             logging.exception('on_ws_open')
-        
+        return
+    
     def _on_start_frame(self, byte):
         '''Called when receiving the start of a frame.'''
+        print("frame",byte)
         if ord(byte) & 0x80 == 0x80:
             # @todo: support length type frames
             self.close()
@@ -309,11 +281,7 @@ class WebSocketClient(asynchat.async_chat):
         
     def send_ws(self, data):
         '''Sends data as a websocket frame.'''
-        if isinstance(data, dict):
-            message = json.dumps(data)
-        if isinstance(data, unicode):
-            message = data.encode('utf-8')
-        assert isinstance(data, str)
+        # Always send in one frame, text data.
         self.push(('\x00' + data + '\xff').encode('utf-8'))
 
     def on_ws_open(self):

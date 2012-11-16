@@ -268,12 +268,12 @@ public abstract class SessionModerator {
 	/**
 	  * Should determine whether or not a client can subscribe to bot messages.
 	  *
-	  * @param svnName service name
+	  * @param svcName service name
 	  * @param client client that wants to subscribe to bot messages
 	  * @param message the message sent by the client
 	  * @return whether or not client can subscribe to bot messages
 	  */
-	public abstract boolean canClientSubscribeService(String svnName,
+	public abstract boolean canClientSubscribeService(String svcName,
 			ServerSession client, Message message);
 
 	/**
@@ -357,13 +357,14 @@ public abstract class SessionModerator {
 	}
 
 	/**
-	 * Provide a simple interface for sending collaborative messages. This provides
-	 * similar functionality to the JavaScript CollabInterface; since
+	 * Provide a simple interface for sending collaborative messages. This
+     * provides similar functionality to the JavaScript CollabInterface; since
 	 * SessionModerator provides much of the functionality of the JavaScript
 	 * CollabInterface, this Java CollabInterface only provides methods to send
 	 * data. Receiving data is handled by the moderator.
 	 */
-	public static class CollabInterface implements ServerSession.MessageListener {
+	public static class CollabInterface
+            implements ServerSession.MessageListener {
 
 		private SessionModerator moderator;
 		private String collabId;
@@ -384,9 +385,11 @@ public abstract class SessionModerator {
 			this.moderator.sessionHandler.subscribeModeratorToService(svcName);
 		}
 
-		public boolean onMessage(ServerSession to, ServerSession from, ServerMessage message) {
+		public boolean onMessage(ServerSession to, ServerSession from,
+                ServerMessage message) {
 			if (ServiceHandler.isServiceMessage(message)) {
-				String svcName = ServiceHandler.getServiceNameFromMessage(message);
+				String svcName = ServiceHandler.getServiceNameFromMessage(
+                        message);
 
 				Map<String, Object> data = message.getDataAsMap();
 				Boolean error = (Boolean)data.get("error");
@@ -398,8 +401,8 @@ public abstract class SessionModerator {
 				this.moderator.onServiceResponse(svcName, data, error,
 						ServiceHandler.isPublicBroadcast(message));
 			} else {
-				log.warning("CollabInterface received message it doesn't understand: " +
-						message);
+				log.warning("CollabInterface received message it doesn't " +
+                        "understand: " + message);
 			}
 			return true;
 		}
@@ -411,9 +414,11 @@ public abstract class SessionModerator {
 		 * @param type One of {"insert", "delete", "update", null}
 		 * @param position Position of the value change.
 		 */
-		public void sendSync(String name, Object value, String type, int position) {
+		public void sendSync(String name, Object value, String type,
+                int position) {
 			name = "coweb.sync." + name + "." + this.collabId;
-			this.moderator.sessionHandler.publishModeratorSync(name, value, type, position);
+			this.moderator.sessionHandler.publishModeratorSync(name, value,
+                    type, position);
 		}
 
 		/**
@@ -426,7 +431,8 @@ public abstract class SessionModerator {
 			int id = this.serviceId.getAndIncrement();
 			String topic = "coweb.service.request." + service + "_" + id +
 				"." + this.collabId;
-			this.moderator.sessionHandler.postModeratorService(service, topic, params);
+			this.moderator.sessionHandler.postModeratorService(service, topic,
+                    params);
 		}
 
 	}

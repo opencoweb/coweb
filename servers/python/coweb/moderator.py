@@ -1,12 +1,33 @@
 
-
 # TODO document
 
 _moderators = {}
 
+class CollabInterface:
+    def __init__(self, mod, collabId):
+        self._moderator = mod
+        self._collabId = collabId
+        self.serviceId = 0
+
+    def subscribeService(self, svcName):
+        # TODO
+        pass
+
+    # Send an application sync event to all collab clients.
+    def sendSync(self, name, value, _type, pos):
+        name = "coweb.sync." + name + "." + self._collabId
+        self._moderator._session.publishModeratorSync(name, value, _type, pos)
+
+    # Send a message to a service bot.
+    def postService(self, service, params):
+        # TODO
+        pass
+
 class SessionModerator:
     def __init__(self):
-        print("hello from moderator")
+        pass
+
+    # The following define the public callback API.
     def canClientJoinSession(self, client, message):
         raise NotImplementedError()
     def canClientMakeServiceRequest(self, svcName, client, botMessage):
@@ -28,17 +49,25 @@ class SessionModerator:
     def onSync(self, client, data):
         raise NotImplementedError()
 
+    # Private, internal methods.
+    def init(self, session):
+        self._session = session
+
     def _endSession(self):
         # TODO remove collab interfaces
         self.onSessionEnd()
 
+    def broadcast(self):
+        self._session.broadcast()
+
     @staticmethod
-    def getInstance(klass, key):
+    def getInstance(session, klass, key):
         moderator = _moderators.get(key, None)
         if moderator is not None:
             return moderator
 
         _moderators[key] = moderator = klass()
+        moderator.init(session)
         return moderator
 
 class DefaultSessionModerator(SessionModerator):
@@ -47,7 +76,6 @@ class DefaultSessionModerator(SessionModerator):
     def canClientMakeServiceRequest(self, svcName, client, botMessage):
         return True
     def getLateJoinState(self):
-        print("in late get state")
         return {}
     def canClientSubscribeService(self, svcName, client, message):
         return True

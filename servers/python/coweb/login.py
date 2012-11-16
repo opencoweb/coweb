@@ -1,5 +1,6 @@
+
 '''
-Simple, form-based login.
+Simple form-based login.
 
 Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
@@ -31,3 +32,4 @@ class LoginHandler(tornado.web.RequestHandler):
         username = args.get('username')
         password = args.get('password')
         self._container.auth.check_credentials(self, username, password)
+

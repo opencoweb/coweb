@@ -17,7 +17,7 @@ class BayeuxBotWrapper(BayeuxClient):
     server.
     '''
     def __init__(self, botClass, serviceName, serviceToken, ioLoop, 
-    connectionInfo, appData):
+            connectionInfo, appData):
         '''Override constructor to store session info.'''
         # pull url from connection info
         BayeuxClient.__init__(self, connectionInfo['url'])
@@ -61,7 +61,6 @@ class BayeuxBotWrapper(BayeuxClient):
     
     def on_subscribe(self, msg):
         '''Called when subscribe to private bot channel succeeds'''
-        print("on_subscribe")
         assert(msg['subscription'] == self._privateCh+'*')
         # create bot instance now that we're subscribed for requests
         try:

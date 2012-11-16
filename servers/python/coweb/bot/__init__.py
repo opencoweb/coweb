@@ -24,3 +24,4 @@ def run(botClass):
     # import wrapper to use based on managerId
     mod = __import__('coweb.bot.wrapper.%s' % opts['managerId'], fromlist=[''])
     mod.run(botClass, opts)
+

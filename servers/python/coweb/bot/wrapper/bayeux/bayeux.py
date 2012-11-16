@@ -51,6 +51,7 @@ class BayeuxClient(object):
 
     def connect(self):
         '''Does a connect.'''
+        print("do_connect")
         if not self._state == self.STATE_CONNECTING:
             raise ValueError('cannot connect in current state')
         # make a connection

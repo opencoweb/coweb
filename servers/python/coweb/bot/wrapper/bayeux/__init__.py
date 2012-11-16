@@ -18,7 +18,7 @@ def run(botClass, opts):
     # build a loop for scheduling callbacks
     ioLoop = AsyncoreLoop()
     w = BayeuxBotWrapper(botClass, opts['serviceName'], opts['serviceToken'],
-    ioLoop, opts['connectionInfo'], opts['appData'])
+            ioLoop, opts['connectionInfo'], opts['appData'])
     # initiate the handshake
     w.handshake()
     # run the loop

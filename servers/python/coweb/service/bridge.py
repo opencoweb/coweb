@@ -141,8 +141,6 @@ class ServiceSessionBridge(object):
             if bot.acls & ACL_SERVICE_SYNC:
                 # forward sync events if allowed
                 msg = self.manager.on_user_sync(bot.serviceName, username, data)
-                #print(msg)
-                #print(bot.is_subscribed())
                 # decide whether to queue or send now based on bot state
                 if bot.is_subscribed():
                     self.manager.send_message(msg, bot.impl)

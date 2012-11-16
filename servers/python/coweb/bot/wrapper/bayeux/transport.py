@@ -24,7 +24,7 @@ class BayeuxWebSocketTransport(websocket.WebSocketClient):
     def on_ws_open(self):
         self._ready = True
         # send all pending
-        map(self.send_bayeux, self._pending)
+        list(map(self.send_bayeux, self._pending))
 
     def on_ws_message(self, msg):
         if self._delegate:

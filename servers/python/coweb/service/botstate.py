@@ -47,3 +47,4 @@ class BotState(object):
         args = self._pendingResponses[token]
         del self._pendingResponses[token]
         return args
+

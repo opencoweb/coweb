@@ -31,12 +31,12 @@ class ModeratorLateJoinHandler(LateJoinHandler):
             data.append({
                 "topic" : "coweb.state.set." + key,
                 "value" : collabs[key]
-                })
+            })
 
         data.append({
             "topic" : "coweb.engine.state",
             "value" : self._session._opengine.getEngineState()
-            })
+        })
 
         client.add_message({
             'channel':'/service/session/join/siteid',

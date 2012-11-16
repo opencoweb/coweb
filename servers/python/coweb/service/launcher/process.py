@@ -134,7 +134,8 @@ class ProcessLauncher(ServiceLauncherBase):
                 botInfo['service'])
 
         # keyword args for subprocess
-        kwargs = dict(preexec_fn=preexec_fn, cwd=botInfo['path'], env=env)
+        kwargs = dict(preexec_fn=preexec_fn, cwd=botInfo['path'], env=env,
+                stdout=sys.stdout, stderr=subprocess.STDOUT)
         return args, kwargs
 
     def _run_in_sandbox(self):

@@ -66,8 +66,15 @@ class Session(bayeux.BayeuxManager):
         self._opengine = OEHandler(self, 0)
 
         # Use moderator?
-        self._moderator = SessionModerator.getInstance(
+        self._moderator = SessionModerator.getInstance(self,
                 self._container.moderatorClass, self.key)
+
+    def broadcast(self):
+        for cl in list(self._clients.values()):
+            cl.add_message({
+                "channel" : self.syncAppChannel,
+                "data" : {"msg":"hello"}
+            })
 
     def build_connection(self, handler):
         '''Override to build proper connection.'''
