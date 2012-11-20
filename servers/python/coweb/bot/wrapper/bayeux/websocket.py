@@ -29,15 +29,10 @@ urllib.parse.uses_query.extend(SCHEMES)
 urllib.parse.uses_fragment.extend(SCHEMES)
 
 def generate_frame_key():
-    return 0x1234
+    return os.urandom(4)
 
 def apply_mask(data, key):
-    k  = [
-            key >> 24 & 0xff,
-            key >> 24 & 0xff,
-            key >> 24 & 0xff,
-            key >> 24 & 0xff
-    ]
+    k  = [i for i in key]
     r = array.array("B", data)
     for i in range(len(data)):
         r[i] ^= k[i % 4]
@@ -67,7 +62,7 @@ def generate_ws_frame(fin, rsv1, rsv2, rsv3, op, mask, data):
         dta += struct.pack("!B", mask<<7 | 127)
         dta += struct.pack("!Q", length)
     if mask:
-        dta += struct.pack("!L", key)
+        dta += key
     return dta + data
         
 
