@@ -14,6 +14,7 @@ import struct
 import socket
 import hashlib
 import base64
+import array
 
 log = logging.getLogger('websocket.client')
 
@@ -27,6 +28,21 @@ urllib.parse.uses_netloc.extend(SCHEMES)
 urllib.parse.uses_query.extend(SCHEMES)
 urllib.parse.uses_fragment.extend(SCHEMES)
 
+def generate_frame_key():
+    return 0x1234
+
+def apply_mask(data, key):
+    k  = [
+            key >> 24 & 0xff,
+            key >> 24 & 0xff,
+            key >> 24 & 0xff,
+            key >> 24 & 0xff
+    ]
+    r = array.array("B", data)
+    for i in range(len(data)):
+        r[i] ^= k[i % 4]
+    return r.tostring()
+
 _OP_CONTINUATION = 0x0
 _OP_TEXT = 0x1
 _OP_BINARY = 0x2
@@ -34,18 +50,25 @@ _OP_CLOSE = 0x8
 _OP_PING = 0x9
 _OP_PONG = 0xa
 # See http://tools.ietf.org/html/rfc6455#section-5.2
-def generate_ws_frame(fin, rsv1, rsv2, rsv3, op, mask, length, data):
-    dta = chr(fin << 7 | rsv1 << 6 | rsv2 << 5 | rsv3 << 4 | op)
+def generate_ws_frame(fin, rsv1, rsv2, rsv3, op, mask, data):
+    # data is byte string
+    data = data.encode('utf-8')
+    if mask:
+        key = generate_frame_key()
+        data = apply_mask(data, key)
+    length = len(data)
+    dta = struct.pack("!B", fin<<7 | rsv1<<6 | rsv2<<5 | rsv3<<4 | op)
     if 0 <= length and length <= 125:
-        dta += chr(mask << 7 | length)
-    elif length <= 1 << 16:
-        dta += chr(mask << 7 | 126)
+        dta += struct.pack("!B", mask<<7 | length)
+    elif length <= (1 << 16):
+        dta += struct.pack("!B", mask<<7 | 126)
         dta += struct.pack("!H", length)
     else:
-        dta += chr(mask << 7 | 127)
+        dta += struct.pack("!B", mask<<7 | 127)
         dta += struct.pack("!Q", length)
-
-    return dta
+    if mask:
+        dta += struct.pack("!L", key)
+    return dta + data
         
 
 class WebSocketURL(object):
@@ -282,7 +305,8 @@ class WebSocketClient(asynchat.async_chat):
     def send_ws(self, data):
         '''Sends data as a websocket frame.'''
         # Always send in one frame, text data.
-        self.push(('\x00' + data + '\xff').encode('utf-8'))
+        dta = generate_ws_frame(1, 0, 0, 0, _OP_TEXT, 1, data)
+        self.push(dta)
 
     def on_ws_open(self):
         '''Callback for WebSocket open.'''
