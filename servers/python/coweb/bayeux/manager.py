@@ -118,7 +118,7 @@ class BayeuxManager(object):
     
     def is_client(self, cid):
         '''Gets if the given client ID is one for a known client.'''
-        return self._clients.has_key(cid)
+        return cid in self._clients
         
     def get_client(self, cid):
         '''Gets the client associated with the given client ID.'''

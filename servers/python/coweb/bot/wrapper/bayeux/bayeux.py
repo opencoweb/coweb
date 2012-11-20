@@ -51,7 +51,6 @@ class BayeuxClient(object):
 
     def connect(self):
         '''Does a connect.'''
-        print("do_connect")
         if not self._state == self.STATE_CONNECTING:
             raise ValueError('cannot connect in current state')
         # make a connection
@@ -242,10 +241,11 @@ class BayeuxClient(object):
 
     def _publish(self, msg):
         '''Handles a message or publish ack.'''
-        if msg.has_key('successful'):
+        if 'successful' in msg:
             if msg['successful']:
                 self.on_publish(msg)
             else:
                 self.on_error(msg)
         else:
             self.on_message(msg)
+

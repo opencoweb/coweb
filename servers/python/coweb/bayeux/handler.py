@@ -18,24 +18,20 @@ class WebSocketBayeuxHandler(tornado.websocket.WebSocketHandler):
         super(WebSocketBayeuxHandler, self)._execute(*args, **kwargs)
     
     def prepare(self):
-        print("ws::prepare")
         self.require_setting('bayeux_manager', 'WebSocketBayeuxHandler')
         manager = self.settings['bayeux_manager']
         self.connection = manager.build_connection(self)
         
     def open(self, *args, **kwargs):
         '''Map tornado WS API to what we to use for client.'''
-        print("ws::open",*args,**kwargs)
         self.on_ws_open(*args, **kwargs)
         
     def on_message(self, message):
         '''Map tornado WS API to what we use for client.'''
-        print("ws::on_ws_message",message)
         self.on_ws_message(message)
 
     def on_close(self):
         '''Map tornado WS API to what we use for client.'''
-        print("ws::on_close")
         self.on_ws_close()
 
     def get_supported_connection_types(self):
@@ -46,7 +42,6 @@ class WebSocketBayeuxHandler(tornado.websocket.WebSocketHandler):
         return False
         
     def send(self, data):
-        print("ws::send",data)
         self.write_message(data)
         
     def on_ws_open(self, message):

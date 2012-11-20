@@ -18,6 +18,18 @@ import array
 
 log = logging.getLogger('websocket.client')
 
+'''
+WebSocketClient partially implements WebSockes version 13 (RFC 6455)
+
+What works:
+ * Sending frames form client to server supports non-fragmented messages.
+   See helper functions generate_ws_frame, etc below.
+
+Partially works:
+ * Client only accepts non-fragmented messages (FIN=1). See
+   _on_start_frame/_on_end_frame.
+'''
+
 # max defined by spec
 MAXINT = 4294967295
 # schemes defined by spec
@@ -64,7 +76,6 @@ def generate_ws_frame(fin, rsv1, rsv2, rsv3, op, mask, data):
     if mask:
         dta += key
     return dta + data
-        
 
 class WebSocketURL(object):
     '''Represents parts of a WebSocket URL.'''
@@ -85,7 +96,7 @@ class WebSocketURL(object):
 class WebSocketClient(asynchat.async_chat):
     '''Asynchat-based bot wrapper talking Bayeux over WebSocket.'''
     def __init__(self, uri):
-        asynchat.async_chat.__init__(self) 
+        asynchat.async_chat.__init__(self)
         # validate the uri
         self._url = self._validate_uri(uri)
         # response header fields
@@ -95,15 +106,15 @@ class WebSocketClient(asynchat.async_chat):
 
         # current state
         self._handler = self._on_request_line
-       
+
         # start by listening for header response
         self.set_terminator(b'\x0a')
         # connect to server
         self._inBuffer = []
-        self.create_socket(socket.AF_INET, socket.SOCK_STREAM) 
+        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         addr = (self._url.host, self._url.port)
         self.connect(addr)
-        
+
     def _validate_uri(self, uri):
         '''Parse and validate the connection URL.'''
         uri = urllib.parse.urlparse(uri)
@@ -133,7 +144,7 @@ class WebSocketClient(asynchat.async_chat):
 
         # build web socket url object
         return WebSocketURL(host, port, resource, secure)
-        
+
     def handle_close(self):
         '''Called when the server closes the connection.'''
         self.close()
@@ -185,13 +196,12 @@ class WebSocketClient(asynchat.async_chat):
         # to a unicode string.
         '''Called when data is received.'''
         self._inBuffer.append(data)
-        print(self._inBuffer)
-        
+
     def found_terminator(self):
         '''Called when a complete "chunk" is received.'''
         self._handler(b''.join(self._inBuffer))
         self._inBuffer = []
-        
+
     def _on_request_line(self, field):
         # We really want the unicode string, not byte array.
         field = field.decode('utf-8')
@@ -268,35 +278,82 @@ class WebSocketClient(asynchat.async_chat):
                 self.close()
                 raise ValueError('wrong header value: ' + value)
         self._handler = self._on_start_frame
-        self.set_terminator(1)
+        self.set_terminator(2)
         # invoke bot websocket open method
         try:
             self.on_ws_open()
         except Exception:
             logging.exception('on_ws_open')
         return
-    
-    def _on_start_frame(self, byte):
+
+    def _on_start_frame(self, dta):
         '''Called when receiving the start of a frame.'''
-        print("frame",byte)
-        if ord(byte) & 0x80 == 0x80:
-            # @todo: support length type frames
+        # Receiving a frame proceeds as follows:
+        # 1. Receive 2 bytes. The second byte has payload length info:
+        #    a) If this byte has the entire payload length, goto step 2.
+        #    b) Else, read any aditional bytes to determine payload length.
+        # 2. Read payload data. We're done.
+        b1 = dta[0]
+        b2 = dta[1]
+        self._frame_len = b2
+
+        op = b1 & 0x0f
+        self._frame_op = op
+        # What kind of message frame?
+        if _OP_CONTINUATION == op:
             self.close()
-            return
+            raise Exception("WS: we don't support continuation frames")
+        elif _OP_BINARY == op:
+            self.close()
+            raise Exception("WS: we don't support binary frames")
+
+        if b1 & 0x80 != 0x80:
+            self.close()
+            # TODO might need to support fragmented messages
+            raise Exception("WS: FIN==0, we don't support fragmented messages")
+
+        # Servers must NOT mask frames, so we assume byte 2 has MSB == 0.
+        if b2 < 126:
+            self._handler = self._on_end_frame
+            self.set_terminator(b2)
+        elif b2 == 126:
+            self._handler = self._on_start_frame_more
+            self.set_terminator(2)
+        else:
+            self._handler = self._on_start_frame_more
+            self.set_terminator(8)
         # look for end of frame
+
+    def _on_start_frame_more(self, dta):
+        # This is called when we must read more bytes to determine payload
+        # length.
+        if 8 == len(dta):
+            self._frame_len = struct.unpack("!Q", dta)[0]
+        if 2 == len(dta):
+            self._frame_len = struct.unpack("!H", dta)[0]
         self._handler = self._on_end_frame
-        self.set_terminator(b'\xff')
+        self.set_terminator(self._frame_len)
 
     def _on_end_frame(self, data):
         '''Called when receiving the end of a frame.'''
-        try:
-            self.on_ws_message(data.decode('utf-8'))
-        except Exception:
-            logging.exception('on_ws_message')
+
+        op = self._frame_op
+        if _OP_TEXT == op:
+            try:
+                self.on_ws_message(data.decode('utf-8'))
+            except Exception:
+                logging.exception('on_ws_message')
+        elif _OP_PING == op:
+            self._send_pong()
+        elif _OP_PONG == op:
+            pass # Nothing to do.
+        elif _OP_CLOSE == op:
+            self.close()
+            return
         # look for start of next frame
         self._handler = self._on_start_frame
-        self.set_terminator(1)
-        
+        self.set_terminator(2)
+
     def send_ws(self, data):
         '''Sends data as a websocket frame.'''
         # Always send in one frame, text data.
@@ -306,11 +363,11 @@ class WebSocketClient(asynchat.async_chat):
     def on_ws_open(self):
         '''Callback for WebSocket open.'''
         pass
-    
+
     def on_ws_message(self, data):
         '''Callback for WebSocket message.'''
         pass
-    
+
     def on_ws_close(self):
         '''Callback for WebSocket close.'''
         pass

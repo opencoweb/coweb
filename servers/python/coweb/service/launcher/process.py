@@ -213,7 +213,7 @@ class ProcessTracker(object):
         @param key Key used to start process
         @return True if exists, False otherwise
         '''
-        return self._processes.has_key(key)
+        return key in self._processes
 
     def _kill_zombies(self):
         '''
