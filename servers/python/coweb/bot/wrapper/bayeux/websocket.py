@@ -58,7 +58,8 @@ _OP_PING = 0x9
 _OP_PONG = 0xa
 # See http://tools.ietf.org/html/rfc6455#section-5.2
 def generate_ws_frame(fin, rsv1, rsv2, rsv3, op, mask, data):
-    # data is byte string
+    # data is "normal" string
+    # TODO handle _OP_BINARY
     data = data.encode('utf-8')
     if mask:
         key = generate_frame_key()
@@ -346,13 +347,23 @@ class WebSocketClient(asynchat.async_chat):
         elif _OP_PING == op:
             self._send_pong()
         elif _OP_PONG == op:
+            print(" PONG ")
             pass # Nothing to do.
         elif _OP_CLOSE == op:
             self.close()
             return
+
         # look for start of next frame
         self._handler = self._on_start_frame
         self.set_terminator(2)
+
+    def _send_ping(self):
+        dta = generate_ws_frame(1, 0, 0, 0, _OP_PING, 1, '')
+        self.push(dta)
+
+    def _send_pong(self):
+        dta = generate_ws_frame(1, 0, 0, 0, _OP_PONG, 1, '')
+        self.push(dta)
 
     def send_ws(self, data):
         '''Sends data as a websocket frame.'''
