@@ -69,16 +69,50 @@ class Session(bayeux.BayeuxManager):
         self._moderator = SessionModerator.getInstance(self,
                 self._container.moderatorClass, self.key)
 
-    def broadcast(self):
-        for cl in list(self._clients.values()):
-            cl.add_message({
-                "channel" : self.syncAppChannel,
-                "data" : {"msg":"hello"}
-            })
+        self._handler = None
+
+    """
+       Publish a message form the moderator to all listening clients. This
+       method doesn't actually send anything directly, but rather it delegates
+       work to the OEHandler which sends the event and pushes the op to the
+       local operation engine.
+    """
+    def publishModeratorSync(self, name, value, _type, position):
+        self._opengine.localSync(name, value, _type, position)
+
+    """
+       Sends message on the /session/ID/sync/app channel. This is called from
+       OEHandler to actually put the message on the wire.
+    """
+    def sendModeratorSync(self, message):
+        cl = self._moderator.client
+        req = cl.generate_message(self.syncAppChannel)
+        req["data"] = message
+        #self._handler.connection.invoke(json_encode([msg]));
+
+        ch = req.get('channel', None)
+        res = {'channel' : ch}
+        mid = req.get('id', None)
+        if mid: res['id'] = mid
+        cid = req.get('clientId', '')
+
+        res['advice'] = {'timeout' : self.timeout*1000}
+        res['successful'] = True
+
+        # invoke client and ext method first
+        cl.on_publish(self, req, res)        
+        # now invoke handler callbacks
+        try:
+            # delegate publish work to handler 
+            self._connection.on_publish(cl, req, res)
+        except Exception:
+            log.exception('publish delegate')
 
     def build_connection(self, handler):
         '''Override to build proper connection.'''
-        return self._connectionClass(handler, self)
+        self._handler = handler
+        self._connection = self._connectionClass(handler, self)
+        return self._connection
 
     def start_session(self):
         '''Register session and service handlers.'''

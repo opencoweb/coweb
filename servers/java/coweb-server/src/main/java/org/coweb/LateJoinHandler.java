@@ -32,9 +32,11 @@ public class LateJoinHandler {
 	private static final Logger log = Logger.getLogger(LateJoinHandler.class
 			.getName());
 
-	private Map<String, ServerSession> updatees = new HashMap<String, ServerSession>();
+	private Map<String, ServerSession> updatees =
+        new HashMap<String, ServerSession>();
 
-	protected Map<String, List<String>> updaters = new HashMap<String, List<String>>();
+	protected Map<String, List<String>> updaters =
+        new HashMap<String, List<String>>();
 
 	/**
 	 * List of available siteids. An index with a null value is an available
@@ -65,7 +67,7 @@ public class LateJoinHandler {
 		this.sessionManager = SessionManager.getInstance();
 
 		if (config.containsKey("cacheState")) {
-			this.cacheState = ((Boolean)config.get("cacheState")).booleanValue();
+			this.cacheState = ((Boolean)config.get("cacheState"));
 		}
 
 		String classStr = "org.coweb.DefaultUpdaterTypeMatcher";
@@ -547,9 +549,9 @@ public class LateJoinHandler {
 	}
 
 	/**
-	 * Used to send join state and other important session data to joining clients.
-	 * This class gives the work to a separate thread so that the server can
-	 * continue to process other requsts.
+	 * Used to send join state and other important session data to joining
+     * clients. This class gives the work to a separate thread so that the
+     * server can continue to process other requsts.
 	 */
 	class BatchUpdateMessage implements Runnable {
 
@@ -564,7 +566,8 @@ public class LateJoinHandler {
 		  * Sends all the important information to a client upon joining.
 		  * The data parameter should be an Object[] with three elements:
 		  *   <ul>
-		  *     <li> [{topic: coweb.state.set.collab_name, value: application state}, ...] (this will be an array)
+		  *     <li> [{topic: coweb.state.set.collab_name, value: application
+          *     state}, ...] (this will be an array)
 		  *     <li> {topic: coweb.engine.state, value: TODO}
 		  *     <li> {topic: coweb.pause.state, value: TODO}
 		  *   </ul>
@@ -574,8 +577,8 @@ public class LateJoinHandler {
 		  * @param data session state
 		  * @param sendState whether or not to send session state
 		  */
-		BatchUpdateMessage(ServerSession client, int siteId, Map<Integer, String> roster, 
-				Object data, boolean sendState) {
+		BatchUpdateMessage(ServerSession client, int siteId,
+                Map<Integer, String> roster, Object data, boolean sendState) {
 			this.client = client;
 			this.siteId = siteId;
 			this.roster = roster;

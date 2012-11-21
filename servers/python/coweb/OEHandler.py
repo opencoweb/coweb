@@ -3,11 +3,14 @@ import traceback
 import json
 from multiprocessing import Process
 import time
+import logging
 
 from coweb.cowebpyoe.ContextVector import ContextVector
 from coweb.cowebpyoe.Operation import Operation
 from coweb.cowebpyoe.OperationEngine import OperationEngine
 from coweb.cowebpyoe.OperationEngineException import OperationEngineException
+
+log = logging.getLogger("coweb.OEHandler")
 
 PURGE_SLEEP = 10
 SYNC_SLEEP = 10
@@ -26,6 +29,38 @@ class OEHandler:
         self.syncTask = Process(target=self._syncTask)
 
     """
+        Called by the session when the moderator (or in general, any local
+        client) wants to send a sync event.
+    """
+    def localSync(self, topic, value, _type, position):
+        jsonVal = json.dumps(value)
+        cv = None
+        op = None
+        if _type is not None:
+            try:
+                op = self.engine.createOp(True, topic, jsonVal, _type, position,
+                        -1, None, -1)
+                cv = op.contextVector
+            except OperationEngineException:
+                log.warn("Bad type: %s, using None type instead." % _type)
+                _type = None
+
+        message = dict()
+        message["topic"] = topic
+        message["value"] = jsonVal
+        message["type"] = _type
+        message["position"] = position
+        if cv is not None:
+            message["context"] = cv.sites
+        else:
+            message["context"] = None
+
+        self.sessionHandler.sendModeratorSync(message)
+
+        if type is not None:
+            self.engine.pushLocalOp(op)
+
+    """
        Called by the session when a coweb event is received from a remote app.
        Processes the data in the local operation engine if required before
        publishing to the moderator.
@@ -37,7 +72,8 @@ class OEHandler:
               <li>Integer position Operation linear position
               <li>Integer site Unique integer ID of the sending site
               <li>Integer[] sites Context vector as an array of integers 
-                (use {@link OperationEngineHandler#getSites} to convert from Integer[] to int[])
+                (use {@link OperationEngineHandler#getSites} to convert from 
+                Integer[] to int[])
     """
     def syncInbound(self, data):
 

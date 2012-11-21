@@ -11,6 +11,7 @@ class LateJoinHandler:
 
         self._session = session
         self._container = session._container
+        self._moderator = session._moderator
 
         # last state received from an updater without another sync message
         # intervening
@@ -26,6 +27,10 @@ class LateJoinHandler:
 
         # list that helps us assign the lowest available site id
         self._siteids = ['reserved'] + [None] * 5
+
+        modClient = self._moderator.client
+        self._siteids[0] = modClient.clientId
+        modClient.siteId = 0
 
     def clearLastState(self):
         '''Clears the last updater state response. No longer valid.'''

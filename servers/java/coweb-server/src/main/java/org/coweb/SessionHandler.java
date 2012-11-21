@@ -223,13 +223,14 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	}
 
 	/**
-	  * Called whenever a client sends an application message to the server. This
-	  * does not include /meta, /service, and /bot messages, which are handled by
-	  * different methods. This method handles application sync and engine sync
-	  * messages.
+	  * Called whenever a client sends an application message to the server.
+      * This does not include /meta, /service, and /bot messages, which are
+      * handled by different methods. This method handles application sync and
+      * engine sync messages.
 	  *
-	  * The cometd implementation is free to have multiple threads invoke onMessage
-	  * for different incoming messages, so be aware of mutual exclusion issues.
+	  * The cometd implementation is free to have multiple threads invoke
+      * onMessage for different incoming messages, so be aware of mutual
+      * exclusion issues.
 	  */
 	public boolean onMessage(ServerSession from, ServerChannel channel,
 			ServerMessage.Mutable message) {
@@ -519,6 +520,18 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	 * OperationEngineHandler to actually put the message on the wire.
 	 */
 	public void sendModeratorSync(Object message) {
+        /* We act as if the moderator is just another client participating in
+         * the session. This method is called from the OperationEngineHandler,
+         * which means the op engine pushed the operation through as a local op.
+         *
+         * When this message is sent to the "server," the op engine pushes
+         * through the exact same operation as a remote op. This mimics the
+         * behavior of browser clients pushing local ops through their engines,
+         * then pushing the same exact op through as a remote op when the server
+         * forwards the op back to the same browser client. The op engine knows
+         * to disregard the op, since it has already been pushed through once as
+         * a local op.
+         */
 		ServerChannel channel = this.server.getChannel(this.syncAppChannel);
 		channel.publish(this.sessionModerator.getLocalSession(), message, null);
 	}

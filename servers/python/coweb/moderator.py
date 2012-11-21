@@ -14,9 +14,10 @@ class CollabInterface:
         pass
 
     # Send an application sync event to all collab clients.
-    def sendSync(self, name, value, _type, pos):
+    def sendSync(self, name, value, _type, position):
         name = "coweb.sync." + name + "." + self._collabId
-        self._moderator._session.publishModeratorSync(name, value, _type, pos)
+        self._moderator._session.publishModeratorSync(name, value, _type,
+                position)
 
     # Send a message to a service bot.
     def postService(self, service, params):
@@ -49,16 +50,28 @@ class SessionModerator:
     def onSync(self, client, data):
         raise NotImplementedError()
 
+    # Create a CollabInterface for a moderator. Called by application
+    # developers.
+    def initCollab(self, collabId):
+        ci = CollabInterface(self, collabId)
+        self._collabInterfaces.add(ci)
+        return ci
+
     # Private, internal methods.
+
+    # Create a bayeux client to represent this moderator. This way, the
+    # moderator can send/receive messages like a "normal" browser client.
     def init(self, session):
         self._session = session
+        self._collabInterfaces = set()
+        self.client = session.new_client()
 
     def _endSession(self):
-        # TODO remove collab interfaces
+        for ci in self._collabInterfaces:
+            pass
+        self._collabInterfaces.clear()
+        self._session = None
         self.onSessionEnd()
-
-    def broadcast(self):
-        self._session.broadcast()
 
     @staticmethod
     def getInstance(session, klass, key):
@@ -71,6 +84,9 @@ class SessionModerator:
         return moderator
 
 class DefaultSessionModerator(SessionModerator):
+    def __init__(self):
+        super(DefaultSessionModerator, self).__init__()
+
     def canClientJoinSession(self, client, message):
         return True
     def canClientMakeServiceRequest(self, svcName, client, botMessage):

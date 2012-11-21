@@ -30,12 +30,23 @@ class BayeuxSession(object):
         self._manager = weakref.proxy(manager)
         self._ioloop = ioloop or tornado.ioloop.IOLoop.instance()
         self._lpFirst = True
+        self._id_counter = 0
         # build instances of all exts
         self._exts = [ext() for ext in exts]
     
     def __repr__(self):
         return '<BayeuxSession username=%s, lastSeen=%s>' % (self.username,
             self.lastSeen)
+
+    def generate_message(self, ch):
+        # TODO consider using extension "ext" like browser clients
+        ret = {
+            "id" : self._id_counter,
+            "clientId" : self.clientId,
+            "channel" :  ch
+        }
+        self._id_counter += 1
+        return ret
 
     def _run_exts(self, mtd, *args):
         rv = None
