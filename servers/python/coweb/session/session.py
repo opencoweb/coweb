@@ -64,6 +64,11 @@ class Session(bayeux.BayeuxManager):
         # Operation total order, setup OP engine.
         self._opOrder = -1
         self._opengine = OEHandler(self, 0)
+        # Don't think Tornado is multithreaded...no need to protect with lock.
+        # A safe multithreaded solution would be to use a simple semaphore with
+        # a single owner.
+        self._inOnSync = False
+        self._modSyncs = []
 
         # Use moderator?
         self._moderator = SessionModerator.getInstance(self,
@@ -85,10 +90,19 @@ class Session(bayeux.BayeuxManager):
        OEHandler to actually put the message on the wire.
     """
     def sendModeratorSync(self, message):
+        self._modSyncs.append(message)
+        if not self._inOnSync:
+            self._flushModSyncs()
+
+    # Must not be called while SessionModerator.onSync is executing!
+    def _flushModSyncs(self):
+        while len(self._modSyncs) > 0:
+            self._sendSingleMessage(self._modSyncs.pop(0))
+
+    def _sendSingleMessage(self, message):
         cl = self._moderator.client
         req = cl.generate_message(self.syncAppChannel)
         req["data"] = message
-        #self._handler.connection.invoke(json_encode([msg]));
 
         ch = req.get('channel', None)
         res = {'channel' : ch}
@@ -99,8 +113,6 @@ class Session(bayeux.BayeuxManager):
         res['advice'] = {'timeout' : self.timeout*1000}
         res['successful'] = True
 
-        # invoke client and ext method first
-        cl.on_publish(self, req, res)        
         # now invoke handler callbacks
         try:
             # delegate publish work to handler 

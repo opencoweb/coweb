@@ -68,11 +68,14 @@ class CollabSessionConnection(session.SessionConnection):
             # Push sync to op engine.
             sync = manager._opengine.syncInbound(req['data'])
             if sync:
+                manager._inOnSync = True
                 manager._moderator.onSync(cl, sync)
+                manager._inOnSync = False
         elif channel == manager.syncEngineChannel:
             manager._opengine.engineSyncInbound(req['data'])
         # delegate all other handling to base class
         super(CollabSessionConnection, self).on_publish(cl, req, res)
+        manager._flushModSyncs()
 
     def on_subscribe(self, cl, req, res):
         '''Override to handle late-joiner logic.'''

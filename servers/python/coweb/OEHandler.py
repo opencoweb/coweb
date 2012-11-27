@@ -57,7 +57,7 @@ class OEHandler:
 
         self.sessionHandler.sendModeratorSync(message)
 
-        if type is not None:
+        if _type is not None:
             self.engine.pushLocalOp(op)
 
     """
