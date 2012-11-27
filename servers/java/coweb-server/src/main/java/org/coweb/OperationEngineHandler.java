@@ -83,10 +83,19 @@ public class OperationEngineHandler {
 		message.put("value", jsonValue);
 		message.put("type", type);
 		message.put("position", position);
-		if (null != cv)
-			message.put("context", cv.getSites());
-		else
+		if (null != cv) {
+			int[] sites = cv.getSites();
+			if (null != sites) {
+				Integer[] Sites = new Integer[sites.length];
+				for (int i = 0; i < sites.length; ++i)
+					Sites[i] = sites[i];
+				message.put("context", Sites);
+			} else {
+				message.put("context", null);
+			}
+		} else {
 			message.put("context", null);
+		}
 
 		this.sessionHandler.sendModeratorSync(message);
 

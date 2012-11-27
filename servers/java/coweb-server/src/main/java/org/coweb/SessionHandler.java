@@ -4,8 +4,10 @@
  */
 package org.coweb;
 
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +34,9 @@ import java.security.MessageDigest;
  */
 public class SessionHandler implements ServerChannel.MessageListener {
 
+	private static final String sendOnceKey =
+		"698e141094de24baec7998994d6d32f4";
+
 	private static final Logger log = Logger.getLogger(SessionHandler.class
 			.getName());
 
@@ -44,7 +49,9 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private SessionModerator sessionModerator = null;
 	private OperationEngineHandler operationEngine = null;
 	private SessionManager manager;
+	private LinkedList modSyncQueue = new LinkedList();
 
+	private Semaphore modSyncSem = new Semaphore(1);
 	private AtomicInteger order = new AtomicInteger(0);
 
 	private String syncAppChannel = null;
@@ -103,22 +110,22 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		sync.addListener(this);
 
 		this.sessionModerator = SessionModerator.getInstance(this,
-                (String)config.get("sessionModerator"), confKey);
+				(String)config.get("sessionModerator"), confKey);
 		if (null == this.sessionModerator) {
 			config.put("moderatorIsUpdater", false);
 			/* Perhaps config.get("sessionModerator") had an exception or
-             * didn't exist, so either we try to create default implementation
-             * of moderator, or throw an exception. */
+			 * didn't exist, so either we try to create default implementation
+			 * of moderator, or throw an exception. */
 			log.severe("SessionModerator.getInstance(" +
-                    config.get("sessionModerator") + ") failed, reverting to " +
-                    "trying to create default implementation.");
+					config.get("sessionModerator") + ") failed, reverting to " +
+					"trying to create default implementation.");
 			this.sessionModerator = SessionModerator.getInstance(this,
-                    null, confKey);
+					null, confKey);
 			if (null == this.sessionModerator) {
 				throw new CowebException("Create SessionModerator", "");
 			}
 			log.severe("SessionModerator created default implementation, but " +
-                    "moderator can no longer be updater.");
+					"moderator can no longer be updater.");
 		}
 
 		// create the late join handler. clients will be updaters by default.
@@ -224,29 +231,39 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 	/**
 	  * Called whenever a client sends an application message to the server.
-      * This does not include /meta, /service, and /bot messages, which are
-      * handled by different methods. This method handles application sync and
-      * engine sync messages.
+	  * This does not include /meta, /service, and /bot messages, which are
+	  * handled by different methods. This method handles application sync and
+	  * engine sync messages.
 	  *
 	  * The cometd implementation is free to have multiple threads invoke
-      * onMessage for different incoming messages, so be aware of mutual
-      * exclusion issues.
+	  * onMessage for different incoming messages, so be aware of mutual
+	  * exclusion issues.
 	  */
 	public boolean onMessage(ServerSession from, ServerChannel channel,
 			ServerMessage.Mutable message) {
 
 		Integer siteId = (Integer) from.getAttribute("siteid");
 
+		System.out.println(message);
+
 		String msgSessionId = (String) from.getAttribute("sessionid");
 		if (!msgSessionId.equals(this.sessionId)) {
 			log.severe("Received message not belonging to this session " +
-                    msgSessionId);
+					msgSessionId);
+			return true; /* TODO why are we sending this message to clients, if
+							the message doesn't belong to us? */
+		}
+
+		Map<String, Object> data = message.getDataAsMap();
+		if (data.get("__alreadySent") == SessionHandler.sendOnceKey) {
+			/* The message came from onMessage manually publishing a sync. We
+			 * simply forward it to clients. */
+			data.remove("__alreadySent");
 			return true;
 		}
 		
 		this.lateJoinHandler.clearCacheState();
 
-		Map<String, Object> data = message.getDataAsMap();
 		data.put("siteId", siteId);
 
 		/* Some of the following code must acquire this.operationEngine's lock.
@@ -258,11 +275,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 			if (this.operationEngine != null) {
 				synchronized (this.operationEngine) {
-					Map<String, Object> syncEvent =
-                        this.operationEngine.syncInbound(data);
-					if (syncEvent != null) {
-						this.sessionModerator.onSync(from, syncEvent);
-					}
+					return this.doAppSync(from, channel, message, data);
 				}
 			}
 		} else if (channelName.equals(this.syncEngineChannel)) {
@@ -273,9 +286,37 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			}
 		} else {
 			log.warning("onMessage does not handle channel messages '" +
-                    channelName + "'\n    message = " + message);
+					channelName + "'\n    message = " + message);
 		}
 
+		return true;
+	}
+
+
+	private boolean doAppSync(ServerSession from, ServerChannel channel,
+			ServerMessage.Mutable message, Map<String, Object> data) {
+		Map<String, Object> syncEvent = this.operationEngine.syncInbound(data);
+		if (syncEvent != null) {
+			try {
+				this.modSyncSem.acquire();
+			} catch (InterruptedException ie) {
+				log.warning("onMessage interrupted, won't deliver sync to" +
+						" moderator or other listeners");
+				return false;
+			}
+			this.sessionModerator.onSync(from, syncEvent);
+			data.put("__alreadySent", SessionHandler.sendOnceKey);
+			/* In order to satisfy ordering requirements, we must send the
+			 * remote client's sync to other clients, then send any syncs
+			 * generated by the moderator. Thus, we manually publish the sync
+			 * instead of returning true from onMesage(). This is the only way
+			 * we can possibly publish the remote client sync *first*. */
+			channel.publish(from, message);
+			/* Now, send any moderator syncs. */
+			this.flushModeratorQueue();
+			this.modSyncSem.release();
+			return false;
+		}
 		return true;
 	}
 
@@ -296,7 +337,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			if (channel.startsWith("/service/bot")) {
 				/* Moderator can always make service requests. */
 				String svcName = ServiceHandler.getServiceNameFromMessage(
-                        message, false);
+						message, false);
 				if (this.sessionModerator.getServerSession() == remote ||
 						this.sessionModerator.canClientMakeServiceRequest(
 							svcName, remote, message)) {
@@ -308,7 +349,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				this.lateJoinHandler.onUpdaterSendState(remote, message);
 			} else {
 				log.warning("onPublish doesn't handle '" + channel +
-                        "' messages\n  message = " + message);
+						"' messages\n  message = " + message);
 			}
 		} catch (Exception e) {
 			log.severe("error receiving publish message");
@@ -320,7 +361,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	/**
 	 * Called anytime a client posts to /meta/subscribe. SessionHandler needs
 	 * to know when (1) a client attempts to join a session, (2) a client wants
-     * to subscribe to a bot, and (3) when a client wishes to become an updater.
+	 * to subscribe to a bot, and (3) when a client wishes to become an updater.
 	 * Other subscriptions are ignored (i.e. we don't wish to know about them).
 	 * @param serverSession Client wishing to subscribe to some channel.
 	 * @param message Contains channel the client wishes to subscribe to.
@@ -330,7 +371,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		if (channel.equals("/service/session/join/*")) {
 			if (this.sessionModerator.canClientJoinSession(serverSession,
-                        message)) {
+						message)) {
 				if (this.lateJoinHandler.onClientJoin(serverSession, message)) {
 					this.sessionModerator.onSessionReady();
 				}
@@ -338,15 +379,15 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				this.sendError(serverSession, "join-disallowed");
 			}
 		} else if (channel.startsWith("/service/bot") ||
-                channel.startsWith("/bot")) {
+				channel.startsWith("/bot")) {
 			/* Client wishes to subscribe to service messages (broadcasts and
-             * private bot messages). Moderator can always make service
-             * requests. */
+			 * private bot messages). Moderator can always make service
+			 * requests. */
 			boolean pub = true;
 			if (channel.startsWith("/service"))
 					pub = false;
 			String svcName = ServiceHandler.getServiceNameFromMessage(message,
-                    pub);
+					pub);
 
 			if (this.sessionModerator.getServerSession() == serverSession ||
 					this.sessionModerator.canClientSubscribeService(
@@ -372,7 +413,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	void subscribeModeratorToService(String svcName) {
 		try {
 			this.serviceHandler.subscribeModerator(this.sessionModerator,
-                    svcName);
+					svcName);
 		} catch (Exception e) {
 			log.severe("error subscribing moderator to service " + svcName);
 			e.printStackTrace();
@@ -383,13 +424,13 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("topic", topic);
 		client.deliver(this.manager.getServerSession(), "/session/error",
-                map, null);
+				map, null);
 	}
 
 	/**
 	 * Called when a client unsubscribes to a channel (via posting to
 	 * /meta/unsubscribe). We need to know when a client wishes to stop
-     * listening to bot messages.
+	 * listening to bot messages.
 	 */
 	public void onUnsubscribe(ServerSession serverSession, Message message)
 			throws IOException {
@@ -520,20 +561,40 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	 * OperationEngineHandler to actually put the message on the wire.
 	 */
 	public void sendModeratorSync(Object message) {
-        /* We act as if the moderator is just another client participating in
-         * the session. This method is called from the OperationEngineHandler,
-         * which means the op engine pushed the operation through as a local op.
-         *
-         * When this message is sent to the "server," the op engine pushes
-         * through the exact same operation as a remote op. This mimics the
-         * behavior of browser clients pushing local ops through their engines,
-         * then pushing the same exact op through as a remote op when the server
-         * forwards the op back to the same browser client. The op engine knows
-         * to disregard the op, since it has already been pushed through once as
-         * a local op.
-         */
+		/* We act as if the moderator is just another client participating in
+		 * the session. This method is called from the OperationEngineHandler,
+		 * which means the op engine pushed the operation through as a local op.
+		 *
+		 * When this message is sent to the "server," the op engine pushes
+		 * through the exact same operation as a remote op. This mimics the
+		 * behavior of browser clients pushing local ops through their engines,
+		 * then pushing the same exact op through as a remote op when the server
+		 * forwards the op back to the same browser client. The op engine knows
+		 * to disregard the op, since it has already been pushed through once as
+		 * a local op.
+		 *
+		 * SessionModerator.onSync() may call this method (indirectly), in which
+		 * case the modSyncSem semaphore will already be exhausted of permits.
+		 * Thus, we try to acquire the semaphore, and if we fail, we wait until
+		 * onSync() returns to flush the queue. */
+		synchronized(this.modSyncQueue) {
+			this.modSyncQueue.push(message);
+		}
+		/* TODO Memory fence? */
+		if (this.modSyncSem.tryAcquire()) {
+			this.flushModeratorQueue();
+			this.modSyncSem.release();
+		}
+	}
+
+	/* Protected by modSyncSem. */
+	private void flushModeratorQueue() {
 		ServerChannel channel = this.server.getChannel(this.syncAppChannel);
-		channel.publish(this.sessionModerator.getLocalSession(), message, null);
+		synchronized(this.modSyncQueue) {
+			for (Object message: this.modSyncQueue)
+				channel.publish(this.sessionModerator.getLocalSession(), message, null);
+			this.modSyncQueue.clear();
+		}
 	}
 
 	/**
@@ -545,7 +606,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		String ch = String.format(this.botRequestChannel, svc);
 		this.server.createIfAbsent(ch);
 		return this.server.getChannel(String.format(this.botRequestChannel,
-                    svc));
+					svc));
 	}
 
 	/**
