@@ -10,8 +10,7 @@ class CollabInterface:
         self.serviceId = 0
 
     def subscribeService(self, svcName):
-        # TODO
-        pass
+        self._moderator._session.subscribeModeratorToService(svcName)
 
     # Send an application sync event to all collab clients.
     def sendSync(self, name, value, _type, position):
@@ -65,6 +64,7 @@ class SessionModerator:
         self._session = session
         self._collabInterfaces = set()
         self.client = session.new_client()
+        self.client.username = "Moderator"
 
     def _endSession(self):
         for ci in self._collabInterfaces:
@@ -76,10 +76,8 @@ class SessionModerator:
     @staticmethod
     def getInstance(session, klass, key):
         moderator = _moderators.get(key, None)
-        if moderator is not None:
-            return moderator
-
-        _moderators[key] = moderator = klass()
+        if moderator is None:
+            _moderators[key] = moderator = klass()
         moderator.init(session)
         return moderator
 

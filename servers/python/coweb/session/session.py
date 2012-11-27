@@ -120,6 +120,22 @@ class Session(bayeux.BayeuxManager):
         except Exception:
             log.exception('publish delegate')
 
+    def subscribeModeratorToService(self, svcName):
+        cl = self._moderator.client
+        ch = "/meta/subscribe"
+        req = cl.generate_message(ch)
+        req["subscription"] = "/bot/%s" % svcName
+
+        res = {'channel' : ch}
+        mid = req.get('id', None)
+        if mid: res['id'] = mid
+        cid = req.get('clientId', '')
+
+        res['advice'] = {'timeout' : self.timeout*1000}
+        res['successful'] = True
+        cl.add_channel("/bot/%s" % svcName)
+        self.subscribe_to_service(cl, req, req, True)
+
     def build_connection(self, handler):
         '''Override to build proper connection.'''
         self._handler = handler
