@@ -121,7 +121,7 @@ define([
 	 * @params {String} requestUrl The url of the page making this prep request.
      * @returns {Promise} Resolved on response from server
      */
-    proto.prepare = function(key, collab, cacheState, requestUrl, sessionName) {
+    proto.prepare = function(key, collab, cacheState, requestUrl, sessionName, userDefined) {
         // make sure we're idle
         if(this._state !== this.IDLE) {
             throw new Error(this.id + ': ' +messages.preparenonidlestate);
@@ -150,6 +150,7 @@ define([
         promise.then('_onPrepareResponse', '_onPrepareError', this);
         // change state to avoid duplicate prepares
         this._state = this.PREPARING;
+        this._userDefined = userDefined || {};
         return this._prepPromise;
     };
 
@@ -198,7 +199,8 @@ define([
         this._joinPromise = new Promise();
         // register extension to include session id in ext        
         cometd.unregisterExtension('coweb');
-        var args = {sessionid : this.prepResponse.sessionid, updaterType: updaterType};
+        var args = {sessionid : this.prepResponse.sessionid, updaterType: updaterType, userDefined: this._userDefined};
+
         cometd.registerExtension('coweb', new CowebExtension(args));
 
         cometd.configure({

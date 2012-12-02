@@ -286,7 +286,7 @@ define([
 
         // only do actual prep if the session has reported it is ready
         // try to prepare conference
-        this._bridge.prepare(params.key, params.collab, this._cacheState, requestUrl, sessionName)
+        this._bridge.prepare(params.key, params.collab, this._cacheState, requestUrl, sessionName,params.userDefined)
             .then('_onPrepared', '_onPrepareError', this);
         // start listening to disconnections
         this._bridge.disconnectPromise.then('_onDisconnected', null, this);
