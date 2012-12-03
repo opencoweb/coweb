@@ -261,6 +261,8 @@ class SessionConnection(bayeux.BayeuxConnection):
                     cl, req):
                 if not self._manager.request_for_service(cl, req, res):
                     return
+            else:
+                print("Cant!")
         elif not self._manager.collab:
             # disallow posting to any other channel by clients
             res['error'] = '402:%s:not-allowed' % client.clientId
