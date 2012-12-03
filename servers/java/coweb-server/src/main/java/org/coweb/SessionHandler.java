@@ -70,11 +70,13 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	 * and the cacheState boolean. This constructor sets up channel listeners,
 	 * creates the service handler, an operation engine, and a moderator
 	 * depending on the configuration settings.
-	 * @param confkey cowebkey that uniquely identifies a coweb application session.
+	 * @param confkey cowebkey that uniquely identifies a coweb application
+	 *                session.
 	 * @param cacheState Whether or not this session caches application state.
 	 * @param config Configuration options for this application. See <a href="http://opencoweb.org/ocwdocs/java/deploy.html#web-inf-web-xml">configuration documentation.</a>.
 	 */
-	public SessionHandler(String confkey, boolean cacheState, Map<String, Object> config) {
+	public SessionHandler(String confkey, boolean cacheState,
+			Map<String, Object> config) {
 
 		this.confKey = confkey;
 		this.cacheState = cacheState;
@@ -94,7 +96,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 		/* The following creates and listens to the app sync and engine
 		 * sync channels. */
-		ServerChannel.Initializer initializer = new ServerChannel.Initializer() {
+		ServerChannel.Initializer initializer = new ServerChannel.Initializer()
+		{
 			@Override
 			public void configureChannel(ConfigurableServerChannel channel) {
 				channel.setPersistent(true);
@@ -142,12 +145,13 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		}
 		this.lateJoinHandler = lh;
 
-		// create the OT engine only if turned on in the config, or moderatorIsUpdater.
+		/* create the OT engine only if turned on in the config, or
+		 * moderatorIsUpdater. */
 		boolean useEngine = config.containsKey("operationEngine") && 
 			((Boolean) config.get("operationEngine")).booleanValue();
 		if (!useEngine && mustUseEngine) {
-			log.warning("Must use OperationEngine because moderatorIsUpdater==true, " + 
-					"even though operationEngine is not set.");
+			log.warning("Must use OperationEngine because moderatorIsUpdater" +
+					"==true, even though operationEngine is not set.");
 			useEngine = true;
 		}
 		if (useEngine) {
@@ -156,7 +160,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 			try {
 				log.info("creating operation engine with siteId = " + siteId);
-				this.operationEngine = new OperationEngineHandler(this, siteId.intValue());
+				this.operationEngine = new OperationEngineHandler(this,
+						siteId.intValue());
 			} catch (OperationEngineException e) {
 				e.printStackTrace();
 			}
@@ -592,7 +597,8 @@ public class SessionHandler implements ServerChannel.MessageListener {
 		ServerChannel channel = this.server.getChannel(this.syncAppChannel);
 		synchronized(this.modSyncQueue) {
 			for (Object message: this.modSyncQueue)
-				channel.publish(this.sessionModerator.getLocalSession(), message, null);
+				channel.publish(this.sessionModerator.getLocalSession(),
+						message, null);
 			this.modSyncQueue.clear();
 		}
 	}

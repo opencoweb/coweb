@@ -1,5 +1,8 @@
 
-# TODO document
+from .serviceutil import getServiceNameFromChannel
+from .serviceutil import isServiceChannel
+from .serviceutil import isPublicBroadcast
+from .bayeux.handler import InternalBayeuxHandler
 
 _moderators = {}
 
@@ -64,7 +67,22 @@ class SessionModerator:
         self._session = session
         self._collabInterfaces = set()
         self.client = session.new_client()
+        self.clientConn = InternalBayeuxHandler(self)
+        req = {
+                "clientId": self.client.clientId,
+                "connectionType": "callback", # Non standard.
+                "channel": "/meta/connect"}
+        self.client.on_connect(self.clientConn, req, None)
         self.client.username = "Moderator"
+
+    def onMessage(self, data):
+        ch = data.get("channel", "")
+        if isServiceChannel(ch):
+            isPub = isPublicBroadcast(ch)
+            svcName = getServiceNameFromChannel(ch, isPub)
+            error = data.get("error", False)
+            data = data.get("value")
+            self.onServiceResponse(svcName, data, error, isPub)
 
     def _endSession(self):
         for ci in self._collabInterfaces:

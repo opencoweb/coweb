@@ -49,7 +49,6 @@ class CollabSession(session.Session):
 class CollabSessionConnection(session.SessionConnection):
     '''Connection for collaborative sessions.'''
     def on_publish(self, cl, req, res):
-        print("here",req)
         '''Override to handle updater and sync logic.'''
         manager = self._manager
         channel = req['channel']

@@ -5,6 +5,7 @@ Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 # tornado
 import tornado.web
 import tornado.websocket
+from tornado.escape import json_decode
 # std lib
 import logging
 
@@ -55,6 +56,21 @@ class WebSocketBayeuxHandler(tornado.websocket.WebSocketHandler):
     def on_ws_close(self):
         '''Extension point. No default implementation.'''
         pass
+
+# A connection class for entities that don't connect through HTTP or
+# WebSockets. This is used by the Moderator, since we won't start the moderator
+# in its own process - we keep it running next to the Python server itself.
+class InternalBayeuxHandler(object):
+    def __init__(self, rec):
+        self._receiver = rec
+
+    def send(self, data):
+        msgs = json_decode(data)
+        for msg in msgs:
+            self._receiver.onMessage(msg)
+
+    def is_finished(self):
+        return False
 
 class HTTPBayeuxHandler(tornado.web.RequestHandler):
     '''Accepts Bayeux protocol over long-polling HTTP.'''

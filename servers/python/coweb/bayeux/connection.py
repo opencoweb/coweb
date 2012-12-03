@@ -313,8 +313,6 @@ class BayeuxConnection(object):
         # now invoke handler callbacks
         try:
             # delegate publish work to handler 
-            print("about to",req)
-            print("is",self.on_publish)
             self.on_publish(cl, req, res)
         except Exception:
             log.exception('publish delegate')

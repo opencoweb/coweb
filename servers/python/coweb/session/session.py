@@ -18,22 +18,10 @@ from .. import bayeux
 from .. import service
 from .. import OEHandler
 from ..moderator import SessionModerator
+from ..serviceutil import getServiceNameFromChannel
 
 OEHandler = OEHandler.OEHandler
 log = logging.getLogger('coweb.session')
-
-def getServiceNameFromChannel(channel, pub):
-    # Public channels are of form /bot/<NAME>
-    # Private channels are of form /service/bot/<NAME>/(request|response)
-    parts = channel.split("/")
-    if pub:
-        if 3 == len(parts):
-            return parts[2]
-    else:
-        if 5 == len(parts) and \
-                ("request" == parts[4] or "response" == parts[4]):
-            return parts[3];
-    return ""
 
 class Session(bayeux.BayeuxManager):
     '''
@@ -267,8 +255,8 @@ class SessionConnection(bayeux.BayeuxConnection):
         '''Overrides to handle bot requests.'''
         ch = req['channel']
         if ch.startswith('/service/bot'):
-            svcName = getServiceNameFromChannel(ch, False)
             # private bot message
+            svcName = getServiceNameFromChannel(ch, False)
             if self._manager._moderator.canClientMakeServiceRequest(svcName,
                     cl, req):
                 if not self._manager.request_for_service(cl, req, res):
