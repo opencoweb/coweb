@@ -42,6 +42,7 @@ class Session(bayeux.BayeuxManager):
                 self.sessionId
         self.syncAppChannel = '/session/%s/sync/app' % self.sessionId
         self.syncEngineChannel = '/session/%s/sync/engine' % self.sessionId
+        self.botRequestChannel = '/service/bot/%s/request'
 
         self._connectionClass = SessionConnection
         self._container = container
@@ -82,14 +83,22 @@ class Session(bayeux.BayeuxManager):
         if not self._inOnSync:
             self._flushModSyncs()
 
+    def postModeratorService(self, service, topic, params):
+        msg = {
+            "value": params,
+            "topic": topic,
+            "service": service}
+        self._sendSingleMessage(msg, self.botRequestChannel % service)
+
+
     # Must not be called while SessionModerator.onSync is executing!
     def _flushModSyncs(self):
         while len(self._modSyncs) > 0:
-            self._sendSingleMessage(self._modSyncs.pop(0))
+            self._sendSingleMessage(self._modSyncs.pop(0), self.syncAppChannel)
 
-    def _sendSingleMessage(self, message):
+    def _sendSingleMessage(self, message, channel):
         cl = self._moderator.client
-        req = cl.generate_message(self.syncAppChannel)
+        req = cl.generate_message(channel)
         req["data"] = message
 
         ch = req.get('channel', None)
@@ -251,6 +260,19 @@ class SessionConnection(bayeux.BayeuxConnection):
             # don't run default handling if sub failed
             super(SessionConnection, self).on_unsubscribe(cl, req, res)
 
+    def cannotSubscribe(self, cl, svcName):
+        cl.add_message({
+           "channel": "/bot/" + svcName,
+           "data": {"error": True}
+           })
+
+    def cannotPost(self, cl, svcName, msg):
+        token = msg['data']['topic']
+        cl.add_message({
+           "channel": "/service/bot/" + svcName + "/response",
+           "data": {"error": True, "topic": token}
+           })
+
     def on_publish(self, cl, req, res):
         '''Overrides to handle bot requests.'''
         ch = req['channel']
@@ -262,7 +284,8 @@ class SessionConnection(bayeux.BayeuxConnection):
                 if not self._manager.request_for_service(cl, req, res):
                     return
             else:
-                print("Cant!")
+                self.cannotPost(cl, svcName, req)
+                return
         elif not self._manager.collab:
             # disallow posting to any other channel by clients
             res['error'] = '402:%s:not-allowed' % client.clientId

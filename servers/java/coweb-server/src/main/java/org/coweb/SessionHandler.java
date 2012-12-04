@@ -611,8 +611,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 	private ServerChannel getServiceRequestChannel(String svc) {
 		String ch = String.format(this.botRequestChannel, svc);
 		this.server.createIfAbsent(ch);
-		return this.server.getChannel(String.format(this.botRequestChannel,
-					svc));
+		return this.server.getChannel(ch);
 	}
 
 	/**

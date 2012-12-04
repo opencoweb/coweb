@@ -24,9 +24,11 @@ public class LocalTransport extends Transport implements Proxy {
 			.getName());
 
 	private Bot bot = null;
-	private Map<String, ServerSession> clients = new HashMap<String, ServerSession>();
+	private Map<String, ServerSession> clients =
+		new HashMap<String, ServerSession>();
 
-	private ArrayList<ServerSession> subscribers = new ArrayList<ServerSession>();
+	private ArrayList<ServerSession> subscribers =
+		new ArrayList<ServerSession>();
 
 	public LocalTransport() {
 		super();
@@ -45,7 +47,8 @@ public class LocalTransport extends Transport implements Proxy {
 		if (this.bot == null) {
 			this.bot = this.getBotInstance();
 			if (this.bot == null)
-				throw new IOException("unable to locate bot " + this.serviceName);
+				throw new IOException("unable to locate bot " +
+						this.serviceName);
 		}
 
 		if (pub) {
@@ -115,15 +118,14 @@ public class LocalTransport extends Transport implements Proxy {
 		throws IOException {
 
 		Map<String, Object> data = message.getDataAsMap();
-		Map<String, Object> params = (Map<String, Object>) data.get("value");
 		String replyToken = (String) data.get("topic");
 
 		Map<String, Object> resp = new HashMap<String, Object>();
 		resp.put("error", true);
 		resp.put("topic", replyToken);
 
-		client.deliver(this.server, "/service/bot/" + this.serviceName + "/response",
-				resp, null);
+		client.deliver(this.server, "/service/bot/" + this.serviceName +
+				"/response", resp, null);
 	}
 
 	@Override
@@ -134,7 +136,8 @@ public class LocalTransport extends Transport implements Proxy {
 		ServerSession client = this.clients.get(replyToken);
 
 		if (client == null) {
-			log.warning("LocalTransport::error sending bot reply client not found");
+			log.warning("LocalTransport::error " +
+					"sending bot reply client not found");
 			// TODO send error.
 			return;
 		}
@@ -148,14 +151,14 @@ public class LocalTransport extends Transport implements Proxy {
 		log.fine("payload = " + data);
 		log.fine("replyToken = " + replyToken);
 
-		client.deliver(this.server, "/service/bot/" + this.serviceName + "/response",
-				data, null);
+		client.deliver(this.server, "/service/bot/" + this.serviceName +
+				"/response", data, null);
 		this.clients.remove(replyToken);
 	}
 
 	/**
-	 * Sends an error message to clients who are not permissioned to connect (when
-	 * the moderator disallows it).
+	 * Sends an error message to clients who are not permissioned to connect
+	 * (when the moderator disallows it).
 	 * @param client Client attempting to join.
 	 * @param message The client's message when it attempted to join.
 	 */
@@ -215,7 +218,8 @@ public class LocalTransport extends Transport implements Proxy {
 		if (serverChannel != null)
 			return serverChannel;
 
-		ServerChannel.Initializer initializer = new ServerChannel.Initializer() {
+		ServerChannel.Initializer initializer = new ServerChannel.Initializer()
+		{
 			@Override
 			public void configureChannel(ConfigurableServerChannel channel) {
 				channel.setPersistent(true);

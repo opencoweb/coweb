@@ -83,13 +83,6 @@ class CollabSessionConnection(session.SessionConnection):
         cl.add_message({
             "data": msg,
             "channel": "/session/error"})
-        print("sent error")
-
-    def cannotSubscribe(self, cl, svcName):
-        cl.add_message({
-           "channel": "/bot/" + svcName,
-           "data": {"error": True}
-           })
 
     def on_subscribe(self, cl, req, res):
         '''Override to handle late-joiner logic.'''

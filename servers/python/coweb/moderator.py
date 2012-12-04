@@ -23,8 +23,10 @@ class CollabInterface:
 
     # Send a message to a service bot.
     def postService(self, service, params):
-        # TODO
-        pass
+        self.serviceId += 1
+        topic = "coweb.service.request." + service + "_" +\
+                str(self.serviceId) + "." + self._collabId
+        self._moderator._session.postModeratorService(service, topic, params)
 
 class SessionModerator:
     def __init__(self):
@@ -77,6 +79,7 @@ class SessionModerator:
 
     def onMessage(self, data):
         ch = data.get("channel", "")
+        data = data["data"]
         if isServiceChannel(ch):
             isPub = isPublicBroadcast(ch)
             svcName = getServiceNameFromChannel(ch, isPub)
