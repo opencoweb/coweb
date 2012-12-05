@@ -6,6 +6,17 @@ from .bayeux.handler import InternalBayeuxHandler
 
 _moderators = {}
 
+"""
+The moderator is logically another particpating client in a session. It should
+be able to do anything a browser client can. Much functionality (e.g. sending a
+sync or subscribing to bot) is implemented in a very ad-hoc manner.
+
+Ultimately, I'd like to have the moderator have full bayeux communication
+capabilities. See how the bots are implemented: they are started as another OS
+process and actually communicate over WebSockets. For now, the ad-hoc
+implementation works, so we'll stick with it.
+"""
+
 class CollabInterface:
     def __init__(self, mod, collabId):
         self._moderator = mod
@@ -66,21 +77,32 @@ class SessionModerator:
     # Create a bayeux client to represent this moderator. This way, the
     # moderator can send/receive messages like a "normal" browser client.
     def init(self, session):
+        self._connCounter = 0
         self._session = session
         self._collabInterfaces = set()
         self.client = session.new_client()
+        self.client.username = "Moderator"
+        self._doConnect()
+
+    def _doConnect(self):
         self.clientConn = InternalBayeuxHandler(self)
+        self._connCounter += 1
         req = {
                 "clientId": self.client.clientId,
-                "connectionType": "callback", # Non standard.
-                "channel": "/meta/connect"}
-        self.client.on_connect(self.clientConn, req, None)
-        self.client.username = "Moderator"
+                "connectionType": "long-polling",
+                "channel": "/meta/connect",
+                "id": self._connCounter}
+        res = {
+                "successful": True,
+                "channel": "/meta/connect",
+                "advice": {"timeout": 15000},
+                "id": self._connCounter}
+        self.client.on_connect(self.clientConn, req, res)
 
     def onMessage(self, data):
         ch = data.get("channel", "")
-        data = data["data"]
         if isServiceChannel(ch):
+            data = data["data"]
             isPub = isPublicBroadcast(ch)
             svcName = getServiceNameFromChannel(ch, isPub)
             error = data.get("error", False)

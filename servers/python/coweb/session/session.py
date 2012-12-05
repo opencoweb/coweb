@@ -276,17 +276,19 @@ class SessionConnection(bayeux.BayeuxConnection):
     def on_publish(self, cl, req, res):
         '''Overrides to handle bot requests.'''
         ch = req['channel']
+        manager = self._manager
         if ch.startswith('/service/bot'):
             # private bot message
             svcName = getServiceNameFromChannel(ch, False)
-            if self._manager._moderator.canClientMakeServiceRequest(svcName,
+            if manager._moderator.client == cl or \
+                    manager._moderator.canClientMakeServiceRequest(svcName,
                     cl, req):
-                if not self._manager.request_for_service(cl, req, res):
+                if not manager.request_for_service(cl, req, res):
                     return
             else:
                 self.cannotPost(cl, svcName, req)
                 return
-        elif not self._manager.collab:
+        elif not manager.collab:
             # disallow posting to any other channel by clients
             res['error'] = '402:%s:not-allowed' % client.clientId
             res['successful'] = False

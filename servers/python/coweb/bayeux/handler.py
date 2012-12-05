@@ -68,9 +68,10 @@ class InternalBayeuxHandler(object):
         msgs = json_decode(data)
         for msg in msgs:
             self._receiver.onMessage(msg)
+        self._receiver._doConnect()
 
     def is_finished(self):
-        return False
+        return True
 
 class HTTPBayeuxHandler(tornado.web.RequestHandler):
     '''Accepts Bayeux protocol over long-polling HTTP.'''
