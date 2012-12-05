@@ -99,7 +99,7 @@ You can seed a new cooperative web application project from scratch using the
 Maven archetype for the latest version of the coweb framework.
 
 #. Invoke the Maven command to generate a new project in the desired parent path
-of the project folder.
+   of the project folder.
 
    .. sourcecode:: console
 
@@ -166,11 +166,12 @@ server.
       $ cd cowebx-apps/launcher
       $ mvn jetty:run-war
 
-#. Visit http://localhost:8080/cowebx-apps in your browser to view the list of demos.
+#. Visit http://localhost:8080/cowebx-apps in your browser to view the list of
+   demos.
 
 #. You can optionally deploy individual cowebx applications by navigating to the
-desired application directory (e.g. :file:`cowebx/cowebx-apps/comap`) and deploy
-the WAR.
+   desired application directory (e.g. :file:`cowebx/cowebx-apps/comap`) and
+   deploy the WAR.
 
    .. sourcecode:: console
 
@@ -180,20 +181,204 @@ the WAR.
 Python setup
 ~~~~~~~~~~~~
 
-.. The old Python install instructions have been temporarily moved to
-   python_install.rst. When the Python server is brought up to date, we can use
-   this file to add back in Python tutorial instructions.
+The |coweb API| includes a Python cooperative web server implementation based on
+`Tornado`_ version 2.4 or higher. The Python server requires Python 3.2 which
+ships with or is easily installable on most \*nix/BSD operating systems.
 
-The |coweb API| includes a Python version of the cooperative web server based on
-`Tornado`_; however, the implementation is far out of date and no longer works.
-There is an ongoing effort to bring the Python version of the server back up to
-speed with the Java server, but in the meantime the Python server is not
-supported.
+.. _virtualenv-install:
 
-Effort to fix the Python server
-###############################
+Installing the Python server
+############################
 
-See the github issue for the status of `revamping the Python server
-<https://github.com/opencoweb/coweb/issues/203>`__.
+A Python coweb server can be deployed either in a virtual environment or
+system-wide using distutils.
 
+Installing using pip and virtualenv (option #1)
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
+If you want to create a virtualenv containing all the pre-requisites needed to
+develop and/or deploy your own coweb application, do the following:
+
+#. Install `pip`_ 1.2.1 or higher using some automated method or manually from
+   `PyPI`_.
+
+   .. sourcecode:: console
+
+      $ sudo easy_install pip    # works on Mac OS X 10.5+
+      $ sudo apt-get install python-setuptools && \
+        sudo easy_install pip    # works on Ubuntu
+
+#. Install `virtualenv`_ 1.8.4 or higher.
+
+   .. sourcecode:: console
+
+      $ sudo pip install virtualenv
+
+#. Create a virtual environment to host your coweb server.
+
+   .. sourcecode:: console
+
+      $ virtualenv /desired/project/path
+
+#. Activate the environment.
+
+   .. sourcecode:: console
+
+      $ source /desired/project/path/bin/activate
+
+#. Use :file:`pip` to install the latest stable :py:mod:`coweb` package from
+   `PyPI`_ and its dependencies in the virtual environment.
+
+   .. sourcecode:: console
+
+      $ pip install OpenCoweb
+
+#. Use the :file:`pycoweb` command to create a new coweb deployment in the
+   virtual environment root.
+
+   .. sourcecode:: console
+
+      $ pycoweb deploy /desired/project/path
+
+#. Execute the generated coweb application container script to start the server.
+
+   .. sourcecode:: console
+
+      $ run_server.py
+      $ deactivate      # to leave the virtualenv after quitting the server
+
+By default, the script makes the contents of :file:`/desired/project/path/www`
+accessible at http://localhost:8080/www. Modify the
+:file:`/desired/project/path/bin/run_server.py` script and restart the server to
+make changes to these, and other, defaults. See the Python documentation section
+about :doc:`/python/container` for details.
+
+.. _distutils-install:
+
+Installing using distutils (option #2)
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+Instead of using `pip`_, You can manually run the distutils :file:`setup.py` to
+install the Python `coweb` package in your system :file:`site-packages` or the
+active virtualenv. If you take this approach, you must download the framework
+package from `PyPI`_ and resolve dependencies yourself (e.g., `Tornado`_).
+Otherwise, the steps are the same sans use of `pip`_ and/or `virtualenv`_.
+
+Deploying a coweb application
+#############################
+
+There are several ways to deploy a coweb application. The quickest way to begin
+developing is to generate a preconfigured application (option #1). The most
+barebones method is to generate a project from scratch (option #2), allowing for
+total control over every aspect of the application. Finally, one can simply
+deploy the demos and go from there.
+
+Generate a preconfigured coweb application (option #1)
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+The http://github.com/opencoweb/coweb-boilerplates repository on GitHub contains
+prebuilt snapshots of developer working environments. Follow these instructions
+if you want to deploy a prebuilt snapshot of a working coweb application on your
+Python server. These instructions will also deploy the cowebx demos and widgets
+as well.
+
+.. note:: The following steps assume you are using version 1.0 of the
+   `dojo-boilerplate` boilerplate.
+
+#. Clone the cowebx git repository into your desired project folder or download
+   a snapshot of it from https://github.com/opencoweb/cowebx/tarball/master.
+
+#. Clone the coweb-boilerplates git repository into your desired project folder
+   or download a snapshot of it from
+   https://github.com/opencoweb/coweb-boilerplates/tags. We are using tag v1.0,
+   so make sure to checkout this tag if you clone the git repository.
+
+#. Copy the desired boiler plate into the cowebx webapp folder.
+
+.. sourcecode:: console
+
+   $ cp -rf coweb-boilerplates/dojo-boilerplate cowebx/cowebx-apps/src/main/webapp
+
+#. If you installed the :py:mod:`coweb` package in a virtual environment,
+   activate that environment. Otherwise, skip this step.
+
+   .. sourcecode:: console
+
+      $ source /desired/project/path/bin/activate
+
+#. Use the :file:`setup.py` script to deploy the demos and a server container
+   script to run them.
+
+   .. sourcecode:: console
+
+      $ cd cowebx/cowebx-apps
+      $ python setup.py deploy /desired/project/path --force
+
+   .. note:: This command will overwrite any :file:`run_server.py` script that already exists in :file:`/desired/project/path/bin` (e.g., if you ran :file:`pycoweb` previously to seed an empty application in the virtualenv).
+
+#. Execute the generated coweb application container script to start the server.
+
+   .. sourcecode:: console
+
+      $ run_server.py
+      $ deactivate      # to leave the virtualenv after quitting the server
+
+#. Visit http://localhost:8080/cowebx-apps/dojo1.7-boilerplate/index.html in your browser to view your application.
+
+Generate a new coweb application from scratch (option #2)
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+You can use the included convenience scripts to deploy a fresh coweb application in your virtual environment.
+
+.. note:: A fresh, from-scratch coweb application is already created for you when deploying a Python server above. Follow these instructions for any additional fresh coweb applications you wish to generate.
+
+#. If you installed the :py:mod:`coweb` package in a virtual environment, activate that environment. Otherwise, skip this step.
+
+   .. sourcecode:: console
+   
+      $ source /desired/project/path/bin/activate
+
+#. Use the :file:`pycoweb` command to create a new coweb deployment in the virtual environment root.
+
+   .. sourcecode:: console
+
+      $ pycoweb deploy /desired/project/path
+
+#. Execute the generated coweb application container script to start the server.
+
+   .. sourcecode:: console
+
+      $ run_server.py
+      $ deactivate      # to leave the virtualenv after quitting the server
+
+By default, the script makes the contents of :file:`/desired/project/path/www` accessible at http://localhost:8080/www. Modify the :file:`/desired/project/pathbin/run_server.py` script and restart the server to make changes to these, and other, defaults. See the Python documentation section about :doc:`/python/container` for details.
+
+Deploy only the cowebx widgets / demos (option #3)
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+The http://github.com/opencoweb/cowebx repository on GitHub contains the coweb example applications running at http://demos.opencoweb.org. Follow these instructions if you want to deploy the cowebx demos on your own Python server after installing the :py:mod:`coweb` Python package as described above.
+
+#. Clone the cowebx git repository into your desired project folder or download a snapshot of it from https://github.com/opencoweb/cowebx/tarball/master.
+#. If you installed the :py:mod:`coweb` package in a virtual environment, activate that environment. Otherwise, skip this step.
+
+   .. sourcecode:: console
+   
+      $ source /desired/project/path/bin/activate
+
+#. Use the :file:`setup.py` script to deploy the demos and a server container script to run them.
+
+   .. sourcecode:: console
+   
+      $ cd cowebx/cowebx-apps
+      $ python setup.py deploy /desired/project/path --force
+
+   .. note:: This command will overwrite any :file:`run_server.py` script that already exists in :file:`/desired/project/path/bin` (e.g., if you ran :file:`pycoweb` previously to seed an empty application in the virtualenv).
+
+#. Execute the generated coweb application container script to start the server.
+
+   .. sourcecode:: console
+
+      $ run_server.py
+      $ deactivate      # to leave the virtualenv after quitting the server
+
+#. Visit http://localhost:8080/cowebx-apps/index.html in your browser to view the list of demos.

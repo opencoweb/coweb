@@ -12,10 +12,10 @@ along language lines. An overview of the source tree follows:
    docs/          # Sphinx documentation source
    servers/
       java/       # Java server coweb modules
-      python/     # Python server coweb package (current code does not work)
+      python/     # Python server coweb package
    js/
       build/      # Build profiles for the coweb JavaScript (outdated, doesn't work properly)
-      release/    # Stable, minified builds of the coweb JavaScript modules
+      release/    # Stable, minified builds of the coweb JavaScript modules (for use with python)
       test/       # JavaScript coweb tests (outdated, not supported at this time)
 
 JavaScript
@@ -24,6 +24,11 @@ JavaScript
 The JavaScript, client-side portion of the framework appears under
 :file:`servers/java/coweb-javascript` in the source tree. All JS files under
 this folder are in `Asynchronous Module Definition`_ (AMD) format.
+
+Note that this code is used by all browser clients regardless of the type of
+server they are connecting to (Java or Python). The code lives in the same
+directory as the Java server (:file:`servers/java`) so that all Maven modules
+live in the same directory.
 
 ::
 
@@ -55,10 +60,6 @@ defining a coweb application archetype reside here as well.
 Python
 ~~~~~~
 
-.. warning:: The Python server does not work as of 0.8.4 (and way before that).
-   The following is outdated and will be updated once the Python server is
-   brought up to date with version 1.0.
-
 A Python implementation of a coweb server lives under :file:`servers/python`.
 The server code exists in a single Python package named :py:mod:`coweb` in
 this path. The key subpackages of :py:mod:`coweb`, particularly those that
@@ -74,6 +75,7 @@ allow extension of the server, are depicted below.
       service/
          launcher/      # Interface and impl for bot launchers
          manager/       # Interface and impl for bot transports and managers
+      cowebpyoe/        # Python version of the operation engine
    pycoweb              # Coweb application container deploy script
    setup.py             # Distutils install script
 
