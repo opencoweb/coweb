@@ -127,10 +127,6 @@ class BayeuxManager(object):
     def delete_client(self, cid):
         '''Deletes the client assocaited with the given client ID.'''
         cl = self._clients[cid]
-        print("deleting", cid, cl.siteId)
-        if (0 == cl.siteId):
-            import traceback
-            traceback.print_exc()
         del self._clients[cid]
         try:
             self.on_purging_client(cid, cl)
@@ -169,7 +165,6 @@ class BayeuxManager(object):
                 continue
             dt = now - cl.lastSeen
             if dt > self.deadAfter:
-                print("not seen lately!")
                 cl = self.delete_client(cid)
                 cl.destroy()
             if i % blockSize == 0 and time.time() - now > timeout:

@@ -65,6 +65,10 @@ class Session(bayeux.BayeuxManager):
 
         self._handler = None
 
+    def postEngineSync(self, sites):
+        data = {"context": sites}
+        self._sendSingleMessage(data, self.syncEngineChannel)
+
     """
        Publish a message form the moderator to all listening clients. This
        method doesn't actually send anything directly, but rather it delegates
