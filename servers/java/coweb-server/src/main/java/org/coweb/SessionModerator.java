@@ -288,7 +288,8 @@ public abstract class SessionModerator {
 			ServerSession client, Message botMessage);
 
 	/**
-	  * Called whenever a bot responds to a service message sent by this moderator.
+	  * Called whenever a bot responds to a service message sent by this
+	  * moderator.
 	  * @param svcName The bot's name.
 	  * @param data Bot message data as a JSON encodable map. Might be null.
 	  * @param error Was there an error?
@@ -298,20 +299,22 @@ public abstract class SessionModerator {
 			Map<String, Object> data, boolean error, boolean isPublic);
 
 	/**
-	  * Called whenever a session is over (i.e.&nbsp;all clients have left). Note that this
-	  * SessionModerator object will still be kept in memory if moderatorIsUpdater and
-	  * reused for any future coweb sessions with the same cowebkey.
+	  * Called whenever a session is over (i.e.&nbsp;all clients have left).
+	  * Note that this SessionModerator object will still be kept in memory if
+	  * moderatorIsUpdater and reused for any future coweb sessions with the
+	  * same cowebkey.
 	  *
-	  * <p>All CollabInterface objects created prior to onSessionEnd() being called
-	  * are now invalid and can no longer be used.
+	  * <p>All CollabInterface objects created prior to onSessionEnd() being
+	  * called are now invalid and can no longer be used.
 	  *
-	  * <p>If this moderator is not the updater, it is recommended that subclasses
-	  * use this method to help in resetting application state to a fresh state
-	  * incase a new session is initiated with the same cowebkey. Otherwise, the
-	  * browser clients will be out of sync with the moderator's state.
+	  * <p>If this moderator is not the updater, it is recommended that
+	  * subclasses use this method to help in resetting application state to a
+	  * fresh state incase a new session is initiated with the same cowebkey.
+	  * Otherwise, the browser clients will be out of sync with the moderator's
+	  * state.
 	  *
-	  * <p>This is important, because once a moderator is created for a specific cowebkey,
-	  * it is never destroyed, even if the session is ended.
+	  * <p>This is important, because once a moderator is created for a specific
+	  * cowebkey, it is never destroyed, even if the session is ended.
 	  */
 	public abstract void onSessionEnd();
 
@@ -332,9 +335,9 @@ public abstract class SessionModerator {
 	 * Callback when this a session has been created and joined by at least one
 	 * other external client. Note that this may be called multiple times in the
 	 * lifetime of a SessionModerator, because a moderator persists even when
-	 * all clients leave a session. When a new client joins a session that already
-	 * existed beforehand, this method will be called to notify the moderator that
-	 * the session is now "active" again.
+	 * all clients leave a session. When a new client joins a session that
+	 * already existed beforehand, this method will be called to notify the
+	 * moderator that the session is now "active" again.
 	 */
 	public abstract void onSessionReady();
 
@@ -371,8 +374,8 @@ public abstract class SessionModerator {
 		private AtomicInteger serviceId;
 
 		/**
-		 * Create a collaborative object interface for sending collab messages to
-		 * other clients in an OCW session. Used primarily with the moderator.
+		 * Create a collaborative object interface for sending collab messages
+		 * to other clients in an OCW session.
 		 * @param collabId Identifier for this collaborative object.
 		 */
 		private CollabInterface(SessionModerator mod, String collabId) {

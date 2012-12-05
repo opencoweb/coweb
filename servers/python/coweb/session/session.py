@@ -18,22 +18,10 @@ from .. import bayeux
 from .. import service
 from .. import OEHandler
 from ..moderator import SessionModerator
+from ..serviceutil import getServiceNameFromChannel
 
 OEHandler = OEHandler.OEHandler
 log = logging.getLogger('coweb.session')
-
-def getServiceNameFromChannel(channel, pub):
-    # Public channels are of form /bot/<NAME>
-    # Private channels are of form /service/bot/<NAME>/(request|response)
-    parts = channel.split("/")
-    if pub:
-        if 3 == len(parts):
-            return parts[2]
-    else:
-        if 5 == len(parts) and \
-                ("request" == parts[4] or "response" == parts[4]):
-            return parts[3];
-    return ""
 
 class Session(bayeux.BayeuxManager):
     '''
@@ -54,6 +42,7 @@ class Session(bayeux.BayeuxManager):
                 self.sessionId
         self.syncAppChannel = '/session/%s/sync/app' % self.sessionId
         self.syncEngineChannel = '/session/%s/sync/engine' % self.sessionId
+        self.botRequestChannel = '/service/bot/%s/request'
 
         self._connectionClass = SessionConnection
         self._container = container
@@ -64,12 +53,21 @@ class Session(bayeux.BayeuxManager):
         # Operation total order, setup OP engine.
         self._opOrder = -1
         self._opengine = OEHandler(self, 0)
+        # Don't think Tornado is multithreaded...no need to protect with lock.
+        # A safe multithreaded solution would be to use a simple semaphore with
+        # a single owner.
+        self._inOnSync = False
+        self._modSyncs = []
 
         # Use moderator?
         self._moderator = SessionModerator.getInstance(self,
                 self._container.moderatorClass, self.key)
 
         self._handler = None
+
+    def postEngineSync(self, sites):
+        data = {"context": sites}
+        self._sendSingleMessage(data, self.syncEngineChannel)
 
     """
        Publish a message form the moderator to all listening clients. This
@@ -85,10 +83,27 @@ class Session(bayeux.BayeuxManager):
        OEHandler to actually put the message on the wire.
     """
     def sendModeratorSync(self, message):
+        self._modSyncs.append(message)
+        if not self._inOnSync:
+            self._flushModSyncs()
+
+    def postModeratorService(self, service, topic, params):
+        msg = {
+            "value": params,
+            "topic": topic,
+            "service": service}
+        self._sendSingleMessage(msg, self.botRequestChannel % service)
+
+
+    # Must not be called while SessionModerator.onSync is executing!
+    def _flushModSyncs(self):
+        while len(self._modSyncs) > 0:
+            self._sendSingleMessage(self._modSyncs.pop(0), self.syncAppChannel)
+
+    def _sendSingleMessage(self, message, channel):
         cl = self._moderator.client
-        req = cl.generate_message(self.syncAppChannel)
+        req = cl.generate_message(channel)
         req["data"] = message
-        #self._handler.connection.invoke(json_encode([msg]));
 
         ch = req.get('channel', None)
         res = {'channel' : ch}
@@ -99,14 +114,28 @@ class Session(bayeux.BayeuxManager):
         res['advice'] = {'timeout' : self.timeout*1000}
         res['successful'] = True
 
-        # invoke client and ext method first
-        cl.on_publish(self, req, res)        
         # now invoke handler callbacks
         try:
             # delegate publish work to handler 
             self._connection.on_publish(cl, req, res)
         except Exception:
             log.exception('publish delegate')
+
+    def subscribeModeratorToService(self, svcName):
+        cl = self._moderator.client
+        ch = "/meta/subscribe"
+        req = cl.generate_message(ch)
+        req["subscription"] = "/bot/%s" % svcName
+
+        res = {'channel' : ch}
+        mid = req.get('id', None)
+        if mid: res['id'] = mid
+        cid = req.get('clientId', '')
+
+        res['advice'] = {'timeout' : self.timeout*1000}
+        res['successful'] = True
+        cl.add_channel("/bot/%s" % svcName)
+        self.subscribe_to_service(cl, req, req, True)
 
     def build_connection(self, handler):
         '''Override to build proper connection.'''
@@ -235,17 +264,35 @@ class SessionConnection(bayeux.BayeuxConnection):
             # don't run default handling if sub failed
             super(SessionConnection, self).on_unsubscribe(cl, req, res)
 
+    def cannotSubscribe(self, cl, svcName):
+        cl.add_message({
+           "channel": "/bot/" + svcName,
+           "data": {"error": True}
+           })
+
+    def cannotPost(self, cl, svcName, msg):
+        token = msg['data']['topic']
+        cl.add_message({
+           "channel": "/service/bot/" + svcName + "/response",
+           "data": {"error": True, "topic": token}
+           })
+
     def on_publish(self, cl, req, res):
         '''Overrides to handle bot requests.'''
         ch = req['channel']
+        manager = self._manager
         if ch.startswith('/service/bot'):
-            svcName = getServiceNameFromChannel(ch, False)
             # private bot message
-            if self._manager._moderator.canClientMakeServiceRequest(svcName,
+            svcName = getServiceNameFromChannel(ch, False)
+            if manager._moderator.client == cl or \
+                    manager._moderator.canClientMakeServiceRequest(svcName,
                     cl, req):
-                if not self._manager.request_for_service(cl, req, res):
+                if not manager.request_for_service(cl, req, res):
                     return
-        elif not self._manager.collab:
+            else:
+                self.cannotPost(cl, svcName, req)
+                return
+        elif not manager.collab:
             # disallow posting to any other channel by clients
             res['error'] = '402:%s:not-allowed' % client.clientId
             res['successful'] = False

@@ -39,7 +39,6 @@ class BayeuxSession(object):
             self.lastSeen)
 
     def generate_message(self, ch):
-        # TODO consider using extension "ext" like browser clients
         ret = {
             "id" : self._id_counter,
             "clientId" : self.clientId,
@@ -198,6 +197,7 @@ class BayeuxSession(object):
             # dump the connection response + any waiting messages
             conn.send(json_encode(msgs))
         except Exception as e:
+            raise e
             # closed connection; keep messages around for retry later
             # @todo: should we try dumping events on the long poll too?
             #  probably triggered by a publish so no need here?

@@ -1,7 +1,7 @@
 
 import traceback
 import json
-from multiprocessing import Process
+import tornado.ioloop
 import time
 import logging
 
@@ -18,15 +18,18 @@ SYNC_SLEEP = 10
 class OEHandler:
 
     def __init__(self, sessionHandler, siteId):
+        self._ioLoop = tornado.ioloop.IOLoop.instance()
         self.sessionHandler = sessionHandler
         self.engine = OperationEngine(siteId)
         self.engine.freezeSite(0)
 
         self.shouldSync = False
-        self.shoudPurge = False
+        self.shouldPurge = False
 
-        self.purgeTask = Process(target=self._purgeTask)
-        self.syncTask = Process(target=self._syncTask)
+        self.purgeTask = self._ioLoop.add_timeout(
+                time.time() + PURGE_SLEEP, self._doPurge)
+        self.syncTask = self._ioLoop.add_timeout(
+                time.time() + SYNC_SLEEP, self._doSync)
 
     """
         Called by the session when the moderator (or in general, any local
@@ -57,7 +60,7 @@ class OEHandler:
 
         self.sessionHandler.sendModeratorSync(message)
 
-        if type is not None:
+        if _type is not None:
             self.engine.pushLocalOp(op)
 
     """
@@ -78,7 +81,6 @@ class OEHandler:
     def syncInbound(self, data):
 
         topic = data.get("topic", "")
-
         value = data.get("value", None)
         _type = data.get("type", "")
         position = data.get("position", 0)
@@ -164,51 +166,43 @@ class OEHandler:
         return self.engine.getState()
 
     """
-      " Called whenever the SessionHandler that owns this OperationEngineHandler is ending. All
-      " TimerTasks are stopped from repeating.
+      " Called whenever the SessionHandler that owns this OperationEngineHandler
+      " is ending. All TimerTasks are stopped from repeating.
       "
       " Only package level access.
     """
     def shutdown(self):
-        self.purgeTask.terminate()
-        self.syncTask.terminate()
-
-    def _purgeTask(self):
-        while 1:
-            self.doPurge()
-            time.sleep(PURGE_SLEEP)
-
-    def _syncTask(self):
-        while 1:
-            self.doSync()
-            time.sleep(SYNC_SLEEP)
+        self._ioLoop.remove_timeout(self.purgeTask)
+        self._ioLoop.remove_timeout(self.syncTask)
 
     """
      " Called on a timer to purge the local op engine history buffer if the
      " op engine received a remote event or context vector since the last time
      " the timer fired.
     """
-    def doPurge(self):
-        if (not self.shouldPurge) or self.engine is None:
-            return
-        try:
-            engine.purge()
-        except Exception:
-            traceback.print_exc()
-        self.shouldPurge = False
+    def _doPurge(self):
+        if self.shouldPurge and self.engine is not None:
+            try:
+                self.engine.purge()
+            except Exception:
+                traceback.print_exc()
+            self.shouldPurge = False
+        self.purgeTask = self._ioLoop.add_timeout(
+                time.time() + PURGE_SLEEP, self._doPurge)
 
     """
        Called on a timer to send the local op engine context vector to other
        participants (topics.ENGINE_SYNC) if the local op engine processed
        received events since since the last time the timer fired.
     """
-    def doSync(self):
-        if (not self.shouldSync) or self.engine is None:
-            return
-        try:
-            cv = self.engine.copyContextVector()
-            sessionHandler.postEngineSync(cv.getSites())
-        except OperationEngineException:
-            traceback.print_exc()
-        self.shouldSync = False
+    def _doSync(self):
+        if self.shouldSync and self.engine is not None:
+            try:
+                cv = self.engine.copyContextVector()
+                self.sessionHandler.postEngineSync(cv.sites)
+            except OperationEngineException:
+                traceback.print_exc()
+            self.shouldSync = False
+        self.syncTask = self._ioLoop.add_timeout(
+                time.time() + SYNC_SLEEP, self._doSync)
 

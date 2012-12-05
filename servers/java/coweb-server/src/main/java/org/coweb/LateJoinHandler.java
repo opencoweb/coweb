@@ -48,11 +48,13 @@ public class LateJoinHandler {
 	private Object[] lastState = null;
 
 	/**
-	 * Map of bayeux client id to ServerSession. "clientId" is defined as the return value
-	 * of {@link org.cometd.bayeux.Session#getId}. For LocalSession/ServerSession pairs, the
-	 * values are identical (e.g. for the SessionModerator Session pair).
+	 * Map of bayeux client id to ServerSession. "clientId" is defined as the
+     * return value of {@link org.cometd.bayeux.Session#getId}. For
+     * LocalSession/ServerSession pairs, the values are identical (e.g. for the
+     * SessionModerator Session pair).
 	 */
-	private Map<String, ServerSession> clientids = new HashMap<String, ServerSession>();
+	private Map<String, ServerSession> clientids =
+        new HashMap<String, ServerSession>();
 
 	public LateJoinHandler(SessionHandler sessionHandler,
 			Map<String, Object> config) {
@@ -118,12 +120,12 @@ public class LateJoinHandler {
 	}
 
 	/**
-	 * Called when a client first attempts to join a session. This is called after
-	 * a client has subscribed to /service/session/join/[siteid,roster,state].
-	 * This method then sends siteid and roster info back to the client.
-	 * If there is state to send (either no updaters, so empty state, or cached
-	 * state), this method sends it immediately. Otherwise, this method asks an
-	 * updater for state.
+	 * Called when a client first attempts to join a session. This is called
+     * after a client has subscribed to
+     * /service/session/join/[siteid,roster,state]. This method then sends
+     * siteid and roster info back to the client. If there is state to send
+     * (either no updaters, so empty state, or cached state), this method sends
+     * it immediately. Otherwise, this method asks an updater for state.
 	 *
 	 * @param client Remote client joining the session.
 	 * @param message
@@ -152,13 +154,15 @@ public class LateJoinHandler {
 		log.info("updaterType = " + updaterType);
 
 		if (this.updaters.isEmpty()) {
-			/* This is the first client, since there are no other updaters. Send empty
-			 * state and make this client an updater for future late joiners. */
+			/* This is the first client, since there are no other updaters. Send
+             * empty state and make this client an updater for future late
+             * joiners. */
 			this.addUpdater(client, false);
 			sendState = true;
 			first = true;
 		} else if (this.lastState == null) {
-			/* Assign another client to be the "updater" of the newly joined client. */
+			/* Assign another client to be the "updater" of the newly joined
+             * client. */
 			this.assignUpdater(client, updaterType);
 			sendState = false;
 		} else {
@@ -177,7 +181,8 @@ public class LateJoinHandler {
 	 * This method checks the updater token to determine which newly joined
 	 * client should receive the full application state.
 	 * @param client The updater client.
-	 * @param message Contains token to identify the late joiner to get the state.
+	 * @param message Contains token to identify the late joiner to get the
+     *                state.
 	 */
 	public void onUpdaterSendState(ServerSession client, Message message) {
 		//log.info(message.getJSON());
@@ -193,7 +198,8 @@ public class LateJoinHandler {
 
 		List<String> tokens = this.updaters.get(clientId);
 		if (tokens == null) {
-			/* Client isn't really an updater: possible malicious or buggy client. */
+			/* Client isn't really an updater: possible malicious or buggy
+             * client. */
 			this.sessionHandler.removeBadClient(client);
 			return;
 		}
@@ -274,15 +280,16 @@ public class LateJoinHandler {
 	}
 
 	/**
-	 * Called when a client becomes an updated (typically when a new client joins
-	 * a session).
+	 * Called when a client becomes an updated (typically when a new client
+     * joins a session).
 	 * @param serverSession
 	 * @param notify Whether or not to send the updated roster information.
 	 */
 	protected void addUpdater(ServerSession serverSession, boolean notify) {
 		String clientId = serverSession.getId();
 
-		/* TODO ??? The comment below and the if statement contradict each other.
+		/* TODO ??? The comment below and the if statement contradict each
+         * other.
 		 * Moreover, the !this.updaters.isEmpty() is redundant... */
 		// check if this client is already an updater and ignore unless this is
 		// the first updater
@@ -314,7 +321,8 @@ public class LateJoinHandler {
 		data.put("siteId", siteId);
 		data.put("username", username);
 
-		String rosterAvailableChannel = this.sessionHandler.getRosterAvailableChannel();
+		String rosterAvailableChannel =
+            this.sessionHandler.getRosterAvailableChannel();
 		for (ServerSession c : this.sessionHandler.getAttendees()) {
 			c.deliver(from, rosterAvailableChannel, data, null);
 		}
@@ -328,15 +336,17 @@ public class LateJoinHandler {
 	protected void sendRosterUnavailable(ServerSession client) {
 		log.fine("CollabSessionHandler::sendRosterUnavailable");
 		/* create channel */
-		BayeuxServer server = this.sessionManager.getBayeux();
-		ServerChannel.Initializer initializer = new ServerChannel.Initializer() {
+        BayeuxServer server = this.sessionManager.getBayeux();
+        ServerChannel.Initializer initializer =
+            new ServerChannel.Initializer() {
 			@Override
 			public void configureChannel(ConfigurableServerChannel channel) {
 				channel.setPersistent(true);
 			}
 		};
 
-		String rosterUnavailableChannel = this.sessionHandler.getRosterUnavailableChannel();
+		String rosterUnavailableChannel =
+            this.sessionHandler.getRosterUnavailableChannel();
 		server.createIfAbsent(rosterUnavailableChannel, initializer);
 		ServerChannel channel = server.getChannel(rosterUnavailableChannel);
 		if (channel == null) {
@@ -407,10 +417,12 @@ public class LateJoinHandler {
 
 		int siteid = this.siteids.indexOf(client.getId());
 		if (siteid == -1) {
-			log.severe("removeSiteForClient ****** Cannot find client in siteids list *******");
+			log.severe("removeSiteForClient ****** Cannot find client " +
+                    "in siteids list *******");
 			Integer i = (Integer) client.getAttribute("siteid");
 			if (i == null) {
-				log.severe("******* Client Does not have siteId attribute - Ghost *******");
+				log.severe("******* Client Does not have siteId attribute " +
+                        "- Ghost *******");
 			}
 			return -1;
 		}

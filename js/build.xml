@@ -10,7 +10,7 @@
   <property name="lib" location="lib" />
   <property name="workpath" location="workpath" />
 
-  <property name="COMETD_VERSION" value="2.4.0"/>
+  <property name="COMETD_VERSION" value="2.5.0"/>
   <property name="REQUIREJS_VERSION" value="0.24.0"/>
   <property name="OAAHUB_VERSION" value="1.0_build117_v1.0"/>
 

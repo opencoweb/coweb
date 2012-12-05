@@ -12,10 +12,11 @@ import logging
 import re
 # coweb
 from . import session
+from ..serviceutil import isPublicBroadcast
+from ..serviceutil import getServiceNameFromChannel
 from coweb.session.late_join_handler import LateJoinHandler
 from coweb.session.moderator_late_join_handler import ModeratorLateJoinHandler
 
-getServiceNameFromChannel = session.getServiceNameFromChannel
 log = logging.getLogger('coweb.session')
 
 class CollabSession(session.Session):
@@ -68,11 +69,20 @@ class CollabSessionConnection(session.SessionConnection):
             # Push sync to op engine.
             sync = manager._opengine.syncInbound(req['data'])
             if sync:
+                manager._inOnSync = True
                 manager._moderator.onSync(cl, sync)
+                manager._inOnSync = False
         elif channel == manager.syncEngineChannel:
             manager._opengine.engineSyncInbound(req['data'])
         # delegate all other handling to base class
         super(CollabSessionConnection, self).on_publish(cl, req, res)
+        manager._flushModSyncs()
+
+    def sendError(self, cl, topic):
+        msg = {"topic": topic}
+        cl.add_message({
+            "data": msg,
+            "channel": "/session/error"})
 
     def on_subscribe(self, cl, req, res):
         '''Override to handle late-joiner logic.'''
@@ -86,6 +96,9 @@ class CollabSessionConnection(session.SessionConnection):
             svcName = getServiceNameFromChannel(sub, pub)
             if manager._moderator.canClientSubscribeService(svcName, cl, req):
                 didSub = manager.subscribe_to_service(cl, req, res, pub)
+            else:
+                self.cannotSubscribe(cl, svcName)
+                didSub = False
         elif sub == '/service/session/join/*':
             if manager._moderator.canClientJoinSession(cl, req):
                 ext = req['ext']
@@ -94,6 +107,9 @@ class CollabSessionConnection(session.SessionConnection):
                 cl.updaterType = updaterType
                 if manager._lateJoinHandler.onClientJoin(cl):
                     manager._moderator.onSessionReady()
+            else:
+                self.sendError(cl, "join-disallowed")
+                return
         elif sub == '/service/session/updater':
             manager._lateJoinHandler.addUpdater(cl)
             manager._moderator.onClientJoinSession(cl, req)

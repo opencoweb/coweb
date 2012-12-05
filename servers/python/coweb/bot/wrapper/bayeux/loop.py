@@ -43,7 +43,7 @@ class AsyncoreLoop(object):
         self._callbacks.append((cb, args, kwargs))
         # tickle the write pipe
         try:
-            self._wpipe.write('x')
+            self._wpipe.write(b'x')
         except (ValueError, IOError):
             pass
 
