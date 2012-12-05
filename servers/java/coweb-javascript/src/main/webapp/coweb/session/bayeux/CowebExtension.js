@@ -19,6 +19,7 @@ define(function() {
         this._cometd = null;
         this._sessionid = args.sessionid;
         this._updaterType = args.updaterType;
+        this._userDefined = args.userDefined || {}
     };
     
     /**
@@ -52,6 +53,7 @@ define(function() {
         var coweb = msg.ext.coweb = msg.ext.coweb || {};
         coweb.sessionid = this._sessionid;
         coweb.updaterType = this._updaterType;
+        msg.ext.userDefined = this._userDefined;
         return msg;
     };
 
