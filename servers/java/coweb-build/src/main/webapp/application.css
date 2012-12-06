@@ -4,7 +4,7 @@
  * Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
  */
  
-@import "http://vhost1629.developer.ihost.com/dojotoolkit/1.7.0/dijit/themes/claro/claro.css";
+@import "http://ajax.googleapis.com/ajax/libs/dojo/1.8.0/dijit/themes/claro/claro.css";
 
 html, body {
     margin: 0px;
