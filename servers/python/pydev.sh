@@ -1,12 +1,13 @@
 
-# Set up the python server environment, but the coweb files are linked symbolically to the
-# virtualenv, so that development can proceed on source files in the coweb repo, but testing
-# is through the virtualenv.
+# Set up the python server environment, but the coweb files are linked
+# symbolically to the virtualenv, so that development can proceed on source
+# files in the coweb repo, but testing is through the virtualenv.
 
 WP=$VIRTUAL_ENV
 
 if [ -z $WP ]; then
-    echo "Run this script in the virtualenv (i.e. \`source path/to/virtualenv/bin/activate\`"
+    echo "Run this script in the virtualenv \
+(i.e. \`source path/to/virtualenv/bin/activate\`"
     exit 1
 fi
 

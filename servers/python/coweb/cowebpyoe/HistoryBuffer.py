@@ -172,5 +172,5 @@ class HistoryBuffer:
         for v in self.ops:
             ops.append(self.ops[v])
         """ sort them by context, sequence, and site """
-        return sorted(ops, key=cmp_to_key(lambda x,y: a.compareByContext(b)))
+        return sorted(ops, key=cmp_to_key(lambda x,y: x.compareByContext(y)))
 
