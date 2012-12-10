@@ -1,3 +1,11 @@
 
-Staging area for converting jsoe (JavaScript OT engine) into a python version.
+About
 
+   This directory contains the operation engine code in Python. It was converted
+   from the JavaScript version found in https://github.com/opencoweb/coweb-jsoe.
+
+Bugs
+
+   Bugs should be reported to https://github.com/opencoweb/coweb/issues
+   The most likely cause of a bug is a JavaScript -> Python conversion issue
+   (e.g., JavaScript can increment via i++, Python cannot).

@@ -224,17 +224,17 @@ class OperationEngine:
         cd = self.cv.oldestDifference(mcv)
         ops = self.hb.getOpsForDifference(cd)
         while len(ops):
-            """ get an op from the list we have yet to process """
+            # get an op from the list we have yet to process
             curr = ops.pop()
-            """ if we haven't picked a minimum op yet OR """
-            """ the current op is before the minimum op in context """
+            # if we haven't picked a minimum op yet OR
+            # the current op is before the minimum op in context
             if (min_op is None or curr.compareByContext(min_op) == -1):
-                """ compute the oldest difference between the document state """
-                """ and the current op """
+                # compute the oldest difference between the document state
+                # and the current op
                 cd = self.cv.oldestDifference(curr.contextVector)
-                """ add the operations in this difference to the list to process """
-                ops = ops.concat(self.hb.getOpsForDifference(cd))
-                """ make the current op the new minimum """
+                # add the operations in this difference to the list to process
+                ops = ops + self.hb.getOpsForDifference(cd)
+                # make the current op the new minimum
                 min_op = curr
 
         """ get history buffer contents sorted by context dependencies """

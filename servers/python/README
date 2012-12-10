@@ -1,20 +1,59 @@
-Quick Install
-=============
+    OpenCoweb Python Server
 
-To install the coweb server dependencies and minified coweb JavaScript into a virtualenv, do the following. These steps assume you have virtualenv 1.5.1 or higher installed:
+This document describes the layout of the Python server source code, how to
+install the server, and how to develop the server.
 
-   cd servers/python
-   # create a virtualenv
-   virtualenv /some/path
-   # activate it
-   source /some/path/bin/activate
-   # use pip to install coweb package and dependencies
-   pip install .
-   # deploy a coweb server container and js libs
-   pycoweb deploy /some/path
-   # start the server
-   /some/path/bin/run_server.py
+ABOUT
 
-Place your coweb application in /some/path/www and visit http://localhost:8080/www/ in your browser. Edit /some/path/bin/run_server.py to customize the server settings.
+  All Python source code lives in the /coweb directory. The Python operational
+  transformation engine resides in /coweb/cowebpyoe. This web server
+  implementation is designed to run in a Python virtual environment. The
+  virtualenv automatically includes the JavaScript OpenCoweb library.
 
-For more information, see http://opencoweb.org/ocwdocs/.
+INSTALLING THE SERVER
+
+  The server is run from within a Python virtual environment. The virtualenv
+  contains: the Python server (contained in this directory) and the OpenCoweb
+  JavaScript library (located in another directory). To setup the virtualenv
+  from the source code, you must have a "release" version of the OCW JavaScript
+  library built in coweb/js/release/coweb-VERSION. VERSION must match the
+  version number in ./setup.py. To build a release version, run
+  coweb/js/setup_python_js.sh. This script will create a release version
+  according to the release version number in coweb/servers/java/
+  coweb-javascript/src/main/webapp/coweb/main.js.
+
+  To setup the virtualenv, run activate the virtualenv in your shell and install
+  the packages. Make sure your virtualenv uses Python >= 3.2!
+  
+    $ virtualenv -p python3 /path/to/virtualenv
+    $ source /path/to/virtualenv/bin/activate
+    $ pip install .
+
+  Now, use the pycoweb script to deploy an OCW application in the virtualenv.
+
+DEVELOPING THE SERVER
+
+  Once you've deployed the Python web server to a virtualenv, you can setup the
+  virtualenv to symlink to the code in this directory for easy development.
+
+    $ source /path/to/virtualenv/bin/activate
+    $ ./pydev.sh
+
+  This script symlinks all Python code and the JavaScript OCW library in this
+  git repository. Edit a file in this subdirectory, restart the web server, and
+  the changes should take effect.
+
+RUNNING APPLICATIONS
+
+  The cowebx demo applications (<https://github.com/opencoweb/cowebx>) come with
+  a setup script to invoke pycoweb and install an entire application to the
+  virtualenv. Follow the instructions on
+  <http://opencoweb.org/ocwdocs/tutorial/install.html>.
+
+  The setup script (cowebx/cowebx-apps/setup.py) contains all the necessary
+  logic to:
+    * Create the "run_server" script that starts the Tornado web server.
+    * Deploy the webapp's HTML, etc files.
+    * Deploy any moderator, bots, and updater scripts.
+
+For more information, see <http://opencoweb.org/ocwdocs>.

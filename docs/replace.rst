@@ -1,5 +1,7 @@
 .. |coweb api| replace:: OpenCoweb Framework
 .. |oaa hub| replace:: OpenAjax Hub
+.. |v boilerplate| replace:: 1.1
+.. |tag boilerplate| replace:: v1.1
 
 .. _pip: http://pypi.python.org/pypi/pip
 .. _Dojo: http://dojotoolkit.org

@@ -54,12 +54,12 @@ environments. Follow these instructions if you want to deploy a prebuilt
 snapshot of a working coweb application on your own Java server. These
 instructions will also deploy cowebx widgets as well.
 
-.. note:: The following steps assume you are using version 1.1 of the
-   `dojo-boilerplate` boilerplate.
+.. note:: The following steps assume you are using version |v boilerplate| of
+   the `dojo-boilerplate` boilerplate.
 
 #. Download a stable tagged release of coweb-boilerplates from the GitHub
    `tagged releases <https://github.com/opencoweb/coweb-boilerplates/tags>`__.
-   We are using tag v1.1.
+   We are using tag |tag boilerplate|.
 #. Unpackage the archive. The file will be named something like
    :file:`opencoweb-coweb-boilerplates-<SHA1ID>`, where <SHAID> is the SHA1 hash
    of the specific git commit. In this tutorial, we rename the resulting
@@ -281,13 +281,14 @@ prebuilt snapshots of developer working environments. Follow these instructions
 if you want to deploy a prebuilt snapshot of a working coweb application on your
 Python server.
 
-.. note:: The following steps assume you are using version 1.1 of the
-   `dojo-boilerplate` boilerplate.
+.. note:: The following steps assume you are using version |v boilerplate| of
+   the `dojo-boilerplate` boilerplate.
 
 #. Clone the coweb-boilerplates git repository into your desired project folder
    or download a tagged snapshot of it from
-   https://github.com/opencoweb/coweb-boilerplates/tags. We are using tag v1.1,
-   so make sure to checkout this tag if you clone the git repository.
+   https://github.com/opencoweb/coweb-boilerplates/tags. We are using tag
+   |tag boilerplate| so make sure to checkout this tag if you clone the git
+   repository.
 
 #. If you installed the :py:mod:`coweb` package in a virtual environment,
    activate that environment. Otherwise, skip this step.
@@ -326,8 +327,8 @@ You can use the included convenience scripts to deploy a fresh coweb application
 in your virtual environment.
 
 .. note:: A fresh, from-scratch coweb application is already created for you
-when deploying a Python server above. Follow these instructions for any
-additional fresh coweb applications you wish to generate.
+   when deploying a Python server above. Follow these instructions for any
+   additional fresh coweb applications you wish to generate.
 
 #. If you installed the :py:mod:`coweb` package in a virtual environment,
    activate that environment. Otherwise, skip this step.
@@ -378,16 +379,18 @@ after installing the :py:mod:`coweb` Python package as described above.
       $ source /desired/project/path/bin/activate
 
 #. Use the :file:`setup.py` script to deploy the demos and a server container
-   script to run them.
+   script to run them. Replace <APP> with the desired demo application to
+   deploy (i.e., comap, coedit, ...).
 
    .. sourcecode:: console
    
       $ cd cowebx/cowebx-apps
-      $ python setup.py deploy /desired/project/path --force
+      $ ./setup.py -a <APP> -p /desired/project/path --force deploy
 
    .. note:: This command will overwrite any :file:`run_server.py` script that
-   already exists in :file:`/desired/project/path/bin` (e.g., if you ran
-   :file:`pycoweb` previously to seed an empty application in the virtualenv).
+      already exists in :file:`/desired/project/path/bin` (e.g., if you ran
+      :file:`pycoweb` previously to seed an empty application in the
+      virtualenv).
 
 #. Execute the generated coweb application container script to start the server.
 
@@ -396,6 +399,6 @@ after installing the :py:mod:`coweb` Python package as described above.
       $ run_server.py
       $ deactivate      # to leave the virtualenv after quitting the server
 
-#. Visit http://localhost:8080/cowebx-apps/index.html in your browser to view
+#. Visit http://localhost:8080/APP/index.html in your browser to view
    the list of demos.
 

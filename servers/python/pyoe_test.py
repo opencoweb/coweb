@@ -1,4 +1,8 @@
 
+# Automated tester for the Python OT engine.
+# Clearly, this script needs improvements to actually do "real"
+# thorough testing.
+
 from cowebpyoe.OTEngine import OTEngine
 
 class OTClient:
