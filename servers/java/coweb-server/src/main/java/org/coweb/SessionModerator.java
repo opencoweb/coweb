@@ -46,9 +46,11 @@ public abstract class SessionModerator {
 			.getName());
 
 	/**
-	  * The default SessionModerator implementation used by {@link org.coweb.SessionModerator#getInstance}.
+	  * The default SessionModerator implementation used by
+	  * {@link org.coweb.SessionModerator#getInstance}.
 	  */
-	private static final String DefaultImpl = "org.coweb.DefaultSessionModerator";
+	private static final String DefaultImpl =
+		"org.coweb.DefaultSessionModerator";
 
 	/* Each cowebkey has one SessionModerator. */
 	private static HashMap<String, SessionModerator> instancesMap =
@@ -56,8 +58,9 @@ public abstract class SessionModerator {
 
 	protected SessionHandler sessionHandler = null;
 
-	/* Upon creating a LocalSession, a respective ServerSession object is created.
-	   Make sure both have the same attributes set: use {@link SessionModerator#setSessionAttribute}
+	/* Upon creating a LocalSession, a respective ServerSession object is
+	 * created. Make sure both have the same attributes set: use
+	 * {@link SessionModerator#setSessionAttribute}.
 	 */
 	protected LocalSession localSession = null;
 	protected ServerSession serverSession = null;
@@ -65,14 +68,16 @@ public abstract class SessionModerator {
 	private Set<CollabInterface> collabInterfaces;
 
 	/**
-	  * Use {@link SessionModerator#getInstance} to obtain a SessionModerator object.
+	  * Use {@link SessionModerator#getInstance} to obtain a SessionModerator
+	  * object.
 	  */
 	protected SessionModerator() {
 		;
 	}
 
 	/**
-	  * Use {@link SessionModerator#getInstance} to obtain a SessionModerator object.
+	  * Use {@link SessionModerator#getInstance} to obtain a SessionModerator
+	  * object.
 	  */
 	protected SessionModerator(SessionHandler sessionHandler) {
 
@@ -83,22 +88,24 @@ public abstract class SessionModerator {
 	  * The session moderator is either 1) given by the parameter classStr or
 	  * 2) SessionModerator.DefaultImpl if classStr is null.
 	  *
-	  * <p>If no SessionModerator exists for the confKey, a new instance is created and initialized.
-	  * The sessionid attribute is always updated to that of sessionHandler.
+	  * <p>If no SessionModerator exists for the confKey, a new instance is
+	  * created and initialized. The sessionid attribute is always updated to
+	  * that of sessionHandler.
 	  *
-	  * <p>The implicit assumption is that there exists a one-to-one correspondence between SessionHandler
+	  * <p>The implicit assumption is that there exists a one-to-one
+	  * correspondence between SessionHandler
 	  * objects and confKeys.
 	  *
-	  * @param sessionHandler used to initialize the newly created SessionModerator, if one was created
+	  * @param sessionHandler used to initialize the newly created
+	  *        SessionModerator, if one was created
 	  * @param classStr SessionModerator implementation to create
 	  * @param confKey cowebkey
-	  * @return	null if the SessionModerator class fails to be constructed or initialized.
+	  * @return	null if the SessionModerator class fails to be constructed or
+	  *         initialized.
 	  */
 	public static synchronized SessionModerator getInstance(
 			SessionHandler sessionHandler, String classStr, String confKey) {
 
-		/* Should there be one SessionModerator for each cowebkey? It looks like by
-		   using getInstance, atmost 1 SessionModerator object will *ever* be created. */
 		SessionModerator mod = SessionModerator.instancesMap.get(confKey);
 		if (null == mod) {
 			if (classStr == null) {
@@ -141,7 +148,8 @@ public abstract class SessionModerator {
 	}
 
 	/**
-	  * Updates the LocalSession and ServerSession attributes given a SessionHandler.
+	  * Updates the LocalSession and ServerSession attributes given a
+	  * SessionHandler.
 	  * 
 	  * <p>Visibility is default - only package level should access it.
 	  *
@@ -153,9 +161,9 @@ public abstract class SessionModerator {
 	}
 
 	/**
-	  * Returns the associated LocalSession object - this represents the moderator
-	  * when considered a "client" on the server. All messages originating from the
-	  * moderator should come <b>from</b> the LocalSession.
+	  * Returns the associated LocalSession object - this represents the
+	  * moderator when considered a "client" on the server. All messages
+	  * originating from the moderator should come <b>from</b> the LocalSession.
 	  * 
 	  * @return the associated LocalSession
 	  */
@@ -174,12 +182,13 @@ public abstract class SessionModerator {
 	}
 
 	/**
-	  * A SessionModerator is special - it has an associated ServerSession like all
-	  * "clients," but also has a LocalSession. Attributes will typically be synchronized.
-	  * so use this method to set an attribute in both Session objects.
+	  * A SessionModerator is special - it has an associated ServerSession like
+	  * all "clients," but also has a LocalSession. Attributes will typically be
+	  * synchronized. so use this method to set an attribute in both Session
+	  * objects.
 	  *
-	  * <p>For any attributes that SHOULD not be shared, use getLocalSession or getServerSession
-	  * and set the attribute on that object only.
+	  * <p>For any attributes that SHOULD not be shared, use getLocalSession or
+	  * getServerSession and set the attribute on that object only.
 	  *
 	  * @param key attribute key
 	  * @param val attribute value
@@ -192,9 +201,9 @@ public abstract class SessionModerator {
 
 	/**
 	 * The coweb server calls this anytime the server’s local operation engine
-	 * determines there is a sync event to apply to the moderator’s local copy of
-	 * the application data structure(s). Like coweb browser applications, the
-	 * implementors must honor and apply all sync events to local data
+	 * determines there is a sync event to apply to the moderator’s local copy
+	 * of the application data structure(s). Like coweb browser applications,
+	 * the implementors must honor and apply all sync events to local data
 	 * structure(s).
 	 *
 	 * <p>This method should return whether or not the sync event should be
@@ -210,112 +219,111 @@ public abstract class SessionModerator {
 	 * 	  <li> value - JSON object value representing the new value. See
 	 * 	  org.eclipse.jetty.util.ajax.JSON for how to read this object.
 	 * 	  <li> position - Integer position specifying where in the
-     * 	  one-dimensional array the operation should be applied.
+	 * 	  one-dimensional array the operation should be applied.
 	 * 
-     * @param client Client that generated the sync event.
+	 * @param clientId string identifier of client
 	 * @param data Map with sync data as described above.
 	 */
-	public abstract void onSync(ServerSession client, Map<String, Object> data);
+	public abstract void onSync(String clientId, Map<String, Object> data);
 
 	/**
-	  * Return a mapping of collab element IDs to application state. The coweb
-	  * server calls this when a new client joins a coweb sessiob. The 
-	  * <i>moderatorIsUpdater</i> boolean configuration option must be set to
-      * true, * so that the server knows to call this method (otherwise other
-      * clients are late join updaters).
-	  *
-	  * <p>The function should return a (key, value) map where there is one key
-      * for each collab object in the coweb application. The key should be the
-      * collab object ID, and the associated value should be a JSON object
-      * representing the state of that collab object.
-	  *
-	  * <p>For example, for a conference session with two collaborative elements
-	  * ("foo" and "bar"), this method will return a map with the pairs ("foo",
-	  * fooStateObj) and ("bar", barStateObj).
-	  *
-	  * <p>null should *not* be returned under any circumstance.
-	  *
-	  * @return collab application state map
-	  */
+	 * Return a mapping of collab element IDs to application state. The coweb
+	 * server calls this when a new client joins a coweb sessiob. The 
+	 * <i>moderatorIsUpdater</i> boolean configuration option must be set to
+	 * true, * so that the server knows to call this method (otherwise other
+	 * clients are late join updaters).
+	 *
+	 * <p>The function should return a (key, value) map where there is one key
+	 * for each collab object in the coweb application. The key should be the
+	 * collab object ID, and the associated value should be a JSON object
+	 * representing the state of that collab object.
+	 *
+	 * <p>For example, for a conference session with two collaborative elements
+	 * ("foo" and "bar"), this method will return a map with the pairs ("foo",
+	 * fooStateObj) and ("bar", barStateObj).
+	 *
+	 * <p>null should *not* be returned under any circumstance.
+	 *
+	 * @return collab application state map
+	 */
 	public abstract Map<String, Object> getLateJoinState();
 
 	/**
-	  * Determines whether or not a connecting client can join a session.
-	  *
-	  * @param client client attempting to join
-	  * @param message the message sent by the client
-	  * @return whether or not the client can join
-	  */
-	public abstract boolean canClientJoinSession(ServerSession client,
-			Message message);
+	 * Determines whether or not a connecting client can join a session.
+	 *
+	 * @param clientId string identifier of client
+	 * @param userDefined arbitrary data sent by the coweb application. See the
+	 *        org.eclipse.jetty.util.ajax.JSON class.
+	 * @return whether or not the client can join
+	 */
+	public abstract boolean canClientJoinSession(String clientId,
+			Map<String, Object> userDefined);
 
 	/**
-	  * Called to notify this moderator when a client has subscribed to updates.
-	  *
-	  * @param client client that just subscribed
-	  * @param message the message sent by the client
-	  */
-	public abstract void onClientJoinSession(ServerSession client,
-			Message message);
+	 * Called to notify this moderator when a client has subscribed to updates.
+	 *
+	 * @param clientId string identifier of client
+	 */
+	public abstract void onClientJoinSession(String clientId);
 
 	/**
-	  * Called to notify this moderator that a client has left the session.
-	  *
-	  * @param client client that just left the session
-	  */
-	public abstract void onClientLeaveSession(ServerSession client);
+	 * Called to notify this moderator that a client has left the session.
+	 *
+	 * @param clientId string identifier of client
+	 */
+	public abstract void onClientLeaveSession(String clientId);
 
 	/**
-	  * Should determine whether or not a client can subscribe to bot messages.
-	  *
-	  * @param svcName service name
-	  * @param client client that wants to subscribe to bot messages
-	  * @param message the message sent by the client
-	  * @return whether or not client can subscribe to bot messages
-	  */
+	 * Should determine whether or not a client can subscribe to bot messages.
+	 *
+	 * @param svcName service name
+	 * @param clientId string identifier of client
+	 * @return whether or not client can subscribe to bot messages
+	 */
 	public abstract boolean canClientSubscribeService(String svcName,
-			ServerSession client, Message message);
+			String clientId);
 
 	/**
-	  * Should determine whether or not a client can publish messages to bots.
-	  *
-	  * @param svcName service name
-	  * @param client that wants to publish messages
-	  * @param botMessage message the client wants to publish
-	  * @return whether or not the client can publish
-	  */
+	 * Should determine whether or not a client can publish messages to bots.
+	 *
+	 * @param svcName service name
+	 * @param clientId string identifier of client
+	 * @param botData Data intended to be sent to the bot. See the
+	 *        org.eclipse.jetty.util.ajax.JSON class.
+	 * @return whether or not the client can publish
+	 */
 	public abstract boolean canClientMakeServiceRequest(String svcName,
-			ServerSession client, Message botMessage);
+			String clientId, Map<String, Object> botData);
 
 	/**
-	  * Called whenever a bot responds to a service message sent by this
-	  * moderator.
-	  * @param svcName The bot's name.
-	  * @param data Bot message data as a JSON encodable map. Might be null.
-	  * @param error Was there an error?
-	  * @param isPublic Was the message a public bot broadcast?
-	  */
+	 * Called whenever a bot responds to a service message sent by this
+	 * moderator.
+	 * @param svcName The bot's name.
+	 * @param data Bot message data as a JSON encodable map. Might be null.
+	 * @param error Was there an error?
+	 * @param isPublic Was the message a public bot broadcast?
+	 */
 	public abstract void onServiceResponse(String svcName,
 			Map<String, Object> data, boolean error, boolean isPublic);
 
 	/**
-	  * Called whenever a session is over (i.e.&nbsp;all clients have left).
-	  * Note that this SessionModerator object will still be kept in memory if
-	  * moderatorIsUpdater and reused for any future coweb sessions with the
-	  * same cowebkey.
-	  *
-	  * <p>All CollabInterface objects created prior to onSessionEnd() being
-	  * called are now invalid and can no longer be used.
-	  *
-	  * <p>If this moderator is not the updater, it is recommended that
-	  * subclasses use this method to help in resetting application state to a
-	  * fresh state incase a new session is initiated with the same cowebkey.
-	  * Otherwise, the browser clients will be out of sync with the moderator's
-	  * state.
-	  *
-	  * <p>This is important, because once a moderator is created for a specific
-	  * cowebkey, it is never destroyed, even if the session is ended.
-	  */
+	 * Called whenever a session is over (i.e.&nbsp;all clients have left).
+	 * Note that this SessionModerator object will still be kept in memory if
+	 * moderatorIsUpdater and reused for any future coweb sessions with the
+	 * same cowebkey.
+	 *
+	 * <p>All CollabInterface objects created prior to onSessionEnd() being
+	 * called are now invalid and can no longer be used.
+	 *
+	 * <p>If this moderator is not the updater, it is recommended that
+	 * subclasses use this method to help in resetting application state to a
+	 * fresh state incase a new session is initiated with the same cowebkey.
+	 * Otherwise, the browser clients will be out of sync with the moderator's
+	 * state.
+	 *
+	 * <p>This is important, because once a moderator is created for a specific
+	 * cowebkey, it is never destroyed, even if the session is ended.
+	 */
 	public abstract void onSessionEnd();
 
 	/**
@@ -361,13 +369,13 @@ public abstract class SessionModerator {
 
 	/**
 	 * Provide a simple interface for sending collaborative messages. This
-     * provides similar functionality to the JavaScript CollabInterface; since
+	 * provides similar functionality to the JavaScript CollabInterface; since
 	 * SessionModerator provides much of the functionality of the JavaScript
 	 * CollabInterface, this Java CollabInterface only provides methods to send
 	 * data. Receiving data is handled by the moderator.
 	 */
 	public static class CollabInterface
-            implements ServerSession.MessageListener {
+			implements ServerSession.MessageListener {
 
 		private SessionModerator moderator;
 		private String collabId;
@@ -389,10 +397,10 @@ public abstract class SessionModerator {
 		}
 
 		public boolean onMessage(ServerSession to, ServerSession from,
-                ServerMessage message) {
+				ServerMessage message) {
 			if (ServiceHandler.isServiceMessage(message)) {
 				String svcName = ServiceHandler.getServiceNameFromMessage(
-                        message);
+						message);
 
 				Map<String, Object> data = message.getDataAsMap();
 				Boolean error = (Boolean)data.get("error");
@@ -405,7 +413,7 @@ public abstract class SessionModerator {
 						ServiceHandler.isPublicBroadcast(message));
 			} else {
 				log.warning("CollabInterface received message it doesn't " +
-                        "understand: " + message);
+						"understand: " + message);
 			}
 			return true;
 		}
@@ -418,10 +426,10 @@ public abstract class SessionModerator {
 		 * @param position Position of the value change.
 		 */
 		public void sendSync(String name, Object value, String type,
-                int position) {
+				int position) {
 			name = "coweb.sync." + name + "." + this.collabId;
 			this.moderator.sessionHandler.publishModeratorSync(name, value,
-                    type, position);
+					type, position);
 		}
 
 		/**
@@ -435,7 +443,7 @@ public abstract class SessionModerator {
 			String topic = "coweb.service.request." + service + "_" + id +
 				"." + this.collabId;
 			this.moderator.sessionHandler.postModeratorService(service, topic,
-                    params);
+					params);
 		}
 
 	}

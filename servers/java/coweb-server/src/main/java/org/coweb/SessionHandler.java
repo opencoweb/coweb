@@ -307,7 +307,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 						" moderator or other listeners");
 				return false;
 			}
-			this.sessionModerator.onSync(from, syncEvent);
+			this.sessionModerator.onSync(from.getId(), syncEvent);
 			data.put("__alreadySent", SessionHandler.sendOnceKey);
 			/* In order to satisfy ordering requirements, we must send the
 			 * remote client's sync to other clients, then send any syncs
@@ -341,9 +341,11 @@ public class SessionHandler implements ServerChannel.MessageListener {
 				/* Moderator can always make service requests. */
 				String svcName = ServiceHandler.getServiceNameFromMessage(
 						message, false);
+				Map<String, Object> botData = message.getDataAsMap();
+				botData = (Map<String, Object>)botData.get("value");
 				if (this.sessionModerator.getServerSession() == remote ||
 						this.sessionModerator.canClientMakeServiceRequest(
-							svcName, remote, message)) {
+							svcName, remote.getId(), botData)) {
 					this.serviceHandler.forwardUserRequest(remote, message);
 				} else {
 					this.serviceHandler.userCannotPost(remote, message);
@@ -373,8 +375,10 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			throws IOException {
 		String channel = (String) message.get(Message.SUBSCRIPTION_FIELD);
 		if (channel.equals("/service/session/join/*")) {
-			if (this.sessionModerator.canClientJoinSession(serverSession,
-						message)) {
+			Map<String, Object> userDefined= (Map<String, Object>)
+				message.getExt().get("userDefined");
+			if (this.sessionModerator.canClientJoinSession(
+						serverSession.getId(), userDefined)) {
 				if (this.lateJoinHandler.onClientJoin(serverSession, message)) {
 					this.sessionModerator.onSessionReady();
 				}
@@ -394,7 +398,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 			if (this.sessionModerator.getServerSession() == serverSession ||
 					this.sessionModerator.canClientSubscribeService(
-						svcName, serverSession, message)) {
+						svcName, serverSession.getId())) {
 				this.serviceHandler.subscribeUser(serverSession, message);
 			} else {
 				this.serviceHandler.userCannotSubscribe(serverSession, message);
@@ -405,7 +409,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 			log.info("client subscribes to /session/updater");
 			this.attendees.add(serverSession);
 			this.lateJoinHandler.onUpdaterSubscribe(serverSession, message);
-			this.sessionModerator.onClientJoinSession(serverSession, message);
+			this.sessionModerator.onClientJoinSession(serverSession.getId());
 		}
 	}
 
@@ -447,7 +451,7 @@ public class SessionHandler implements ServerChannel.MessageListener {
 
 	public void onPurgingClient(ServerSession client) {
 		this.attendees.remove(client);
-		this.sessionModerator.onClientLeaveSession(client);
+		this.sessionModerator.onClientLeaveSession(client.getId());
 		boolean last = this.lateJoinHandler.onClientRemove(client);
 		if (last) {
 			this.endSession();

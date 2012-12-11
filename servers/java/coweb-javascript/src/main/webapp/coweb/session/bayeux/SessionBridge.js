@@ -4,8 +4,8 @@
 // Copyright (c) The Dojo Foundation 2011. All Rights Reserved.
 // Copyright (c) IBM Corporation 2008, 2011. All Rights Reserved.
 //
-/*jslint white:false, bitwise:true, eqeqeq:true, immed:true, nomen:false, 
-  onevar:false, plusplus:false, undef:true, browser:true, devel:true, 
+/*jslint white:false, bitwise:true, eqeqeq:true, immed:true, nomen:false,
+  onevar:false, plusplus:false, undef:true, browser:true, devel:true,
   forin:false, sub:false*/
 /*global define*/
 define([
@@ -14,8 +14,8 @@ define([
     'coweb/session/bayeux/ListenerBridge',
     'coweb/util/Promise',
     'coweb/util/xhr',
-	'org/requirejs/i18n!../../nls/messages',
-	'coweb/topics'
+    'org/requirejs/i18n!../../nls/messages',
+    'coweb/topics'
 ], function(cometd, CowebExtension, ListenerBridge, Promise, xhr, messages, topics) {
     /**
      * @constructor
@@ -24,8 +24,6 @@ define([
      * @param {String} args.adminUrl Target of prepare POST
      */
     var SessionBridge = function(args) {
-		//console.log('new session bridge');
-		//console.log(args);
         // state constants
         this.DISCONNECTING = 0;
         this.IDLE = 1;
@@ -42,7 +40,7 @@ define([
         this._baseUrl = args.baseUrl;
         this._state = this.IDLE;
         this._connectToken = null;
-        
+
         // promises for session sequence
         this._prepPromise = null;
         this._joinPromise = null;
@@ -52,7 +50,7 @@ define([
         // info received from server
         this.prepResponse = null;
 
-		this._navigateListeners = [];
+        this._navigateListeners = [];
 
         // build listener bridge instance
         this._bridge = new ListenerBridge({
@@ -64,31 +62,31 @@ define([
     // save typing and lookup
     var proto = SessionBridge.prototype;
 
-	proto.addNavigateListener = function(listener) {
-		
-		for(var i=0; i<this._navigateListeners; i++) {
-			if(this._navigateListeners[i] === listener) {
-				return;
-			}
-		}
-			
-	    this._navigateListeners.push(listener);
-	};
-	
-	proto.fireNavigationEvent = function(obj) {
-		for(var i=0; i<this._navigateListeners.length; i++) {
-			this._navigateListeners[i](obj);
-		}
-	};
-	
-	proto.removeNavigateListener = function(listener) {
-		for(var i=0; i<this._navigateListeners; i++) {
-			if(this._navigateListeners[i] === listener) {
-				this._navigateListeners.splice(i, 1);
-				break;
-			}
-		}
-	};
+    proto.addNavigateListener = function(listener) {
+
+        for(var i=0; i<this._navigateListeners; i++) {
+            if(this._navigateListeners[i] === listener) {
+                return;
+            }
+        }
+
+        this._navigateListeners.push(listener);
+    };
+
+    proto.fireNavigationEvent = function(obj) {
+        for(var i=0; i<this._navigateListeners.length; i++) {
+            this._navigateListeners[i](obj);
+        }
+    };
+
+    proto.removeNavigateListener = function(listener) {
+        for(var i=0; i<this._navigateListeners; i++) {
+            if(this._navigateListeners[i] === listener) {
+                this._navigateListeners.splice(i, 1);
+                break;
+            }
+        }
+    };
     /**
      * Destroys the instance. Voids all promises without resolution. Attempts
      * a disconnect from the server if not idle.
@@ -118,13 +116,17 @@ define([
      * @params {Boolean} collab True to request a cooperative session, false
      * @params {Boolean} cacheState True to turn state caching on
      * to request a session with access to services only
-	 * @params {String} requestUrl The url of the page making this prep request.
+     * @params {String} requestUrl The url of the page making this prep request.
      * @returns {Promise} Resolved on response from server
      */
-    proto.prepare = function(key, collab, cacheState, requestUrl, sessionName, userDefined) {
+    proto.prepare = function(key, collab, cacheState, requestUrl, sessionName,
+            userDefined) {
         // make sure we're idle
         if(this._state !== this.IDLE) {
             throw new Error(this.id + ': ' +messages.preparenonidlestate);
+        }
+        if (undefined !== userDefined && (typeof userDefined !== 'object')) {
+            throw new Error(messages.notjsonobject);
         }
         // build new disconnect promise
         this.disconnectPromise = new Promise();
@@ -134,8 +136,8 @@ define([
             key : key,
             collab : collab,
             cacheState : cacheState,
-			requesturl : requestUrl,
-			sessionName : sessionName
+            requesturl : requestUrl,
+            sessionName : sessionName
         };
         var args = {
             method : 'POST',
@@ -150,7 +152,10 @@ define([
         promise.then('_onPrepareResponse', '_onPrepareError', this);
         // change state to avoid duplicate prepares
         this._state = this.PREPARING;
-        this._userDefined = userDefined || {};
+        if (undefined === userDefined)
+            this._userDefined = {};
+        else
+            this._userDefined = userDefined;
         return this._prepPromise;
     };
 
@@ -170,7 +175,7 @@ define([
 
     /**
      * @private
-     */    
+     */
     proto._onPrepareError = function(args) {
         // go back to idle state
         this._state = this.IDLE;
@@ -197,14 +202,15 @@ define([
         }
 
         this._joinPromise = new Promise();
-        // register extension to include session id in ext        
+        // register extension to include session id in ext
         cometd.unregisterExtension('coweb');
-        var args = {sessionid : this.prepResponse.sessionid, updaterType: updaterType, userDefined: this._userDefined};
+        var args = {sessionid : this.prepResponse.sessionid,
+            updaterType: updaterType, userDefined: this._userDefined};
 
         cometd.registerExtension('coweb', new CowebExtension(args));
 
         cometd.configure({
-            url : this._baseUrl + this.prepResponse.sessionurl, 
+            url : this._baseUrl + this.prepResponse.sessionurl,
             logLevel: this._debug ? 'debug' : 'info',
             autoBatch : true,
             appendMessageTypeToURL: false
@@ -217,15 +223,15 @@ define([
         return this._joinPromise;
     };
 
-	proto.navigate = function(url) {
-		cometd.publish(this._bridge.adminChannel, {
-			value: {
-				url: url
-			},
-			topic: topics.ADMIN
-		});
-	};
-	
+    proto.navigate = function(url) {
+        cometd.publish(this._bridge.adminChannel, {
+            value: {
+                url: url
+            },
+            topic: topics.ADMIN
+        });
+    };
+
     /**
      * Called on /meta/unsuccessful notification from the cometd client for
      * any error. Forces a disconnect to prevent attempts to reconnect with
@@ -241,7 +247,7 @@ define([
         if(err && err.error) {
             bayeuxCode = err.error.slice(0,3);
         }
-        
+
         var tag;
         // @todo: handle 402, 412
         if(bayeuxCode === '500') {
@@ -262,10 +268,10 @@ define([
             } else if(this._state > this.PREPARING) {
                 tag = 'session-unavailable';
             }
-            
+
             // invoke disconnected callback directly
             this._onDisconnected(this._state, tag);
-            
+
             // force a local disconnect to avoid retries to a dead server
             this.disconnect();
 
@@ -292,7 +298,7 @@ define([
             var promise = this._joinPromise;
             this._joinPromise = null;
             promise.resolve();
-            
+
             // stop listening for connects after the first
             cometd.removeListener(this._connectToken);
             this._connectToken = null;
@@ -303,34 +309,34 @@ define([
      * Called when the server confirms a /meta/disconnect message.
      *
      * @param {Object} msg Disconnect response
-     */ 
+     */
     proto._onSessionDisconnect = function(msg) {
         // client requested disconnect confirmed by the server
         if(this._state !== this.IDLE) {
             this._onDisconnected(this._state, 'clean-disconnect');
         }
     };
-    
+
     /**
      * Triggers the request for the current shared session state.
      *
-     * @returns {Promise} Resolved on completion or failure of local 
+     * @returns {Promise} Resolved on completion or failure of local
      * application update
      */
     proto.update = function() {
         if(this._state !== this.JOINED) {
             throw new Error(this.id + ': '+messages.unjoinedstate);
         }
-        
+
         this._state = this.UPDATING;
         this._updatePromise = new Promise();
         this._bridge.initiateUpdate()
             .then('_onUpdateSuccess', '_onUpdateFailure', this);
         return this._updatePromise;
     };
-    
+
     /**
-     * Called when the listener reports the local application successfully 
+     * Called when the listener reports the local application successfully
      * updated to the shared session state.
      *
      * @private
@@ -345,7 +351,7 @@ define([
     };
 
     /**
-     * Called when the listener reports a failure to update the loca 
+     * Called when the listener reports a failure to update the loca
      * application to the shared session state.
      *
      * @private
@@ -359,17 +365,17 @@ define([
             promise.fail(err);
         }
     };
-    
+
     /**
-     * Sends a /meta/disconnect message to the server, synchronously or 
+     * Sends a /meta/disconnect message to the server, synchronously or
      * asynchronously. Triggers the _onDisconnected callback immediately if
      * already disconnected from the server.
      *
-     * @param {Boolean} [sync=false] True to send the disconnect message 
+     * @param {Boolean} [sync=false] True to send the disconnect message
      * synchronously, false to send it asynchronously
      */
     proto.disconnect = function(sync) {
-        if(this._state < this.IDLE) { 
+        if(this._state < this.IDLE) {
             // ignore if already disconnecting
             return;
         } else if(this._state === this.IDLE) {
