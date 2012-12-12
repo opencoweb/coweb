@@ -44,17 +44,17 @@ class SessionModerator:
         pass
 
     # The following define the public callback API.
-    def canClientJoinSession(self, client, message):
+    def canClientJoinSession(self, clientId, userDefined):
         raise NotImplementedError()
-    def canClientMakeServiceRequest(self, svcName, client, botMessage):
+    def canClientMakeServiceRequest(self, svcName, clientId, botData):
         raise NotImplementedError()
     def getLateJoinState(self):
         raise NotImplementedError()
-    def canClientSubscribeService(self, svcName, client, message):
+    def canClientSubscribeService(self, svcName, clientId):
         raise NotImplementedError()
-    def onClientJoinSession(self, client, message):
+    def onClientJoinSession(self, clientId):
         raise NotImplementedError()
-    def onClientLeaveSession(self, client):
+    def onClientLeaveSession(self, clientId):
         raise NotImplementedError()
     def onServiceResponse(self, svcName, data, error, isPublic):
         raise NotImplementedError()
@@ -62,7 +62,7 @@ class SessionModerator:
         raise NotImplementedError()
     def onSessionReady(self):
         raise NotImplementedError()
-    def onSync(self, client, data):
+    def onSync(self, clientId, data):
         raise NotImplementedError()
 
     # Create a CollabInterface for a moderator. Called by application
@@ -128,17 +128,17 @@ class DefaultSessionModerator(SessionModerator):
     def __init__(self):
         super(DefaultSessionModerator, self).__init__()
 
-    def canClientJoinSession(self, client, message):
+    def canClientJoinSession(self, clientId, userDefined):
         return True
-    def canClientMakeServiceRequest(self, svcName, client, botMessage):
+    def canClientMakeServiceRequest(self, svcName, clientId, botData):
         return True
     def getLateJoinState(self):
         return {}
-    def canClientSubscribeService(self, svcName, client, message):
+    def canClientSubscribeService(self, svcName, clientId):
         return True
-    def onClientJoinSession(self, client, message):
+    def onClientJoinSession(self, clientId):
         pass
-    def onClientLeaveSession(self, client):
+    def onClientLeaveSession(self, clientId):
         pass
     def onServiceResponse(self, svcName, data, error, isPublic):
         pass
@@ -146,6 +146,6 @@ class DefaultSessionModerator(SessionModerator):
         pass
     def onSessionReady(self):
         pass
-    def onSync(self, client, data):
+    def onSync(self, clientId, data):
         pass
 

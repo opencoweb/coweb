@@ -41,7 +41,7 @@ class CollabSession(session.Session):
     def on_purging_client(self, cid, client):
         '''Override to remove updater and end a session when none left.'''
         self._lateJoinHandler.removeUpdater(client)
-        self._moderator.onClientLeaveSession(client)
+        self._moderator.onClientLeaveSession(client.clientId)
         super(CollabSession, self).on_purging_client(cid, client)
 
     def onUpdaterSendState(self, updater, data):
@@ -70,7 +70,7 @@ class CollabSessionConnection(session.SessionConnection):
             sync = manager._opengine.syncInbound(req['data'])
             if sync:
                 manager._inOnSync = True
-                manager._moderator.onSync(cl, sync)
+                manager._moderator.onSync(cl.clientId, sync)
                 manager._inOnSync = False
         elif channel == manager.syncEngineChannel:
             manager._opengine.engineSyncInbound(req['data'])
@@ -87,6 +87,7 @@ class CollabSessionConnection(session.SessionConnection):
     def on_subscribe(self, cl, req, res):
         '''Override to handle late-joiner logic.'''
         manager = self._manager
+        mod = manager._moderator
         sub = req['subscription']
         didSub = True
         pub = sub.startswith('/bot')
@@ -94,25 +95,26 @@ class CollabSessionConnection(session.SessionConnection):
             # public subscribe to bot (/bot)
             # handle private subscribe to bot (/service/bot)
             svcName = getServiceNameFromChannel(sub, pub)
-            if manager._moderator.canClientSubscribeService(svcName, cl, req):
+            if mod.canClientSubscribeService(svcName, cl.clientId):
                 didSub = manager.subscribe_to_service(cl, req, res, pub)
             else:
                 self.cannotSubscribe(cl, svcName)
                 didSub = False
         elif sub == '/service/session/join/*':
-            if manager._moderator.canClientJoinSession(cl, req):
-                ext = req['ext']
+            ext = req['ext']
+            userDef = ext["userDefined"]
+            if mod.canClientJoinSession(cl.clientId, userDef):
                 coweb = ext['coweb']
                 updaterType = coweb['updaterType']
                 cl.updaterType = updaterType
                 if manager._lateJoinHandler.onClientJoin(cl):
-                    manager._moderator.onSessionReady()
+                    mod.onSessionReady()
             else:
                 self.sendError(cl, "join-disallowed")
                 return
         elif sub == '/service/session/updater':
             manager._lateJoinHandler.addUpdater(cl)
-            manager._moderator.onClientJoinSession(cl, req)
+            mod.onClientJoinSession(cl.clientId)
         if didSub:
             # don't run default handling if sub failed
             super(CollabSessionConnection, self).on_subscribe(cl, req, res)

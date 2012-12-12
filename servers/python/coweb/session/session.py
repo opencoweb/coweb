@@ -281,12 +281,13 @@ class SessionConnection(bayeux.BayeuxConnection):
         '''Overrides to handle bot requests.'''
         ch = req['channel']
         manager = self._manager
+        mod = manager._moderator
         if ch.startswith('/service/bot'):
             # private bot message
             svcName = getServiceNameFromChannel(ch, False)
-            if manager._moderator.client == cl or \
-                    manager._moderator.canClientMakeServiceRequest(svcName,
-                    cl, req):
+            botData = req["data"]["value"]
+            if mod.client == cl or mod.canClientMakeServiceRequest(svcName,
+                    cl.clientId, botData):
                 if not manager.request_for_service(cl, req, res):
                     return
             else:
