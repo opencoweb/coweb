@@ -512,7 +512,7 @@ public class LateJoinHandler {
 	 * @param client
 	 */
 	protected void removeUpdater(ServerSession client) {
-		log.fine("CollabDelegate::removeUpdater " + client);
+		log.fine("LateJoinHandler::removeUpdater " + client);
 		this.removeSiteForClient(client);
 
 		List<String> tokenList = this.updaters.get(client.getId());

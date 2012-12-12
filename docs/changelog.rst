@@ -8,6 +8,13 @@ Version 0.8.5
 ~~~~~~~~~~~~~
 * Moderator's onSync now takes a ServerSession argument representing the client
   who generated the sync event.
+* All Java moderator functions have been changed to take as an argument the
+  client's unique ID instead of the ServerSession object.
+* The Message object is also removed from Java moderator methods; instead, a Map
+  holds relevant information.
+* The Python server now has the concept of the moderator.
+* The Python server uses Tornado 2.4 and Python 3.2.
+* Removed CowebSecurityPolicy.
 
 Version 0.8.4
 ~~~~~~~~~~~~~
@@ -38,19 +45,23 @@ Version 0.8.4
 Version 0.8.3.1
 ~~~~~~~~~~~~~~~
 
-* Javascript OT engine is now a git submodule of the OCW coweb-jsoe repo. This doesn't affect API
-  or usage of the OCW code, but it does affect development for OCW. Development of coweb-jsoe is
-  separate for the coweb repo, and the coweb-javascript/src/main/webapp/coweb/jsoe submodule
-  needs to be updated when coweb-jsoe is updated.
+* Javascript OT engine is now a git submodule of the OCW coweb-jsoe repo. This
+  doesn't affect API or usage of the OCW code, but it does affect development
+  for OCW. Development of coweb-jsoe is separate for the coweb repo, and the
+  coweb-javascript/src/main/webapp/coweb/jsoe submodule needs to be updated when
+  coweb-jsoe is updated.
 * Update to use cometd 2.5
-* Moderator.onSync() now receives the topic as part of the map argument. The map has a new key
-  "channel" which is the bayeux channel name. See https://github.com/opencoweb/coweb/issues/201
-* Websockets is now available as a cometd transport. See https://github.com/opencoweb/coweb/issues/207
+* Moderator.onSync() now receives the topic as part of the map argument. The map
+  has a new key "channel" which is the bayeux channel name. See
+  https://github.com/opencoweb/coweb/issues/201
+* Websockets is now available as a cometd transport. See
+  https://github.com/opencoweb/coweb/issues/207
 
 Version 0.8.3
 ~~~~~~~~~~~~~
 
-* Changed Moderator API: `org.coweb.SessionModerator`_ ``getLateJoinState`` returns a ``Map`` of collab topics.
+* Changed Moderator API: `org.coweb.SessionModerator`_ ``getLateJoinState``
+  returns a ``Map`` of collab topics.
 * Fixed moderator bugs.
 * Fixed whiteboard cowebx-widget bug.
 * Critical sections of coweb-server now correctly synchronized.

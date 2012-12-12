@@ -28,7 +28,6 @@ import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.server.ext.AcknowledgedMessagesExtension;
 import org.coweb.SessionHandler;
 import org.coweb.SessionManager;
-import org.coweb.CowebSecurityPolicy;
 import org.coweb.CowebExtension;
 import org.coweb.CowebException;
 
@@ -50,7 +49,6 @@ public class AdminServlet extends HttpServlet {
 	public static final String SESSMGR_ATTRIBUTE = "session.attribute";
 
 	private SessionManager sessionManager = null;
-	private CowebSecurityPolicy securityPolicy = null;
 
 	/**
 	 * Loads the coweb config file and creates the security manager and session
@@ -121,24 +119,6 @@ public class AdminServlet extends HttpServlet {
 				log.info(e.getMessage());
 			}
 		}
-
-		// Create the security policy. Default to CowebSecurityPolicy.
-		// Get the SecurityPolicy for this application
-		String securityClass = (String) cowebConfig.get("securityClass");
-		if (securityClass == null)
-			securityPolicy = new CowebSecurityPolicy();
-		else {
-			try {
-				Class<? extends CowebSecurityPolicy> clazz = Class.forName(
-						securityClass).asSubclass(CowebSecurityPolicy.class);
-				securityPolicy = (CowebSecurityPolicy) clazz.newInstance();
-			} catch (Exception e) {
-				securityPolicy = new CowebSecurityPolicy();
-			}
-		}
-
-		// set the coweb security policty
-		bayeux.setSecurityPolicy(securityPolicy);
 
 		/* Create the SessionManager instance. The SessionManager also listens 
          * to all bayeux traffic. */
@@ -239,11 +219,11 @@ public class AdminServlet extends HttpServlet {
 		// TODO need to call the security policy to see if this user is
 		// allowed to send prep requests and allow any further processing
 		// as an extension point.
-		if (!securityPolicy.canAdminRequest(username, confKey, true)) {
+		/*if (!securityPolicy.canAdminRequest(username, confKey, true)) {
 			resp.sendError(HttpServletResponse.SC_FORBIDDEN, "user " + username
 					+ "not allowed");
 			return;
-		}
+		}*/
 
 		// grab the session name. optional param.
 		String sessionName = null;
