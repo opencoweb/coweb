@@ -66,7 +66,11 @@ This archetype produces a deployment descriptor under :file:`src/main/webapp/WEB
 Configuring CometD options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The CometD servlet accepts all of the `CometD 2 Java Server configuration`_ options. The defaults are acceptable for coweb applications in most situations. If you are developing locally, you may wish to set the `maxSessionsPerBrowser` option to `-1` to allow any number of local tabs or windows from the same browser to join the session without delay.
+The CometD servlet accepts all of the `CometD 2 Java Server
+configuration`_ options. The defaults are acceptable for coweb applications in
+most situations. If you are developing locally, you may wish to set the
+`maxSessionsPerBrowser` option to `-1` to allow any number of local tabs or
+windows from the same browser to join the session without delay.
 
 .. sourcecode:: xml
 
@@ -96,9 +100,6 @@ coweb configuration is specified within a configuration json file. To use a cust
    </servlet>
 
 The contents of :file:`cowebConfig.json` are considered a JSON object. The following are available properties that can be specified in the config json file:
-
-securityClass (java class name)
-   String name of a :class:`org.coweb.CowebSecurityPolicy` subclass to use instead of the base class which allows anonymous access to all sessions. 
 
 updaterTypeMatcherClass (java class name)
    String name of a :class:`org.coweb.UpdaterTypeMatcher` subclass to use to match an Updater Type for a late joiner.
@@ -130,17 +131,17 @@ cacheState (boolean)
 bots (json object array)
    Array of bot json configuration objects. Each bot configuration objects provides a "service" property which is the service name. It can optionally provide a "broker" property that is a name of a :class:`org.coweb.bots.Transport` subclass.
 
-Custom session security and Updater Type Matcher
+Custom Updater Type Matcher
 ################################################
 
-Say a certain app deployment requires the coweb server to control user access to sessions and their abilities in the session. The cowebConfig.json file provides the details for custom session delegate and security policy handlers to provide this level of control. It also configures a custom Updater Type Matcher.
+Say a certain app deployment requires the coweb server to control user access
+to sessions and their abilities in the session. The cowebConfig.json file
+configures a custom Updater Type Matcher.
 
-Contents of the cowebConfig.json will look like the following :
+Contents of the cowebConfig.json will look like the following.
 
 .. sourcecode:: json
 
    {
-       "delegateClass": "org.someorg.CustomSessionDelegate",
-       "securityClass": "org.someorg.CustomSecurityPolicy",
        "updaterTypeMatcherClass": "org.someorg.CustomUpdaterTypeMatcher"
    }

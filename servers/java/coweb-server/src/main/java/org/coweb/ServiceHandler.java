@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ServerSession;
+import org.cometd.bayeux.server.ServerChannel;
 import org.coweb.bots.transport.Transport;
 
 /**
@@ -176,7 +177,10 @@ public class ServiceHandler {
 		if (null == broker)
 			throw new IOException("no broker to handle this service " + serviceName);
 
-		broker.userCannotSubscribe(client, message);
+		HashMap<String, Object> data = new HashMap<String, Object>();
+		data.put("error", true);
+		ServerChannel ch = broker.getResponseChannel();
+		client.deliver(broker.getServer(), ch.getId(), data, null);
 	}
 
 	/**
@@ -225,7 +229,15 @@ public class ServiceHandler {
 			throw new IOException("no broker to handle this service "
 					+ serviceName);
 
-		broker.userCannotPost(client, message);
+		Map<String, Object> data = message.getDataAsMap();
+		String replyToken = (String) data.get("topic");
+
+		Map<String, Object> resp = new HashMap<String, Object>();
+		resp.put("error", true);
+		resp.put("topic", replyToken);
+
+		client.deliver(broker.getServer(), "/service/bot/" +
+				broker.getServiceName() + "/response", resp, null);
 		return;
 	}
 

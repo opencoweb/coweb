@@ -114,21 +114,6 @@ public class LocalTransport extends Transport implements Proxy {
 	}
 
 	@Override
-	public void userCannotPost(ServerSession client, Message message)
-		throws IOException {
-
-		Map<String, Object> data = message.getDataAsMap();
-		String replyToken = (String) data.get("topic");
-
-		Map<String, Object> resp = new HashMap<String, Object>();
-		resp.put("error", true);
-		resp.put("topic", replyToken);
-
-		client.deliver(this.server, "/service/bot/" + this.serviceName +
-				"/response", resp, null);
-	}
-
-	@Override
 	public void reply(Bot bot, String replyToken, Map<String, Object> obj) {
 
 		log.fine("LocalTransport::reply");
@@ -154,21 +139,6 @@ public class LocalTransport extends Transport implements Proxy {
 		client.deliver(this.server, "/service/bot/" + this.serviceName +
 				"/response", data, null);
 		this.clients.remove(replyToken);
-	}
-
-	/**
-	 * Sends an error message to clients who are not permissioned to connect
-	 * (when the moderator disallows it).
-	 * @param client Client attempting to join.
-	 * @param message The client's message when it attempted to join.
-	 */
-	@Override
-	public void userCannotSubscribe(ServerSession client, Message message)
-			throws IOException {
-		HashMap<String, Object> data = new HashMap<String, Object>();
-		data.put("error", true);
-		ServerChannel channel = this.getResponseChannel();
-		client.deliver(this.server, channel.getId(), data, null);
 	}
 
 	/**
@@ -211,23 +181,4 @@ public class LocalTransport extends Transport implements Proxy {
 		return bot;
 	}
 
-	private ServerChannel getResponseChannel() {
-
-		String channelName = "/bot/" + this.serviceName;
-		ServerChannel serverChannel = this.bayeuxServer.getChannel(channelName);
-		if (serverChannel != null)
-			return serverChannel;
-
-		ServerChannel.Initializer initializer = new ServerChannel.Initializer()
-		{
-			@Override
-			public void configureChannel(ConfigurableServerChannel channel) {
-				channel.setPersistent(true);
-				channel.setLazy(false);
-			}
-		};
-
-		this.bayeuxServer.createIfAbsent(channelName, initializer);
-		return this.bayeuxServer.getChannel(channelName);
-	}
 }

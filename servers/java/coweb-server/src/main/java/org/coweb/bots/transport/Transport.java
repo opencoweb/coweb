@@ -10,6 +10,8 @@ import java.util.Map;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.bayeux.server.ServerSession;
+import org.cometd.bayeux.server.ServerChannel;
+import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.coweb.SessionManager;
 
 public abstract class Transport {
@@ -38,6 +40,14 @@ public abstract class Transport {
 		this.serviceName = (String) botConfig.get("service");
 	}
 
+	public String getServiceName() {
+		return this.serviceName;
+	}
+
+	public ServerSession getServer() {
+		return this.server;
+	}
+
 	public void setSessionId(String sessionId) {
 		this.sessionId = sessionId;
 	}
@@ -50,16 +60,32 @@ public abstract class Transport {
 
 	public abstract boolean subscribeUser(ServerSession client,
 			boolean pub) throws IOException;
-	public abstract void userCannotSubscribe(ServerSession client,
-			Message message) throws IOException;
 
 	public abstract boolean unsubscribeUser(ServerSession client,
 			boolean pub) throws IOException;
 
 	public abstract boolean userRequest(ServerSession client, Message message)
 			throws IOException;
-	public abstract void userCannotPost(ServerSession client, Message message)
-		throws IOException;
 
 	public abstract void shutdown();
+
+	public ServerChannel getResponseChannel() {
+
+		String channelName = "/bot/" + this.serviceName;
+		ServerChannel serverChannel = this.bayeuxServer.getChannel(channelName);
+		if (serverChannel != null)
+			return serverChannel;
+
+		ServerChannel.Initializer initializer = new ServerChannel.Initializer()
+		{
+			@Override
+			public void configureChannel(ConfigurableServerChannel channel) {
+				channel.setPersistent(true);
+				channel.setLazy(false);
+			}
+		};
+
+		this.bayeuxServer.createIfAbsent(channelName, initializer);
+		return this.bayeuxServer.getChannel(channelName);
+	}
 }

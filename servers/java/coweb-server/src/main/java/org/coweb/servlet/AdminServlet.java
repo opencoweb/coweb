@@ -28,6 +28,7 @@ import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.server.ext.AcknowledgedMessagesExtension;
 import org.coweb.SessionHandler;
 import org.coweb.SessionManager;
+import org.coweb.CowebSecurityPolicy;
 import org.coweb.CowebExtension;
 import org.coweb.CowebException;
 
@@ -119,6 +120,8 @@ public class AdminServlet extends HttpServlet {
 				log.info(e.getMessage());
 			}
 		}
+
+		bayeux.setSecurityPolicy(new CowebSecurityPolicy());
 
 		/* Create the SessionManager instance. The SessionManager also listens 
          * to all bayeux traffic. */
@@ -232,16 +235,20 @@ public class AdminServlet extends HttpServlet {
 		}
 
 		// see if we have a session for this key already. If not create one.
-		SessionHandler handler = this.sessionManager.getSessionHandlerByConfkey(confKey, cacheState);
+		SessionHandler handler =
+			this.sessionManager.getSessionHandlerByConfkey(confKey, cacheState);
 		if (handler == null) {
 			try {
-				handler = this.sessionManager.createSession(confKey, cacheState);
+				handler =
+					this.sessionManager.createSession(confKey, cacheState);
 				handler.setSessionName(sessionName);
 				handler.setRequestUrl(requestUrl);
 			} catch (CowebException ce) {
 				ce.printStackTrace();
-				log.severe("Exception creating SessionHandler: " + ce.getMessage());
-				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to create session.");
+				log.severe("Exception creating SessionHandler: " +
+						ce.getMessage());
+				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+						"Failed to create session.");
 				return;
 			}
 		}
