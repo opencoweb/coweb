@@ -46,6 +46,8 @@
 .. _org.coweb.SessionModerator.CollabInterface: http://opencoweb.org/ocwdocs/apidocs/org/coweb/SessionModerator.CollabInterface.html
 .. _CollabInterface: http://opencoweb.org/ocwdocs/apidocs/org/coweb/SessionModerator.CollabInterface.html
 .. _org.coweb.bots.transport.LocalTransport: http://opencoweb.org/ocwdocs/apidocs/org/coweb/bots/transport/LocalTransport.html
+.. _org.coweb.bots.transport.Transport: http://opencoweb.org/ocwdocs/apidocs/org/coweb/bots/transport/Transport.html
+.. _org.coweb.UpdaterTypeMatcher: http://opencoweb.org/ocwdocs/apidocs/org/coweb/UpdaterTypeMatcher.html
 .. _org.eclipse.jetty.util.ajax.JSON: http://download.eclipse.org/jetty/stable-7/apidocs/org/eclipse/jetty/util/ajax/JSON.html
 
 .. _OpenCoweb Javadocs: http://opencoweb.org/ocwdocs/apidocs/

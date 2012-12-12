@@ -7,19 +7,27 @@
 Service bots
 ------------
 
-A transport-agnostic Java :term:`service bot` implements the informal :class:`org.coweb.bots.Bot` interface to receive data from users in a coweb session. The bot uses a :class:`org.coweb.bots.Proxy` implementation to send data back to a coweb session. The bot configuration determines what transport the server uses to communicate with the bot.
+A transport-agnostic Java :term:`service bot` implements the informal
+:class:`org.coweb.bots.Bot` interface to receive data from users in a coweb
+session. The bot uses a :class:`org.coweb.bots.Proxy` implementation to send
+data back to a coweb session. The bot configuration determines what transport
+the server uses to communicate with the bot.
 
 A Java bot must meet these criteria:
 
 #. The bot must implement the :class:`org.coweb.bots.Bot` interface.
-#. The bot must meet the criteria of its requested transport (e.g., reside in the coweb server class path for `org.coweb.bots.transport.LocalTransport`_).
+#. The bot must meet the criteria of its requested transport (e.g., reside in
+   the coweb server class path for `org.coweb.bots.transport.LocalTransport`_).
 
 Declaring bot metadata
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Bots declare their metadata and configuration in standard Java properties file. The property file resides with the deployed coweb server and describes how the server should expect to communicate with the bot.
+Bots declare their metadata and configuration in standard Java properties file.
+The property file resides with the deployed coweb server and describes how the
+server should expect to communicate with the bot.
 
-The following are the known properties. Any property except those noted as required may be omitted.
+The following are the known properties. Any property except those noted as
+required may be omitted.
 
 name
    Human readable name of the service bot.
@@ -32,9 +40,12 @@ version
 service
    Required unique name of the service offered by the bot.
 class
-   Required name of the class implementing the :class:`org.coweb.bots.Bot` interface.
+   Required name of the class implementing the :class:`org.coweb.bots.Bot`
+   interface.
 broker
-   Name of the :class:`org.coweb.bots.transport.Transport` class the bot should use to communicate with the coweb server. Defaults to `org.coweb.bots.transport.LocalTransport`_ if omitted. 
+   Name of the :class:`org.coweb.bots.transport.Transport` class the bot should
+   use to communicate with the coweb server. Defaults to 
+   `org.coweb.bots.transport.LocalTransport`_ if omitted. 
 
 Implementing a bot
 ~~~~~~~~~~~~~~~~~~

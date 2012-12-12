@@ -6,6 +6,10 @@ package org.coweb;
 
 import java.util.List;
 
+/**
+ * Interface called when a Delegate implementation needs to match an Updater
+ * Type for a late joiner.
+ */
 public interface UpdaterTypeMatcher {
 	/**
 	 * Called when a Delegate implementation needs to match an Updater Type.

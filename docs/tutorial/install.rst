@@ -4,7 +4,10 @@
 Deploying cooperative web servers and applications
 --------------------------------------------------
 
-Cooperative web applications require the JavaScript components of the coweb framework and a cooperative web server to host sessions. The steps in this tutorial explain how to meet these requirements based on your preferred server language: Java or Python.
+Cooperative web applications require the JavaScript components of the coweb
+framework and a cooperative web server to host sessions. The steps in this
+tutorial explain how to meet these requirements based on your preferred server
+language: Java or Python.
 
 .. note:: The latest stable release of the |coweb api| is available in
    `Maven Central`_ (Java) and on `PyPI`_ (Python). You should prefer these
