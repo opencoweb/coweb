@@ -22,9 +22,9 @@ fi
 rm -rf $libpath/coweb $libpath/cowebpyoe $WP/bin/pycoweb
 ln -s $PWD/pycoweb $WP/bin/pycoweb
 ln -s $PWD/coweb $libpath/coweb
-rm -rf $www/lib/coweb $www/lib/org/OpenAjax.js
-ln -s $jspath/coweb $www/lib/coweb
-ln -s $jspath/org/OpenAjax.js $www/lib/org/OpenAjax.js
+#rm -rf $www/lib/coweb $www/lib/org/OpenAjax.js
+#ln -s $jspath/coweb $www/lib/coweb
+#ln -s $jspath/org/OpenAjax.js $www/lib/org/OpenAjax.js
 
 echo "Done"
 
