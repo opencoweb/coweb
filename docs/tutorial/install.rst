@@ -217,11 +217,12 @@ develop and/or deploy your own coweb application, do the following:
 
       $ sudo pip install virtualenv
 
-#. Create a virtual environment to host your coweb server.
+#. Create a virtual environment to host your coweb server. Make sure the
+   virtualenv uses Python 3 libraries.
 
    .. sourcecode:: console
 
-      $ virtualenv /desired/project/path
+      $ virtualenv -p python3 /desired/project/path
 
 #. Activate the environment.
 
