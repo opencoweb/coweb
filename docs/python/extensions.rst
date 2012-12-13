@@ -5,19 +5,30 @@
 Extension points
 ----------------
 
-The various manager classes specified in a :class:`coweb.AppContainer` derive from abstract base classes representing extension points in the :mod:`coweb` package. New implementations of these base classes can define new methods of authenticating users, controlling session access, launching bots, communicating with bots and controlling the type of updater selected for late joiners.
+The various manager classes specified in a :class:`coweb.AppContainer` derive
+from abstract base classes representing extension points in the :mod:`coweb`
+package. New implementations of these base classes can define new methods of
+authenticating users, controlling session access, launching bots, communicating
+with bots and controlling the type of updater selected for late joiners.
 
 The creation and use of new managers requires:
 
 #. The installation of the :mod:`coweb` package into the Python import path.
 #. The import of the new manager module into an application container script.
-#. The configuration of an application container to use the new manager instead of its default.
-#. The configuration of an updater type matcher implementation used to select the type of updater for late joiners.
+#. The configuration of an application container to use the new manager instead
+   of its default.
+#. The configuration of an updater type matcher implementation used to select
+   the type of updater for late joiners.
 
-Revisit the section about :doc:`container` for assistance configuring a coweb server to use third-party managers.
+Revisit the section about :doc:`container` for assistance configuring a coweb
+server to use third-party managers.
 
 Authenticating users
 ~~~~~~~~~~~~~~~~~~~~
+
+.. deprecated:: 1.0
+   Please use the :class:`coweb.SessionModerator` to configure access to a coweb
+   session.
 
 .. module:: coweb.auth
    :synopsis: Python package defining the authentication manager interface and its default implementations.
@@ -63,6 +74,10 @@ Authenticating users
 
 Controlling session access
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. deprecated:: 1.0
+   Please use the :class:`coweb.SessionModerator` to configure access to a coweb
+   session.
 
 .. module:: coweb.access
    :synopsis: Python package defining the access manager interface and its default implementations.
@@ -258,6 +273,8 @@ Communicating with service bots
       :param str username: Authenticated username of the requestor
       :rtype: object
 
+   .. deprecated:: 1.0
+      Bots no longer receive sync events.
    .. method:: on_user_sync(self, serviceName, username, data)
 
       The coweb server calls this method when a coweb application sends a cooperative event to the session. The manager should return an object representing the message which the server will later ask it to send using :meth:`send_message`.

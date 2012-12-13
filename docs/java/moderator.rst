@@ -3,8 +3,8 @@
 .. default-domain:: py
 .. module:: org.coweb
 
-Coweb Moderator
----------------
+Java Moderator
+--------------
 
 This documention documents the features of and how to use the Moderator API.
 Application developers can use the Moderator API to track an OpenCoweb session's

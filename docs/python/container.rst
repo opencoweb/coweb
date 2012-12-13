@@ -7,25 +7,34 @@
 Application containers
 ----------------------
 
-A Python coweb server starts with an instance of :class:`coweb.AppContainer` which configures the running server. The default implementation included in the :mod:`coweb` package defines the available options and default configuration via instance variables and callback functions. Subclasses created using the :file:`pycoweb` script can override these defaults to customize a coweb server deployment.
+A Python coweb server starts with an instance of :class:`coweb.AppContainer`
+which configures the running server. The default implementation included in the
+:mod:`coweb` package defines the available options and default configuration via
+instance variables and callback functions. Subclasses created using the
+:file:`pycoweb` script can override these defaults to customize a coweb server
+deployment.
 
 The creation of an application container requires:
 
 #. The installation of the :mod:`coweb` package into the Python import path.
 #. The installation of the :file:`pycoweb` script into the run path.
 
-Both of these requirements are satisfied by following the setup documented under :doc:`/tutorial/install`.
+Both of these requirements are satisfied by following the setup documented under
+:doc:`/tutorial/install`.
 
 Generating an app container
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To generate a new application container script with all of its configuration options documented, use the :file:`pycoweb container` command like so:
+To generate a new application container script with all of its configuration
+options documented, use the :file:`pycoweb container` command like so:
 
 .. sourcecode:: console
 
    $ pycoweb container my_script
    
-To create a pre-configured container script named :file:`bin/run_server.py` plus directories for static web content (:file:`www`) and service bots (:file:`bots`), use the :file:`pycoweb deploy` command:
+To create a pre-configured container script named :file:`bin/run_server.py` plus
+directories for static web content (:file:`www`) and service bots
+(:file:`bots`), use the :file:`pycoweb deploy` command:
 
 .. sourcecode:: console
 
@@ -39,20 +48,30 @@ Run `pycoweb --help` to see the full set of supported options described below.
 
 .. option:: -f, --force
 
-   Force an overwrite of any files or folders in the target directory if they already exist. Defaults to false.
+   Force an overwrite of any files or folders in the target directory if they
+   already exist. Defaults to false.
 
 .. option:: -t <template>
 
-   Name or filename of the template to use to seed the application container script. Defaults to `verbose` which produces a full documented script with all options and their defaults listed in code comments. A value of `simple` produces a minimal script. Any other value is treated as a template filename to to use to generate the script. See the `verbose` and `simple` templates under :file:`scripts` in the :py:mod:`coweb` Python package as examples for writing your own templates.
+   Name or filename of the template to use to seed the application container
+   script. Defaults to `verbose` which produces a full documented script with
+   all options and their defaults listed in code comments. A value of `simple`
+   produces a minimal script. Any other value is treated as a template filename
+   to to use to generate the script. See the `verbose` and `simple` templates
+   under :file:`scripts` in the :py:mod:`coweb` Python package as examples for
+   writing your own templates.
 
 .. option:: --no-js
 
-   Prevent the stable, minified version of the JavaScript framework files from being copied into the :file:`www` directory when using :file:`pycoweb deploy`. Defaults to false. 
+   Prevent the stable, minified version of the JavaScript framework files from
+   being copied into the :file:`www` directory when using
+   :file:`pycoweb deploy`. Defaults to false. 
 
 Running an app container
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-To run a coweb server instance, execute the application container script like so:
+To run a coweb server instance, execute the application container script like
+so:
 
 .. sourcecode:: console
 
@@ -62,18 +81,23 @@ To run a coweb server instance, execute the application container script like so
 
 .. option:: --debug
 
-   Enables Tornado debug mode where any changes to the server scripts causes a automatic restart of the server. Also enables the `/debug` URL endpoint with information about sessions in progress. Defaults to false.
+   Enables Tornado debug mode where any changes to the server scripts causes a
+   automatic restart of the server. Also enables the `/debug` URL endpoint with
+   information about sessions in progress. Defaults to false.
 
 .. option:: --port =PORT
 
-   Specifies the HTTP port on which the server listens. Defaults to the one configured in the script. Specifying a port on the command line is useful for starting multiple coweb server processes without modifying the script.
+   Specifies the HTTP port on which the server listens. Defaults to the one
+   configured in the script. Specifying a port on the command line is useful for
+   starting multiple coweb server processes without modifying the script.
 
 Run :file:`coweb_app.py --help` for additional options provided by Tornado.
 
 Configuring an app container
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Configuring an application container amounts to editing the :class:`coweb.AppContainer` subclass in the script produced by :file:`pycoweb`.
+Configuring an application container amounts to editing the
+:class:`coweb.AppContainer` subclass in the script produced by :file:`pycoweb`.
 
 .. class:: AppContainer
 
@@ -81,79 +105,133 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
 
    .. attribute:: accessClass
    
-      Subclass of :class:`coweb.access.AccessBase` to use for controlling user authentication on the coweb server. Defaults to :mod:`coweb.auth.PublicAccess` allowing access by all users.
+      Subclass of :class:`coweb.access.AccessBase` to use for controlling user
+      authentication on the coweb server. Defaults to
+      :mod:`coweb.auth.PublicAccess` allowing access by all users.
       
-      No other implementations are currently available in the :mod:`coweb` package. New access managers can be created, however, by subclassing :class:`coweb.access.AccessBase`.
+      No other implementations are currently available in the :mod:`coweb`
+      package. New access managers can be created, however, by subclassing
+      :class:`coweb.access.AccessBase`.
 
-      This attribute may also be set to a 2-tuple with the class reference as the first element and a dictionary to be passed as keyword arguments to the class constructor as the second.
+      This attribute may also be set to a 2-tuple with the class reference as
+      the first element and a dictionary to be passed as keyword arguments to
+      the class constructor as the second.
 
    .. attribute:: appSettings
    
-      Dictionary of settings passed to the :class:`tornado.web.Application` constructor.
+      Dictionary of settings passed to the :class:`tornado.web.Application`
+      constructor.
 
    .. attribute:: authClass
    
-      Subclass of :class:`coweb.auth.AuthBase` to use for controlling user authentication on the coweb server. Defaults to :mod:`coweb.auth.PublicAuth` allowing authentication by all users with a randomly assigned username.
+      Subclass of :class:`coweb.auth.AuthBase` to use for controlling user
+      authentication on the coweb server. Defaults to
+      :mod:`coweb.auth.PublicAuth` allowing authentication by all users with a
+      randomly assigned username.
       
       Other available implementations of :class:`coweb.auth.AuthBase` include:
       
-         * :class:`coweb.auth.ini.IniAuth` supporting form-based plain-text or MD5-hashed auth (Only an example implementation, **not for production!**)
+         * :class:`coweb.auth.ini.IniAuth` supporting form-based plain-text or
+           MD5-hashed auth (Only an example implementation, **not for
+           production!**)
       
-      New authentication managers can be created by subclassing :class:`coweb.access.AuthBase`.
+      New authentication managers can be created by subclassing
+      :class:`coweb.access.AuthBase`.
       
-      This attribute may also be set to a 2-tuple with the class reference as the first element and a dictionary to be passed as keyword arguments to the class constructor as the second.
+      This attribute may also be set to a 2-tuple with the class reference as
+      the first element and a dictionary to be passed as keyword arguments to
+      the class constructor as the second.
    
    .. attribute:: containerPath
    
-      String absolute path of where the container script is located. All other path options are relative to this location. Defaults to the absolute path of the running script.
+      String absolute path of where the container script is located. All other
+      path options are relative to this location. Defaults to the absolute path
+      of the running script.
       
    .. attribute:: cowebIdleTimeout
    
-      Floating point window in seconds before an inactive coweb client is disconnected from a session. Defaults to `30`.
+      Floating point window in seconds before an inactive coweb client is
+      disconnected from a session. Defaults to `30`.
    
    .. attribute:: cowebBotLocalPaths
    
-      List of string paths to search for local Python service bots used by :mod:`coweb.service.ServiceLauncherBase` implementations. Defaults to `['bots']`.
+      List of string paths to search for local Python service bots used by
+      :mod:`coweb.service.ServiceLauncherBase` implementations. Defaults to
+      `['bots']`.
 
    .. attribute:: httpPort
    
-      Integer port number on which the coweb server listens. Defaults to `8080` and is overridden by any :option:`coweb_app.py --port` command line argument.
+      Integer port number on which the coweb server listens. Defaults to `8080`
+      and is overridden by any :option:`coweb_app.py --port` command line
+      argument.
    
    .. attribute:: httpStaticPath
    
-      String path to static web accessible resources. Defaults to :file:`./www`. Set to None to make no path web accessible and only expose the coweb resources (e.g., when deploying HTTP resources on nginx/Apache and proxying to the coweb server).
+      String path to static web accessible resources. Defaults to :file:`./www`.
+      Set to None to make no path web accessible and only expose the coweb
+      resources (e.g., when deploying HTTP resources on nginx/Apache and
+      proxying to the coweb server).
+
+   .. attribute:: moderatorClass
+
+      Subclass of :class:`coweb.SessionModerator` used as the session moderator
+      for OCW sessions.
+
+   .. attribute:: moderatorIsUpdater
+
+      Whether or not the moderator is the session updater. If set to True, then
+      all late joiners to a coweb session will get the application state from
+      the moderator via SessionModerator.getLateJoinState().
    
    .. attribute:: modulePath
    
-      String absolute path where the imported :mod:`coweb` Python package resides. Defaults to the absolute path of :mod:`coweb.__file__`.
+      String absolute path where the imported :mod:`coweb` Python package
+      resides. Defaults to the absolute path of :mod:`coweb.__file__`.
    
    .. attribute:: serviceLauncherClass
    
-      Subclass of :class:`coweb.service.ServiceLauncherBase` to use for launching service bots in sessions. Defaults to a 2-tuple with class :class:`coweb.service.ProcessLauncher` and dictionary `{sandbox : 'nobody', botPaths : self.cowebBotLocalPaths}`.
+      Subclass of :class:`coweb.service.ServiceLauncherBase` to use for
+      launching service bots in sessions. Defaults to a 2-tuple with class
+      :class:`coweb.service.ProcessLauncher` and dictionary `{sandbox :
+      'nobody', botPaths : self.cowebBotLocalPaths}`.
 
-      Other available implementations of :class:`coweb.service.ServiceLauncherBase` include:
+      Other available implementations of
+      :class:`coweb.service.ServiceLauncherBase` include:
       
-         * :class:`coweb.service.ObjectLauncher` supporting the direct import of Python bots into the coweb server process
+         * :class:`coweb.service.ObjectLauncher` supporting the direct import of
+           Python bots into the coweb server process
 
-      New service launchers can be created by subclassing :class:`coweb.service.ServiceLauncherBase`.
+      New service launchers can be created by subclassing
+      :class:`coweb.service.ServiceLauncherBase`.
 
-      This attribute may also be set to a lone class reference if the class requires no keyword arguments upon instantiation.
+      This attribute may also be set to a lone class reference if the class
+      requires no keyword arguments upon instantiation.
    
    .. attribute:: serviceManagerClass
    
-      Subclass of :class:`coweb.service.ServiceManagerBase` to use for launching service bots in sessions. Defaults to :mod:`coweb.service.BayeuxServiceManager` which enables Bayeux over WebSocket communication with bots.
+      Subclass of :class:`coweb.service.ServiceManagerBase` to use for launching
+      service bots in sessions. Defaults to
+      :mod:`coweb.service.BayeuxServiceManager` which enables Bayeux over
+      WebSocket communication with bots.
 
-      Other available implementations of :class:`coweb.service.ServiceManagerBase` include:
+      Other available implementations of
+      :class:`coweb.service.ServiceManagerBase` include:
       
-         * :class:`coweb.service.ObjectServiceManager` supporting direct instantiation and direct method invocation on bots imported into the coweb server process
+         * :class:`coweb.service.ObjectServiceManager` supporting direct
+           instantiation and direct method invocation on bots imported into the
+           coweb server process
 
-      New service launchers can be created by subclassing :class:`coweb.service.ServiceManagerBase`.
+      New service launchers can be created by subclassing
+      :class:`coweb.service.ServiceManagerBase`.
 
-      This attribute may also be set to a 2-tuple with the class reference as the first element and a dictionary to be passed as keyword arguments to the class constructor as the second.
+      This attribute may also be set to a 2-tuple with the class reference as
+      the first element and a dictionary to be passed as keyword arguments to
+      the class constructor as the second.
 
    .. attribute:: webAdminUrl
    
-      String absolute URL for the coweb admin resource controlling session lookup. Defaults to :attr:`webRoot` + `admin/`.
+      String absolute URL for the coweb admin resource controlling session
+      lookup. Defaults to :attr:`webRoot` + `admin/`.
 
    .. attribute:: webLoginUrl
    
@@ -165,75 +243,105 @@ Configuring an application container amounts to editing the :class:`coweb.AppCon
 
    .. attribute:: webRoot
    
-      String URL where all web resources are rooted by default. Defaults to :file:`/`.
+      String URL where all web resources are rooted by default. Defaults to
+      :file:`/`.
    
    .. attribute:: webSecretKey
    
-      String secret key for :mod:`coweb.auth.AuthBase` managers that use Tornado's secure cookie implementation. Defaults to a GUID generated by :file:`pycoweb`.
+      String secret key for :mod:`coweb.auth.AuthBase` managers that use
+      Tornado's secure cookie implementation. Defaults to a GUID generated by
+      :file:`pycoweb`.
    
    .. attribute:: webSessionRoot
    
-      String absolute URL for coweb session Bayeux endpoints. Defaults to :attr:`webRoot` + `session/`.
+      String absolute URL for coweb session Bayeux endpoints. Defaults to
+      :attr:`webRoot` + `session/`.
 
    .. attribute:: webStaticRoot
    
-      String absolute URL for static web resources in the :attr:`httpStaticPath`. Defaults to :attr:`webRoot` + `www/`.
+      String absolute URL for static web resources in the
+      :attr:`httpStaticPath`. Defaults to :attr:`webRoot` + `www/`.
    
    .. attribute:: updaterTypeMatcherClass
    
-      Subclass of :class:`coweb.updater.UpdaterTypeMatcherBase` to use to match an Updater Type for a late joiner. Defaults to :mod:`coweb.updater.DefaultUpdaterTypeMatcher` which will attempt an exact match against the available updater types.
+      Subclass of :class:`coweb.updater.UpdaterTypeMatcherBase` to use to match
+      an Updater Type for a late joiner. Defaults to
+      :mod:`coweb.updater.DefaultUpdaterTypeMatcher` which will attempt an
+      exact match against the available updater types.
    
    .. method:: on_configure(self)
    
-      The constructor invokes this method after defining the default attribute values but before computing relative paths. Override any attributes in here.
+      The constructor invokes this method after defining the default attribute
+      values but before computing relative paths. Override any attributes in
+      here.
       
       :rtype: None
    
    .. method:: on_build_auth_manager(self)
    
-      The constructor invokes this method to instantiate the configured authentication manager at server startup. Override to customize manager instantiation.
+      The constructor invokes this method to instantiate the configured
+      authentication manager at server startup. Override to customize manager
+      instantiation.
       
       :rtype: :class:`coweb.auth.AuthBase`
    
    .. method:: on_build_access_manager(self)
    
-      The constructor invokes this method to instantiate the configured access manager at server startup. Override to customize manager instantiation.
+      The constructor invokes this method to instantiate the configured access
+      manager at server startup. Override to customize manager instantiation.
 
       :rtype: :class:`coweb.access.AccessBase`
 
    .. method:: on_build_service_launcher(self, sessionBridge)
    
-      The session manager invokes this method to instantiate the configured service launcher at session startup. Override to customize manager instantiation.
+      The session manager invokes this method to instantiate the configured
+      service launcher at session startup. Override to customize manager
+      instantiation.
       
       :class:`coweb.service.ServiceLauncherBase`
    
    .. method:: on_build_service_manager(self, sessionBridge)
 
-      The session manager invokes this method to instantiate the configured service manager at session startup. Override to customize manager instantiation.
+      The session manager invokes this method to instantiate the configured
+      service manager at session startup. Override to customize manager
+      instantiation.
       
       :class:`coweb.service.ServiceManagerBase`
    
    .. method:: on_build_web_handlers(self)
    
-      The constructor invokes this method to get the list :class:`tornado.web.RequestHandler` classes and their arguments as parameters for the :class:`tornado.web.Application` constructor. Override to add application specific handlers in addition to the coweb handlers included by default.
+      The constructor invokes this method to get the list
+      :class:`tornado.web.RequestHandler` classes and their arguments as
+      parameters for the :class:`tornado.web.Application` constructor. Override
+      to add application specific handlers in addition to the coweb handlers
+      included by default.
    
    .. method:: on_build_web_app(self, handlers, settings)
    
-      The constructor invokes this method to instantiate a :class:`tornado.web.Application` instance, passing it the handler list from :meth:`on_build_web_handlers` and the settings from :attr:`appSettings`. Override to perform additional work.
+      The constructor invokes this method to instantiate a
+      :class:`tornado.web.Application` instance, passing it the handler list
+      from :meth:`on_build_web_handlers` and the settings from
+      :attr:`appSettings`. Override to perform additional work.
 
    .. method:: on_build_updater_type_matcher(self)
 
-      The session manager invokes this method to instantiate the configured updater type match at session startup. Override to customize manager instantiation. 
+      The session manager invokes this method to instantiate the configured
+      updater type match at session startup. Override to customize manager
+      instantiation. 
 
 Use cases
 ~~~~~~~~~
 
-The following examples demonstrate how modifying the application container options enables alternative server configurations.
+The following examples demonstrate how modifying the application container
+options enables alternative server configurations.
 
 No static web resources
 #######################
 
-Assume all web application resources reside on server like Apache or nginx which also acts as a reverse proxy for traffic to the coweb server. In this situation, the coweb server is configured only to handle session traffic and not share any static web resources.
+Assume all web application resources reside on server like Apache or nginx which
+also acts as a reverse proxy for traffic to the coweb server. In this situation,
+the coweb server is configured only to handle session traffic and not share any
+static web resources.
 
 .. sourcecode:: python
 
@@ -252,11 +360,17 @@ Assume all web application resources reside on server like Apache or nginx which
 Form-based authentication
 #########################
 
-Say a certain deployment requires the coweb server to control authentication rather than an external application server. The coweb server is configured to support form-based authentication against a local datastore of usernames and passwords. In this case, the datastore is a simple INI file containing usernames and passwords.
+Say a certain deployment requires the coweb server to control authentication
+rather than an external application server. The coweb server is configured to
+support form-based authentication against a local datastore of usernames and
+passwords. In this case, the datastore is a simple INI file containing usernames
+and passwords.
 
 .. note::
 
-   Use of INI files for storing user credentials is clearly not recommend in production. Subclass :class:`coweb.auth.AuthBase` to implement an authentication manager that can connect to your secure credential store.
+   Use of INI files for storing user credentials is clearly not recommend in
+   production. Subclass :class:`coweb.auth.AuthBase` to implement an
+   authentication manager that can connect to your secure credential store.
 
 .. sourcecode:: python
 
@@ -278,7 +392,10 @@ Say a certain deployment requires the coweb server to control authentication rat
 Bots in the same process
 ########################
 
-Imagine a coweb server is deployed for one specific application where the bots are known to be well-behaved (i.e., don't block, are secure). In this case, importing the bots into the coweb server process and invoking their methods directly is efficient.
+Imagine a coweb server is deployed for one specific application where the bots
+are known to be well-behaved (i.e., don't block, are secure). In this case,
+importing the bots into the coweb server process and invoking their methods
+directly is efficient.
 
 .. sourcecode:: python
 
@@ -298,3 +415,60 @@ Imagine a coweb server is deployed for one specific application where the bots a
 
    if __name__ == '__main__':
       coweb.run_server(ImportedBotsExample)
+
+Python Moderator
+################
+
+Subclass the :class:`coweb.SessionModerator` or
+:class:`coweb.DefaultSessionModerator` to build your own moderator. The
+moderator code below is used by the CoList application to give persistent
+state to CoList - even after all clients leave a session. Since the moderator
+lives in memory for each coweb session even after everyone leaves, the next
+user to join the session will see the old application state. Set the
+appropriate application container settings as described above.
+
+.. sourcecode:: python
+
+    import json
+    from coweb.moderator import DefaultSessionModerator
+
+    def _item(a,b,c):
+        return {"id":a,"name":b,"amount":c}
+
+    class ListModerator(DefaultSessionModerator):
+
+        def __init__(self):
+            super(DefaultSessionModerator, self).__init__()
+            self.bgData = []
+            self._ready = False
+
+        def canClientSubscribeService(self, svcName, cl):
+            return True
+
+        def canClientMakeServiceRequest(self, svcName, cl, msg):
+            return True
+
+        def onSessionReady(self):
+            self._ready = True
+
+        def onSessionEnd(self):
+            self._ready = False
+            print("onSessionEnd")
+
+        def getLateJoinState(self):
+            return {"shoppinglist": self.bgData}
+
+        def onSync(self, cl, data):
+            if "coweb.sync.change.shoppinglist" != data["topic"]:
+                return
+            ty = data["type"]
+            pos = data["position"]
+            v = data["value"]
+            if "insert" == ty:
+                self.bgData.insert(pos, v["row"])
+            elif "update" == ty:
+                attr = v["attr"]
+                self.bgData[pos][attr] = v["row"][attr]
+            elif "delete" == ty:
+                self.bgData.pop(pos)
+

@@ -12,6 +12,7 @@ Version 0.8.5
   client's unique ID instead of the ServerSession object.
 * The Message object is also removed from Java moderator methods; instead, a Map
   holds relevant information.
+* An operation engine runs for each coweb session in the Python server.
 * The Python server now has the concept of the moderator.
 * The Python server uses Tornado 2.4 and Python 3.2.
 * Removed CowebSecurityPolicy.
