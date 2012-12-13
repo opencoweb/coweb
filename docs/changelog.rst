@@ -4,8 +4,8 @@
 Changelog
 ---------
 
-Version 0.8.5
-~~~~~~~~~~~~~
+Version 1.0
+~~~~~~~~~~~
 * Moderator's onSync now takes a ServerSession argument representing the client
   who generated the sync event.
 * All Java moderator functions have been changed to take as an argument the

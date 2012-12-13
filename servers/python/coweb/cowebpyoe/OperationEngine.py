@@ -33,7 +33,7 @@ class OperationEngine:
         self.hb = HistoryBuffer()
         self.siteCount = 1
 
-    VERSION = "0.8.5-SNAPSHOT"
+    VERSION = "1.0"
 
     """
     Gets the state of this engine instance to seed a new instance.
