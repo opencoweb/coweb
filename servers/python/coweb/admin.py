@@ -38,7 +38,7 @@ class AdminHandler(tornado.web.RequestHandler):
         # always respond in JSON format
         self.set_header('Content-Type', 'application/json')
         # get info about the user
-        username = self.current_user
+        username = self.current_user.decode("utf-8")
         
         # decode params
         raw = self.request.body.decode("utf-8")
