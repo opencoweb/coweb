@@ -2,6 +2,10 @@
 Open Cooperative Web Framework
 ==============================
 
+----------------------------------------------------------------
+** *This project is no longer maintained and provided as is.* **
+----------------------------------------------------------------
+
 :Homepage: https://github.com/opencoweb/coweb/wiki
 :Project page: http://dojofoundation.org/projects/opencoweb
 :Code: https://github.com/opencoweb/coweb
