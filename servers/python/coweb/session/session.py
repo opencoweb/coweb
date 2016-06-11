@@ -231,7 +231,7 @@ class SessionConnection(bayeux.BayeuxConnection):
     '''Connection for uncollaborative sessions.'''
     def on_auth_ext(self, cl, auth):
         '''Overrides to use cookie + db for Bayeux authentication.'''
-        username = self._handler.current_user
+        username = self._handler.current_user.decode('utf-8')
         if username is None: return False
         # check credentials in the db
         return self._manager.authorize_user(username)
@@ -239,7 +239,7 @@ class SessionConnection(bayeux.BayeuxConnection):
     def on_handshake(self, cl, req, res):
         '''Overrides to attach authed username to client.'''
         if res['successful']:
-            cl.username = self._handler.current_user
+            cl.username = self._handler.current_user.decode('utf-8')
 
     def on_unknown_client(self, res):
         '''Overrides to prevent reconnects from dead clients.'''
