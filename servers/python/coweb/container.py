@@ -64,7 +64,8 @@ class AppContainer(object):
         self.on_configure()
 
         # adjust all paths to make them absolute relative to container loc now
-        self.httpStaticPath = self.get_absolute_path(self.httpStaticPath)
+        if self.httpStaticPath is not None:
+            self.httpStaticPath = self.get_absolute_path(self.httpStaticPath)
         for i, path in enumerate(self.cowebBotLocalPaths):
             self.cowebBotLocalPaths[i] = self.get_absolute_path(path)
 
